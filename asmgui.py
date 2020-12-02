@@ -1,7 +1,7 @@
 import sys
 
 from PySide2.QtWidgets import QMainWindow, QScrollArea, QStatusBar
-from PySide2.QtWidgets import QMenu, QTableView, QFileDialog
+from PySide2.QtWidgets import QMenu, QTableView, QFileDialog, QAbstractItemView
 from PySide2.QtWidgets import QSplitter, QTreeView, QLabel, QLineEdit
 from PySide2.QtWidgets import QGridLayout, QWidget, QApplication, QPushButton
 from PySide2.QtWidgets import QMessageBox, QAction, QDialog, QHeaderView
@@ -151,54 +151,30 @@ class FindDialog(QDialog):
         self.setLayout(grid)
         self.setWindowTitle("Search")
 
-    def _move_next(self):
-        selection = self._tree.selectionModel()
-        if not selection.hasSelection():
-            selection.select(selection.currentIndex(),
-                QItemSelectionModel.Select|QItemSelectionModel.Rows)
-            return True
-
-        idx = selection.selectedIndexes()[0]
-        selection.clearSelection()
+    def _move_next(self, selection, idx):
         item = self._tree.model().itemFromIndex(idx)
 
         # check if exists a child
         if item.hasChildren():
-            # select the child
             idx = self._tree.model().index(0, 0, idx)
-            selection.select(idx,
-                    QItemSelectionModel.Select|QItemSelectionModel.Rows)
-            return True
+            return idx
 
         # check if exist a next sibling
         parent_item = self._tree.model().itemFromIndex(idx.parent())
         if parent_item.rowCount() > item.row() + 1:
             idx = self._tree.model().index(item.row() + 1, 0, idx.parent())
-            selection.select(idx,
-                    QItemSelectionModel.Select|QItemSelectionModel.Rows)
-            return True
+            return idx
 
         # ok, we should go up
         while self._tree.model().itemFromIndex(idx.parent()):
             parent_item = self._tree.model().itemFromIndex(idx.parent())
             if idx.row() +1 < parent_item.rowCount():
                 idx = self._tree.model().index(idx.row() + 1, 0, idx.parent())
-                selection.select(idx,
-                    QItemSelectionModel.Select|QItemSelectionModel.Rows)
-                return True
+                return idx
             idx = idx.parent()
-        return False
+        return None
 
-
-    def _move_prev(self):
-        selection = self._tree.selectionModel()
-        if not selection.hasSelection():
-            selection.select(selection.currentIndex(),
-                QItemSelectionModel.Select|QItemSelectionModel.Rows)
-            return True
-
-        idx = selection.selectedIndexes()[0]
-        selection.clearSelection()
+    def _move_prev(self, selection, idx):
         item = self._tree.model().itemFromIndex(idx)
 
         # check if exist a previous sibling
@@ -211,24 +187,17 @@ class FindDialog(QDialog):
             while item.hasChildren():
                 idx = self._tree.model().index(item.rowCount() - 1, 0, idx)
                 item = self._tree.model().itemFromIndex(idx)
-            selection.select(idx,
-                    QItemSelectionModel.Select|QItemSelectionModel.Rows)
-            return True
+
+            return idx
 
         # ok, we should go up
         if (self._tree.model().itemFromIndex(idx.parent())):
             idx = idx.parent()
-            selection.select(idx,
-                QItemSelectionModel.Select|QItemSelectionModel.Rows)
-            return True
+            return idx
 
-        return False
+        return None
 
-    def _get_item(self):
-        selection = self._tree.selectionModel()
-        assert(selection.hasSelection())
-
-        idx = selection.selectedIndexes()[0]
+    def _get_item(self, idx):
         item = self._tree.model().itemFromIndex(idx)
         item2 = self._tree.model().itemFromIndex(idx.siblingAtColumn(1))
         return item, item2
@@ -240,33 +209,34 @@ class FindDialog(QDialog):
             move = self._move_prev
 
         selection = self._tree.selectionModel()
-        if selection.hasSelection():
-            oldidx = selection.selectedIndexes()[0]
-        else:
-            oldidx = None
+
+        if not selection.hasSelection():
+            selection.select(selection.currentIndex(),
+                QItemSelectionModel.Select|QItemSelectionModel.Rows)
+        idx = selection.selectedIndexes()[0]
 
         while True:
             if not self._first_search:
-                ret = move()
-                if not ret:
+                idx = move(selection, idx)
+                if idx is None:
                     QApplication.beep()
-                    QMessageBox.information(self, "BOX-MGR", "Data not found")
-                    if oldidx:
-                        selection.select(oldidx,
-                            QItemSelectionModel.Select|QItemSelectionModel.Rows)
+                    QMessageBox.information(self, "BOMBrowser", "Data not found")
                     return
-            else:
-                selection = self._tree.selectionModel()
-                if not selection.hasSelection():
-                    selection.select(selection.currentIndex(),
-                        QItemSelectionModel.Select|QItemSelectionModel.Rows)
+
 
             self._first_search = False
-            item1, item2 = self._get_item()
+            item1, item2 = self._get_item(idx)
+
             if self._stext.text().lower() in item1.text().lower():
                 break;
             if self._stext.text().lower() in item2.text().lower():
                 break;
+
+        selection.clearSelection()
+        selection.select(idx,
+                QItemSelectionModel.Select|QItemSelectionModel.Rows)
+        self._tree.scrollTo(idx,
+            QAbstractItemView.ScrollHint.EnsureVisible)
 
     def _search_prev(self):
         self._do_search(next=False)
@@ -276,7 +246,7 @@ class FindDialog(QDialog):
 
 
 class AssemblyWindow(QMainWindow):
-    def __init__(self, parent, asm=True):
+    def __init__(self, parent, asm=True, valid_where_used=False):
         QMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._main_data = [
@@ -291,6 +261,7 @@ class AssemblyWindow(QMainWindow):
             ("Date to", "date_to"),
         ]
         self._asm = asm
+        self._valid_where_used = valid_where_used
         self._data = dict()
 
         self._init_gui()
@@ -348,7 +319,7 @@ class AssemblyWindow(QMainWindow):
 
         a = QAction("Show all levels", self)
         a.setShortcut("Ctrl+A")
-        a.triggered.connect(Caller(self._show_up_to, 9999))
+        a.triggered.connect(Caller(self._show_up_to, -1))
 
         viewMenu.addAction(a)
 
@@ -396,6 +367,10 @@ class AssemblyWindow(QMainWindow):
         e.export_as_json(nf[0])
 
     def _show_up_to(self, lev):
+        if lev == -1:
+            self._tree.expandAll()
+            return
+
         parent_item = self._tree.model().item(0,0)
 
         def rec_iterate(parent, l):
@@ -407,11 +382,12 @@ class AssemblyWindow(QMainWindow):
                 child = parent.child(i, 0)
                 child_idx = child.index()
                 if l >= lev:
-                    self._tree.setExpanded(child_idx, False)
-                    continue
-
-                self._tree.setExpanded(child_idx, True)
-                rec_iterate(child, l+1)
+                    if self._tree.isExpanded(child_idx):
+                        self._tree.setExpanded(child_idx, False)
+                else:
+                    if not self._tree.isExpanded(child_idx):
+                        self._tree.setExpanded(child_idx, True)
+                    rec_iterate(child, l+1)
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
         rec_iterate(parent_item, 1)
@@ -456,6 +432,8 @@ class AssemblyWindow(QMainWindow):
             showAssembly.triggered.connect(self._show_assembly)
             whereUsed = contextMenu.addAction("Where used")
             whereUsed.triggered.connect(self._show_where_used)
+            validWhereUsed = contextMenu.addAction("Valid where used")
+            validWhereUsed.triggered.connect(self._show_valid_where_used)
             doDiff1 = contextMenu.addAction("Diff from...")
             doDiff1.triggered.connect(self._set_diff_from)
             doDiff2 = contextMenu.addAction("Diff to...")
@@ -475,7 +453,7 @@ class AssemblyWindow(QMainWindow):
             QMessageBox.critical(self, "BOMBrowser", "The item is not an assembly")
             return
 
-        diffgui.set_from(code, date)
+        diffgui.set_from(id_, code, date)
 
     def _set_diff_to(self):
         key = self._get_path()[-1]
@@ -489,7 +467,7 @@ class AssemblyWindow(QMainWindow):
             QMessageBox.critical(self, "BOMBrowser", "The item is not an assembly")
             return
 
-        diffgui.set_to(code, date)
+        diffgui.set_to(id_, code, date)
 
 
     def _show_assembly(self):
@@ -515,15 +493,26 @@ class AssemblyWindow(QMainWindow):
         id_ = self._data[path[-1]]["id"]
         where_used(id_, self.parent())
 
+
+    def _show_valid_where_used(self):
+        path = self._get_path()
+        if len(path) == 0:
+            return
+
+        id_ = self._data[path[-1]]["id"]
+        valid_where_used(id_, self.parent())
+
     def populate(self, top, data):
         top_code = data[top]["code"]
-        dt = data[top]["date_from"][:10]
+
         if self._asm:
+                dt = data[top]["date_from"][:10]
                 self.setWindowTitle("BOMBrowser - Assembly: "+top_code+" @ " +
                     dt)
+        elif self._valid_where_used:
+                self.setWindowTitle("BOMBrowser - Valid where used: "+top_code)
         else:
-                self.setWindowTitle("BOMBrowser - Where used: "+top_code +
-                    " @ " + dt)
+                self.setWindowTitle("BOMBrowser - Where used: "+top_code)
         self._data = data
         self._top = top
 
@@ -533,6 +522,8 @@ class AssemblyWindow(QMainWindow):
 
         def rec_update(n, path=[]):
             d = data[n]
+            #if self._valid_where_used and d["date_to"] != "":
+            #    return None
             i =  QStandardItem(d["code"])
             i.setData(n)
             i2 =  QStandardItem(d["descr"])
@@ -547,16 +538,27 @@ class AssemblyWindow(QMainWindow):
                     )
                     continue
                 ci = rec_update(c, path+[c])
-                i.appendRow(ci)
+                if not ci is None:
+                    i.appendRow(ci)
             return (i, i2)
 
         root_items = rec_update(top)
-        model.appendRow(root_items)
+        if root_items is None:
+            model.appendRow((QStandardItem("Empty"),))
+        else:
+            model.appendRow(root_items)
         idx = model.indexFromItem(root_items[0])
         self._tree.expandAll()
         self._tree.selectionModel().selectionChanged.connect(self._change_selection)
         self._tree.selectionModel().select(idx, self._tree.selectionModel().Rows)
+
         self._tree.header().setSectionResizeMode(QHeaderView.ResizeToContents)
+        sizes = []
+        for i in range(self._tree.header().count()):
+            sizes.append(self._tree.header().sectionSize(i))
+        self._tree.header().setSectionResizeMode(QHeaderView.Interactive)
+        for i in range(self._tree.header().count()):
+            self._tree.header().resizeSection(i, sizes[i])
         self._update_metadata([top])
 
     def _get_path(self):
@@ -591,16 +593,23 @@ class AssemblyWindow(QMainWindow):
     def _update_metadata(self, path):
         data_key = path[-1]
         #pprint.pprint(self._data[data_key])
-        qty = 1.0
-        each = 1.0
-        for ik in range(len(path) - 1):
-            k1 = path[ik]
-            k2 = path[ik+1]
+
+
+        if len(path) > 1:
+            k1 = path[-2]
+            k2 = path[-1]
             d3 = self._data[k1]["deps"][k2]
             if "qty" in d3:
-                qty *= float(d3["qty"])
+                qty = float(d3["qty"])
+            else:
+                qty = 1
             if "each" in d3:
-                each *= float(d3["each"])
+                each = float(d3["each"])
+            else:
+                each = 1
+        else:
+            qty = ""
+            each = ""
 
         unit = None
         date_from = None
@@ -629,7 +638,10 @@ class WhereUsedWindow(AssemblyWindow):
     def __init__(self, parent):
         AssemblyWindow.__init__(self, parent, asm = False)
 
-
+class ValidWhereUsedWindow(AssemblyWindow):
+    def __init__(self, parent):
+        AssemblyWindow.__init__(self, parent, asm = False,
+            valid_where_used = True)
 
 def where_used(code_id, winParent):
 
@@ -651,6 +663,38 @@ def where_used(code_id, winParent):
     w = WhereUsedWindow(None)
     w.show()
     w.populate(*data)
+    QApplication.restoreOverrideCursor()
+
+def valid_where_used(code_id, winParent):
+
+    if not code_id:
+        QApplication.beep()
+        return
+
+    d = db.DB()
+    QApplication.setOverrideCursor(Qt.WaitCursor)
+    data = d.get_where_used_from_id_code(code_id)
+
+    #pprint.pprint(data)
+    if len(data[1]) <= 1:
+        QApplication.restoreOverrideCursor()
+        QApplication.beep()
+        QMessageBox.critical(winParent, "BOMBrowser", "The item is not in an assembly")
+        return
+
+    data2 = dict()
+    for k in data[1].keys():
+        data2[k] = data[1][k]
+        deps = dict()
+        for idx in data2[k]["deps"]:
+            it = data[1][idx]
+            if it["date_from"] == "" or it["date_to"] == "":
+                deps[idx] = data2[k]["deps"][idx]
+        data2[k]["deps"] = deps
+
+    w = ValidWhereUsedWindow(None)
+    w.show()
+    w.populate(data[0], data2)
     QApplication.restoreOverrideCursor()
 
 def show_assembly(code_id, winParent):
@@ -675,7 +719,7 @@ def show_assembly(code_id, winParent):
     w = AssemblyWindow(None)
     w.show()
     res = dlg.get_result()
-    data = d.get_bom_by_code2(*res[:2])
+    data = d.get_bom_by_code_id2(code_id, res[1])
     w.populate(*data)
     QApplication.restoreOverrideCursor()
 

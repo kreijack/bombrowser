@@ -29,7 +29,7 @@ from PySide2.QtGui import QStandardItemModel, QStandardItem
 
 from PySide2.QtCore import Qt, QAbstractTableModel, QEvent
 
-import db, asmgui, codegui, diffgui, utils
+import db, asmgui, codegui, diffgui, utils, editcode
 
 
 
@@ -63,6 +63,7 @@ class CodesWindow(QMainWindow):
         mainMenu = self.menuBar()
 
         fileMenu = mainMenu.addMenu("File")
+
         closeAction = QAction("Close", self)
         closeAction.setShortcut("Ctrl+Q")
         closeAction.triggered.connect(self.close)
@@ -87,6 +88,9 @@ class CodesWindow(QMainWindow):
         a = QAction("About ...", self)
         a.triggered.connect(lambda : utils.about(self))
         helpMenu.addAction(a)
+
+    def _new_code(self):
+        editcode.newCodeWindow()
 
     def _build_windows_menu(self):
         utils.build_windows_menu(self._windowsMenu, self, codes_list = False)
@@ -158,6 +162,8 @@ class CodesWindow(QMainWindow):
             showAssembly.triggered.connect(self._show_assembly)
             whereUsed = contextMenu.addAction("Where used")
             whereUsed.triggered.connect(self._show_where_used)
+            validWhereUsed = contextMenu.addAction("Valid where used")
+            validWhereUsed.triggered.connect(self._show_valid_where_used)
             doDiff1 = contextMenu.addAction("Diff from...")
             doDiff1.triggered.connect(self._set_diff_from)
             doDiff2 = contextMenu.addAction("Diff to...")
@@ -188,7 +194,7 @@ class CodesWindow(QMainWindow):
         if code == 0:
             return
 
-        diffgui.set_from(code, date_from)
+        diffgui.set_from(code_id, code, date_from)
 
     def _set_diff_to(self):
         if not self._code_id:
@@ -204,7 +210,7 @@ class CodesWindow(QMainWindow):
         if code == 0:
             return
 
-        diffgui.set_to(code, date_from)
+        diffgui.set_to(code_id, code, date_from)
 
     def _show_assembly(self):
         if not self._code_id:
@@ -223,7 +229,7 @@ class CodesWindow(QMainWindow):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         w = asmgui.AssemblyWindow(None) #self)
         w.show()
-        data = d.get_bom_by_code2(code, date_from)
+        data = d.get_bom_by_code_id2(self._code_id, date_from)
         w.populate(*data)
         QApplication.restoreOverrideCursor()
         #asmgui.show_assembly(self._code_id, self)
@@ -248,6 +254,9 @@ class CodesWindow(QMainWindow):
         w.show()
         w.populate(*data)
         QApplication.restoreOverrideCursor()
+
+    def _show_valid_where_used(self):
+        asmgui.valid_where_used(self._code_id, self)
 
     class TableModel(QAbstractTableModel):
         def __init__(self, data, header):
@@ -344,4 +353,6 @@ class CodesWindow(QMainWindow):
         #scrollarea.setWidgetResizable(False)
         self._splitter.replaceWidget(1, scrollarea)
         self._grid_widget = scrollarea
+
+
 

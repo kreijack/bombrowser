@@ -18,13 +18,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
 import sqlite3
-import time
+import sys
 import pprint
+import datetime
 
+def increase_date(d, inc=+1):
+    return (datetime.date.fromisoformat(d) +
+            datetime.timedelta(days=inc)).isoformat()
 
 _db_path = "database.sqlite"
 # infinity date
-end_of_the_world = 9999999999
+end_of_the_world = 999999
 
 class DB:
 
@@ -34,8 +38,68 @@ class DB:
         else:
             self._db_path = _db_path
         self._conn = sqlite3.connect(_db_path)
+        c = self._conn.cursor()
+        c.execute("SELECT value FROM database_props WHERE key='ver'")
+        self._ver = c.fetchone()[0]
 
-    def create_db(self):
+        self._check_for_db_update()
+
+    def _check_for_db_update(self):
+        #print("self._ver =", self._ver)
+        if self._ver == "0.1":
+            c = self._conn.cursor()
+            c.execute("""
+                ALTER TABLE assemblies
+                ADD COLUMN date_from_days  INTEGER DEFAULT 0
+            """)
+            c.execute("""
+                ALTER TABLE assemblies
+                ADD COLUMN date_to_days  INTEGER DEFAULT 999999
+            """)
+            c.execute("""
+                UPDATE assemblies SET
+                    date_from = SUBSTR(date_from,1, 10)
+            """)
+            c.execute("""
+                UPDATE assemblies SET
+                    date_to = SUBSTR(date_to,1, 10)
+            """)
+            c.execute("""
+                UPDATE assemblies SET
+                    date_from_days = CAST(
+                        (JULIANDAY(date_from) - JULIANDAY('0000-12-31')) AS
+                        INTEGER)
+            """)
+            c.execute("""
+                UPDATE assemblies SET
+                    date_to_days = CAST(
+                        (JULIANDAY(date_to) - JULIANDAY('0000-12-31')) AS
+                        INTEGER)
+            """)
+            c.execute("""
+                UPDATE assemblies
+                SET date_to_days = 999999
+                WHERE date_to_sec = 9999999999
+            """)
+            c.execute("""
+                UPDATE database_props
+                SET value = '0.2'
+                WHERE key == 'ver'
+            """)
+            self._conn.commit()
+            self._ver = "0.2"
+
+        if self._ver == "0.2":
+            return
+
+        print("Unknown database version: abort")
+        sys.exit(100)
+
+
+    @staticmethod
+    def create_db(path=None):
+        if not path:
+            path = _db_path
         stmts = """
             DROP INDEX IF EXISTS item_code_idx;
             DROP INDEX IF EXISTS item_code_ver_idx;
@@ -80,18 +144,18 @@ class DB:
             CREATE UNIQUE INDEX item_prop_descr_iid ON item_properties(item_id, descr);
 
             CREATE TABLE assemblies (
-                id          INTEGER NOT NULL PRIMARY KEY,
-                unit        TEXT,
-                child_id    INTEGER,
-                parent_id   INTEGER,
-                qty         FLOAT,
-                each        FLOAT DEFAULT 1.0,
-                date_from   TEXT NOT NULL DEFAULT '0000-00-00_00:00:00',
-                date_to     TEXT DEFAULT NULL,
-                date_from_sec INTEGER DEFAULT 0,
-                date_to_sec INTEGER DEFAULT 9999999999,
-                iter        INTEGER,
-                ref         TEXT DEFAULT "",
+                id              INTEGER NOT NULL PRIMARY KEY,
+                unit            TEXT,
+                child_id        INTEGER,
+                parent_id       INTEGER,
+                qty             FLOAT,
+                each            FLOAT DEFAULT 1.0,
+                date_from       TEXT NOT NULL DEFAULT '0000-00-00',
+                date_to         TEXT DEFAULT NULL,
+                date_from_days  INTEGER DEFAULT 0,
+                date_to_days    INTEGER DEFAULT 999999,
+                iter            INTEGER,
+                ref             TEXT DEFAULT "",
 
                 FOREIGN KEY (child_id) REFERENCES items(id),
                 FOREIGN KEY (parent_id) REFERENCES items(id)
@@ -106,7 +170,7 @@ class DB:
                 value       TEXT
             );
 
-            INSERT INTO database_props (key, value) VALUES ('ver', '0.1');
+            INSERT INTO database_props (key, value) VALUES ('ver', '0.2');
 
             CREATE TABLE drawings (
                 id          INTEGER NOT NULL PRIMARY KEY,
@@ -120,7 +184,7 @@ class DB:
 
         """
 
-        conn = sqlite3.connect(self._db_path)
+        conn = sqlite3.connect(path)
         c = conn.cursor()
         for s in stmts.split(";"):
             c.execute(s)
@@ -224,24 +288,6 @@ class DB:
         else:
             return res
 
-    def get_children(self, id_code):
-        c = self._conn.cursor()
-        c.execute("""
-            SELECT a.unit, c.code, c.default_unit, a.qty, a.each, a.date_from, a.date_to,
-                    a.iter, a.child_id
-            FROM assemblies AS a
-            LEFT JOIN items AS c
-                ON a.child_id = c.id
-            WHERE parent_id = ?
-            ORDER BY a.id
-            """, (id_code,))
-
-        res = c.fetchall()
-        if not res:
-            return None
-        else:
-            return res
-
     def get_dates_by_code_id(self, id_code):
         c = self._conn.cursor()
         c.execute("""SELECT DISTINCT i.code, a.date_from, a.date_to
@@ -251,7 +297,29 @@ class DB:
                      ORDER BY        a.date_from DESC
                   """, (id_code, ))
 
-        return c.fetchall()
+        l =  [list(x) for x in c.fetchall()]
+        dtmax = ""
+        for i in l:
+            if i[2] == "":
+                dtmax = ""
+                break
+            if dtmax < i[2]:
+                dtmax = i[2]
+        l.sort(key= lambda x: x[1])
+
+        i = 0
+        while i < len(l) -1:
+            if l[i][1] == l[i+1][1]:
+                l.pop(i)
+                continue
+            i += 1
+
+        for i in range(len(l)-1):
+            l[i][2] = increase_date(l[i+1][1], -1)
+
+        l[-1][2] = dtmax
+
+        return l
 
     def is_assembly(self, id_code):
         c = self._conn.cursor()
@@ -262,119 +330,51 @@ class DB:
 
         return c.fetchone()[0] > 0
 
-
-    def get_bom_from_id_code(self, id_code):
-        code0 = self.get_code(id_code)
-        code0 = code0["code"] # code
+    def get_bom_by_code_id2(self, code_id0, date_from):
         data = dict()
 
-        todo = [id_code]
-        done = []
-
-        while len(todo):
-            id_ = todo.pop()
-            done.append(id_)
-
-            d2 = self.get_code(id_)
-            d2["id"] = id_
-            d = d2["properties"]
-            d2.pop("properties")
-            d.update(d2)
-            children = self.get_children(id_)
-            d["deps"] = dict()
-            if children is None:
-                data[d["code"]] = d
-                continue
-
-            for (unit, cc, def_unit, qty, each, date_from, date_to, it,
-                    child_id) in children:
-                if unit is None:
-                   unit = def_unit
-                d["deps"][cc] = {
-                    "code": cc,
-                    "unit": unit,
-                    "qty": qty,
-                    "each": each,
-                    "date_from": date_from,
-                    "date_to": date_to,
-                    "iter": it
-                }
-
-                if not child_id in done:
-                    todo.append(child_id)
-
-            #print("id=",id_, "d=",d)
-
-            data[d["code"]] = d
-
-        return (code0, data)
-
-    def get_children_by_code_id_and_date(self, code_id, date_from, date_to):
         c = self._conn.cursor()
-        c.execute("""
-            SELECT a.unit, c.code, c.default_unit, a.qty, a.each, a.date_from, a.date_to,
-                    a.iter, a.child_id, a.parent_id, a.date_from_sec, a.date_to_sec
-            FROM assemblies AS a
-            LEFT JOIN items AS c
-                ON a.child_id = c.id
-            WHERE
-                a.parent_id = ?
-              AND
-                a.date_from_sec <= ?
-              AND
-                ? < a.date_to_sec
-            ORDER BY a.id
-            """, (code_id, date_from, date_from))
 
-        res = c.fetchall()
-        if not res:
-            return None
-        else:
-            return res
+        c.execute("""SELECT i.code, a.date_from_days, a.date_to_days
+                     FROM items AS i
+                     LEFT JOIN assemblies AS a
+                       ON a.parent_id = i.id
+                     WHERE
+                        i.id = ?
+                       AND
+                        a.date_from = ?""",
+                     (code_id0, date_from) )
 
-    def get_bom_by_code2(self, code, date_from):
-        data = dict()
-        code0 = code
-        (code_id_, code_, descr_, ver_, iter_,
-                default_unit_) = self.get_codes_by_code(code)[0]
-        code_id0 = code_id_
-
-        c = self._conn.cursor()
-        c.execute("""SELECT date_from_sec, date_to_sec
-                     FROM assemblies
-                     WHERE parent_id = ? AND date_from = ?""",
-                     (code_id_, date_from) )
-        (date_from_sec, date_to_sec) = c.fetchone()
-        todo = [(code_id_, date_from_sec, date_to_sec)]
+        (code0, date_from_days, date_to_days) = c.fetchone()
+        todo = [(code_id0, date_from, "N/A")]
+        #todo = [code_id0]
         done = []
 
         while len(todo):
             (code_id, date_from, date_to) = todo.pop()
             done.append(code_id)
-            #print("Get code info:", code, code_id)
             d2 = self.get_code(code_id)
             d2["id"] = code_id
             d = d2["properties"]
             d2.pop("properties")
-            d["date_from"] = "N/A"
-            d["date_to"] = "N/A"
+            d["date_from"] = date_from
+            d["date_to"] = date_to
             d.update(d2)
             d["deps"] = dict()
-            #print("Get children info:", code, code_id, date_from, date_to)
-            #children = self.get_children_by_code_id_and_date(code_id, date_from, date_to)
+
 
             c.execute("""
                 SELECT a.unit, a.qty, a.each, a.date_from, a.date_to,
-                        a.iter, a.child_id, a.parent_id, a.date_from_sec, a.date_to_sec, ref
+                        a.iter, a.child_id, a.parent_id, a.date_from_days, a.date_to_days, ref
                 FROM assemblies AS a
                 WHERE
                     a.parent_id = ?
                   AND
-                    a.date_from_sec <= ?
+                    a.date_from_days <= ?
                   AND
-                    ? < a.date_to_sec
+                    ? < a.date_to_days
                 ORDER BY a.id
-                """, (code_id, date_from, date_from))
+                """, (code_id, date_from_days, date_from_days))
 
             children = c.fetchall()
 
@@ -383,41 +383,45 @@ class DB:
                 continue
 
             for (unit, qty, each, date_from_, date_to_, it, child_id,
-                 parent_id, date_from_sec, date_to_sec, ref) in children:
+                 parent_id, date_from_days_, date_to_days_, ref) in children:
                 d["deps"][child_id] = {
                     "code_id": child_id,
                     "unit": unit,
                     "qty": qty,
                     "each": each,
                     "iter": it,
-                    #"date_from": date_from_,
-                    #"date_to": date_to_,
                     "ref": ref,
                 }
 
                 if not child_id in done:
-                    todo.append((child_id, date_from_sec, date_to_sec))
-            d["date_from"] = date_from_
-            d["date_to"] = date_to_
+                    todo.append((child_id, date_from_, date_to_))
+
             data[d["id"]] = d
+
+        mindt = "N/A"
+        for k in data[code_id0]["deps"]:
+            cid = data[code_id0]["deps"][k]["code_id"]
+            if mindt == "N/A" or mindt > data[cid]["date_to"]:
+                mindt = data[cid]["date_to"]
+        data[code_id0]["date_to"] = mindt
 
         return (code_id0, data)
 
 
-    def get_parents(self, id_code, date_from_sec, date_to_sec):
+    def _get_parents(self, id_code, date_from_days, date_to_days):
         c = self._conn.cursor()
         c.execute("""
             SELECT a.unit, c.code, c.default_unit, a.qty, a.each, a.date_from, a.date_to,
-                    a.iter, a.parent_id, a.date_from, a.date_to, a.date_from_sec,
-                    a.date_to_sec
+                    a.iter, a.parent_id, a.date_from, a.date_to, a.date_from_days,
+                    a.date_to_days
             FROM assemblies AS a
             LEFT JOIN items AS c
                 ON a.parent_id = c.id
             WHERE child_id = ?
-              AND a.date_from_sec >= ?
-              AND a.date_to_sec <= ?
-            ORDER BY c.code, a.date_from_sec DESC
-            """, (id_code, date_from_sec, date_to_sec))
+              AND a.date_from_days >= ?
+              AND a.date_to_days <= ?
+            ORDER BY c.code, a.date_from_days DESC
+            """, (id_code, date_from_days, date_to_days))
 
         res = c.fetchall()
         if not res:
@@ -426,15 +430,15 @@ class DB:
             return res
 
     def _join_data(self, data):
-        return
+        #return
         keys = list(data.keys())
-        keys.sort()
+        keys.sort(reverse=True)
         pprint.pprint(keys)
 
         i = 0
         while i < len(keys)-1:
-            (code1, date_from1) = keys[i]
-            (code2, date_from2) = keys[i+1]
+            (code1, date_from1, date_to1) = keys[i]
+            (code2, date_from2, date_to2) = keys[i+1]
 
             if code1 != code2:
                 i += 1
@@ -443,9 +447,11 @@ class DB:
             v1 = data[keys[i]]
             v2 = data[keys[i+1]]
 
-            date1to = time.mktime(time.strptime(v1["date_to"], "%Y-%m-%d %H:%M:%S"))
-            date2from = time.mktime(time.strptime(v1["date_from"], "%Y-%m-%d %H:%M:%S"))
-            if (date2from - date1to) > 86400.0:
+            #assert(date_from2 > date_to1)
+
+            #date1to = datetime.date.fromisoformat(v1["date_to"]).toordinal()
+            #date2from = datetime.date.fromisoformat(v2["date_from"]).toordinal()
+            if (date_from2 - date_to1) > 1:
                 i += 1
                 continue
 
@@ -465,48 +471,45 @@ class DB:
             data.pop(keys[i+1])
             keys.pop(i+1)
 
-
-
-
-
-
-    def get_where_used_from_id_code(self, id_code):
+    def get_where_used_from_id_code(self, id_code, xdate_from=0, xdate_to=end_of_the_world):
         code0 = self.get_code(id_code)
         code0 = code0["code"] # code
 
         data = dict()
-        todo = [(id_code, 0, end_of_the_world)]
+        todo = [(id_code, xdate_from, xdate_to)]
         done = []
 
         while len(todo):
             id_, xdate_from, xdate_to = todo.pop()
-            done.append((id_, xdate_from))
+            done.append((id_, xdate_from, xdate_to))
 
             d2 = self.get_code(id_)
             d2["id"] = id_
             d = d2["properties"]
             d2.pop("properties")
             if xdate_from > 0:
-                d["date_from"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(xdate_from))
+                d["date_from"] = datetime.date.fromordinal(xdate_from).isoformat()
             else:
                 d["date_from"] = ""
             if xdate_to < end_of_the_world:
-                d["date_to"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(xdate_to))
+                d["date_to"] = datetime.date.fromordinal(xdate_to).isoformat()
             else:
                 d["date_to"] = ""
+            if d2["code"] == '100001':
+                print('100001', d["date_from"], d["date_to"])
             d.update(d2)
-            parents = self.get_parents(id_, xdate_from, xdate_to)
+            parents = self._get_parents(id_, xdate_from, xdate_to)
             d["deps"] = dict()
             if parents is None or len(parents) == 0:
-                data[(d["code"], xdate_from)] = d
+                data[(d["code"], xdate_from, xdate_to)] = d
                 continue
 
             for (unit, cc, def_unit, qty, each, date_from, date_to, it,
-                    parent_id, date_from_, date_to_, date_from_sec,
-                    date_to_sec) in parents:
+                    parent_id, date_from_, date_to_, date_from_days,
+                    date_to_days) in parents:
                 if unit is None:
                    unit = def_unit
-                d["deps"][(cc, date_from_sec)] = {
+                d["deps"][(cc, date_from_days, date_to_days)] = {
                     "code": cc,
                     "unit": unit,
                     "qty": qty,
@@ -517,21 +520,22 @@ class DB:
                     #"date_to": date_to_,
                 }
 
-                assert(date_from_sec >= xdate_from)
+                #print(date_from_days, xdate_from)
+                assert(date_from_days >= xdate_from)
 
-                if not (parent_id, date_from_sec) in done:
-                    todo.append((parent_id, date_from_sec, date_to_sec))
+                if not (parent_id, date_from_days, date_to_days) in done:
+                    todo.append((parent_id, date_from_days, date_to_days))
 
 
 
-            data[(d["code"], xdate_from)] = d
+            data[(d["code"], xdate_from, xdate_to)] = d
             #pprint.pprint(data)
             #pprint.pprint(todo)
             #print("todo=", todo)
 
-        self._join_data(data)
+        #self._join_data(data)
 
-        return ((code0, 0), data)
+        return ((code0, 0, end_of_the_world), data)
 
     def get_drawings_by_code_id(self, code_id):
         c = self._conn.cursor()
@@ -547,16 +551,5 @@ class DB:
         else:
             return res
 
-
-
-import sys
-if __name__ == "__main__":
-    db = DB()
-    print("bom=",db.get_bom_from_id_code(26461))
-    #db.create_db()
-    #import_from_tjson()
-
-
-    pass
 
 
