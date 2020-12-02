@@ -24,7 +24,7 @@ from PySide2.QtWidgets import QMessageBox
 
 def about(w):
     QMessageBox.about(w, "BOMBrowser - about",
-        "BOMBrowser v0.1\n"+
+        "BOMBrowser v0.2\n"+
         "Copyright 2020 G.Baroncelli\n")
 
 def clean_menu(m):
