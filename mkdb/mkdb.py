@@ -954,7 +954,8 @@ def xrmdir(path):
             os.unlink(path)
 
 def create_db():
-    d = db.DB.create_db()
+    d = db.DB()
+    d.create_db()
 
     xrmdir("documents")
     os.mkdir("documents")
@@ -963,7 +964,8 @@ def create_db():
     os.mkdir("documents/assembling-procedures")
     os.mkdir("documents/packaging-procedure")
 
-    conn = sqlite3.connect(dbname)
+    #conn = sqlite3.connect(dbname)
+    conn = d._conn
     c = conn.cursor()
 
     # 510xxx

@@ -17,10 +17,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sqlite3
 import sys
 import pprint
 import datetime
+import configparser
 
 def increase_date(d, inc=+1):
     return (datetime.date.fromisoformat(d) +
@@ -30,24 +30,27 @@ _db_path = "database.sqlite"
 # infinity date
 end_of_the_world = 999999
 
-class DB:
+class DBSQLServer:
 
-    def __init__(self, path=None):
-        if path:
-            self._db_path = path
-        else:
-            self._db_path = _db_path
-        self._conn = sqlite3.connect(_db_path)
-        c = self._conn.cursor()
-        c.execute("SELECT value FROM database_props WHERE key='ver'")
-        self._ver = c.fetchone()[0]
+    def __init__(self, path):
+        self._open(path)
 
-        self._check_for_db_update()
+        try:
+            c = self._conn.cursor()
+            c.execute("""SELECT value FROM database_props WHERE "key"='ver'""")
+            self._ver = c.fetchone()[0]
 
-    def _check_for_db_update(self):
+            self._check_for_db_update(c)
+        except:
+            print("WARN: table database_props might not exist")
+
+    def _open(self, connection_string):
+        import pyodbc
+        self._conn = pyodbc.connect(connection_string)
+
+    def _check_for_db_update(self, c):
         #print("self._ver =", self._ver)
         if self._ver == "0.1":
-            c = self._conn.cursor()
             c.execute("""
                 ALTER TABLE assemblies
                 ADD COLUMN date_from_days  INTEGER DEFAULT 0
@@ -95,18 +98,14 @@ class DB:
         print("Unknown database version: abort")
         sys.exit(100)
 
-
-    @staticmethod
-    def create_db(path=None):
-        if not path:
-            path = _db_path
-        stmts = """
-            DROP INDEX IF EXISTS item_code_idx;
-            DROP INDEX IF EXISTS item_code_ver_idx;
-            DROP INDEX IF EXISTS item_code_ver_iter;
-            DROP INDEX IF EXISTS drawing_idx;
-            DROP INDEX IF EXISTS assemblies_child_idx;
-            DROP INDEX IF EXISTS assemblies_parent_idx;
+    def _get_db_creation_sql(self):
+        return """
+            DROP INDEX IF EXISTS item_code_idx ON items;
+            DROP INDEX IF EXISTS item_code_ver_idx ON items;
+            DROP INDEX IF EXISTS item_code_ver_iter ON items;
+            DROP INDEX IF EXISTS drawing_idx ON drawings;
+            DROP INDEX IF EXISTS assemblies_child_idx ON assemblies;
+            DROP INDEX IF EXISTS assemblies_parent_idx ON assemblies;
 
             DROP TABLE IF EXISTS assemblies;
             DROP TABLE IF EXISTS item_properties;
@@ -115,19 +114,19 @@ class DB:
             DROP TABLE IF EXISTS items;
 
             CREATE TABLE    items (
-                id          INTEGER NOT NULL PRIMARY KEY,
-                descr       TEXT NOT NULL,
-                code        TEXT NOT NULL,
-                ver         TEXT NOT NULL,
+                id          INTEGER NOT NULL IDENTITY PRIMARY KEY,
+                descr       VARCHAR(255) NOT NULL,
+                code        VARCHAR(255) NOT NULL,
+                ver         VARCHAR(10) NOT NULL,
                 iter        INTEGER,
-                default_unit TEXT NOT NULL,
-                for1cod     TEXT DEFAILT "",
-                for1id      TEXT DEFAILT "",
-                for1name    TEXT DEFAILT "",
-                prod1cod    TEXT DEFAILT "",
-                prod1name   TEXT DEFAILT "",
-                prod2cod    TEXT DEFAILT "",
-                prod2name   TEXT DEFAILT ""
+                default_unit VARCHAR(255) NOT NULL,
+                for1cod     VARCHAR(255) DEFAULT '',
+                for1id      VARCHAR(255) DEFAULT '',
+                for1name    VARCHAR(255) DEFAULT '',
+                prod1cod    VARCHAR(255) DEFAULT '',
+                prod1name   VARCHAR(255) DEFAULT '',
+                prod2cod    VARCHAR(255) DEFAULT '',
+                prod2name   VARCHAR(255) DEFAULT ''
             );
             CREATE INDEX item_code_idx             ON items(code);
             CREATE INDEX item_code_ver_idx         ON items(code, ver);
@@ -135,8 +134,8 @@ class DB:
 
             CREATE TABLE item_properties (
                 id          INTEGER NOT NULL PRIMARY KEY,
-                descr       TEXT,
-                value       TEXT,
+                descr       VARCHAR(255),
+                value       VARCHAR(255),
                 item_id     INTEGER,
 
                 FOREIGN KEY (item_id) REFERENCES items(id)
@@ -144,18 +143,18 @@ class DB:
             CREATE UNIQUE INDEX item_prop_descr_iid ON item_properties(item_id, descr);
 
             CREATE TABLE assemblies (
-                id              INTEGER NOT NULL PRIMARY KEY,
-                unit            TEXT,
+                id              INTEGER NOT NULL IDENTITY PRIMARY KEY,
+                unit            VARCHAR(255),
                 child_id        INTEGER,
                 parent_id       INTEGER,
                 qty             FLOAT,
                 each            FLOAT DEFAULT 1.0,
-                date_from       TEXT NOT NULL DEFAULT '0000-00-00',
-                date_to         TEXT DEFAULT NULL,
+                date_from       VARCHAR(255) NOT NULL DEFAULT '0000-00-00',
+                date_to         VARCHAR(255) DEFAULT NULL,
                 date_from_days  INTEGER DEFAULT 0,
                 date_to_days    INTEGER DEFAULT 999999,
                 iter            INTEGER,
-                ref             TEXT DEFAULT "",
+                ref             VARCHAR(255) DEFAULT '',
 
                 FOREIGN KEY (child_id) REFERENCES items(id),
                 FOREIGN KEY (parent_id) REFERENCES items(id)
@@ -165,33 +164,37 @@ class DB:
             CREATE INDEX assemblies_parent_idx ON assemblies(parent_id);
 
             CREATE TABLE database_props (
-                id          INTEGER NOT NULL PRIMARY KEY,
-                key         TEXT,
-                value       TEXT
+                id          INTEGER NOT NULL IDENTITY PRIMARY  KEY,
+                "key"       VARCHAR(255),
+                value       VARCHAR(255)
             );
 
-            INSERT INTO database_props (key, value) VALUES ('ver', '0.2');
+            INSERT INTO database_props ("key", value) VALUES ('ver', '0.2');
 
             CREATE TABLE drawings (
-                id          INTEGER NOT NULL PRIMARY KEY,
-                code        TEXT NOT NULL,
+                id          INTEGER NOT NULL IDENTITY PRIMARY KEY,
+                code        VARCHAR(255) DEFAULT '',
                 item_id     INTEGER,
-                filename    TEXT NOT NULL,
-                fullpath    TEXT NOT NULL,
+                filename    VARCHAR(255) NOT NULL,
+                fullpath    VARCHAR(255) NOT NULL,
 
                 FOREIGN KEY (item_id) REFERENCES items(id)
             );
 
         """
+    def create_db(self):
 
-        conn = sqlite3.connect(path)
-        c = conn.cursor()
+        stmts = self._get_db_creation_sql()
+        c = self._conn.cursor()
         for s in stmts.split(";"):
+            #print("Executing '%s'"%(s))
             c.execute(s)
-        conn.commit()
+        self._conn.commit()
 
     def get_code(self, id_code):
-        c = self._conn.cursor()
+        return self._get_code(self._conn.cursor(), id_code)
+
+    def _get_code(self, c, id_code):
         c.execute("""
             SELECT code, descr, ver, iter, default_unit,
                 for1cod, for1name,
@@ -345,7 +348,7 @@ class DB:
                         a.date_from = ?""",
                      (code_id0, date_from) )
 
-        (code0, date_from_days, date_to_days) = c.fetchone()
+        (code0, date_from_days, date_to_days) = c.fetchall()[0]
         todo = [(code_id0, date_from, "N/A")]
         #todo = [code_id0]
         done = []
@@ -353,7 +356,7 @@ class DB:
         while len(todo):
             (code_id, date_from, date_to) = todo.pop()
             done.append(code_id)
-            d2 = self.get_code(code_id)
+            d2 = self._get_code(c, code_id)
             d2["id"] = code_id
             d = d2["properties"]
             d2.pop("properties")
@@ -408,8 +411,7 @@ class DB:
         return (code_id0, data)
 
 
-    def _get_parents(self, id_code, date_from_days, date_to_days):
-        c = self._conn.cursor()
+    def _get_parents(self, c, id_code, date_from_days, date_to_days):
         c.execute("""
             SELECT a.unit, c.code, c.default_unit, a.qty, a.each, a.date_from, a.date_to,
                     a.iter, a.parent_id, a.date_from, a.date_to, a.date_from_days,
@@ -483,7 +485,7 @@ class DB:
             id_, xdate_from, xdate_to = todo.pop()
             done.append((id_, xdate_from, xdate_to))
 
-            d2 = self.get_code(id_)
+            d2 = self._get_code(c, id_)
             d2["id"] = id_
             d = d2["properties"]
             d2.pop("properties")
@@ -495,10 +497,9 @@ class DB:
                 d["date_to"] = datetime.date.fromordinal(xdate_to).isoformat()
             else:
                 d["date_to"] = ""
-            if d2["code"] == '100001':
-                print('100001', d["date_from"], d["date_to"])
+
             d.update(d2)
-            parents = self._get_parents(id_, xdate_from, xdate_to)
+            parents = self._get_parents(c, id_, xdate_from, xdate_to)
             d["deps"] = dict()
             if parents is None or len(parents) == 0:
                 data[(d["code"], xdate_from, xdate_to)] = d
@@ -551,5 +552,67 @@ class DB:
         else:
             return res
 
+class DBSQLite(DBSQLServer):
+    def __init__(self, path=None):
+        DBSQLServer.__init__(self, path)
+
+    def _open(self, path):
+        if path != "":
+            self._db_path = path
+        else:
+            self._db_path = _db_path
+
+        import sqlite3
+        self._conn = sqlite3.connect(_db_path)
+
+    def _get_db_creation_sql(self):
+        stmts = DBSQLServer._get_db_creation_sql(self)
+        stmts = stmts.replace(" IDENTITY", "")
+        stmts = stmts.replace(" ON items;", ";")
+        stmts = stmts.replace(" ON drawings;", ";")
+        stmts = stmts.replace(" ON assemblies;", ";")
+
+        return stmts
+
+_globaDBInstance = None
+def DB(path=None):
+    global _globaDBInstance
+
+    if _globaDBInstance:
+        return _globaDBInstance
+
+    if not path is None:
+        if path.upper().startswith("SQLITE:"):
+            _globaDBInstance = DBSQLite(path[7:])
+            return _globaDBInstance
+        elif path.upper().startswith("SQLSERVER:"):
+            _globaDBInstance = DBSQLServer(path[10:])
+            return _globaDBInstance
+
+        assert (False)
+
+    cfg = configparser.ConfigParser()
+    cfg.read_file(open("bombrowser.ini"))
+    dbtype = cfg.get("BOMBROWSER", "db")
+    if dbtype == "sqlite":
+        path = cfg.get("SQLITE", "path")
+        _globaDBInstance = DBSQLite(path)
+        return _globaDBInstance
+    elif dbtype == "sqlserver":
+        d = {
+            "driver": cfg.get("SQLSERVER", "driver"),
+            "server": cfg.get("SQLSERVER", "server"),
+            "database": cfg.get("SQLSERVER", "database"),
+            "username": cfg.get("SQLSERVER", "username"),
+            "password": cfg.get("SQLSERVER", "password"),
+        }
+        connection_string = "DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password}".format(**d)
+        _globaDBInstance = DBSQLServer(connection_string)
+        return _globaDBInstance
+    assert(False)
 
 
+if __name__ == "__main__":
+    if sys.argv[1] == "--create":
+        d = getDB()
+        d.create_db()
