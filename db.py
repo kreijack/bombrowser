@@ -474,6 +474,8 @@ class DBSQLServer:
             keys.pop(i+1)
 
     def get_where_used_from_id_code(self, id_code, xdate_from=0, xdate_to=end_of_the_world):
+        c = self._conn.cursor()
+
         code0 = self.get_code(id_code)
         code0 = code0["code"] # code
 
@@ -612,7 +614,109 @@ def DB(path=None):
     assert(False)
 
 
+def _insert_items(c):
+    codes = [('code123', "descr456", 0), ('code124', "descr457", 0),
+            ('code135', "descr468", 0), ('code136', "descr469", 0),
+            ('code123', "descr456", 1)]
+    for (code, descr, ver) in codes:
+
+        c.execute("""INSERT INTO items(
+            descr, code, ver,
+            iter, default_unit,
+            for1cod, for1name) VALUES (
+            ?, ?, ?,
+            ?, ?,
+            ?, ?)""", (
+                descr, code, "%d"%(ver),
+                ver, "NR",
+                "FOR1COD", "FOR1NAME"
+            ))
+
+
+_test_string="SQLITE:testdb.sqlite"
+def test_double_recreate_db():
+    d = DB(_test_string)
+    d.create_db()
+    d = DB(_test_string)
+    d.create_db()
+
+def test_get_code():
+    d = DB(_test_string)
+    d.create_db()
+    c = d._conn.cursor()
+
+    _insert_items(c)
+
+    data = d.get_code(1)
+    assert(data["code"] == "code123")
+    assert(data["descr"] == "descr456")
+
+    data = d.get_codes_by_code("code124")
+    assert(len(data) == 1)
+    assert(data[0][1] == "code124")
+    assert(data[0][2] == "descr457")
+
+
+    data = d.get_codes_by_like_code("code12%")
+    assert(len(data) == 3)
+    data.sort(key = lambda x: x[1])
+    assert(data[0][1] == "code123")
+    assert(data[0][2] == "descr456")
+
+    assert(data[2][1] == "code124")
+    assert(data[2][2] == "descr457")
+
+def test_get_code_by_descr():
+    d = DB(_test_string)
+    d.create_db()
+    c = d._conn.cursor()
+
+    _insert_items(c)
+
+    data = d.get_codes_by_like_descr("descr46%")
+    assert(len(data) == 2)
+    data.sort(key = lambda x: x[1])
+    assert(data[0][1] == "code135")
+    assert(data[0][2] == "descr468")
+
+    assert(data[1][1] == "code136")
+    assert(data[1][2] == "descr469")
+
+def test_get_code_by_code_and_descr():
+    d = DB(_test_string)
+    d.create_db()
+    c = d._conn.cursor()
+
+    _insert_items(c)
+
+    data = d.get_codes_by_like_code_and_descr("code13%", "descr%9")
+    assert(len(data) == 1)
+    data.sort(key = lambda x: x[0])
+
+    assert(data[0][1] == "code136")
+    assert(data[0][2] == "descr469")
+
+
+def test():
+    import inspect
+    from inspect import getmembers, isfunction
+
+    for (name, obj) in inspect.getmembers(sys.modules[__name__]):
+        if not inspect.isfunction(obj):
+            continue
+        if not name.startswith("test_"):
+            continue
+
+        print(name, end="...")
+        sys.stdout.flush()
+        obj()
+        print("OK")
+
+
 if __name__ == "__main__":
     if sys.argv[1] == "--create":
         d = getDB()
         d.create_db()
+    elif sys.argv[1] == "--test":
+        test()
+
