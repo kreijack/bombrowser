@@ -1,0 +1,13 @@
+[BOMBROWSER]
+#db=sqlite
+db=sqlserver
+
+[SQLITE]
+path=database.sqlite
+
+[SQLSERVER]
+server   = tcp:127.0.0.1
+database = bombrowser
+username = bombrowserUser
+password = bombrowserPassword1.
+driver   = ODBC Driver 17 for SQL Server
