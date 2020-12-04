@@ -35,18 +35,28 @@ class DBSQLServer:
     def __init__(self, path):
         self._open(path)
 
-        try:
+
+        #print("table list=", list(self._get_tables_list()))
+        if "database_props" in self._get_tables_list():
+        #try:
             c = self._conn.cursor()
             c.execute("""SELECT value FROM database_props WHERE "key"='ver'""")
             self._ver = c.fetchone()[0]
 
             self._check_for_db_update(c)
-        except:
-            print("WARN: table database_props might not exist")
+        #except:
+            #print("WARN: table database_props might not exist")
+            #print("ver=", self._ver)
+        else:
+            self._ver = "empty"
 
     def _open(self, connection_string):
         import pyodbc
         self._conn = pyodbc.connect(connection_string)
+
+    def _get_tables_list(self):
+        cursor = self._conn.cursor()
+        return [row.table_name for row in cursor.tables()]
 
     def _check_for_db_update(self, c):
         #print("self._ver =", self._ver)
@@ -182,6 +192,7 @@ class DBSQLServer:
             );
 
         """
+
     def create_db(self):
 
         stmts = self._get_db_creation_sql()
@@ -410,7 +421,6 @@ class DBSQLServer:
 
         return (code_id0, data)
 
-
     def _get_parents(self, c, id_code, date_from_days, date_to_days):
         c.execute("""
             SELECT a.unit, c.code, c.default_unit, a.qty, a.each, a.date_from, a.date_to,
@@ -431,6 +441,7 @@ class DBSQLServer:
         else:
             return res
 
+    # TODO FIX ME
     def _join_data(self, data):
         #return
         keys = list(data.keys())
@@ -565,7 +576,7 @@ class DBSQLite(DBSQLServer):
             self._db_path = _db_path
 
         import sqlite3
-        self._conn = sqlite3.connect(_db_path)
+        self._conn = sqlite3.connect(self._db_path)
 
     def _get_db_creation_sql(self):
         stmts = DBSQLServer._get_db_creation_sql(self)
@@ -575,6 +586,12 @@ class DBSQLite(DBSQLServer):
         stmts = stmts.replace(" ON assemblies;", ";")
 
         return stmts
+
+    def _get_tables_list(self):
+        cursor = self._conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        return [x[0] for x in cursor.fetchall()]
+
 
 _globaDBInstance = None
 def DB(path=None):
@@ -612,111 +629,4 @@ def DB(path=None):
         _globaDBInstance = DBSQLServer(connection_string)
         return _globaDBInstance
     assert(False)
-
-
-def _insert_items(c):
-    codes = [('code123', "descr456", 0), ('code124', "descr457", 0),
-            ('code135', "descr468", 0), ('code136', "descr469", 0),
-            ('code123', "descr456", 1)]
-    for (code, descr, ver) in codes:
-
-        c.execute("""INSERT INTO items(
-            descr, code, ver,
-            iter, default_unit,
-            for1cod, for1name) VALUES (
-            ?, ?, ?,
-            ?, ?,
-            ?, ?)""", (
-                descr, code, "%d"%(ver),
-                ver, "NR",
-                "FOR1COD", "FOR1NAME"
-            ))
-
-
-_test_string="SQLITE:testdb.sqlite"
-def test_double_recreate_db():
-    d = DB(_test_string)
-    d.create_db()
-    d = DB(_test_string)
-    d.create_db()
-
-def test_get_code():
-    d = DB(_test_string)
-    d.create_db()
-    c = d._conn.cursor()
-
-    _insert_items(c)
-
-    data = d.get_code(1)
-    assert(data["code"] == "code123")
-    assert(data["descr"] == "descr456")
-
-    data = d.get_codes_by_code("code124")
-    assert(len(data) == 1)
-    assert(data[0][1] == "code124")
-    assert(data[0][2] == "descr457")
-
-
-    data = d.get_codes_by_like_code("code12%")
-    assert(len(data) == 3)
-    data.sort(key = lambda x: x[1])
-    assert(data[0][1] == "code123")
-    assert(data[0][2] == "descr456")
-
-    assert(data[2][1] == "code124")
-    assert(data[2][2] == "descr457")
-
-def test_get_code_by_descr():
-    d = DB(_test_string)
-    d.create_db()
-    c = d._conn.cursor()
-
-    _insert_items(c)
-
-    data = d.get_codes_by_like_descr("descr46%")
-    assert(len(data) == 2)
-    data.sort(key = lambda x: x[1])
-    assert(data[0][1] == "code135")
-    assert(data[0][2] == "descr468")
-
-    assert(data[1][1] == "code136")
-    assert(data[1][2] == "descr469")
-
-def test_get_code_by_code_and_descr():
-    d = DB(_test_string)
-    d.create_db()
-    c = d._conn.cursor()
-
-    _insert_items(c)
-
-    data = d.get_codes_by_like_code_and_descr("code13%", "descr%9")
-    assert(len(data) == 1)
-    data.sort(key = lambda x: x[0])
-
-    assert(data[0][1] == "code136")
-    assert(data[0][2] == "descr469")
-
-
-def test():
-    import inspect
-    from inspect import getmembers, isfunction
-
-    for (name, obj) in inspect.getmembers(sys.modules[__name__]):
-        if not inspect.isfunction(obj):
-            continue
-        if not name.startswith("test_"):
-            continue
-
-        print(name, end="...")
-        sys.stdout.flush()
-        obj()
-        print("OK")
-
-
-if __name__ == "__main__":
-    if sys.argv[1] == "--create":
-        d = getDB()
-        d.create_db()
-    elif sys.argv[1] == "--test":
-        test()
 
