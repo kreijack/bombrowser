@@ -1,0 +1,8 @@
+- create 'edit code' window
+- create 'new code' window
+- create 'update parents' dialog
+- add support for develop bom
+- refactory database (v0.3 ?)
+	- create up to 10 (?) generic fields to items row and remove the
+	  current already specialized ones. The field name should be
+	  configured in the database 'props' tables
