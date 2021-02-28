@@ -617,6 +617,7 @@ class AssemblyWindow(QMainWindow):
         ref = None
         date_to = self._data[data_key]["date_to"]
         date_from = self._data[data_key]["date_from"]
+        date_from_days = self._data[data_key]["date_from_days"]
         if len(path) > 1:
             #pprint.pprint(self._data[path[-2]])
             unit = self._data[path[-2]]["deps"][path[-1]]["unit"]
@@ -624,10 +625,11 @@ class AssemblyWindow(QMainWindow):
         scrollarea = QScrollArea()
         scrollarea.setWidget(
             codegui.CodeWidget(self._data[data_key]["id"],
+                date_from_days=self._data[data_key]["date_from_days"],
                 qty=qty, each=each, unit=unit,
                 date_from = date_from,
                 date_to = date_to,
-                ref=ref,
+                ref = ref,
                 winParent = self.parent()))
         #scrollarea.setWidgetResizable(False)
         self._splitter.replaceWidget(1, scrollarea)

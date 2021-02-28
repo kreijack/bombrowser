@@ -25,7 +25,7 @@ from PySide2.QtWidgets import QSplitter, QTableView, QLabel, QDialog
 from PySide2.QtWidgets import QGridLayout, QWidget, QApplication
 from PySide2.QtWidgets import QMessageBox, QAction, QLineEdit, QFrame
 from PySide2.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton
-from PySide2.QtWidgets import QHeaderView
+from PySide2.QtWidgets import QHeaderView, QComboBox
 from PySide2.QtGui import QStandardItemModel, QStandardItem
 
 from PySide2.QtCore import Qt, QAbstractTableModel, QEvent
@@ -41,8 +41,9 @@ class QHLine(QFrame):
 
 class CodeWidget(QWidget):
 
-    def __init__(self, id_, winParent, unit=None, qty=None, each=None,
-                 date_from=None, date_to=None, parent = None, ref=None):
+    def __init__(self, id_, winParent, date_from_days=None, unit=None, qty=None,
+                 each=None, date_from=None, date_to=None,
+                 parent = None, ref=None):
         QWidget.__init__(self, parent)
 
         if ref is None or ref == "None":
@@ -56,6 +57,7 @@ class CodeWidget(QWidget):
         self._qty = qty
         self._each = each
         self._date_from = date_from
+        self._date_from_days = date_from_days
         self._date_to = date_to
         self._winParent = winParent
         self._unit = unit
@@ -76,40 +78,63 @@ class CodeWidget(QWidget):
         self._init_gui()
 
     def _init_gui(self):
+        self._grid = QGridLayout()
+        self.setLayout(self._grid)
+
+        #self._grid.clear()
+        d = db.DB()
+
+
+        if self._date_from_days is None:
+
+            self._dates = d.get_dates_by_code_id2(self._code_id)
+            self._list = QComboBox()
+            for data2 in self._dates:
+                (icode, idescr, idate_from, idate_from_days, idate_to,
+                 idate_to_days) = data2[:6]
+
+                self._list.addItem("%s - %s (%s .. %s)"%(
+                    icode, idescr, idate_from, idate_to))
+
+            self._grid.addWidget(self._list, 0, 1)
+            self._date_from = self._dates[0][2]
+            self._date_from_days = self._dates[0][3]
+            self._date_to = self._dates[0][4]
+            self._date_to_days = self._dates[0][5]
+            self._list.currentIndexChanged.connect(self._list_change_index)
+
+        b = QPushButton("Copy info...")
+        self._grid.addWidget(b, 0, 0)
+        b.clicked.connect(self._copy_info)
+        self._mainWidget = QWidget()
+
+        self._grid.addWidget(self._mainWidget, 10, 0, 1, 2)
+
+        self._update_widget(d)
+
+    def _list_change_index(self, i):
+        self._date_from = self._dates[i][2]
+        self._date_from_days = self._dates[i][3]
+        self._date_to = self._dates[i][4]
+        self._date_to_days = self._dates[i][5]
+
+        self._update_widget(db.DB())
+
+    def _update_widget(self, d):
+        # https://stackoverflow.com/questions/10416582/replacing-layout-on-a-qwidget-with-another-layout
+        QWidget().setLayout(self._mainWidget.layout())
+
+        grid = QGridLayout()
+        self._mainWidget.setLayout(grid)
 
         class XLabel(QLabel):
             def __init__(self, *args, **kwargs):
                 QLabel.__init__(self, *args, **kwargs)
                 self.setTextInteractionFlags(Qt.TextSelectableByMouse)
 
-        grid = QGridLayout()
-        self.setLayout(grid)
-
-        #self._grid.clear()
-        d = db.DB()
-        data = d.get_code(self._code_id)
+        data = d.get_code(self._code_id, self._date_from_days)
         if self._unit:
             data["unit"] = self._unit
-
-        #subg = QGridLayout()
-        #grid.addLayout(subg, 0, 0, 1, 2)
-
-        #b = QPushButton("Change code...")
-        #subg.addWidget(b, 0, 0)
-        #b.clicked.connect(self._change_code)
-        #b = QPushButton("Change assembly...")
-        #subg.addWidget(b, 0, 1)
-        #b.clicked.connect(self._change_assembly)
-        #b = QPushButton("Show assembly...")
-        #subg.addWidget(b, 0, 0)
-        #b.clicked.connect(self._show_assembly)
-        #b = QPushButton("Where used...")
-        #subg.addWidget(b, 0, 1)
-        #b.clicked.connect(self._where_used)
-
-        b = QPushButton("Copy info...")
-        grid.addWidget(b, 0, 0)
-        b.clicked.connect(self._copy_info)
 
         txt = ""
         row = 1

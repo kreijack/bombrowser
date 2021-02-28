@@ -266,7 +266,7 @@ class DiffWindow(QMainWindow):
                     txt += "         +%f / %f: %s rev %s - %s\n"%(
                             child2["qty"], child2["each"],
                             data2[child_id]["code"],
-                            data2[child_id]["rev"],
+                            data2[child_id]["ver"],
                             data2[child_id]["descr"])
 
         self._text.setText(txt)
