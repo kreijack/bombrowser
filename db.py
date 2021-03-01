@@ -237,6 +237,30 @@ class DBSQLServer:
                 CREATE INDEX revision_code_id_date ON
                     item_revisions(code_id, date_from_days);
 
+                DROP TABLE IF EXISTS old_drawings;
+
+                ALTER TABLE drawings RENAME TO old_drawings;
+
+                CREATE TABLE drawings (
+                    id          INTEGER NOT NULL IDENTITY PRIMARY KEY,
+                    code        VARCHAR(255) DEFAULT '',
+                    revision_id INTEGER,
+                    filename    VARCHAR(255) NOT NULL,
+                    fullpath    VARCHAR(255) NOT NULL,
+
+                    FOREIGN KEY (revision_id) REFERENCES item_revisions(id)
+                );
+
+                INSERT INTO drawings (code, revision_id, filename, fullpath)
+                SELECT od.code, rev.id, od.filename, od.fullpath
+                FROM old_drawings AS od
+                LEFT JOIN (
+                    SELECT code_id, id, MAX(date_from_days)
+                    FROM item_revisions
+                    GROUP BY code_id
+                ) AS rev
+                    ON rev.code_id = od.item_id;
+
                 -- rename column instead fo dropping
                 ALTER TABLE items
                 RENAME COLUMN ver TO old_ver;
@@ -386,11 +410,11 @@ class DBSQLServer:
             CREATE TABLE drawings (
                 id          INTEGER NOT NULL IDENTITY PRIMARY KEY,
                 code        VARCHAR(255) DEFAULT '',
-                item_id     INTEGER,
+                revision_id INTEGER,
                 filename    VARCHAR(255) NOT NULL,
                 fullpath    VARCHAR(255) NOT NULL,
 
-                FOREIGN KEY (item_id) REFERENCES items(id)
+                FOREIGN KEY (revision_id) REFERENCES item_revisions(id)
             );
 
         """
@@ -599,7 +623,7 @@ class DBSQLServer:
         c = self._conn.cursor()
         c.execute("""SELECT DISTINCT i.code, r.descr,
                                      r.date_from, r.date_from_days,
-                                     r.date_to, r.date_to_days
+                                     r.date_to, r.date_to_days, r.id
                      FROM  item_revisions AS r
                      LEFT JOIN items AS i ON r.code_id = i.id
                      WHERE           r.code_id = ?
@@ -873,13 +897,13 @@ class DBSQLServer:
 
         return ((code0, xdate_from0, xdate_to0), data)
 
-    def get_drawings_by_code_id(self, code_id):
+    def get_drawings_by_code_id(self, rev_id):
         c = self._conn.cursor()
         c.execute("""
             SELECT filename, fullpath
             FROM drawings
-            WHERE item_id = ?
-            """, (code_id,))
+            WHERE revision_id = ?
+            """, (rev_id,))
 
         res = c.fetchall()
         if not res:

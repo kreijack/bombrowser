@@ -630,7 +630,8 @@ class AssemblyWindow(QMainWindow):
                 date_from = date_from,
                 date_to = date_to,
                 ref = ref,
-                winParent = self.parent()))
+                winParent = self.parent(),
+                rid=self._data[data_key]["rid"]))
         #scrollarea.setWidgetResizable(False)
         self._splitter.replaceWidget(1, scrollarea)
         self._grid_widget = scrollarea

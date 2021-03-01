@@ -43,7 +43,7 @@ class CodeWidget(QWidget):
 
     def __init__(self, id_, winParent, date_from_days=None, unit=None, qty=None,
                  each=None, date_from=None, date_to=None,
-                 parent = None, ref=None):
+                 parent = None, ref=None, rid=None):
         QWidget.__init__(self, parent)
 
         if ref is None or ref == "None":
@@ -54,6 +54,7 @@ class CodeWidget(QWidget):
             date_to = ""
 
         self._code_id = id_
+        self._rid = rid
         self._qty = qty
         self._each = each
         self._date_from = date_from
@@ -84,14 +85,13 @@ class CodeWidget(QWidget):
         #self._grid.clear()
         d = db.DB()
 
-
         if self._date_from_days is None:
 
             self._dates = d.get_dates_by_code_id2(self._code_id)
             self._list = QComboBox()
             for data2 in self._dates:
                 (icode, idescr, idate_from, idate_from_days, idate_to,
-                 idate_to_days) = data2[:6]
+                 idate_to_days, rid) = data2[:7]
 
                 self._list.addItem("%s - %s (%s .. %s)"%(
                     icode, idescr, idate_from, idate_to))
@@ -101,6 +101,7 @@ class CodeWidget(QWidget):
             self._date_from_days = self._dates[0][3]
             self._date_to = self._dates[0][4]
             self._date_to_days = self._dates[0][5]
+            self._rid = self._dates[0][6]
             self._list.currentIndexChanged.connect(self._list_change_index)
 
         b = QPushButton("Copy info...")
@@ -198,7 +199,7 @@ class CodeWidget(QWidget):
             grid.addWidget(QHLine(), row, 0, 1, 2)
             row += 1
 
-        drawings = d.get_drawings_by_code_id(self._code_id)
+        drawings = d.get_drawings_by_code_id(self._rid)
         for drw in drawings:
             b = QPushButton(drw[0])
             class Opener:
