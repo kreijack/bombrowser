@@ -911,6 +911,46 @@ class DBSQLServer:
         else:
             return res
 
+    def get_bom_dates_by_code_id(self, code_id):
+        sdates = set()
+        dates = []
+        done = set()
+        todo = [code_id]
+
+        c = self._conn.cursor()
+
+        c.execute("""
+            SELECT MIN(date_from_days)
+            FROM item_revisions
+            WHERE code_id = ?
+            """, (code_id,))
+
+        date_from_min = c.fetchone()[0]
+
+        while len(todo):
+
+            cid = todo.pop()
+            done.add(cid)
+            c.execute("""
+                    SELECT a.child_id, r.date_from, r.date_from_days
+                    FROM assemblies AS a
+                    LEFT JOIN item_revisions AS r
+                      ON a.revision_id = r.id
+                    WHERE r.code_id = ?
+                """, (cid,))
+
+            for (cid, date_from, date_from_days) in c.fetchall():
+                if cid in done:
+                    continue
+                todo.append(cid)
+                if date_from_days < date_from_min:
+                    continue
+                if not date_from_days in sdates:
+                    sdates.add(date_from_days)
+                    dates.append((date_from, date_from_days))
+
+        return dates
+
 class DBSQLite(DBSQLServer):
     def __init__(self, path=None):
         DBSQLServer.__init__(self, path)

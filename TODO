@@ -1,3 +1,20 @@
+
+
+- create "revise/copy" code
+- create "the edit dialog"
+- when a code is selected, show all the dates combining all the children
+- in listcodegui handle the case where the code has different descriptions for
+  different revisions
+- in codegui show the revision_id instead of code_id
+
+- remake the tests
+
+
+
+-----
+
+
+
 - create 'edit code' window
 - create 'new code' window
 - create 'update parents' dialog
