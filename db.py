@@ -308,7 +308,7 @@ class DBSQLServer:
 
             CREATE TABLE    items (
                 id          INTEGER NOT NULL IDENTITY PRIMARY KEY,
-                code        VARCHAR(255) NOT NULL
+                code        VARCHAR(255) UNIQUE NOT NULL
             );
 
             CREATE INDEX item_code_idx             ON items(code);
@@ -937,12 +937,96 @@ class DBSQLServer:
 
         return dates
 
-    def revise_code(self, rid, descr, copy_children=True, copy_docs=True):
+    def copy_code(self, new_code, rid, descr, copy_props=True, copy_docs=True):
+        c = self._conn.cursor()
+        c.execute("BEGIN")
+        try:
+
+            c.execute("""
+                    INSERT INTO items(code) VALUES (?)
+                """, (new_code, ))
+
+            c.execute("""SELECT MAX(id) FROM items""")
+            new_code_id = c.fetchone()[0]
+
+            """
+            c.execute("" "
+                SELECT id, MAX(date_from_days)
+                FROM item_revisions
+                WHERE code_id = (
+                    SELECT code_id
+                    FROM item_revisions
+                    WHERE id = ?
+                )
+                "" ", (rid, ))
+
+            (old_rid, old_date_from_days) = c.fetchone()
+            assert(old_rid == rid)
+
+
+            assert(new_date_from_days > old_date_from_days)
+
+            print(new_date_from, new_date_from_days, descr, rid)
+            """
+
+            new_date_from_days = now_to_days()
+            new_date_from = days_to_iso(new_date_from_days)
+
+            c.execute("""
+                INSERT INTO item_revisions(
+                    code_id,
+                    date_from,
+                    date_from_days,
+                    date_to,
+                    ver,
+                    iter,
+                    note,
+                    descr,
+                    default_unit,
+                    for1cod,
+                    for1name,
+                    prod1cod,
+                    prod1name,
+                    prod2cod,
+                    prod2name
+                ) SELECT
+                    ?,
+                    ?,
+                    ?,
+                    '',
+                    ver,
+                    iter + 1,
+                    note,
+                    ? ,
+                    default_unit,
+                    for1cod,
+                    for1name,
+                    prod1cod,
+                    prod1name,
+                    prod2cod,
+                    prod2name
+                FROM item_revisions
+                WHERE id = ?
+            """, (new_code_id, new_date_from, new_date_from_days, descr, rid))
+
+            c.execute("""SELECT MAX(id) FROM item_revisions""")
+            new_rid = c.fetchone()[0]
+
+            self._revise_code_copy_others(c, new_rid, rid, copy_docs, copy_props)
+
+        except:
+            c.execute("ROLLBACK")
+            raise
+
+        c.execute("COMMIT")
+
+
+    def revise_code(self, rid, descr, copy_props=True, copy_docs=True):
         c = self._conn.cursor()
         c.execute("BEGIN")
         try:
             c.execute("""
-                SELECT id, MAX(date_from_days)
+                SELECT id, MAX(date_from_days), iter
                 FROM item_revisions
                 WHERE code_id = (
                     SELECT code_id
@@ -951,8 +1035,7 @@ class DBSQLServer:
                 )
                 """, (rid, ))
 
-            (old_rid, old_date_from_days) = c.fetchone()
-            assert(old_rid == rid)
+            (latest_rid, old_date_from_days, old_iter) = c.fetchone()
 
             new_date_from_days = now_to_days()
             new_date_from = days_to_iso(new_date_from_days)
@@ -984,7 +1067,7 @@ class DBSQLServer:
                     ?,
                     '',
                     ver,
-                    iter + 1,
+                    ?,
                     note,
                     ? ,
                     default_unit,
@@ -996,37 +1079,48 @@ class DBSQLServer:
                     prod2name
                 FROM item_revisions
                 WHERE id = ?
-            """, (new_date_from, new_date_from_days, descr, rid))
+            """, (new_date_from, new_date_from_days, old_iter + 1, descr, rid))
 
             c.execute("""SELECT MAX(id) FROM item_revisions""")
             new_rid = c.fetchone()[0]
 
+
+            old_date_to_days = new_date_from_days - 1
             c.execute("""
                 UPDATE item_revisions
                 SET date_to = ?, date_to_days = ?
                 WHERE id = ?
-            """, (days_to_iso(new_date_from_days - 1),
-                new_date_from_days - 1, rid))
+            """, (days_to_iso(old_date_to_days),
+                old_date_to_days, latest_rid))
 
-            if copy_children:
-                c.execute("""
-                    INSERT INTO assemblies (
-                        unit,
-                        child_id,
-                        revision_id,
-                        qty,
-                        each,
-                        ref
-                    ) SELECT
-                        unit,
-                        child_id,
-                        ?,
-                        qty,
-                        each,
-                        ref
-                    FROM assemblies
-                    WHERE revision_id = ?
-                """, (new_rid, rid))
+            self._revise_code_copy_others(c, new_rid, rid, copy_docs, copy_props)
+
+        except:
+            c.execute("ROLLBACK")
+            raise
+
+        c.execute("COMMIT")
+
+    def _revise_code_copy_others(self, c, new_rid, old_rid, copy_docs, copy_props):
+
+            c.execute("""
+                INSERT INTO assemblies (
+                    unit,
+                    child_id,
+                    revision_id,
+                    qty,
+                    each,
+                    ref
+                ) SELECT
+                    unit,
+                    child_id,
+                    ?,
+                    qty,
+                    each,
+                    ref
+                FROM assemblies
+                WHERE revision_id = ?
+            """, (new_rid, old_rid))
 
             if copy_docs:
                 c.execute("""
@@ -1042,13 +1136,21 @@ class DBSQLServer:
                         fullpath
                     FROM drawings
                     WHERE revision_id = ?
-                """, (new_rid, rid))
+                """, (new_rid, old_rid))
 
-        except:
-            c.execute("ROLLBACK")
-            raise
-
-        c.execute("COMMIT")
+            if copy_props:
+                c.execute("""
+                    INSERT INTO item_properties (
+                        descr,
+                        value,
+                        revision_id
+                    ) SELECT
+                        descr,
+                        value,
+                        ?
+                    FROM item_properties
+                    WHERE revision_id = ?
+                """, (new_rid, old_rid))
 
 
 class DBSQLite(DBSQLServer):
