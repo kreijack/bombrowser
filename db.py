@@ -651,8 +651,10 @@ class DBSQLServer:
     def is_assembly(self, id_code):
         c = self._conn.cursor()
         c.execute("""SELECT COUNT(*)
-                     FROM item_revisions
-                     WHERE  code_id = ?
+                     FROM assemblies AS a
+                     LEFT JOIN item_revisions AS r
+                       ON r.id = a.revision_id
+                     WHERE  r.code_id = ?
                   """, (id_code, ))
 
         return c.fetchone()[0] > 0
@@ -918,22 +920,29 @@ class DBSQLServer:
             cid = todo.pop()
             done.add(cid)
             c.execute("""
-                    SELECT a.child_id, r.date_from, r.date_from_days
+                    SELECT r.date_from, r.date_from_days
+                    FROM item_revisions AS r
+                    WHERE r.code_id = ?
+                """, (cid,))
+            for (date_from, date_from_days) in c.fetchall():
+                if date_from_days < date_from_min:
+                    continue
+                if not date_from_days in sdates:
+                    sdates.add(date_from_days)
+                    dates.append((date_from, date_from_days))
+
+            c.execute("""
+                    SELECT a.child_id
                     FROM assemblies AS a
                     LEFT JOIN item_revisions AS r
                       ON a.revision_id = r.id
                     WHERE r.code_id = ?
                 """, (cid,))
 
-            for (cid, date_from, date_from_days) in c.fetchall():
+            for (cid,) in c.fetchall():
                 if cid in done:
                     continue
                 todo.append(cid)
-                if date_from_days < date_from_min:
-                    continue
-                if not date_from_days in sdates:
-                    sdates.add(date_from_days)
-                    dates.append((date_from, date_from_days))
 
         return dates
 
