@@ -39,6 +39,7 @@ import sys
 import pprint
 import datetime
 import configparser
+import time
 import jdutil
 
 def increase_date(d, inc=+1):
@@ -46,7 +47,13 @@ def increase_date(d, inc=+1):
             datetime.timedelta(days=inc)).isoformat()
 
 def iso_to_days(txt):
-    return jdutil.datetime.fromisoformat(txt).to_jd() - 2451544.5
+    return int(jdutil.datetime.fromisoformat(txt).to_jd() - 2451544.5)
+
+def days_to_iso(n):
+    return jdutil.jd_to_datetime(int(n) + 2451544.5).strftime("%Y-%m-%d")
+
+def now_to_days():
+    return int(jdutil.datetime.now().to_jd() - 2451544.5)
 
 _db_path = "database.sqlite"
 # infinity date
@@ -123,54 +130,34 @@ class DBSQLServer:
             self._ver = "0.2"
 
         if self._ver == "0.2":
+
             smts = """
                 -- ver 0.2 -> ver 0.3
-
-                DROP TABLE IF EXISTS item_revisions;
-
-                CREATE TABLE item_revisions (
-                    id              INTEGER NOT NULL IDENTITY PRIMARY KEY,
-                    code_id         INTEGER,
-                    date_from       VARCHAR(255) NOT NULL DEFAULT '2000-01-01',
-                    date_to         VARCHAR(255) DEFAULT '4737-11-27',
-                    date_from_days  INTEGER DEFAULT 0,
-                    date_to_days    INTEGER DEFAULT 999999,
-                    ver             VARCHAR(10) NOT NULL,
-                    iter            INTEGER,
-                    note            VARCHAR(255),
-                    descr           VARCHAR(255) NOT NULL,
-                    default_unit    VARCHAR(255) NOT NULL,
-                    for1cod         VARCHAR(255) DEFAULT '',
-                    for1name        VARCHAR(255) DEFAULT '',
-                    prod1cod        VARCHAR(255) DEFAULT '',
-                    prod1name       VARCHAR(255) DEFAULT '',
-                    prod2cod        VARCHAR(255) DEFAULT '',
-                    prod2name       VARCHAR(255) DEFAULT '',
-
-                    FOREIGN KEY (code_id) REFERENCES items(id)
-                );
-
-                ALTER TABLE assemblies
-                RENAME TO old_assemblies;
-
-                CREATE TABLE assemblies (
-                    id              INTEGER NOT NULL IDENTITY PRIMARY KEY,
-                    unit            VARCHAR(255),
-                    child_id        INTEGER,
-                    revision_id     INTEGER,
-                    qty             FLOAT,
-                    each            FLOAT DEFAULT 1.0,
-                    ref             VARCHAR(255) DEFAULT '',
-
-                    FOREIGN KEY (child_id) REFERENCES items(id),
-                    FOREIGN KEY (revision_id) REFERENCES item_revision(id)
-                );
-
+                DROP INDEX IF EXISTS item_code_idx;
+                DROP INDEX IF EXISTS item_code_ver_idx;
+                DROP INDEX IF EXISTS item_code_ver_iter;
+                DROP INDEX IF EXISTS drawing_idx;
                 DROP INDEX IF EXISTS assemblies_child_idx;
                 DROP INDEX IF EXISTS assemblies_parent_idx;
 
-                CREATE INDEX assemblies_child_idx ON assemblies(child_id);
-                CREATE INDEX assemblies_revision_idx ON assemblies(revision_id);
+                ALTER TABLE assemblies RENAME TO old_assemblies;
+                ALTER TABLE item_properties RENAME TO old_item_properties;
+                ALTER TABLE items RENAME TO old_items;
+                ALTER TABLE drawings RENAME TO old_drawings;
+            """
+
+            for s in smts.split(";"):
+                c.execute(s)
+
+            stms = self._get_db_v0_3()
+            for s in stms.split(";"):
+                if "CREATE INDEX" in s or "CREATE UNIQUE INDEX" in s:
+                    continue
+                c.execute(s)
+
+            stms = """
+                INSERT INTO items(id, code)
+                SELECT id, code FROM old_items;
 
                 INSERT INTO item_revisions(
                     code_id,
@@ -189,11 +176,11 @@ class DBSQLServer:
                     i.for1cod, i.for1name, i.prod1cod, i.prod1name,
                     i.prod2cod, i.prod2name
                 FROM old_assemblies AS a
-                LEFT JOIN items AS i ON a.parent_id = i.id;
+                LEFT JOIN old_items AS i ON a.parent_id = i.id;
 
                 INSERT INTO item_revisions(
                     code_id,
-                    -- date are got from default
+                    -- dates are get from default
                     ver, iter,
                     note,
                     descr, default_unit,
@@ -206,7 +193,7 @@ class DBSQLServer:
                     descr, default_unit,
                     for1cod, for1name, prod1cod, prod1name,
                     prod2cod, prod2name
-                FROM items
+                FROM old_items
                 WHERE NOT id IN (SELECT DISTINCT parent_id FROM old_assemblies);
 
                 INSERT INTO assemblies (
@@ -229,28 +216,6 @@ class DBSQLServer:
                     r.date_from_days = a.date_from_days AND
                     r.date_to_days = a.date_to_days;
 
-                CREATE INDEX revision_code_id ON item_revisions(code_id);
-                CREATE INDEX revision_date_from ON item_revisions(date_from);
-                CREATE INDEX revision_date_from_days ON item_revisions(date_from_days);
-                CREATE INDEX revision_date_to ON item_revisions(date_to);
-                CREATE INDEX revision_date_to_days ON item_revisions(date_to_days);
-                CREATE INDEX revision_code_id_date ON
-                    item_revisions(code_id, date_from_days);
-
-                DROP TABLE IF EXISTS old_drawings;
-
-                ALTER TABLE drawings RENAME TO old_drawings;
-
-                CREATE TABLE drawings (
-                    id          INTEGER NOT NULL IDENTITY PRIMARY KEY,
-                    code        VARCHAR(255) DEFAULT '',
-                    revision_id INTEGER,
-                    filename    VARCHAR(255) NOT NULL,
-                    fullpath    VARCHAR(255) NOT NULL,
-
-                    FOREIGN KEY (revision_id) REFERENCES item_revisions(id)
-                );
-
                 INSERT INTO drawings (code, revision_id, filename, fullpath)
                 SELECT od.code, rev.id, od.filename, od.fullpath
                 FROM old_drawings AS od
@@ -261,49 +226,59 @@ class DBSQLServer:
                 ) AS rev
                     ON rev.code_id = od.item_id;
 
-                -- rename column instead fo dropping
-                ALTER TABLE items
-                RENAME COLUMN ver TO old_ver;
+                INSERT INTO item_properties (descr, value, revision_id)
+                SELECT oip.descr, oip.value, rev.id
+                FROM old_item_properties AS oip
+                LEFT JOIN (
+                    SELECT code_id, id, MAX(date_from_days)
+                    FROM item_revisions
+                    GROUP BY code_id
+                ) AS rev
+                    ON rev.code_id = oip.item_id;
 
-                ALTER TABLE items
-                RENAME COLUMN iter TO old_iter;
 
-                ALTER TABLE items
-                RENAME COLUMN descr TO old_descr;
+            """
+            for s in stms.split(";"):
+                c.execute(s)
 
-                ALTER TABLE items
-                RENAME COLUMN default_unit TO old_default_unit;
+            c.execute("""
+                SELECT code_id, date_from_days, id
+                FROM item_revisions
+                ORDER BY code_id, date_from_days
+                """)
+            data = list(c.fetchall())
+            prev=''
+            cnt = 0
+            for (code_id, date_from_days, rid) in data:
+                if prev != code_id:
+                    cnt = 0
+                    prev = code_id
+                else:
+                    cnt += 1
+                    c.execute("UPDATE item_revisions SET iter = ? WHERE id= ?",
+                        (cnt, rid))
 
-                ALTER TABLE items
-                RENAME COLUMN for1cod TO old_for1cod;
+            stms = self._get_db_v0_3()
+            for s in stms.split(";"):
+                if not ("CREATE INDEX" in s or "CREATE UNIQUE INDEX" in s):
+                    continue
+                c.execute(s)
 
-                ALTER TABLE items
-                RENAME COLUMN for1name TO old_for1name;
 
-                ALTER TABLE items
-                RENAME COLUMN prod1cod TO old_prod1cod;
+            stms = """
+                DROP TABLE IF EXISTS old_assemblies;
+                DROP TABLE IF EXISTS old_item_properties;
+                DROP TABLE IF EXISTS old_drawings;
+                DROP TABLE IF EXISTS old_items;
+            """
+            for s in stms.split(";"):
+                c.execute(s)
 
-                ALTER TABLE items
-                RENAME COLUMN prod1name TO old_prod1name;
-
-                ALTER TABLE items
-                RENAME COLUMN for1id TO old_for1id;
-
-                ALTER TABLE items
-                RENAME COLUMN prod2cod TO old_prod2cod;
-
-                ALTER TABLE items
-                RENAME COLUMN prod2name TO old_prod2name;
-
+            c.execute("""
                 UPDATE database_props
                 SET value = '0.3'
-                WHERE key == 'ver';
-            """
-
-            smts = self._sql_translate(smts)
-            for s in smts.split(";"):
-                print("smt=",s)
-                c.execute(s)
+                WHERE key == 'ver'
+            """)
             self._conn.commit()
             self._ver = "0.3"
 
@@ -313,17 +288,17 @@ class DBSQLServer:
         print("Unknown database version: abort")
         sys.exit(100)
 
-    def create_db(self):
+    def _get_db_v0_3(self):
         stms = """
             --
             -- ver 0.3
             --
-            DROP INDEX IF EXISTS item_code_idx ON items;
-            DROP INDEX IF EXISTS item_code_ver_idx ON items;
-            DROP INDEX IF EXISTS item_code_ver_iter ON items;
-            DROP INDEX IF EXISTS drawing_idx ON drawings;
-            DROP INDEX IF EXISTS assemblies_child_idx ON assemblies;
-            DROP INDEX IF EXISTS assemblies_parent_idx ON assemblies;
+            DROP INDEX IF EXISTS item_code_idx;
+            DROP INDEX IF EXISTS item_code_ver_idx;
+            DROP INDEX IF EXISTS item_code_ver_iter;
+            DROP INDEX IF EXISTS drawing_idx;
+            DROP INDEX IF EXISTS assemblies_child_idx;
+            DROP INDEX IF EXISTS assemblies_parent_idx;
 
             DROP TABLE IF EXISTS assemblies;
             DROP TABLE IF EXISTS item_properties;
@@ -333,12 +308,10 @@ class DBSQLServer:
 
             CREATE TABLE    items (
                 id          INTEGER NOT NULL IDENTITY PRIMARY KEY,
-                code        VARCHAR(255) NOT NULL,
+                code        VARCHAR(255) NOT NULL
             );
 
             CREATE INDEX item_code_idx             ON items(code);
-            CREATE INDEX item_code_ver_idx         ON items(code, ver);
-            CREATE UNIQUE INDEX item_code_ver_iter ON items(code, ver, iter);
 
             CREATE TABLE item_revisions (
                 id              INTEGER NOT NULL IDENTITY PRIMARY KEY,
@@ -351,8 +324,6 @@ class DBSQLServer:
                 iter            INTEGER,
                 note            VARCHAR(255),
                 descr           VARCHAR(255) NOT NULL,
-                ver             VARCHAR(10) NOT NULL,
-                iter            INTEGER,
                 default_unit    VARCHAR(255) NOT NULL,
                 for1cod         VARCHAR(255) DEFAULT '',
                 for1id          VARCHAR(255) DEFAULT '',
@@ -372,7 +343,8 @@ class DBSQLServer:
             CREATE INDEX revision_date_from_days ON item_revisions(date_from_days);
             CREATE INDEX revision_date_to ON item_revisions(date_to);
             CREATE INDEX revision_date_to_days ON item_revisions(date_to_days);
-
+            CREATE UNIQUE INDEX revision_code_iter
+                ON item_revisions(code_id, iter);
 
             CREATE TABLE item_properties (
                 id          INTEGER NOT NULL PRIMARY KEY,
@@ -380,9 +352,9 @@ class DBSQLServer:
                 value       VARCHAR(255),
                 revision_id     INTEGER,
 
-                FOREIGN KEY (item_id) REFERENCES item_revisions(id)
+                FOREIGN KEY (revision_id) REFERENCES item_revisions(id)
             );
-            CREATE UNIQUE INDEX item_prop_descr_iid ON item_properties(item_id, descr);
+            CREATE UNIQUE INDEX item_prop_descr_rid ON item_properties(revision_id, descr);
 
             CREATE TABLE assemblies (
                 id              INTEGER NOT NULL IDENTITY PRIMARY KEY,
@@ -391,6 +363,7 @@ class DBSQLServer:
                 revision_id     INTEGER,
                 qty             FLOAT,
                 each            FLOAT DEFAULT 1.0,
+                ref             VARCHAR(255) DEFAULT '',
 
                 FOREIGN KEY (child_id) REFERENCES items(id),
                 FOREIGN KEY (revision_id) REFERENCES item_revision(id)
@@ -420,10 +393,17 @@ class DBSQLServer:
         """
 
         stms = self._sql_translate(stms)
+
+        return stms
+
+    def create_db(self):
+
+        stms = self._get_db_v0_3(self)
         c = self._conn.cursor()
         for s in stms.split(";"):
             #print("Executing '%s'"%(s))
             c.execute(s)
+
         self._conn.commit()
 
     def get_code(self, id_code, date_from):
@@ -473,8 +453,8 @@ class DBSQLServer:
         c.execute("""
             SELECT descr, value
             FROM item_properties
-            WHERE item_id=?
-            """, (id_code, ))
+            WHERE revision_id=?
+            """, (res[15], ))
 
         res = c.fetchall()
         if res:
@@ -482,6 +462,9 @@ class DBSQLServer:
                 data["properties"][k] = v
 
         return data
+
+    def get_code_from_rid(self, rid):
+        return self._get_code_from_rid(self._conn.cursor(), rid)
 
     def _get_code_from_rid(self, c, rid):
 
@@ -622,8 +605,8 @@ class DBSQLServer:
     def get_dates_by_code_id2(self, id_code):
         c = self._conn.cursor()
         c.execute("""SELECT DISTINCT i.code, r.descr,
-                                     r.date_from, r.date_from_days,
-                                     r.date_to, r.date_to_days, r.id
+                                     r.date_from, r.date_from_days, r.date_to,
+                                     r.date_to_days, r.id, r.ver, r.iter
                      FROM  item_revisions AS r
                      LEFT JOIN items AS i ON r.code_id = i.id
                      WHERE           r.code_id = ?
@@ -688,10 +671,13 @@ class DBSQLServer:
                        ON i.id = r.code_id
                      WHERE  r.code_id = ?
                        AND  r.date_from_days <= ?
-                       AND   ? < r.date_to_days """,
+                       AND   ? <= r.date_to_days """,
                      (code_id0, date_from_days_ref, date_from_days_ref) )
 
-        (code0, date_from_days, date_to_days, rid) = c.fetchall()[0]
+        data2 = list(c.fetchall())
+        print("data=",data2)
+
+        (code0, date_from_days, date_to_days, rid) = data2[0]
         date_from_days0 = date_from_days
         todo = [rid]
         done = []
@@ -715,7 +701,7 @@ class DBSQLServer:
                   ON a.child_id = rc.code_id
                 WHERE   a.revision_id = ?
                   AND   rc.date_from_days <= ?
-                  AND   ? < rc.date_to_days
+                  AND   ? <= rc.date_to_days
                 ORDER BY a.child_id
                 """, (rid, date_from_days_ref, date_from_days_ref))
 
@@ -951,6 +937,120 @@ class DBSQLServer:
 
         return dates
 
+    def revise_code(self, rid, descr, copy_children=True, copy_docs=True):
+        c = self._conn.cursor()
+        c.execute("BEGIN")
+        try:
+            c.execute("""
+                SELECT id, MAX(date_from_days)
+                FROM item_revisions
+                WHERE code_id = (
+                    SELECT code_id
+                    FROM item_revisions
+                    WHERE id = ?
+                )
+                """, (rid, ))
+
+            (old_rid, old_date_from_days) = c.fetchone()
+            assert(old_rid == rid)
+
+            new_date_from_days = now_to_days()
+            new_date_from = days_to_iso(new_date_from_days)
+
+            assert(new_date_from_days > old_date_from_days)
+
+            print(new_date_from, new_date_from_days, descr, rid)
+
+            c.execute("""
+                INSERT INTO item_revisions(
+                    code_id,
+                    date_from,
+                    date_from_days,
+                    date_to,
+                    ver,
+                    iter,
+                    note,
+                    descr,
+                    default_unit,
+                    for1cod,
+                    for1name,
+                    prod1cod,
+                    prod1name,
+                    prod2cod,
+                    prod2name
+                ) SELECT
+                    code_id,
+                    ?,
+                    ?,
+                    '',
+                    ver,
+                    iter + 1,
+                    note,
+                    ? ,
+                    default_unit,
+                    for1cod,
+                    for1name,
+                    prod1cod,
+                    prod1name,
+                    prod2cod,
+                    prod2name
+                FROM item_revisions
+                WHERE id = ?
+            """, (new_date_from, new_date_from_days, descr, rid))
+
+            c.execute("""SELECT MAX(id) FROM item_revisions""")
+            new_rid = c.fetchone()[0]
+
+            c.execute("""
+                UPDATE item_revisions
+                SET date_to = ?, date_to_days = ?
+                WHERE id = ?
+            """, (days_to_iso(new_date_from_days - 1),
+                new_date_from_days - 1, rid))
+
+            if copy_children:
+                c.execute("""
+                    INSERT INTO assemblies (
+                        unit,
+                        child_id,
+                        revision_id,
+                        qty,
+                        each,
+                        ref
+                    ) SELECT
+                        unit,
+                        child_id,
+                        ?,
+                        qty,
+                        each,
+                        ref
+                    FROM assemblies
+                    WHERE revision_id = ?
+                """, (new_rid, rid))
+
+            if copy_docs:
+                c.execute("""
+                    INSERT INTO drawings (
+                        code,
+                        revision_id,
+                        filename,
+                        fullpath
+                    ) SELECT
+                        code,
+                        ?,
+                        filename,
+                        fullpath
+                    FROM drawings
+                    WHERE revision_id = ?
+                """, (new_rid, rid))
+
+        except:
+            c.execute("ROLLBACK")
+            raise
+
+        c.execute("COMMIT")
+
+
 class DBSQLite(DBSQLServer):
     def __init__(self, path=None):
         DBSQLServer.__init__(self, path)
@@ -1014,4 +1114,5 @@ def DB(path=None):
         _globaDBInstance = DBSQLServer(connection_string)
         return _globaDBInstance
     assert(False)
+
 
