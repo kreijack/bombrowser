@@ -55,7 +55,7 @@ class SelectDate(QDialog):
 
     def _init_gui(self):
         grid = QGridLayout()
-        grid.addWidget(QLabel("Select which date"), 0, 0)
+        self.setWindowTitle("BOMBrowser: Select date")
 
         self._table = QTableView()
         self._table.horizontalHeader().setStretchLastSection(True)
@@ -83,11 +83,27 @@ class SelectDate(QDialog):
 
     def _populate_table(self):
         d = db.DB()
-        ret = d.get_dates_by_code_id(self._code_id)
+        data = [(r[0], r[1], r[2])
+            for r in d.get_dates_by_code_id2(self._code_id)]
 
-        assert(len(ret))
+        m = dict()
+        for code, descr, date_from in data:
+            m[date_from] = descr
 
-        model = self.TableModel(ret, ["Code", "Date from", "Date to"])
+        data = d.get_bom_dates_by_code_id(self._code_id)
+        assert(len(data))
+        data.sort(reverse=True)
+
+        last_descr = data[0][0]
+        data2 = []
+        for r in data:
+            if r[0] in m:
+                last_descr = m[r[0]]
+            data2.append((code, last_descr, r[0]))
+
+        assert(len(data2))
+
+        model = self.TableModel(data2, ["Code", "Description", "Date from"])
         self._table.setModel(model)
         self._table.selectionModel().selectionChanged.connect(self._table_clicked)
         self._table.doubleClicked.connect(self.accept)
@@ -112,8 +128,8 @@ class SelectDate(QDialog):
 
         self._return_id = (
             self._table.model().data(IDX(row, 0), Qt.DisplayRole),
-            self._table.model().data(IDX(row, 1), Qt.DisplayRole),
-            self._table.model().data(IDX(row, 2), Qt.DisplayRole)
+            self._table.model().data(IDX(row, 2), Qt.DisplayRole),
+            self._table.model().data(IDX(row, 1), Qt.DisplayRole)
         )
 
     def get_result(self):
