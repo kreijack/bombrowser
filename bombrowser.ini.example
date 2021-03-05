@@ -2,6 +2,11 @@
 #db=sqlite
 db=sqlserver
 
+# the name of gvalN (n=1..8) fields separated by comma
+# it is allowed to have less than 8 fields
+gvalnames=Supplier#1 PN,Supplier#1 name,Manufacturer#1 PN,Manufacturer#1 name,Manufacturer#2 PN,Manufacturer#2 name
+genericnames=
+
 [SQLITE]
 path=database.sqlite
 

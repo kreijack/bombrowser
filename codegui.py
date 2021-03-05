@@ -29,9 +29,13 @@ from PySide2.QtWidgets import QHeaderView, QComboBox
 from PySide2.QtGui import QStandardItemModel, QStandardItem
 
 from PySide2.QtCore import Qt, QAbstractTableModel, QEvent
-import pprint
+import pprint, configparser
 
 import db, asmgui
+
+_cfg = configparser.ConfigParser()
+_cfg.read_file(open("bombrowser.ini"))
+
 
 class QHLine(QFrame):
     def __init__(self):
@@ -69,13 +73,12 @@ class CodeWidget(QWidget):
             ("Iteration", "iter"),
             ("Description", "descr"),
             ("Unit", "unit"),
-            ("Fornitore", "gval2"),
-            ("  P/N", "gval1"),
-            ("Produttore", "gval4"),
-            ("  P/N", "gval3"),
-            ("Produttore", "gval6"),
-            ("  P/N", "gval5"),
         ]
+
+        gvalnames = _cfg.get("BOMBROWSER", "gvalnames").split(",")
+        i = 0
+        for i in range(len(gvalnames)):
+            self._main_data.append((gvalnames[i], "gval%d"%(i+1)))
         self._init_gui()
 
     def _init_gui(self):
@@ -251,3 +254,4 @@ class CodeWidget(QWidget):
             QApplication.beep()
             return
         asmgui.show_assembly(self._code_id, self._winParent)
+
