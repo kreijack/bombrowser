@@ -360,7 +360,10 @@ class CodesWindow(QMainWindow):
 
         scrollarea = QScrollArea()
         scrollarea.setWidget(codegui.CodeWidget(id_, self))
-        #scrollarea.setWidgetResizable(False)
+
+        # this to avoid unexpected crash
+        w = self._splitter.widget(1)
+
         self._splitter.replaceWidget(1, scrollarea)
         self._grid_widget = scrollarea
 

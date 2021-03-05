@@ -524,7 +524,9 @@ class AssemblyWindow(QMainWindow):
                 ref = ref,
                 winParent = self.parent(),
                 rid=self._data[data_key]["rid"]))
-        #scrollarea.setWidgetResizable(False)
+
+        # this to avoid unexpected crash
+        w = self._splitter.widget(1)
         self._splitter.replaceWidget(1, scrollarea)
         self._grid_widget = scrollarea
         self._my_statusbar.showMessage("/".join(map(lambda x : self._data[x]["code"], path)))
