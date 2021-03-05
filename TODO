@@ -1,12 +1,12 @@
 
 
-- create "revise/copy" code
 - create "the edit dialog"
-- when a code is selected, show all the dates combining all the children
-- in listcodegui handle the case where the code has different descriptions for
-  different revisions
+- make an handler in db.py for showing a error dialog for incorrect SQL
 - in codegui show the revision_id instead of code_id
-
+- refresh the properties
+- open some window by command line (bombrowser -openassy <code>/<date>)
+- check the "valid where used" function
+- add the concept of "prototype" bom/code
 - remake the tests
 
 

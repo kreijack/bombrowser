@@ -1,5 +1,5 @@
 database.sqlite
 __pycache__
 *.pyc
-
-
+test.py
+bombrowser.ini
