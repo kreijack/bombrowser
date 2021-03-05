@@ -72,7 +72,7 @@ class DBSQLServer:
         if "database_props" in self._get_tables_list():
         #try:
             c = self._conn.cursor()
-            c.execute("""SELECT value FROM database_props WHERE "key"='ver'""")
+            self._sqlex(c, """SELECT value FROM database_props WHERE "key"='ver'""")
             self._ver = c.fetchone()[0]
 
             self._check_for_db_update(c)
@@ -81,6 +81,10 @@ class DBSQLServer:
             #print("ver=", self._ver)
         else:
             self._ver = "empty"
+
+    def _sqlex(self, c, query, *args, **kwargs):
+        # TODO handle the exception
+        c.execute(query, *args, **kwargs)
 
     def _sql_translate(self, s):
         return s
@@ -128,7 +132,7 @@ class DBSQLServer:
             """
 
             for s in smts.split(";"):
-                c.execute(s)
+                self._sqlex(c, s)
             self._conn.commit()
             self._ver = "0.2"
 
@@ -150,13 +154,13 @@ class DBSQLServer:
             """
 
             for s in smts.split(";"):
-                c.execute(s)
+                self._sqlex(c, s)
 
             stms = self._get_db_v0_3()
             for s in stms.split(";"):
                 if "CREATE INDEX" in s or "CREATE UNIQUE INDEX" in s:
                     continue
-                c.execute(s)
+                self._sqlex(c, s)
 
             stms = """
                 INSERT INTO items(id, code)
@@ -242,9 +246,9 @@ class DBSQLServer:
 
             """
             for s in stms.split(";"):
-                c.execute(s)
+                self._sqlex(c, s)
 
-            c.execute("""
+            self._sqlex(c, """
                 SELECT code_id, date_from_days, id
                 FROM item_revisions
                 ORDER BY code_id, date_from_days
@@ -258,14 +262,14 @@ class DBSQLServer:
                     prev = code_id
                 else:
                     cnt += 1
-                    c.execute("UPDATE item_revisions SET iter = ? WHERE id= ?",
+                    self._sqlex(c, "UPDATE item_revisions SET iter = ? WHERE id= ?",
                         (cnt, rid))
 
             stms = self._get_db_v0_3()
             for s in stms.split(";"):
                 if not ("CREATE INDEX" in s or "CREATE UNIQUE INDEX" in s):
                     continue
-                c.execute(s)
+                self._sqlex(c, s)
 
 
             stms = """
@@ -275,9 +279,9 @@ class DBSQLServer:
                 DROP TABLE IF EXISTS old_items;
             """
             for s in stms.split(";"):
-                c.execute(s)
+                self._sqlex(c, s)
 
-            c.execute("""
+            self._sqlex(c, """
                 UPDATE database_props
                 SET value = '0.3'
                 WHERE key == 'ver'
@@ -406,7 +410,7 @@ class DBSQLServer:
         c = self._conn.cursor()
         for s in stms.split(";"):
             #print("Executing '%s'"%(s))
-            c.execute(s)
+            self._sqlex(c, s)
 
         self._conn.commit()
 
@@ -415,7 +419,7 @@ class DBSQLServer:
 
     def _get_code(self, c, id_code, date_from_days):
 
-        c.execute("""
+        self._sqlex(c, """
             SELECT i.code, r.descr, r.ver, r.iter, r.default_unit,
                 r.gval1, r.gval2, r.gval3, r.gval4, r.gval5, r.gval6,
                 r.date_from, r.date_from_days, r.date_to, r.date_to_days, r.id,
@@ -456,7 +460,7 @@ class DBSQLServer:
 
         data["properties"] = dict()
 
-        c.execute("""
+        self._sqlex(c, """
             SELECT descr, value
             FROM item_properties
             WHERE revision_id=?
@@ -474,7 +478,7 @@ class DBSQLServer:
 
     def _get_code_from_rid(self, c, rid):
 
-        c.execute("""
+        self._sqlex(c, """
             SELECT i.code, r.descr, r.ver, r.iter, r.default_unit,
                 r.gval1, r.gval2, r.gval3, r.gval4, r.gval5, r.gval6,
                 r.date_from, r.date_from_days, r.date_to, r.date_to_days,
@@ -515,7 +519,7 @@ class DBSQLServer:
 
         data["properties"] = dict()
 
-        #c.execute("""
+        #self._sqlex(c, """
         #    SELECT descr, value
         #    FROM item_properties
         #    WHERE item_id=?
@@ -531,7 +535,7 @@ class DBSQLServer:
 
     def get_codes_by_code(self, code):
         c = self._conn.cursor()
-        c.execute("""
+        self._sqlex(c, """
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
             FROM items AS i
             LEFT JOIN  (
@@ -551,7 +555,7 @@ class DBSQLServer:
 
     def get_codes_by_like_code(self, code):
         c = self._conn.cursor()
-        c.execute("""
+        self._sqlex(c, """
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
             FROM items AS i
             LEFT JOIN (
@@ -571,7 +575,7 @@ class DBSQLServer:
 
     def get_codes_by_like_descr(self, descr):
         c = self._conn.cursor()
-        c.execute("""
+        self._sqlex(c, """
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
             FROM items AS i
             LEFT JOIN  (
@@ -591,7 +595,7 @@ class DBSQLServer:
 
     def get_codes_by_like_code_and_descr(self, code, descr):
         c = self._conn.cursor()
-        c.execute("""
+        self._sqlex(c, """
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
             FROM items AS i
             LEFT JOIN  (
@@ -611,7 +615,7 @@ class DBSQLServer:
 
     def get_dates_by_code_id2(self, id_code):
         c = self._conn.cursor()
-        c.execute("""SELECT DISTINCT i.code, r.descr,
+        self._sqlex(c, """SELECT DISTINCT i.code, r.descr,
                                      r.date_from, r.date_from_days, r.date_to,
                                      r.date_to_days, r.id, r.ver, r.iter
                      FROM  item_revisions AS r
@@ -624,7 +628,7 @@ class DBSQLServer:
 
     def get_dates_by_code_id(self, id_code):
         c = self._conn.cursor()
-        c.execute("""SELECT DISTINCT i.code, r.date_from, r.date_to
+        self._sqlex(c, """SELECT DISTINCT i.code, r.date_from, r.date_to
                      FROM            item_revisions AS r
                      LEFT JOIN items AS i ON r.code_id = i.id
                      WHERE           r.code_id = ?
@@ -657,7 +661,7 @@ class DBSQLServer:
 
     def is_assembly(self, id_code):
         c = self._conn.cursor()
-        c.execute("""SELECT COUNT(*)
+        self._sqlex(c, """SELECT COUNT(*)
                      FROM assemblies AS a
                      LEFT JOIN item_revisions AS r
                        ON r.id = a.revision_id
@@ -674,7 +678,7 @@ class DBSQLServer:
 
         c = self._conn.cursor()
 
-        c.execute("""SELECT i.code, r.date_from_days, r.date_to_days, r.id
+        self._sqlex(c, """SELECT i.code, r.date_from_days, r.date_to_days, r.id
                      FROM item_revisions AS r
                      LEFT JOIN items AS i
                        ON i.id = r.code_id
@@ -701,7 +705,7 @@ class DBSQLServer:
             d.update(d2)
             d["deps"] = dict()
 
-            c.execute("""
+            self._sqlex(c, """
                 SELECT a.unit, a.qty, a.each, rc.date_from, rc.date_to,
                         rc.iter, a.child_id, rc.code_id, rc.date_from_days,
                         rc.date_to_days, a.ref, rc.id
@@ -746,7 +750,7 @@ class DBSQLServer:
         return (code_id0, data)
 
     def _get_parents(self, c, id_code, date_from_days, date_to_days):
-        c.execute("""
+        self._sqlex(c, """
             SELECT a.unit, c.code, r.default_unit, a.qty, a.each, r.date_from, r.date_to,
                     r.iter, r.code_id, r.date_from, r.date_to, r.date_from_days,
                     r.date_to_days
@@ -814,19 +818,19 @@ class DBSQLServer:
     def get_where_used_from_id_code(self, id_code, xdate_from=0, xdate_to=end_of_the_world):
         c = self._conn.cursor()
 
-        c.execute("""
+        self._sqlex(c, """
             SELECT code FROM items WHERE id=?
         """, (id_code,))
         code0 = c.fetchone()[0]
 
-        c.execute("""
+        self._sqlex(c, """
             SELECT MIN(date_from_days)
             FROM item_revisions
             WHERE code_id = ? AND date_from_days >= ?
         """, (id_code, xdate_from))
         xdate_from0 = c.fetchone()[0]
 
-        c.execute("""
+        self._sqlex(c, """
             SELECT MIN(date_to_days)
             FROM item_revisions
             WHERE code_id = ? AND date_to_days >= ?
@@ -894,7 +898,7 @@ class DBSQLServer:
 
     def get_drawings_by_code_id(self, rev_id):
         c = self._conn.cursor()
-        c.execute("""
+        self._sqlex(c, """
             SELECT filename, fullpath
             FROM drawings
             WHERE revision_id = ?
@@ -914,7 +918,7 @@ class DBSQLServer:
 
         c = self._conn.cursor()
 
-        c.execute("""
+        self._sqlex(c, """
             SELECT MIN(date_from_days)
             FROM item_revisions
             WHERE code_id = ?
@@ -926,7 +930,7 @@ class DBSQLServer:
 
             cid = todo.pop()
             done.add(cid)
-            c.execute("""
+            self._sqlex(c, """
                     SELECT r.date_from, r.date_from_days
                     FROM item_revisions AS r
                     WHERE r.code_id = ?
@@ -938,7 +942,7 @@ class DBSQLServer:
                     sdates.add(date_from_days)
                     dates.append((date_from, date_from_days))
 
-            c.execute("""
+            self._sqlex(c, """
                     SELECT a.child_id
                     FROM assemblies AS a
                     LEFT JOIN item_revisions AS r
@@ -955,21 +959,21 @@ class DBSQLServer:
 
     def copy_code(self, new_code, rid, descr, copy_props=True, copy_docs=True):
         c = self._conn.cursor()
-        c.execute("BEGIN")
+        self._sqlex(c, "BEGIN")
         try:
 
             try:
-                c.execute("""
+                self._sqlex(c, """
                         INSERT INTO items(code) VALUES (?)
                     """, (new_code, ))
             except:
                 raise DBException("The code already exists")
 
-            c.execute("""SELECT MAX(id) FROM items""")
+            self._sqlex(c, """SELECT MAX(id) FROM items""")
             new_code_id = c.fetchone()[0]
 
             """
-            c.execute("" "
+            self._sqlex(c, "" "
                 SELECT id, MAX(date_from_days)
                 FROM item_revisions
                 WHERE code_id = (
@@ -991,7 +995,7 @@ class DBSQLServer:
             new_date_from_days = now_to_days()
             new_date_from = days_to_iso(new_date_from_days)
 
-            c.execute("""
+            self._sqlex(c, """
                 INSERT INTO item_revisions(
                     code_id,
                     date_from,
@@ -1018,23 +1022,23 @@ class DBSQLServer:
                 WHERE id = ?
             """, (new_code_id, new_date_from, new_date_from_days, descr, rid))
 
-            c.execute("""SELECT MAX(id) FROM item_revisions""")
+            self._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
             new_rid = c.fetchone()[0]
 
             self._revise_code_copy_others(c, new_rid, rid, copy_docs, copy_props)
 
         except:
-            c.execute("ROLLBACK")
+            self._sqlex(c, "ROLLBACK")
             raise
 
-        c.execute("COMMIT")
+        self._sqlex(c, "COMMIT")
 
 
     def revise_code(self, rid, descr, copy_props=True, copy_docs=True):
         c = self._conn.cursor()
-        c.execute("BEGIN")
+        self._sqlex(c, "BEGIN")
         try:
-            c.execute("""
+            self._sqlex(c, """
                 SELECT id, MAX(date_from_days), iter
                 FROM item_revisions
                 WHERE code_id = (
@@ -1052,7 +1056,7 @@ class DBSQLServer:
             if new_date_from_days <= old_date_from_days:
                 raise DBException("A revision already occurred this day")
 
-            c.execute("""
+            self._sqlex(c, """
                 INSERT INTO item_revisions(
                     code_id,
                     date_from,
@@ -1079,12 +1083,12 @@ class DBSQLServer:
                 WHERE id = ?
             """, (new_date_from, new_date_from_days, old_iter + 1, descr, rid))
 
-            c.execute("""SELECT MAX(id) FROM item_revisions""")
+            self._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
             new_rid = c.fetchone()[0]
 
 
             old_date_to_days = new_date_from_days - 1
-            c.execute("""
+            self._sqlex(c, """
                 UPDATE item_revisions
                 SET date_to = ?, date_to_days = ?
                 WHERE id = ?
@@ -1094,14 +1098,14 @@ class DBSQLServer:
             self._revise_code_copy_others(c, new_rid, rid, copy_docs, copy_props)
 
         except:
-            c.execute("ROLLBACK")
+            self._sqlex(c, "ROLLBACK")
             raise
 
-        c.execute("COMMIT")
+        self._sqlex(c, "COMMIT")
 
     def _revise_code_copy_others(self, c, new_rid, old_rid, copy_docs, copy_props):
 
-            c.execute("""
+            self._sqlex(c, """
                 INSERT INTO assemblies (
                     unit,
                     child_id,
@@ -1121,7 +1125,7 @@ class DBSQLServer:
             """, (new_rid, old_rid))
 
             if copy_docs:
-                c.execute("""
+                self._sqlex(c, """
                     INSERT INTO drawings (
                         code,
                         revision_id,
@@ -1137,7 +1141,7 @@ class DBSQLServer:
                 """, (new_rid, old_rid))
 
             if copy_props:
-                c.execute("""
+                self._sqlex(c, """
                     INSERT INTO item_properties (
                         descr,
                         value,
@@ -1150,6 +1154,8 @@ class DBSQLServer:
                     WHERE revision_id = ?
                 """, (new_rid, old_rid))
 
+import sqlite3
+import traceback
 
 class DBSQLite(DBSQLServer):
     def __init__(self, path=None):
@@ -1161,8 +1167,19 @@ class DBSQLite(DBSQLServer):
         else:
             self._db_path = _db_path
 
-        import sqlite3
         self._conn = sqlite3.connect(self._db_path)
+
+    def _sqlex(self, c, query, *args, **kwargs):
+        try:
+            c.execute(query, *args, **kwargs)
+        except sqlite3.Error as er:
+            print('SQLite error: %s' % (' '.join(er.args)))
+            print("Exception class is: ", er.__class__)
+            print('SQLite traceback: ')
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            print(traceback.format_exception(exc_type, exc_value, exc_tb))
+
+            raise
 
     def _sql_translate(self, stms):
         stms = stms.replace(" IDENTITY", "")
@@ -1173,9 +1190,9 @@ class DBSQLite(DBSQLServer):
         return stms
 
     def _get_tables_list(self):
-        cursor = self._conn.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        return [x[0] for x in cursor.fetchall()]
+        c = self._conn.cursor()
+        self._sqlex(c, "SELECT name FROM sqlite_master WHERE type='table';")
+        return [x[0] for x in c.fetchall()]
 
 
 _globaDBInstance = None
