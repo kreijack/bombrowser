@@ -30,6 +30,7 @@ from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtCore import Qt, QAbstractTableModel, QEvent
 
 import db, asmgui, codegui, diffgui, utils, editcode
+import copycodegui
 
 
 
@@ -157,19 +158,23 @@ class CodesWindow(QMainWindow):
         self._table.customContextMenuRequested.connect(self._tree_context_menu)
 
     def _tree_context_menu(self, point):
-            contextMenu = QMenu(self)
-            showAssembly = contextMenu.addAction("Show assembly")
-            showAssembly.triggered.connect(self._show_assembly)
-            whereUsed = contextMenu.addAction("Where used")
-            whereUsed.triggered.connect(self._show_where_used)
-            validWhereUsed = contextMenu.addAction("Valid where used")
-            validWhereUsed.triggered.connect(self._show_valid_where_used)
-            doDiff1 = contextMenu.addAction("Diff from...")
-            doDiff1.triggered.connect(self._set_diff_from)
-            doDiff2 = contextMenu.addAction("Diff to...")
-            doDiff2.triggered.connect(self._set_diff_to)
+        contextMenu = QMenu(self)
+        showAssembly = contextMenu.addAction("Show assembly ...")
+        showAssembly.triggered.connect(self._show_assembly)
+        whereUsed = contextMenu.addAction("Where used ...")
+        whereUsed.triggered.connect(self._show_where_used)
+        validWhereUsed = contextMenu.addAction("Valid where used ...")
+        validWhereUsed.triggered.connect(self._show_valid_where_used)
+        contextMenu.addSeparator()
+        reviseCode = contextMenu.addAction("Revise/copy code ...")
+        reviseCode.triggered.connect(self._revise_code)
+        contextMenu.addSeparator()
+        doDiff1 = contextMenu.addAction("Diff from")
+        doDiff1.triggered.connect(self._set_diff_from)
+        doDiff2 = contextMenu.addAction("Diff to")
+        doDiff2.triggered.connect(self._set_diff_to)
 
-            contextMenu.exec_(self._table.viewport().mapToGlobal(point))
+        contextMenu.exec_(self._table.viewport().mapToGlobal(point))
 
     def _get_code_and_date(self):
         w = asmgui.SelectDate(self._code_id, self)
@@ -222,7 +227,7 @@ class CodesWindow(QMainWindow):
             QMessageBox.critical(self, "BOMBrowser", "The item is not an assembly")
             return
 
-        code_id, code, date_from, date_to = self._get_code_and_date()
+        code_id, code, date_from, descr = self._get_code_and_date()
         if code == 0:
             return
 
@@ -232,7 +237,12 @@ class CodesWindow(QMainWindow):
         data = d.get_bom_by_code_id2(self._code_id, date_from)
         w.populate(*data)
         QApplication.restoreOverrideCursor()
-        #asmgui.show_assembly(self._code_id, self)
+
+    def _revise_code(self):
+        if not self._code_id:
+            QApplication.beep()
+
+        copycodegui.revise_copy_code(self._code_id, self)
 
     def _show_where_used(self):
         if not self._code_id:

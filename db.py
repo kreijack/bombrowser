@@ -59,6 +59,9 @@ _db_path = "database.sqlite"
 # infinity date
 end_of_the_world = 999999
 
+class DBException(RuntimeError):
+    pass
+
 class DBSQLServer:
 
     def __init__(self, path):
@@ -316,9 +319,9 @@ class DBSQLServer:
             CREATE TABLE item_revisions (
                 id              INTEGER NOT NULL IDENTITY PRIMARY KEY,
                 code_id         INTEGER,
-                date_from       VARCHAR(255) NOT NULL DEFAULT '0000-00-00',
+                date_from       VARCHAR(255) NOT NULL DEFAULT '2000-01-01',
                 date_to         VARCHAR(255) DEFAULT NULL,
-                date_from_days  INTEGER DEFAULT 0,
+                date_from_days  INTEGER DEFAULT 0, -- 2000-01-01
                 date_to_days    INTEGER DEFAULT 999999,
                 ver             VARCHAR(10) NOT NULL,
                 iter            INTEGER,
@@ -951,9 +954,12 @@ class DBSQLServer:
         c.execute("BEGIN")
         try:
 
-            c.execute("""
-                    INSERT INTO items(code) VALUES (?)
-                """, (new_code, ))
+            try:
+                c.execute("""
+                        INSERT INTO items(code) VALUES (?)
+                    """, (new_code, ))
+            except:
+                raise DBException("The code already exists")
 
             c.execute("""SELECT MAX(id) FROM items""")
             new_code_id = c.fetchone()[0]
@@ -1004,7 +1010,7 @@ class DBSQLServer:
                     ?,
                     '',
                     ver,
-                    iter + 1,
+                    0,
                     note,
                     ? ,
                     default_unit,
@@ -1049,9 +1055,8 @@ class DBSQLServer:
             new_date_from_days = now_to_days()
             new_date_from = days_to_iso(new_date_from_days)
 
-            assert(new_date_from_days > old_date_from_days)
-
-            print(new_date_from, new_date_from_days, descr, rid)
+            if new_date_from_days <= old_date_from_days:
+                raise DBException("A revision already occurred this day")
 
             c.execute("""
                 INSERT INTO item_revisions(

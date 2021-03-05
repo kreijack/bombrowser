@@ -14,9 +14,10 @@ import exporter, utils
 
 
 class SelectDate(QDialog):
-    def __init__(self, code_id, parent):
+    def __init__(self, code_id, parent, only_data_code=False):
         QDialog.__init__(self, parent)
         self._code_id = code_id
+        self._only_data_code = only_data_code
 
         self._init_gui()
         self._populate_table()
@@ -85,25 +86,29 @@ class SelectDate(QDialog):
         d = db.DB()
         data = [(r[0], r[1], r[2])
             for r in d.get_dates_by_code_id2(self._code_id)]
+        sorted(data, reverse=True, key=lambda x : x[2])
+        last_descr = data[0][1]
 
-        m = dict()
-        for code, descr, date_from in data:
-            m[date_from] = descr
+        if not self._only_data_code:
+            m = dict()
+            for code, descr, date_from in data:
+                m[date_from] = descr
 
-        data = d.get_bom_dates_by_code_id(self._code_id)
+            data = d.get_bom_dates_by_code_id(self._code_id)
+            data.sort(reverse=True)
+            assert(len(data))
+
+            data2 = []
+            for r in data:
+                if r[0] in m:
+                    last_descr = m[r[0]]
+                data2.append((code, last_descr, r[0]))
+
+            data = data2
+
         assert(len(data))
-        data.sort(reverse=True)
 
-        last_descr = data[0][0]
-        data2 = []
-        for r in data:
-            if r[0] in m:
-                last_descr = m[r[0]]
-            data2.append((code, last_descr, r[0]))
-
-        assert(len(data2))
-
-        model = self.TableModel(data2, ["Code", "Description", "Date from"])
+        model = self.TableModel(data, ["Code", "Description", "Date from"])
         self._table.setModel(model)
         self._table.selectionModel().selectionChanged.connect(self._table_clicked)
         self._table.doubleClicked.connect(self.accept)
