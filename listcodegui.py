@@ -30,7 +30,7 @@ from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtCore import Qt, QAbstractTableModel, QEvent
 
 import db, asmgui, codegui, diffgui, utils, editcode
-import copycodegui
+import copycodegui, selectdategui
 
 
 
@@ -177,7 +177,7 @@ class CodesWindow(QMainWindow):
         contextMenu.exec_(self._table.viewport().mapToGlobal(point))
 
     def _get_code_and_date(self):
-        w = asmgui.SelectDate(self._code_id, self)
+        w = selectdategui.SelectDate(self._code_id, self)
         ret = w.exec_()
         if not ret:
             return (0, 0, 0, 0)

@@ -11,7 +11,7 @@ from PySide2.QtCore import Qt, QItemSelectionModel, QAbstractTableModel
 import pprint
 
 import db, codegui, diffgui
-import exporter, utils, asmgui
+import exporter, utils, selectdategui
 
 class CopyCode(QDialog):
     def __init__(self, rev_id, parent):
@@ -154,7 +154,7 @@ def revise_copy_code(code_id, parent):
         d = db.DB()
 
         assert(parent)
-        w = asmgui.SelectDate(code_id, parent, only_data_code=True)
+        w = selectdategui.SelectDate(code_id, parent, only_data_code=True)
         ret = w.exec_()
         if not ret:
             return (0, 0, 0, 0)
