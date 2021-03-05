@@ -168,8 +168,8 @@ class DBSQLServer:
                     ver, iter,
                     note,
                     descr, default_unit,
-                    for1cod, for1name, prod1cod, prod1name,
-                    prod2cod, prod2name
+                    gval1, gval2, gval3, gval4,
+                    gval5, gval6
                 ) SELECT DISTINCT
                     a.parent_id,
                     a.date_from, a.date_to, a.date_from_days, a.date_to_days,
@@ -187,8 +187,8 @@ class DBSQLServer:
                     ver, iter,
                     note,
                     descr, default_unit,
-                    for1cod, for1name, prod1cod, prod1name,
-                    prod2cod, prod2name
+                    gval1, gval2, gval3, gval4,
+                    gval5, gval6
                 ) SELECT
                     id,
                     0, 0,
@@ -328,13 +328,14 @@ class DBSQLServer:
                 note            VARCHAR(255),
                 descr           VARCHAR(255) NOT NULL,
                 default_unit    VARCHAR(255) NOT NULL,
-                for1cod         VARCHAR(255) DEFAULT '',
-                for1id          VARCHAR(255) DEFAULT '',
-                for1name        VARCHAR(255) DEFAULT '',
-                prod1cod        VARCHAR(255) DEFAULT '',
-                prod1name       VARCHAR(255) DEFAULT '',
-                prod2cod        VARCHAR(255) DEFAULT '',
-                prod2name       VARCHAR(255) DEFAULT '',
+                gval1           VARCHAR(255) DEFAULT '',
+                gval2           VARCHAR(255) DEFAULT '',
+                gval3           VARCHAR(255) DEFAULT '',
+                gval4           VARCHAR(255) DEFAULT '',
+                gval5           VARCHAR(255) DEFAULT '',
+                gval6           VARCHAR(255) DEFAULT '',
+                gval7           VARCHAR(255) DEFAULT '',
+                gval8           VARCHAR(255) DEFAULT '',
 
                 FOREIGN KEY (code_id) REFERENCES items(id)
             );
@@ -416,9 +417,9 @@ class DBSQLServer:
 
         c.execute("""
             SELECT i.code, r.descr, r.ver, r.iter, r.default_unit,
-                r.for1cod, r.for1name,
-                r.prod1cod, r.prod1name, r.prod2cod, r.prod2name,
-                r.date_from, r.date_from_days, r.date_to, r.date_to_days, r.id
+                r.gval1, r.gval2, r.gval3, r.gval4, r.gval5, r.gval6,
+                r.date_from, r.date_from_days, r.date_to, r.date_to_days, r.id,
+                r.gval7, r.gval8
             FROM item_revisions AS r
             LEFT JOIN items AS i
                  ON r.code_id = i.id
@@ -436,12 +437,14 @@ class DBSQLServer:
         data["iter"] = res[3]
         data["unit"] = res[4]
 
-        data["for1name"] = res[6]
-        data["for1cod"] = res[5]
-        data["prod1name"] = res[8]
-        data["prod1cod"] = res[7]
-        data["prod2cod"] = res[9]
-        data["prod2name"] = res[10]
+        data["gval1"] = res[5]
+        data["gval2"] = res[6]
+        data["gval4"] = res[8]
+        data["gval3"] = res[7]
+        data["gval5"] = res[9]
+        data["gval6"] = res[10]
+        data["gval7"] = res[16]
+        data["gval8"] = res[17]
 
         data["date_from"] = res[11]
         data["date_from_days"] = res[12]
@@ -473,10 +476,9 @@ class DBSQLServer:
 
         c.execute("""
             SELECT i.code, r.descr, r.ver, r.iter, r.default_unit,
-                r.for1cod, r.for1name,
-                r.prod1cod, r.prod1name, r.prod2cod, r.prod2name,
+                r.gval1, r.gval2, r.gval3, r.gval4, r.gval5, r.gval6,
                 r.date_from, r.date_from_days, r.date_to, r.date_to_days,
-                i.id
+                i.id, r.gval7, r.gval8
             FROM item_revisions AS r
             LEFT JOIN items AS i
                  ON r.code_id = i.id
@@ -493,12 +495,14 @@ class DBSQLServer:
         data["iter"] = res[3]
         data["unit"] = res[4]
 
-        data["for1name"] = res[6]
-        data["for1cod"] = res[5]
-        data["prod1name"] = res[8]
-        data["prod1cod"] = res[7]
-        data["prod2cod"] = res[9]
-        data["prod2name"] = res[10]
+        data["gval1"] = res[5]
+        data["gval2"] = res[6]
+        data["gval3"] = res[7]
+        data["gval4"] = res[8]
+        data["gval5"] = res[9]
+        data["gval6"] = res[10]
+        data["gval7"] = res[16]
+        data["gval8"] = res[17]
 
         data["date_from"] = res[11]
         data["date_from_days"] = res[12]
@@ -998,12 +1002,7 @@ class DBSQLServer:
                     note,
                     descr,
                     default_unit,
-                    for1cod,
-                    for1name,
-                    prod1cod,
-                    prod1name,
-                    prod2cod,
-                    prod2name
+                    gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
                 ) SELECT
                     ?,
                     ?,
@@ -1014,12 +1013,7 @@ class DBSQLServer:
                     note,
                     ? ,
                     default_unit,
-                    for1cod,
-                    for1name,
-                    prod1cod,
-                    prod1name,
-                    prod2cod,
-                    prod2name
+                    gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
                 FROM item_revisions
                 WHERE id = ?
             """, (new_code_id, new_date_from, new_date_from_days, descr, rid))
@@ -1069,12 +1063,7 @@ class DBSQLServer:
                     note,
                     descr,
                     default_unit,
-                    for1cod,
-                    for1name,
-                    prod1cod,
-                    prod1name,
-                    prod2cod,
-                    prod2name
+                    gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
                 ) SELECT
                     code_id,
                     ?,
@@ -1085,12 +1074,7 @@ class DBSQLServer:
                     note,
                     ? ,
                     default_unit,
-                    for1cod,
-                    for1name,
-                    prod1cod,
-                    prod1name,
-                    prod2cod,
-                    prod2name
+                    gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
                 FROM item_revisions
                 WHERE id = ?
             """, (new_date_from, new_date_from_days, old_iter + 1, descr, rid))

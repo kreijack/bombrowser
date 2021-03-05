@@ -69,12 +69,12 @@ class CodeWidget(QWidget):
             ("Iteration", "iter"),
             ("Description", "descr"),
             ("Unit", "unit"),
-            ("Fornitore", "for1name"),
-            ("  P/N", "for1cod"),
-            ("Produttore", "prod1name"),
-            ("  P/N", "prod1cod"),
-            ("Produttore", "prod2name"),
-            ("  P/N", "prod2cod"),
+            ("Fornitore", "gval2"),
+            ("  P/N", "gval1"),
+            ("Produttore", "gval4"),
+            ("  P/N", "gval3"),
+            ("Produttore", "gval6"),
+            ("  P/N", "gval5"),
         ]
         self._init_gui()
 
