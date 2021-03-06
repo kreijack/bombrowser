@@ -24,7 +24,7 @@ from PySide2.QtWidgets import QSplitter, QTableView, QLabel
 from PySide2.QtWidgets import QGridLayout, QWidget, QApplication
 from PySide2.QtWidgets import QMessageBox, QAction, QLineEdit, QFrame
 from PySide2.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton
-from PySide2.QtWidgets import QHeaderView, QMenu
+from PySide2.QtWidgets import QHeaderView, QMenu, QTableWidget, QTableWidgetItem
 from PySide2.QtGui import QStandardItemModel, QStandardItem
 
 from PySide2.QtCore import Qt, QAbstractTableModel, QEvent, Signal, QPoint
@@ -32,24 +32,17 @@ from PySide2.QtCore import Qt, QAbstractTableModel, QEvent, Signal, QPoint
 import db, asmgui, codegui, diffgui, utils, editcode
 import copycodegui, selectdategui
 
-
-
 class CodesWidget(QWidget):
     #tableCustomContextMenuRequested = Signal(QPoint)
     rightMenu = Signal(QPoint)
+    doubleClicked = Signal()
 
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
-        self._main_data = [
-            ("Code", "code"),
-            ("Version", "ver"),
-            ("Iteration", "iter"),
-            ("Description", "descr"),
-            ("Unit", "unit"),
-        ]
 
         self._copy_info = ""
         self._code_id = None
+        self._code = None
 
         self._data = dict()
 
@@ -81,15 +74,16 @@ class CodesWidget(QWidget):
         vb.addWidget(self._splitter)
         vb.setStretch(1, 100)
 
-        self._table = QTableView()
+        self._table = QTableWidget()
+
+        self._table.clear()
         self._table.horizontalHeader().setStretchLastSection(True)
         self._table.setSortingEnabled(True)
         self._table.setSelectionBehavior(QTableView.SelectRows);
         self._table.setAlternatingRowColors(True)
         self._table.setSelectionMode(self._table.SingleSelection)
-        #self._table.clicked.connect(self._table_clicked)
-        model = self.TableModel([], ["id", "Code", "Version", "Iteration", "Description"])
-        self._table.setModel(model)
+        self._table.setColumnCount(5)
+        self._table.setHorizontalHeaderLabels(["id", "Code", "Description", "Ver", "Iter"])
         self._splitter.addWidget(self._table)
         self._splitter.addWidget(QWidget())
         self._splitter.setSizes([700, 1024-700])
@@ -98,49 +92,10 @@ class CodesWidget(QWidget):
 
         self._table.setContextMenuPolicy(Qt.CustomContextMenu)
         self._table.customContextMenuRequested.connect(self._tree_context_menu)
+        self._table.doubleClicked.connect(self.doubleClicked)
 
     def _tree_context_menu(self, point):
         self.rightMenu.emit(self._table.viewport().mapToGlobal(point))
-
-    class TableModel(QAbstractTableModel):
-        def __init__(self, data, header):
-            QAbstractTableModel.__init__(self)
-            self._data = data
-            self._header = header
-            self._swap_matrix = {
-                0:0,
-                1:1,
-                2:3,
-                3:4,
-                4:2
-            }
-
-        def data(self, index, role):
-            if role == Qt.DisplayRole:
-                # See below for the nested-list data structure.
-                # .row() indexes into the outer list,
-                # .column() indexes into the sub-list
-                c = self._swap_matrix[index.column()]
-                return self._data[index.row()][c]
-
-        def sort(self, col, direction):
-            self.layoutAboutToBeChanged.emit()
-            self._data.sort(key=lambda row : row[col],
-                reverse = direction == Qt.SortOrder.AscendingOrder)
-            self.layoutChanged.emit()
-
-        def rowCount(self, index):
-            # The length of the outer list.
-            return len(self._data)
-
-        def columnCount(self, index):
-            # The following takes the first sub-list, and returns
-            # the length (only works if all rows are an equal length)
-            return len(self._header)
-
-        def headerData(self, col, orientation, role):
-            if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-                return self._header[col]
 
     def _search(self):
         d = db.DB()
@@ -153,20 +108,31 @@ class CodesWidget(QWidget):
             ret = d.get_codes_by_like_code(self._code_search.text())
 
         if not ret or len(ret) == 0:
-            self._my_statusbar.showMessage("0 results", 3000)
             QApplication.beep()
             return
 
         self._copy_info = "\t".join(["id", "Code", "Version", "Iteration", "Description"])
         self._copy_info += "\n"
         self._copy_info += "\n".join(["\t".join(map(str, row[:5])) for row in ret])
-        model = self.TableModel(
-        	ret,
-        	["id", "Code", "Version", "Iteration", "Description"])
-        self._table.setModel(model)
+
+        self._table.setSortingEnabled(False)
+        self._table.clear()
+        self._table.setColumnCount(5)
+        self._table.setHorizontalHeaderLabels(["id", "Code", "Description", "Ver", "Iter"])
+        self._table.setRowCount(len(ret))
+        row = 0
+        for data in ret:
+            (id_, code, ver, iter_, descr) = data[:5]
+            c = 0
+            for txt in (id_, code, ver, iter_, descr):
+                i = QTableWidgetItem(str(txt))
+                i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                self._table.setItem(row, c, i)
+                c += 1
+            row += 1
+        self._table.setSortingEnabled(True)
         self._table.selectionModel().selectionChanged.connect(self._table_clicked)
         self._table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
-
 
     def _table_clicked(self, to, from_):
 
@@ -175,22 +141,15 @@ class CodesWidget(QWidget):
 
         row = to.indexes()[0].row()
 
-        class IDX:
-            def row(self):
-                return self._r
-            def column(self):
-                return self._c
-            def __init__(self, r, c):
-                self._r = r
-                self._c = c
-        idx = IDX(row, 0)
-        id_ = self._table.model().data(idx, Qt.DisplayRole)
+        id_ = int(self._table.item(row, 0).text())
+        code = self._table.item(row, 1).text()
 
-        self._update_metadata(id_)
+        self._update_metadata(id_, code)
 
-    def _update_metadata(self, id_):
+    def _update_metadata(self, id_, code):
 
         self._code_id = id_
+        self._code = code
 
         scrollarea = QScrollArea()
         scrollarea.setWidget(codegui.CodeWidget(id_, self))
@@ -204,8 +163,12 @@ class CodesWidget(QWidget):
     def getCodeId(self):
         return self._code_id
 
+    def getCode(self):
+        return self._code
+
     def getTableText(self):
         return self._copy_info
+
 
 
 class CodesWindow(QMainWindow):
@@ -277,7 +240,6 @@ class CodesWindow(QMainWindow):
         self._codes_widget.rightMenu.connect(self._tree_context_menu)
 
     def _tree_context_menu(self, point):
-        print("I am here")
         contextMenu = QMenu(self)
         showAssembly = contextMenu.addAction("Show assembly ...")
         showAssembly.triggered.connect(self._show_assembly)
@@ -288,6 +250,8 @@ class CodesWindow(QMainWindow):
         contextMenu.addSeparator()
         reviseCode = contextMenu.addAction("Revise/copy code ...")
         reviseCode.triggered.connect(self._revise_code)
+        editCode = contextMenu.addAction("Edit code ...")
+        editCode.triggered.connect(self._edit_code)
         contextMenu.addSeparator()
         doDiff1 = contextMenu.addAction("Diff from")
         doDiff1.triggered.connect(self._set_diff_from)
@@ -363,6 +327,13 @@ class CodesWindow(QMainWindow):
             QApplication.beep()
 
         copycodegui.revise_copy_code(self._codes_widget.getCodeId(), self)
+
+    def _edit_code(self):
+
+        if not self._codes_widget.getCodeId():
+            QApplication.beep()
+
+        editcode.edit_code_by_code_id(self._codes_widget.getCodeId())
 
     def _show_where_used(self):
         if not self._codes_widget.getCodeId():

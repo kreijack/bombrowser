@@ -20,7 +20,35 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 from PySide2.QtWidgets import QApplication
 from PySide2.QtWidgets import QAction
 from PySide2.QtCore import Qt
-from PySide2.QtWidgets import QMessageBox
+from PySide2.QtWidgets import QMessageBox, QMainWindow
+
+_bbmainwindows_list = []
+_bbmainwindows_list_cnt = 0
+
+class BBMainWindow(QMainWindow):
+    def __init__(self, parent=None):
+        QMainWindow.__init__(self, parent)
+        self.__bbmainwindow_list_cnt = _bbmainwindows_list_cnt
+        _bbmainwindows_list_cnt += 1
+
+        _bbmainwindows_list.append((self.__bbmainwindow_list_cnt,
+            self, ""))
+
+    def setWindowTitle(self, title):
+        QMainWindow.setWindowTitle(self, title)
+
+        for i in _bbmainwindows_list:
+            if i[0] == self.__bbmainwindow_list_cnt:
+                i[2] = title
+                break
+
+    def closeEvent(self, event):
+        for i in range(len(_bbmainwindows_list)):
+            if _bbmainwindows_list[i][0] == self.__bbmainwindow_list_cnt:
+                _bbmainwindows_list.pop(i)
+                break
+
+        QMainWindow.closeEvent(self, event)
 
 def about(w):
     QMessageBox.about(w, "BOMBrowser - about",
@@ -50,6 +78,7 @@ def get_windows_list():
         if t.startswith("BOMBrowser - Diff window"):
             diffwindows.append((t, w))
         elif (t.startswith("BOMBrowser - Assembly") or
+              t.startswith("BOMBrowser - Edit code") or
               t.startswith("BOMBrowser - Where used")):
             bomwindows.append((t, w))
         elif t.startswith("BOMBrowser - Codes list"):

@@ -1,3 +1,22 @@
+"""
+BOM Browser - tool to browse a bom
+Copyright (C) 2020 Goffredo Baroncelli <kreijack@inwind.it>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""
+
 import sys
 
 from PySide2.QtWidgets import QMainWindow, QScrollArea, QStatusBar
@@ -84,15 +103,17 @@ class SelectDate(QDialog):
 
     def _populate_table(self):
         d = db.DB()
-        data = [(r[0], r[1], r[2])
+               # code descr  date_from rev iter
+        data = [(r[0], r[1], r[7], r[8], r[2])
             for r in d.get_dates_by_code_id2(self._code_id)]
         sorted(data, reverse=True, key=lambda x : x[2])
-        last_descr = data[0][1]
+
 
         if not self._only_data_code:
+            last = (data[0][1], data[0][3], data[0][4])
             m = dict()
-            for code, descr, date_from in data:
-                m[date_from] = descr
+            for code, descr, rev, iter_, date_from in data:
+                m[date_from] = (descr, rev, iter_)
 
             data = d.get_bom_dates_by_code_id(self._code_id)
             data.sort(reverse=True)
@@ -101,14 +122,14 @@ class SelectDate(QDialog):
             data2 = []
             for r in data:
                 if r[0] in m:
-                    last_descr = m[r[0]]
-                data2.append((code, last_descr, r[0]))
+                    last = m[r[0]]
+                data2.append((code, last[0], last[1], last[2], r[0]))
 
             data = data2
 
         assert(len(data))
 
-        model = self.TableModel(data, ["Code", "Description", "Date from"])
+        model = self.TableModel(data, ["Code", "Description", "Rev", "Iter", "Date from"])
         self._table.setModel(model)
         self._table.selectionModel().selectionChanged.connect(self._table_clicked)
         self._table.doubleClicked.connect(self.accept)
@@ -133,10 +154,11 @@ class SelectDate(QDialog):
 
         self._return_id = (
             self._table.model().data(IDX(row, 0), Qt.DisplayRole),
-            self._table.model().data(IDX(row, 2), Qt.DisplayRole),
+            self._table.model().data(IDX(row, 4), Qt.DisplayRole),
             self._table.model().data(IDX(row, 1), Qt.DisplayRole)
         )
 
     def get_result(self):
         return self._return_id
+
 

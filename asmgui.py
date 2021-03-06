@@ -1,3 +1,23 @@
+"""
+BOM Browser - tool to browse a bom
+Copyright (C) 2020 Goffredo Baroncelli <kreijack@inwind.it>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""
+
+
 import sys
 
 from PySide2.QtWidgets import QMainWindow, QScrollArea, QStatusBar
@@ -9,8 +29,8 @@ from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtCore import Qt, QItemSelectionModel, QAbstractTableModel
 import pprint
 
-import db, codegui, diffgui
-import exporter, utils, selectdategui
+import db, codegui, diffgui, copycodegui
+import exporter, utils, selectdategui, editcode
 
 
 class FindDialog(QDialog):
@@ -315,23 +335,49 @@ class AssemblyWindow(QMainWindow):
         self._tree.customContextMenuRequested.connect(self._tree_context_menu)
 
     def _tree_context_menu(self, point):
-            idx = self._tree.indexAt(point);
-            if not idx.isValid():
-                return
+        idx = self._tree.indexAt(point);
+        if not idx.isValid():
+            return
 
-            contextMenu = QMenu(self)
-            showAssembly = contextMenu.addAction("Show assembly")
-            showAssembly.triggered.connect(self._show_assembly)
-            whereUsed = contextMenu.addAction("Where used")
-            whereUsed.triggered.connect(self._show_where_used)
-            validWhereUsed = contextMenu.addAction("Valid where used")
-            validWhereUsed.triggered.connect(self._show_valid_where_used)
-            doDiff1 = contextMenu.addAction("Diff from...")
-            doDiff1.triggered.connect(self._set_diff_from)
-            doDiff2 = contextMenu.addAction("Diff to...")
-            doDiff2.triggered.connect(self._set_diff_to)
+        contextMenu = QMenu(self)
+        showAssembly = contextMenu.addAction("Show assembly")
+        showAssembly.triggered.connect(self._show_assembly)
+        whereUsed = contextMenu.addAction("Where used")
+        whereUsed.triggered.connect(self._show_where_used)
+        validWhereUsed = contextMenu.addAction("Valid where used")
+        validWhereUsed.triggered.connect(self._show_valid_where_used)
 
-            contextMenu.exec_(self._tree.viewport().mapToGlobal(point))
+        contextMenu.addSeparator()
+        reviseCode = contextMenu.addAction("Revise/copy code ...")
+        reviseCode.triggered.connect(self._revise_code)
+        editCode = contextMenu.addAction("Edit code ...")
+        editCode.triggered.connect(self._edit_code)
+        contextMenu.addSeparator()
+
+        doDiff1 = contextMenu.addAction("Diff from...")
+        doDiff1.triggered.connect(self._set_diff_from)
+        doDiff2 = contextMenu.addAction("Diff to...")
+        doDiff2.triggered.connect(self._set_diff_to)
+
+        contextMenu.exec_(self._tree.viewport().mapToGlobal(point))
+
+    def _edit_code(self):
+        path = self._get_path()
+        if len(path) == 0:
+            return
+
+        id_ = self._data[path[-1]]["id"]
+
+        editcode.edit_code_by_code_id(id_)
+
+    def _revise_code(self):
+        path = self._get_path()
+        if len(path) == 0:
+            return
+
+        id_ = self._data[path[-1]]["id"]
+
+        copycodegui.revise_copy_code(id_, self)
 
     def _set_diff_from(self):
         key = self._get_path()[-1]

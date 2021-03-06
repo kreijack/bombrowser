@@ -1,14 +1,19 @@
 
 
-- create "the edit dialog"
 - make an handler in db.py for showing a error dialog for incorrect SQL
-- in codegui show the revision_id instead of code_id
 - refresh the properties
 - open some window by command line (bombrowser -openassy <code>/<date>)
 - check the "valid where used" function
 - add the concept of "prototype" bom/code
 - remake the tests
-
+- add rev/iteration to the ShowDate dialog
+- rename get_drawings_by_code_id -> get_drawings_by_code_rid
+- show every where rid
+- canonize "version" vs "ver" vs "revision"
+- BUG: investigating the reason why in the edit dialog, children table
+  the first column lost the 'italic' after an insert row
+- add a DB.get_last_code_by_code_id function which is more clear
+- in edit code add open assy
 
 
 -----

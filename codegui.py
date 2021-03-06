@@ -140,8 +140,17 @@ class CodeWidget(QWidget):
         if self._unit:
             data["unit"] = self._unit
 
+        self._rid = data["rid"]
+
         txt = ""
-        row = 1
+        row = 0
+
+        row += 1
+        grid.addWidget(XLabel("RID"), row, 0)
+        grid.addWidget(XLabel(str(self._rid)), row , 1)
+        txt += "RID: %s\n"%(str(self._rid))
+
+        row += 1
         grid.addWidget(XLabel("ID"), row, 0)
         grid.addWidget(XLabel(str(self._code_id)), row , 1)
         txt += "ID: %s\n"%(str(self._code_id))

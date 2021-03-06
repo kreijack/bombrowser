@@ -58,6 +58,7 @@ def now_to_days():
 _db_path = "database.sqlite"
 # infinity date
 end_of_the_world = 999999
+gvals_count = 8
 
 class DBException(RuntimeError):
     pass
@@ -85,6 +86,10 @@ class DBSQLServer:
     def _sqlex(self, c, query, *args, **kwargs):
         # TODO handle the exception
         c.execute(query, *args, **kwargs)
+
+    def _sqlexm(self, c, query, *args, **kwargs):
+        # TODO handle the exception
+        c.executemany(query, *args, **kwargs)
 
     def _sql_translate(self, s):
         return s
@@ -688,7 +693,6 @@ class DBSQLServer:
                      (code_id0, date_from_days_ref, date_from_days_ref) )
 
         data2 = list(c.fetchall())
-        print("data=",data2)
 
         (code0, date_from_days, date_to_days, rid) = data2[0]
         date_from_days0 = date_from_days
@@ -1033,6 +1037,7 @@ class DBSQLServer:
 
         self._sqlex(c, "COMMIT")
 
+        return new_rid
 
     def revise_code(self, rid, descr, copy_props=True, copy_docs=True):
         c = self._conn.cursor()
@@ -1103,6 +1108,8 @@ class DBSQLServer:
 
         self._sqlex(c, "COMMIT")
 
+        return new_rid
+
     def _revise_code_copy_others(self, c, new_rid, old_rid, copy_docs, copy_props):
 
             self._sqlex(c, """
@@ -1154,8 +1161,101 @@ class DBSQLServer:
                     WHERE revision_id = ?
                 """, (new_rid, old_rid))
 
+    def get_children_by_rid(self, rid):
+        c = self._conn.cursor()
+        self._sqlex(c, """
+            SELECT a.child_id, i.code, r.descr, a.qty, a.each, a.unit,
+                   a.ref
+            FROM assemblies AS a
+            LEFT JOIN (
+                SELECT code_id, descr, MAX(iter)
+                FROM item_revisions
+                GROUP BY code_id
+            ) AS r
+              ON r.code_id = a.child_id
+            LEFT JOIN items AS i
+              ON a.child_id = i.id
+            WHERE a.revision_id = ?
+            ORDER BY a.id
+        """, (rid,))
+
+        return c.fetchall()
+
+
+    def update_by_rid(self, rid, descr, ver, default_unit,
+            gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8,
+            drawings, children):
+
+        c = self._conn.cursor()
+        self._sqlex(c, "BEGIN")
+        try:
+            self._sqlex(c, """
+                UPDATE item_revisions SET
+                    descr=?, ver=?, default_unit=?,
+                    gval1=?, gval2=?, gval3=?, gval4=?, gval5=?,
+                    gval6=?, gval7=?, gval8=?
+                WHERE id=?
+                """,(descr, ver, default_unit,
+                     gval1, gval2, gval3, gval4, gval5,
+                     gval6, gval7, gval8,
+                     rid))
+
+            self._sqlex(c, """
+                DELETE FROM drawings
+                WHERE revision_id = ?
+            """, (rid, ))
+
+            self._sqlexm(c, """
+                    INSERT INTO drawings(revision_id, filename, fullpath)
+                    VALUES (?, ?, ?)
+                """, [(rid, name, path) for (name, path) in drawings])
+
+            self._sqlex(c, """
+                DELETE FROM assemblies
+                WHERE revision_id = ?
+            """, (rid, ))
+
+
+            # (code_id, qty, each, unit)
+            self._sqlexm(c, """
+                    INSERT INTO assemblies(
+                        revision_id, child_id, qty, each, ref, unit)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, [(rid, code_id, qty, each, ref, unit)
+                    for (code_id, qty, each, unit, ref) in children])
+
+
+        except:
+            self._sqlex(c, "ROLLBACK")
+            raise
+
+        self._sqlex(c, "COMMIT")
+
+
+    def update_dates(self, dates):
+        # dates.append((rid, date_from, date_from_days, date_to, date_to_days))
+        c = self._conn.cursor()
+        self._sqlex(c, "BEGIN")
+        try:
+            for (rid, date_from, date_from_days, date_to, date_to_days) in dates:
+                self._sqlex(c, """
+                    UPDATE item_revisions SET
+                        date_from=?, date_from_days=?,
+                        date_to=?, date_to_days=?
+                    WHERE id = ?
+                """, (date_from, date_from_days, date_to, date_to_days, rid))
+        except:
+            self._sqlex(c, "ROLLBACK")
+            raise
+
+        self._sqlex(c, "COMMIT")
+
+
 import sqlite3
 import traceback
+
+_cfg = configparser.ConfigParser()
+_cfg.read_file(open("bombrowser.ini"))
 
 class DBSQLite(DBSQLServer):
     def __init__(self, path=None):
@@ -1171,15 +1271,31 @@ class DBSQLite(DBSQLServer):
 
     def _sqlex(self, c, query, *args, **kwargs):
         try:
-            c.execute(query, *args, **kwargs)
+            DBSQLServer._sqlex(self, c, query, *args, **kwargs)
         except sqlite3.Error as er:
-            print('SQLite error: %s' % (' '.join(er.args)))
-            print("Exception class is: ", er.__class__)
-            print('SQLite traceback: ')
+            errmsg = 'SQLite error: %s' % (' '.join(er.args)) + "\n"
+            errmsg += "Exception class is: " + str(er.__class__) + "\n"
+            errmsg += 'SQLite traceback: \n'
             exc_type, exc_value, exc_tb = sys.exc_info()
-            print(traceback.format_exception(exc_type, exc_value, exc_tb))
+            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
 
-            raise
+            print(errmsg)
+
+            raise DBException(errmsg)
+
+    def _sqlexm(self, c, query, *args, **kwargs):
+        try:
+            DBSQLServer._sqlexm(self, c, query, *args, **kwargs)
+        except sqlite3.Error as er:
+            errmsg = 'SQLite error: %s' % (' '.join(er.args)) + "\n"
+            errmsg += "Exception class is: " + str(er.__class__) + "\n"
+            errmsg += 'SQLite traceback: \n'
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+
+            print(errmsg)
+
+            raise DBException(errmsg)
 
     def _sql_translate(self, stms):
         stms = stms.replace(" IDENTITY", "")
@@ -1212,20 +1328,18 @@ def DB(path=None):
 
         assert (False)
 
-    cfg = configparser.ConfigParser()
-    cfg.read_file(open("bombrowser.ini"))
-    dbtype = cfg.get("BOMBROWSER", "db")
+    dbtype = _cfg.get("BOMBROWSER", "db")
     if dbtype == "sqlite":
-        path = cfg.get("SQLITE", "path")
+        path = _cfg.get("SQLITE", "path")
         _globaDBInstance = DBSQLite(path)
         return _globaDBInstance
     elif dbtype == "sqlserver":
         d = {
-            "driver": cfg.get("SQLSERVER", "driver"),
-            "server": cfg.get("SQLSERVER", "server"),
-            "database": cfg.get("SQLSERVER", "database"),
-            "username": cfg.get("SQLSERVER", "username"),
-            "password": cfg.get("SQLSERVER", "password"),
+            "driver": _cfg.get("SQLSERVER", "driver"),
+            "server": _cfg.get("SQLSERVER", "server"),
+            "database": _cfg.get("SQLSERVER", "database"),
+            "username": _cfg.get("SQLSERVER", "username"),
+            "password": _cfg.get("SQLSERVER", "password"),
         }
         connection_string = "DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password}".format(**d)
         _globaDBInstance = DBSQLServer(connection_string)
