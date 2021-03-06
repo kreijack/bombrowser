@@ -27,17 +27,19 @@ from PySide2.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton
 from PySide2.QtWidgets import QHeaderView, QMenu
 from PySide2.QtGui import QStandardItemModel, QStandardItem
 
-from PySide2.QtCore import Qt, QAbstractTableModel, QEvent
+from PySide2.QtCore import Qt, QAbstractTableModel, QEvent, Signal, QPoint
 
 import db, asmgui, codegui, diffgui, utils, editcode
 import copycodegui, selectdategui
 
 
 
-class CodesWindow(QMainWindow):
+class CodesWidget(QWidget):
+    #tableCustomContextMenuRequested = Signal(QPoint)
+    rightMenu = Signal(QPoint)
+
     def __init__(self, parent=None):
-        QMainWindow.__init__(self, parent)
-        self.setWindowTitle("BOMBrowser - Codes list")
+        QWidget.__init__(self, parent)
         self._main_data = [
             ("Code", "code"),
             ("Version", "ver"),
@@ -52,66 +54,8 @@ class CodesWindow(QMainWindow):
         self._data = dict()
 
         self._init_gui()
-        self.resize(1024, 600)
-
-
-    def _create_statusbar(self):
-        self._my_statusbar = QStatusBar()
-        self._my_statusbar.showMessage("Status Bar Is Ready", 3000)
-        self.setStatusBar(self._my_statusbar)
-
-    def _create_menu(self):
-        mainMenu = self.menuBar()
-
-        fileMenu = mainMenu.addMenu("File")
-
-        closeAction = QAction("Close", self)
-        closeAction.setShortcut("Ctrl+Q")
-        closeAction.triggered.connect(self.close)
-        exitAction = QAction("Exit", self)
-        exitAction.setShortcut("Ctrl+X")
-        exitAction.triggered.connect(self._exit_app)
-        fileMenu.addAction(closeAction)
-        fileMenu.addAction(exitAction)
-
-        editMenu = mainMenu.addMenu("Edit")
-        copyAction = QAction("Copy", self)
-        copyAction.setShortcut("Ctrl+C")
-        copyAction.triggered.connect(self._copy_info_action)
-        editMenu.addAction(copyAction)
-
-        self._windowsMenu = mainMenu.addMenu("Window")
-        self._windowsMenu.aboutToShow.connect(self._build_windows_menu)
-
-        self._build_windows_menu()
-
-        helpMenu = mainMenu.addMenu("Help")
-        a = QAction("About ...", self)
-        a.triggered.connect(lambda : utils.about(self))
-        helpMenu.addAction(a)
-
-    def _new_code(self):
-        editcode.newCodeWindow()
-
-    def _build_windows_menu(self):
-        utils.build_windows_menu(self._windowsMenu, self, codes_list = False)
-        return
-
-    def _exit_app(self):
-        ret = QMessageBox.question(self, "BOMBrowser", "Do you want to exit from the application ?")
-        if ret == QMessageBox.Yes:
-            sys.exit(0)
-
-    def _copy_info_action(self):
-        cb = QApplication.clipboard()
-        cb.clear(mode=cb.Clipboard )
-        cb.setText(self._copy_info, mode=cb.Clipboard)
 
     def _init_gui(self):
-        self._create_menu()
-        # create toolbar
-        self._create_statusbar()
-
 
         vb = QVBoxLayout()
         hr = QHBoxLayout()
@@ -150,123 +94,13 @@ class CodesWindow(QMainWindow):
         self._splitter.addWidget(QWidget())
         self._splitter.setSizes([700, 1024-700])
 
-        w = QWidget()
-        w.setLayout(vb)
-        self.setCentralWidget(w)
+        self.setLayout(vb)
 
         self._table.setContextMenuPolicy(Qt.CustomContextMenu)
         self._table.customContextMenuRequested.connect(self._tree_context_menu)
 
     def _tree_context_menu(self, point):
-        contextMenu = QMenu(self)
-        showAssembly = contextMenu.addAction("Show assembly ...")
-        showAssembly.triggered.connect(self._show_assembly)
-        whereUsed = contextMenu.addAction("Where used ...")
-        whereUsed.triggered.connect(self._show_where_used)
-        validWhereUsed = contextMenu.addAction("Valid where used ...")
-        validWhereUsed.triggered.connect(self._show_valid_where_used)
-        contextMenu.addSeparator()
-        reviseCode = contextMenu.addAction("Revise/copy code ...")
-        reviseCode.triggered.connect(self._revise_code)
-        contextMenu.addSeparator()
-        doDiff1 = contextMenu.addAction("Diff from")
-        doDiff1.triggered.connect(self._set_diff_from)
-        doDiff2 = contextMenu.addAction("Diff to")
-        doDiff2.triggered.connect(self._set_diff_to)
-
-        contextMenu.exec_(self._table.viewport().mapToGlobal(point))
-
-    def _get_code_and_date(self):
-        w = selectdategui.SelectDate(self._code_id, self)
-        ret = w.exec_()
-        if not ret:
-            return (0, 0, 0, 0)
-
-        (code, date_from, date_to) = w.get_result()
-        return(self._code_id, code, date_from, date_to)
-
-    def _set_diff_from(self):
-        if not self._code_id:
-            QApplication.beep()
-
-        d = db.DB()
-        if not d.is_assembly(self._code_id):
-            QApplication.beep()
-            QMessageBox.critical(self, "BOMBrowser", "The item is not an assembly")
-            return
-
-        code_id, code, date_from, date_to = self._get_code_and_date()
-        if code == 0:
-            return
-
-        diffgui.set_from(code_id, code, date_from)
-
-    def _set_diff_to(self):
-        if not self._code_id:
-            QApplication.beep()
-
-        d = db.DB()
-        if not d.is_assembly(self._code_id):
-            QApplication.beep()
-            QMessageBox.critical(self, "BOMBrowser", "The item is not an assembly")
-            return
-
-        code_id, code, date_from, date_to = self._get_code_and_date()
-        if code == 0:
-            return
-
-        diffgui.set_to(code_id, code, date_from)
-
-    def _show_assembly(self):
-        if not self._code_id:
-            QApplication.beep()
-
-        d = db.DB()
-        if not d.is_assembly(self._code_id):
-            QApplication.beep()
-            QMessageBox.critical(self, "BOMBrowser", "The item is not an assembly")
-            return
-
-        code_id, code, date_from, descr = self._get_code_and_date()
-        if code == 0:
-            return
-
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        w = asmgui.AssemblyWindow(None) #self)
-        w.show()
-        data = d.get_bom_by_code_id2(self._code_id, date_from)
-        w.populate(*data)
-        QApplication.restoreOverrideCursor()
-
-    def _revise_code(self):
-        if not self._code_id:
-            QApplication.beep()
-
-        copycodegui.revise_copy_code(self._code_id, self)
-
-    def _show_where_used(self):
-        if not self._code_id:
-            QApplication.beep()
-            return
-
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        d = db.DB()
-        data = d.get_where_used_from_id_code(self._code_id)
-        #pprint.pprint(data)
-        if len(data[1]) == 1:
-            QApplication.restoreOverrideCursor()
-            QApplication.beep()
-            QMessageBox.critical(self, "BOMBrowser", "The item is not in an assembly")
-            return
-
-        #w = asmgui.WhereUsedWindow(self)
-        w = asmgui.WhereUsedWindow(None)
-        w.show()
-        w.populate(*data)
-        QApplication.restoreOverrideCursor()
-
-    def _show_valid_where_used(self):
-        asmgui.valid_where_used(self._code_id, self)
+        self.rightMenu.emit(self._table.viewport().mapToGlobal(point))
 
     class TableModel(QAbstractTableModel):
         def __init__(self, data, header):
@@ -367,5 +201,190 @@ class CodesWindow(QMainWindow):
         self._splitter.replaceWidget(1, scrollarea)
         self._grid_widget = scrollarea
 
+    def getCodeId(self):
+        return self._code_id
 
+    def getTableText(self):
+        return self._copy_info
+
+
+class CodesWindow(QMainWindow):
+    def __init__(self, parent=None):
+        QMainWindow.__init__(self, parent)
+        self.setWindowTitle("BOMBrowser - Codes list")
+
+        self._init_gui()
+        self.resize(1024, 600)
+
+    def _create_statusbar(self):
+        self._my_statusbar = QStatusBar()
+        self._my_statusbar.showMessage("Status Bar Is Ready", 3000)
+        self.setStatusBar(self._my_statusbar)
+
+    def _create_menu(self):
+        mainMenu = self.menuBar()
+
+        fileMenu = mainMenu.addMenu("File")
+
+        closeAction = QAction("Close", self)
+        closeAction.setShortcut("Ctrl+Q")
+        closeAction.triggered.connect(self.close)
+        exitAction = QAction("Exit", self)
+        exitAction.setShortcut("Ctrl+X")
+        exitAction.triggered.connect(self._exit_app)
+        fileMenu.addAction(closeAction)
+        fileMenu.addAction(exitAction)
+
+        editMenu = mainMenu.addMenu("Edit")
+        copyAction = QAction("Copy", self)
+        copyAction.setShortcut("Ctrl+C")
+        copyAction.triggered.connect(self._copy_info_action)
+        editMenu.addAction(copyAction)
+
+        self._windowsMenu = mainMenu.addMenu("Window")
+        self._windowsMenu.aboutToShow.connect(self._build_windows_menu)
+
+        self._build_windows_menu()
+
+        helpMenu = mainMenu.addMenu("Help")
+        a = QAction("About ...", self)
+        a.triggered.connect(lambda : utils.about(self))
+        helpMenu.addAction(a)
+
+    def _build_windows_menu(self):
+        utils.build_windows_menu(self._windowsMenu, self, codes_list = False)
+        return
+
+    def _exit_app(self):
+        ret = QMessageBox.question(self, "BOMBrowser", "Do you want to exit from the application ?")
+        if ret == QMessageBox.Yes:
+            sys.exit(0)
+
+    def _copy_info_action(self):
+        cb = QApplication.clipboard()
+        cb.clear(mode=cb.Clipboard )
+        cb.setText(self._codes_widget.getTableText(), mode=cb.Clipboard)
+
+    def _init_gui(self):
+        self._create_menu()
+        # create toolbar
+        self._create_statusbar()
+
+        self._codes_widget = CodesWidget(self)
+
+        self.setCentralWidget(self._codes_widget)
+
+        self._codes_widget.rightMenu.connect(self._tree_context_menu)
+
+    def _tree_context_menu(self, point):
+        print("I am here")
+        contextMenu = QMenu(self)
+        showAssembly = contextMenu.addAction("Show assembly ...")
+        showAssembly.triggered.connect(self._show_assembly)
+        whereUsed = contextMenu.addAction("Where used ...")
+        whereUsed.triggered.connect(self._show_where_used)
+        validWhereUsed = contextMenu.addAction("Valid where used ...")
+        validWhereUsed.triggered.connect(self._show_valid_where_used)
+        contextMenu.addSeparator()
+        reviseCode = contextMenu.addAction("Revise/copy code ...")
+        reviseCode.triggered.connect(self._revise_code)
+        contextMenu.addSeparator()
+        doDiff1 = contextMenu.addAction("Diff from")
+        doDiff1.triggered.connect(self._set_diff_from)
+        doDiff2 = contextMenu.addAction("Diff to")
+        doDiff2.triggered.connect(self._set_diff_to)
+
+        contextMenu.exec_(point)
+
+    def _get_code_and_date(self):
+        w = selectdategui.SelectDate(self._codes_widget.getCodeId(), self)
+        ret = w.exec_()
+        if not ret:
+            return (0, 0, 0, 0)
+
+        (code, date_from, date_to) = w.get_result()
+        return(self._codes_widget.getCodeId(), code, date_from, date_to)
+
+    def _set_diff_from(self):
+        if not self._codes_widget.getCodeId():
+            QApplication.beep()
+
+        d = db.DB()
+        if not d.is_assembly(self._codes_widget.getCodeId()):
+            QApplication.beep()
+            QMessageBox.critical(self, "BOMBrowser", "The item is not an assembly")
+            return
+
+        code_id, code, date_from, date_to = self._get_code_and_date()
+        if code == 0:
+            return
+
+        diffgui.set_from(code_id, code, date_from)
+
+    def _set_diff_to(self):
+        if not self._codes_widget.getCodeId():
+            QApplication.beep()
+
+        d = db.DB()
+        if not d.is_assembly(self._codes_widget.getCodeId()):
+            QApplication.beep()
+            QMessageBox.critical(self, "BOMBrowser", "The item is not an assembly")
+            return
+
+        code_id, code, date_from, date_to = self._get_code_and_date()
+        if code == 0:
+            return
+
+        diffgui.set_to(code_id, code, date_from)
+
+    def _show_assembly(self):
+        if not self._codes_widget.getCodeId():
+            QApplication.beep()
+
+        d = db.DB()
+        if not d.is_assembly(self._codes_widget.getCodeId()):
+            QApplication.beep()
+            QMessageBox.critical(self, "BOMBrowser", "The item is not an assembly")
+            return
+
+        code_id, code, date_from, descr = self._get_code_and_date()
+        if code == 0:
+            return
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        w = asmgui.AssemblyWindow(None) #self)
+        w.show()
+        data = d.get_bom_by_code_id2(self._codes_widget.getCodeId(), date_from)
+        w.populate(*data)
+        QApplication.restoreOverrideCursor()
+
+    def _revise_code(self):
+        if not self._codes_widget.getCodeId():
+            QApplication.beep()
+
+        copycodegui.revise_copy_code(self._codes_widget.getCodeId(), self)
+
+    def _show_where_used(self):
+        if not self._codes_widget.getCodeId():
+            QApplication.beep()
+            return
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        d = db.DB()
+        data = d.get_where_used_from_id_code(self._codes_widget.getCodeId())
+        #pprint.pprint(data)
+        if len(data[1]) == 1:
+            QApplication.restoreOverrideCursor()
+            QApplication.beep()
+            QMessageBox.critical(self, "BOMBrowser", "The item is not in an assembly")
+            return
+
+        #w = asmgui.WhereUsedWindow(self)
+        w = asmgui.WhereUsedWindow(None)
+        w.show()
+        w.populate(*data)
+        QApplication.restoreOverrideCursor()
+
+    def _show_valid_where_used(self):
+        asmgui.valid_where_used(self._codes_widget.getCodeId(), self)
 
