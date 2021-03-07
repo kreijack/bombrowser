@@ -1,6 +1,6 @@
 """
 BOM Browser - tool to browse a bom
-Copyright (C) 2020 Goffredo Baroncelli <kreijack@inwind.it>
+Copyright (C) 2020,2021 Goffredo Baroncelli <kreijack@inwind.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -21,14 +21,23 @@ import sys
 import os
 import json
 import io
+import configparser
 
 import db
+
+_cfg = configparser.ConfigParser()
+_cfg.read_file(open("bombrowser.ini"))
 
 class Exporter:
     def __init__(self, rootnode, data):
         self._data = data
         self._rootnode = rootnode
-
+        self._headers = [
+            "Seq", "Level", "Code", "Code",
+            "Description", "Unit",
+            "Quantity", "Each", "Date from", "Date to"]
+        self._add_headers = _cfg.get("BOMBROWSER", "gvalnames").split(",")
+        self._headers += self._add_headers
         self._db = db.DB()
 
     def export_as_bom(self, nf):
@@ -39,14 +48,8 @@ class Exporter:
     def _export_as_bom(self, f):
         self._path = []
         self._seq = 0
-        f.write("\t".join([
-            "Seq", "Level", "Code", "Code",
-            "Description", "Unit",
-            "Quantity", "Each", "Date from", "Date to",
-            "Supplier", "P/N",
-            "Manufacturer", "P/N",
-            "Manufacturer", "P/N"
-        ])+"\n")
+
+        f.write("\t".join(self._headers)+"\n")
         self._export_as_bom_it(f, self._rootnode, 0, 0, "N/A", "N/A", "N/A")
 
     def export_bom_as_string(self):
@@ -56,14 +59,13 @@ class Exporter:
 
     def _export_as_bom_it(self, f, node, level, seq, qty, each, unit):
         item = self._data[node]
+        items = [ item["gval%d"%(i+1)] for i in range(len(self._add_headers))]
+
         f.write("\t".join(map(str, [
             str(self._seq), str(level), item["code"], '"'+"    "*level + item["code"]+'"',
             item["descr"], unit,
             str(qty), str(each),
-            item["date_from"], item["date_to"],
-            item["for1name"], item["for1cod"],
-            item["prod1name"], item["prod1cod"],
-            item["prod2name"], item["prod2cod"] ,
+            *items,
         ])))
         f.write("\n")
         self._seq += 1
