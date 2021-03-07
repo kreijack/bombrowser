@@ -79,6 +79,7 @@ def get_windows_list():
             diffwindows.append((t, w))
         elif (t.startswith("BOMBrowser - Assembly") or
               t.startswith("BOMBrowser - Edit code") or
+              t.startswith("BOMBrowser - Valid where used") or
               t.startswith("BOMBrowser - Where used")):
             bomwindows.append((t, w))
         elif t.startswith("BOMBrowser - Codes list"):
