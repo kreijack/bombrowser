@@ -542,7 +542,6 @@ class DBSQLServer:
 
         return data
 
-
     def get_codes_by_code(self, code):
         c = self._conn.cursor()
         self._sqlex(c, """
@@ -594,7 +593,7 @@ class DBSQLServer:
                 GROUP BY code_id
             ) AS r
                 ON r.code_id = i.id
-            WHERE r.descr = ?
+            WHERE r.descr LIKE ?
             ORDER BY i.id
             """, (descr, ))
         res = c.fetchall()
@@ -614,7 +613,7 @@ class DBSQLServer:
                 GROUP BY code_id
             ) AS r
                 ON r.code_id = i.id
-            WHERE r.descr like ? and i.code like ?
+            WHERE r.descr LIKE ? LIKE i.code LIKE ?
             ORDER BY i.id
             """, (descr, code))
         res = c.fetchall()
@@ -636,6 +635,7 @@ class DBSQLServer:
 
         return list(c.fetchall())
 
+    # TO REMOVE
     def get_dates_by_code_id(self, id_code):
         c = self._conn.cursor()
         self._sqlex(c, """SELECT DISTINCT i.code, r.date_from, r.date_to
@@ -1188,7 +1188,6 @@ class DBSQLServer:
 
         return c.fetchall()
 
-
     def update_by_rid(self, rid, descr, ver, default_unit,
             gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8,
             drawings=None, children=None):
@@ -1239,7 +1238,6 @@ class DBSQLServer:
             raise
 
         self._sqlex(c, "COMMIT")
-
 
     def update_dates(self, dates):
         # dates.append((rid, date_from, date_from_days, date_to, date_to_days))
