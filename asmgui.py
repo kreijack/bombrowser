@@ -454,12 +454,15 @@ class AssemblyWindow(QMainWindow):
             #    return None
             i =  QStandardItem(d["code"])
             i.setData(n)
+            i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
             i2 =  QStandardItem(d["descr"])
+            i2.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
             for c in data[n]["deps"]:
                 if c in path:
                     # ERROR: a recursive path
                     i3 = QStandardItem("<REC-ERROR>")
                     i3.setData(-1)
+                    i3.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                     i.appendRow((
                         i3,
                         QStandardItem("<REC-ERROR>"))

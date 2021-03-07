@@ -580,8 +580,12 @@ class EditWindow(QMainWindow):
 
         row = 0
         for (name, path) in drawings:
-            self._drawings_table.setItem(row, 0, QTableWidgetItem(name))
-            self._drawings_table.setItem(row, 1, QTableWidgetItem(path))
+            i = QTableWidgetItem(name)
+            i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+            self._drawings_table.setItem(row, 0, i)
+            i = QTableWidgetItem(path)
+            i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+            self._drawings_table.setItem(row, 1, i)
             row += 1
         self._drawings_table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeToContents)
