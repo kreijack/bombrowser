@@ -304,19 +304,19 @@ class CodesWindow(QMainWindow):
     def _show_assembly(self):
         if not self._codes_widget.getCodeId():
             QApplication.beep()
+            return
         asmgui.show_assembly(self._codes_widget.getCodeId(), self)
 
     def _revise_code(self):
         if not self._codes_widget.getCodeId():
             QApplication.beep()
-
+            return
         copycodegui.revise_copy_code(self._codes_widget.getCodeId(), self)
 
     def _edit_code(self):
-
         if not self._codes_widget.getCodeId():
             QApplication.beep()
-
+            return
         editcode.edit_code_by_code_id(self._codes_widget.getCodeId())
 
     def _show_where_used(self):
