@@ -265,7 +265,7 @@ def insert_board(c):
 
         code = "610%03d"%(cnt)
 
-        fn1 = "documents/boards/%s_rev0.txt"%(code)
+        fn1 = "documents/boards/%s_(wl)_rev0.txt"%(code)
         open(fn1, "w").write("Type: board drawing\nCode: %s\nNr components: %d\n"%(
             code, ncomponents))
 
@@ -321,7 +321,7 @@ def insert_mechanical_components(c):
         c.execute("SELECT MAX(id) FROM item_revisions")
         mech_id = c.fetchone()[0]
 
-        fn1 = "documents/drawings/%s_rev0.txt"%(code)
+        fn1 = "documents/drawings/%s_(drw)_rev0.txt"%(code)
         open(fn1, "w").write("Type: mechanical drawing\nCode:%s\n"%(
             code, ))
         c.execute("""INSERT INTO drawings(
@@ -353,10 +353,10 @@ def insert_mechanical_assemblies(c):
 
         code = "820%03d"%(cnt)
 
-        fn1 = "documents/drawings/%s_rev0.txt"%(code)
+        fn1 = "documents/drawings/%s_(drw)_rev0.txt"%(code)
         open(fn1, "w").write("Type: mechanical drawing\nCode: %s\nNr components: %d\n"%(
             code, ncomponents))
-        fn2 = "documents/assembling-procedures/%s_rev0.txt"%(code)
+        fn2 = "documents/assembling-procedures/%s_(asm)_rev0.txt"%(code)
         open(fn2, "w").write("Type: assembling procedure\nCode: %s\nNr components: %d\n"%(
             code, ncomponents))
 
@@ -635,7 +635,7 @@ def make_changes(c):
         if code.startswith("81"):
             # no assembly
             new_id, new_rev = revise_code(c, rev_id)
-            fn1 = "documents/drawings/%s_rev%s.txt"%(code, new_rev)
+            fn1 = "documents/drawings/%s_(drw)_rev%s.txt"%(code, new_rev)
             open(fn1, "w").write("Type: mechanical drawing\nCode:%s\n"%(
                 code, ))
             c.execute("""INSERT INTO drawings(
@@ -647,7 +647,7 @@ def make_changes(c):
         elif code.startswith("82"):
                 # assembly
                 new_id, new_rev = revise_assembly(c, rev_id)
-                fn1 = "documents/drawings/%s_rev%s.txt"%(code, new_rev)
+                fn1 = "documents/drawings/%s_(drw)_rev%s.txt"%(code, new_rev)
                 open(fn1, "w").write("Type: mechanical drawing\nCode:%s\n"%(
                     code, ))
                 c.execute("""INSERT INTO drawings(
@@ -655,7 +655,7 @@ def make_changes(c):
                     ) VALUES ( ?, ?, ?, ? )
                         """, (code, new_id, os.path.basename(fn1), fn1)
                 )
-                fn2 = "documents/assembling-procedures/%s_rev%s.txt"%(code, new_rev)
+                fn2 = "documents/assembling-procedures/%s_(ass)_rev%s.txt"%(code, new_rev)
                 open(fn2, "w").write("Type: assembling procedure\nCode:%s\n"%(
                     code, ))
                 c.execute("""INSERT INTO drawings(
@@ -666,7 +666,7 @@ def make_changes(c):
 
         elif code.startswith("6"):
                 new_id, new_rev = revise_assembly(c, rev_id)
-                fn1 = "documents/boards/%s_rev0.txt"%(code)
+                fn1 = "documents/boards/%s_(el)_rev%s.txt"%(code, new_rev)
                 open(fn1, "w").write("Type: board drawing\nCode: %s\n"%(
                     code,))
                 c.execute("""INSERT INTO drawings(
