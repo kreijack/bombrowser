@@ -160,7 +160,7 @@ class DiffWindow(QMainWindow):
         code2, data2 = d.get_bom_by_code_id2(int(self._ql_id2.text()),
                                    self._ql_date2.text())
 
-        # put the head of boms to the same ID to be shure to compare each other one
+        # put the head of boms to the same ID to enshure to compare the "same" head
         if code1 != code2:
             code3 = max([max(data1.keys()), max(data2.keys())])+1
             data1[code3] = data1[code1]
@@ -185,7 +185,7 @@ class DiffWindow(QMainWindow):
             return True
 
         def is_codes_equal(c1, c2):
-            for k in ["code", "descr", "unit"]:
+            for k in ["code", "descr", "unit", "iter", "ver"]:
                 if c1[k] != c2[k]:
                     return False
 
