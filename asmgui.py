@@ -430,13 +430,13 @@ class AssemblyWindow(QMainWindow):
         id_ = self._data[path[-1]]["id"]
         valid_where_used(id_, self.parent())
 
-    def populate(self, top, data):
+    def populate(self, top, data, date_from=None):
         top_code = data[top]["code"]
 
         if self._asm:
                 dt = data[top]["date_from"][:10]
                 self.setWindowTitle("BOMBrowser - Assembly: "+top_code+" @ " +
-                    dt)
+                    date_from)
         elif self._valid_where_used:
                 self.setWindowTitle("BOMBrowser - Valid where used: "+top_code)
         else:
@@ -648,15 +648,14 @@ def show_assembly(code_id, winParent):
     ret = dlg.exec_()
     if not ret:
         return
-    #print ("ret =", ret, dlg.get_result())
+    print ("ret =", ret, dlg.get_result())
 
     QApplication.setOverrideCursor(Qt.WaitCursor)
-    #w = AssemblyWindow(winParent)
     w = AssemblyWindow(None)
     w.show()
     res = dlg.get_result()
     data = d.get_bom_by_code_id2(code_id, res[1])
-    w.populate(*data)
+    w.populate(*data, date_from=res[1])
     QApplication.restoreOverrideCursor()
 
 
