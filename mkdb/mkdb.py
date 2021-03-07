@@ -38,53 +38,50 @@ dbname="database.sqlite"
         );
 """
 
+def insert_code(c, descr, code, ver, iter_, default_unit, gval1, gval2):
+            c.execute("INSERT INTO items(code) VALUES (?)", (
+                code,)
+            )
+            c.execute("SELECT MAX(id) FROM items")
+            mid = c.fetchone()[0]
+
+            c.execute("""INSERT INTO item_revisions(
+                descr, code_id, ver,
+                iter, default_unit,
+                gval1, gval2,
+                date_from, date_from_days) VALUES (
+                ?, ?, ?,
+                ?, ?,
+                ?, ?,
+                ?, ?)""",
+                (descr, mid, ver, iter_, default_unit, gval1, gval2,
+                 date0, db.iso_to_days(date0))
+            )
+
 # create screws
 def insert_screws(c):
     cnt=1
     for l in [3, 4, 5, 6, 8, 10, 12, 14, 16, 20, 15, 30, 35]:
         for d in [2, 3, 4, 5, 6, 8, 10, 12]:
-            c.execute("""INSERT INTO items(
-                descr, code, ver,
-                iter, default_unit,
-                for1cod, for1name) VALUES (
-                ?, ?, ?,
-                ?, ?,
-                ?, ?)""", (
-                    "SCREW M%dX%d"%(d, l), "710%03d"%(cnt), 0,
+
+            insert_code(c, "SCREW M%dX%d"%(d, l), "710%03d"%(cnt), 0,
                     0, "NR", "M%dX%d"%(d, l), "SCREWS SUPPLIER")
-            )
             cnt += 1
 
 # create washer
 def insert_washer(c):
     cnt=1
     for d in [2, 3, 4, 5, 6, 8, 10, 12]:
-        c.execute("""INSERT INTO items(
-            descr, code, ver,
-            iter, default_unit,
-            for1cod, for1name) VALUES (
-            ?, ?, ?,
-            ?, ?,
-            ?, ?)""", (
-                "WASHER D%d"%(d, ), "720%03d"%(cnt), 0,
+        insert_code(c, "WASHER D%d"%(d), "720%03d"%(cnt), 0,
                 0, "NR", "W D%d"%(d, ), "WASHERS SUPPLIER")
-        )
         cnt += 1
 
 # create washer
 def insert_elastic_washer(c):
     cnt=1
     for d in [2, 3, 4, 5, 6, 8, 10, 12]:
-        c.execute("""INSERT INTO items(
-            descr, code, ver,
-            iter, default_unit,
-            for1cod, for1name) VALUES (
-            ?, ?, ?,
-            ?, ?,
-            ?, ?)""", (
-                "ELASTIC WASHER D%d"%(d, ), "730%03d"%(cnt), 0,
+        insert_code(c, "ELASTIC WASHER D%d"%(d, ), "730%03d"%(cnt), 0,
                 0, "NR", "EW D%d"%(d, ), "WASHERS SUPPLIER")
-        )
         cnt += 1
 
 # create resistor
@@ -121,16 +118,9 @@ def insert_resistor(c):
     for r in values:
         for (k, suffix) in [(100, ""), (10, ""), (1, ""),
                     (100, "k"), (10, "k"), (1, "k"), (100, "M")]:
-            c.execute("""INSERT INTO items(
-                descr, code, ver,
-                iter, default_unit,
-                for1cod, for1name) VALUES (
-                ?, ?, ?,
-                ?, ?,
-                ?, ?)""", (
+            insert_code(c,
                     "RESISTOR %.2f%s"%(r / k, suffix), "51%04d"%(cnt), 0,
                     0, "NR", "R%.2f%s"%(r / k, suffix), "RESISTORS SUPPLIER")
-            )
             cnt += 1
 
 
@@ -176,15 +166,8 @@ def insert_capacitor(c):
                 suffix = "pf"
             v = v.strip()
 
-            c.execute("""INSERT INTO items(
-                descr, code, ver,
-                iter, default_unit,
-                for1cod, for1name) VALUES (
-                ?, ?, ?,
-                ?, ?,
-                ?, ?)""", (
-                    "CAPACITOR %s%s"%(v, suffix), "520%03d"%(cnt), 0,
-                    0, "NR", "C%s%s"%(v, suffix), "CAPACITORS SUPPLIER")
+            insert_code(c, "CAPACITOR %s%s"%(v, suffix), "520%03d"%(cnt), 0,
+                    0, "NR", "C%s%s"%(v, suffix), "CAPACITORS SUPPLIER"
             )
             cnt += 1
             col += 1
@@ -246,24 +229,32 @@ def insert_microprocessor(c):
 
         (ucode, manufacturer, clock) = row.split("\t")[1:4]
 
-        c.execute("""INSERT INTO items(
-            descr, code, ver,
-            iter, default_unit,
-            for1cod, for1name) VALUES (
-            ?, ?, ?,
-            ?, ?,
-            ?, ?)""", (
-                "MICROPROCESSOR %s %s %s"%(ucode, manufacturer, clock), "530%03d"%(cnt), 0,
-                0, "NR", "%s AT %s"%(ucode, clock), manufacturer)
+        insert_code(c,
+                "MICROPROCESSOR %s %s %s"%(ucode, manufacturer, clock),
+                "530%03d"%(cnt), 0,
+                0, "NR", "%s AT %s"%(ucode, clock), manufacturer
         )
         cnt += 1
 
+def get_max_by_code(c, pattern):
+    c.execute("""SELECT MAX(id)
+                 FROM items
+                 WHERE code LIKE ?""",
+                 (pattern,))
+    return c.fetchone()[0]
+
+def get_min_by_code(c, pattern):
+    c.execute("""SELECT MIN(id)
+                 FROM items
+                 WHERE code LIKE ?""",
+                 (pattern,))
+    return c.fetchone()[0]
+
+
 def insert_board(c):
 
-    c.execute("SELECT MIN(id) FROM items WHERE CODE LIKE '5%'")
-    min_id = c.fetchone()[0]
-    c.execute("SELECT MAX(id) FROM items WHERE CODE LIKE '5%'")
-    max_id = c.fetchone()[0]
+    min_id = get_min_by_code(c, '5%')
+    max_id = get_max_by_code(c, '5%')
 
     # TODO build revision
 
@@ -278,22 +269,16 @@ def insert_board(c):
         open(fn1, "w").write("Type: board drawing\nCode: %s\nNr components: %d\n"%(
             code, ncomponents))
 
-        c.execute("""INSERT INTO items(
-            descr, code, ver,
-            iter, default_unit,
-            for1cod, for1name) VALUES (
-            ?, ?, ?,
-            ?, ?,
-            ?, ?)""", (
+        insert_code(c,
                 "BOARD %d"%(cnt), "610%03d"%(cnt), 0,
-                0, "NR", "BOARD %d"%(cnt), "BOARDS MANUFACTURER %d"%(cnt %3, ))
+                0, "NR", "BOARD %d"%(cnt), "BOARDS MANUFACTURER %d"%(cnt %3, )
         )
 
-        c.execute("SELECT MAX(id) FROM items")
+        c.execute("SELECT MAX(id) FROM item_revisions")
         board_id = c.fetchone()[0]
 
         c.execute("""INSERT INTO drawings(
-                code, item_id, filename, fullpath
+                code, revision_id, filename, fullpath
             ) VALUES ( ?, ?, ?, ? )
                 """, (code, board_id, os.path.basename(fn1), fn1)
         )
@@ -309,25 +294,18 @@ def insert_board(c):
 
             c.execute("""INSERT INTO assemblies (
                 unit,
-                child_id, parent_id,
+                child_id, revision_id,
                 qty,
                 each,
-                date_from, date_to,
-                date_from_days, date_to_days,
-                iter, ref) VALUES (
+                ref) VALUES (
                 ?,
                 ?, ?,
                 ?,
                 ?,
-                ?, ?,
-                ?, ?,
-                ?, ? )""", (
+                ? )""", (
                     "NR",
                     cid, board_id,
                     (i * cnt % 10) + 1,
-                    1,
-                    date0, "",
-                    ts, db.end_of_the_world,
                     0, '//')
             )
 
@@ -335,25 +313,19 @@ def insert_mechanical_components(c):
     cnt=1
     for d in range(300):
         code = "810%03d"%(cnt)
-        c.execute("""INSERT INTO items(
-            descr, code, ver,
-            iter, default_unit,
-            for1cod, for1name) VALUES (
-            ?, ?, ?,
-            ?, ?,
-            ?, ?)""", (
+        insert_code(c,
                 "MECHANICAL COMPONENT NR.%d"%(d, ), "810%03d"%(cnt), 0,
-                0, "NR", "", "MECHANICAL SUPPLIER %d"%(d % 4,))
+                0, "NR", "", "MECHANICAL SUPPLIER %d"%(d % 4,)
         )
 
-        c.execute("SELECT MAX(id) FROM items")
+        c.execute("SELECT MAX(id) FROM item_revisions")
         mech_id = c.fetchone()[0]
 
         fn1 = "documents/drawings/%s_rev0.txt"%(code)
         open(fn1, "w").write("Type: mechanical drawing\nCode:%s\n"%(
             code, ))
         c.execute("""INSERT INTO drawings(
-                code, item_id, filename, fullpath
+                code, revision_id, filename, fullpath
             ) VALUES ( ?, ?, ?, ? )
                 """, (code, mech_id, os.path.basename(fn1), fn1)
         )
@@ -361,8 +333,7 @@ def insert_mechanical_components(c):
 
 def insert_mechanical_assemblies(c):
 
-    c.execute("SELECT MIN(id) FROM items WHERE CODE LIKE '7%'")
-    boards_min_id = c.fetchone()[0]
+    boards_min_id = get_min_by_code(c, '7%')
 
     # TODO build revision
 
@@ -373,8 +344,7 @@ def insert_mechanical_assemblies(c):
     for cnt in range(num_assemblies):
 
         if (cnt % (num_assemblies / num_level)) == 0:
-            c.execute("SELECT MAX(id) FROM items WHERE CODE LIKE '8%'")
-            old_mech_max_id = c.fetchone()[0]
+            old_mech_max_id = get_max_by_code(c, '8%')
 
         # each components between [boards_min_id, old_mech_max_id] are a
         # valid child
@@ -390,28 +360,22 @@ def insert_mechanical_assemblies(c):
         open(fn2, "w").write("Type: assembling procedure\nCode: %s\nNr components: %d\n"%(
             code, ncomponents))
 
-        c.execute("""INSERT INTO items(
-            descr, code, ver,
-            iter, default_unit,
-            for1cod, for1name) VALUES (
-            ?, ?, ?,
-            ?, ?,
-            ?, ?)""", (
+        insert_code(c,
                 "MECHANICAL ASSEMBLIES %d - LEVEL %d"%(cnt,
                     cnt/(num_assemblies / num_level) + 1), code, 0,
-                0, "NR", "", "INTERNAL SUPPLIER")
+                0, "NR", "", "INTERNAL SUPPLIER"
         )
 
-        c.execute("SELECT MAX(id) FROM items")
+        c.execute("SELECT MAX(id) FROM item_revisions")
         mech_id = c.fetchone()[0]
 
         c.execute("""INSERT INTO drawings(
-                code, item_id, filename, fullpath
+                code, revision_id, filename, fullpath
             ) VALUES ( ?, ?, ?, ? )
                 """, (code, mech_id, os.path.basename(fn1), fn1)
         )
         c.execute("""INSERT INTO drawings(
-                code, item_id, filename, fullpath
+                code, revision_id, filename, fullpath
             ) VALUES ( ?, ?, ?, ? )
                 """, (code, mech_id, os.path.basename(fn2), fn2)
         )
@@ -426,34 +390,26 @@ def insert_mechanical_assemblies(c):
 
             c.execute("""INSERT INTO assemblies (
                 unit,
-                child_id, parent_id,
+                child_id, revision_id,
                 qty,
                 each,
-                date_from, date_to,
-                date_from_days, date_to_days,
-                iter, ref) VALUES (
+                ref) VALUES (
                 ?,
                 ?, ?,
                 ?,
                 ?,
-                ?, ?,
-                ?, ?,
-                ?, ? )""", (
+                ? )""", (
                     "NR",
                     cid, mech_id,
                     (i * cnt % 10) + 1,
                     1,
-                    date0, "",
-                    ts, db.end_of_the_world,
-                    0, '//')
+                    '//')
             )
 
 def insert_top_codes(c):
 
-    c.execute("SELECT MIN(id) FROM items WHERE CODE LIKE '82%'")
-    mech_min = c.fetchone()[0]
-    c.execute("SELECT MAX(id) FROM items WHERE CODE LIKE '82%'")
-    mech_max = c.fetchone()[0]
+    mech_min = get_min_by_code(c,'82%')
+    mech_max = get_max_by_code(c,'82%')
 
     # TODO build revision
 
@@ -470,22 +426,16 @@ def insert_top_codes(c):
             code, ncomponents))
 
 
-        c.execute("""INSERT INTO items(
-            descr, code, ver,
-            iter, default_unit,
-            for1cod, for1name) VALUES (
-            ?, ?, ?,
-            ?, ?,
-            ?, ?)""", (
+        insert_code(c,
                 "TOP ASSEMBLY %d"%(cnt, ), code, 0,
-                0, "NR", "", "INTERNAL SUPPLIER")
+                0, "NR", "", "INTERNAL SUPPLIER"
         )
 
-        c.execute("SELECT MAX(id) FROM items")
+        c.execute("SELECT MAX(id) FROM item_revisions")
         top_id = c.fetchone()[0]
 
         c.execute("""INSERT INTO drawings(
-                code, item_id, filename, fullpath
+                code, revision_id, filename, fullpath
             ) VALUES ( ?, ?, ?, ? )
                 """, (code, top_id, os.path.basename(fn1), fn1)
         )
@@ -499,35 +449,26 @@ def insert_top_codes(c):
 
             c.execute("""INSERT INTO assemblies (
                 unit,
-                child_id, parent_id,
+                child_id, revision_id,
                 qty,
                 each,
-                date_from, date_to,
-                date_from_days, date_to_days,
-                iter, ref) VALUES (
+                ref) VALUES (
                 ?,
                 ?, ?,
                 ?,
                 ?,
-                ?, ?,
-                ?, ?,
-                ?, ? )""", (
+                ? )""", (
                     "NR",
                     cid, top_id,
                     (i * cnt % 10) + 1,
                     1,
-                    date0, "",
-                    ts, db.end_of_the_world,
-                    0, '//')
+                    '//')
             )
 
 def insert_spare_parts(c):
 
-    c.execute("SELECT MIN(id) FROM items WHERE CODE LIKE '6%'")
-    mech_min = c.fetchone()[0]
-    c.execute("SELECT MAX(id) FROM items WHERE CODE LIKE '81%'")
-    mech_max = c.fetchone()[0]
-
+    mech_min = get_min_by_code(c,'6%')
+    mech_max = get_max_by_code(c,'81%')
     # TODO build revision
 
     # make 120 top code
@@ -543,22 +484,16 @@ def insert_spare_parts(c):
             code, ncomponents))
 
 
-        c.execute("""INSERT INTO items(
-            descr, code, ver,
-            iter, default_unit,
-            for1cod, for1name) VALUES (
-            ?, ?, ?,
-            ?, ?,
-            ?, ?)""", (
+        insert_code(c,
                 "SPARE PART %d"%(cnt, ), code, 0,
-                0, "NR", "", "INTERNAL SUPPLIER")
+                0, "NR", "", "INTERNAL SUPPLIER"
         )
 
-        c.execute("SELECT MAX(id) FROM items")
+        c.execute("SELECT MAX(id) FROM item_revisions")
         top_id = c.fetchone()[0]
 
         c.execute("""INSERT INTO drawings(
-                code, item_id, filename, fullpath
+                code, revision_id, filename, fullpath
             ) VALUES ( ?, ?, ?, ? )
                 """, (code, top_id, os.path.basename(fn1), fn1)
         )
@@ -570,363 +505,176 @@ def insert_spare_parts(c):
 
             c.execute("""INSERT INTO assemblies (
                 unit,
-                child_id, parent_id,
+                child_id, revision_id,
                 qty,
                 each,
-                date_from, date_to,
-                date_from_days, date_to_days,
-                iter, ref) VALUES (
+                ref) VALUES (
                 ?,
                 ?, ?,
                 ?,
                 ?,
-                ?, ?,
-                ?, ?,
-                ?, ? )""", (
+                ? )""", (
                     "NR",
                     cid, top_id,
                     (i * cnt % 10) + 1,
                     1,
-                    date0, "",
-                    ts, db.end_of_the_world,
-                    0, '//')
+                    '//')
             )
 
-def revise_code(c, old_id):
+def revise_code(c, old_rid):
 
-        c.execute("""SELECT descr, code, ver,
-                            iter, default_unit,
-                            for1cod, for1name
-                     FROM items
-                     WHERE id = ?
-                """, (old_id,))
-        r = c.fetchone()
-        (descr, code, ver, iter_, default_unit, for1cod, for1name) = r
+        global date0
+
+        c.execute("""
+            SELECT id, MAX(date_from_days), iter, ver
+            FROM item_revisions
+            WHERE code_id = (
+                SELECT code_id
+                FROM item_revisions
+                WHERE id = ?
+            )
+            """, (old_rid, ))
+
+        (latest_rid, old_date_from_days, old_iter, rev) = c.fetchone()
 
         #print("Code, ver, iter=", code, ver, iter_)
-        iter_ += 1
-        if ver == '0':
-            ver = 'A'
+        if rev == '0':
+            rev = 'A'
         else:
-            ver = chr(ord(ver)+1)
-        #print("  Code, ver, iter=", code, ver, iter_)
+            rev = chr(ord(rev)+1)
 
-        c.execute("""INSERT INTO items(
-            descr, code, ver,
-            iter, default_unit,
-            for1cod, for1name) VALUES (
-            ?, ?, ?,
-            ?, ?,
-            ?, ?)""", (
-                descr, code, ver,
-                iter_, default_unit,
-                for1cod, for1name
-            )
-        )
+        new_date_from_days = db.iso_to_days(date0)
+        new_date_from = db.days_to_iso(new_date_from_days)
+        c.execute("""
+                INSERT INTO item_revisions(
+                    code_id,
+                    date_from,
+                    date_from_days,
+                    date_to,
+                    ver,
+                    iter,
+                    note,
+                    descr,
+                    default_unit,
+                    gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
+                ) SELECT
+                    code_id,
+                    ?,
+                    ?,
+                    '',
+                    ?,
+                    ?,
+                    note,
+                    descr,
+                    default_unit,
+                    gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
+                FROM item_revisions
+                WHERE id = ?
+            """, (new_date_from, new_date_from_days, rev, old_iter + 1, old_rid))
 
-        c.execute("SELECT MAX(id) FROM items")
-        new_id = c.fetchone()[0]
+        old_date_to_days = new_date_from_days-1
+        old_date_to = db.days_to_iso(old_date_to_days)
+        c.execute("""
+            UPDATE item_revisions
+            SET date_to=?, date_to_days=?
+            WHERE id= ?
+        """, (old_date_to, old_date_to_days, latest_rid))
 
-        return (new_id, ver)
+        c.execute("""SELECT MAX(id) FROM item_revisions""")
+        new_rid = c.fetchone()[0]
+
+        return (new_rid, rev)
 
 
-def revise_assembly(c, old_id, new_id):
+def revise_assembly(c, old_rid):
 
+    (new_rid, rev) = revise_code(c, old_rid)
 
-    if False and new_id == 2295:
-        print("PRE:")
-        c.execute("""SELECT *
-                     FROM assemblies
-                     WHERE
-                        parent_id = ?
-            """, (old_id,))
-        for row in c.fetchall():
-            print(row)
-        print()
-
-    # copy the assembly
-    c.execute("""SELECT
-                    unit,
-                    child_id, parent_id,
-                    qty,
-                    each,
-                    date_from, date_to,
-                    date_from_days, date_to_days,
-                    iter, ref
-                 FROM assemblies
-                 WHERE
-                    parent_id = ?
-                   AND
-                    date_to_days = ?
-        """, (old_id, db.end_of_the_world))
-
-    # update the reference to the parent
-    for row in c.fetchall():
-        row = list(row)
-        row[2] = new_id
-        row[5] = date0
-        row[6] = ""
-        row[7] = datetime.date.fromisoformat(date0).toordinal()
-        row[8] = db.end_of_the_world
-        c.execute("""INSERT INTO assemblies (
-            unit,
-            child_id, parent_id,
-            qty,
-            each,
-            date_from, date_to,
-            date_from_days, date_to_days,
-            iter, ref) VALUES (
-            ?,
-            ?, ?,
-            ?,
-            ?,
-            ?, ?,
-            ?, ?,
-            ?, ? )""", row
-        )
-
-    # set an end date of the previous assembly
-    date1 = db.increase_date(date0, -1)
-    #print("date0=", date0, ";date1 = ", date1)
-    c.execute("""UPDATE assemblies SET
-                    date_to = ?, date_to_days = ?
-                 WHERE
-                    parent_id = ?
-                   AND
-                    date_to_days = ?
-        """, (
-            date1,
-            datetime.date.fromisoformat(date1).toordinal(),
-            old_id,
-            db.end_of_the_world
-        ))
-
-    if False and new_id == 2295:
-        print("POST:")
-        c.execute("""SELECT *
-                     FROM assemblies
-                     WHERE
-                        parent_id = ?
-            """, (old_id,))
-        for row in c.fetchall():
-            print(row)
-        print()
-
+    c.execute("""
+        INSERT INTO assemblies(
+                    unit, child_id,
+                    revision_id,
+                    qty, each, ref
+        ) SELECT unit, child_id,
+                    ?,
+                    qty, each, ref
+        FROM assemblies
+        WHERE revision_id=?
+    """, (new_rid, old_rid))
 
     # TODO: make some changes to the assembly
-
-def update_assemblies_for_new_code(c, old_id, new_id):
-
-    parents = set()
-    date1 = db.increase_date(date0, -1)
+    return (new_rid, rev)
 
 
-    # set an end date of the previous assembly
-    c.execute("""UPDATE assemblies SET
-                    date_to = ?, date_to_days = ?
-                 WHERE
-                    child_id = ?
-                   AND
-                    date_to_days = ?
-        """, (
-            date1,
-            datetime.date.fromisoformat(date1).toordinal(),
-            old_id,
-            db.end_of_the_world
-        ))
-
-    # copy the assembly
-    c.execute("""SELECT
-                    unit,
-                    child_id, parent_id,
-                    qty,
-                    each,
-                    date_from, date_to,
-                    date_from_days, date_to_days,
-                    iter, ref
-                 FROM assemblies
-                 WHERE
-                    child_id = ?
-                   AND
-                    date_to = ?
-        """, (old_id, date1))
-
-    # update the reference to the parent
-    for row in c.fetchall():
-        row = list(row)
-
-        parents.add(row[2])
-        row[1] = new_id
-        row[5] = date0
-        row[6] = ""
-        row[7] = datetime.date.fromisoformat(date0).toordinal()
-        row[8] = db.end_of_the_world
-        c.execute("""INSERT INTO assemblies (
-            unit,
-            child_id, parent_id,
-            qty,
-            each,
-            date_from, date_to,
-            date_from_days, date_to_days,
-            iter, ref) VALUES (
-            ?,
-            ?, ?,
-            ?,
-            ?,
-            ?, ?,
-            ?, ?,
-            ?, ? )""", (*row,)
-        )
-
-    return parents
-
-def rec_update_assemblies(c, parents):
-    done = set()
-    cnt = 0
-    cntitems = 0
-    parents = set(parents)
-    while len(parents):
-        the_id = parents.pop()
-        if the_id in done:
-            continue
-        done.add(the_id)
-
-        cnt += 1
-        # set an end date of the previous assembly
-        date1 = db.increase_date(date0, -1)
-        c.execute("""UPDATE assemblies SET
-                        date_to = ?, date_to_days = ?
-                     WHERE
-                        child_id = ?
-                       AND
-                        date_to_days = ?
-            """, (
-                date1,
-                datetime.date.fromisoformat(date1).toordinal(),
-                the_id,
-                db.end_of_the_world
-            ))
-
-
-        # copy the assembly row
-        c.execute("""SELECT
-                        unit,
-                        child_id, parent_id,
-                        qty,
-                        each,
-                        date_from, date_to,
-                        date_from_days, date_to_days,
-                        iter, ref
-                     FROM assemblies
-                     WHERE
-                        child_id = ?
-                       AND
-                        date_to = ?
-            """, (the_id, date1))
-
-        # update the reference to the parent
-        for row in c.fetchall():
-            cntitems += 1
-            row = list(row)
-
-            parents.add(row[2])
-
-            row[5] = date0
-            row[6] = ""
-            row[7] = datetime.date.fromisoformat(date0).toordinal()
-            row[8] = db.end_of_the_world
-            c.execute("""INSERT INTO assemblies (
-                unit,
-                child_id, parent_id,
-                qty,
-                each,
-                date_from, date_to,
-                date_from_days, date_to_days,
-                iter, ref) VALUES (
-                ?,
-                ?, ?,
-                ?,
-                ?,
-                ?, ?,
-                ?, ?,
-                ?, ? )""", (*row,)
-            )
-
-    #print("Update ",cnt, "assemblies and ", cntitems, " items")
-    #c.execute("COMMIT")
 
 # make some changes
 def make_changes(c):
     global date0
 
-    c.execute("SELECT MIN(id) FROM items WHERE CODE LIKE '6%'")
-    min_id = c.fetchone()[0]
+    min_id = get_min_by_code(c, '6%')
+    max_id = get_max_by_code(c, '82%')
 
-    for cnt in range(120):
+    for cnt in range(200):
 
         date0 = db.increase_date(date0, 10)
 
-        c.execute("SELECT MAX(id) FROM items WHERE code LIKE '81%'")
-        max_id = c.fetchone()[0]
 
-        the_id = rnd.get() % (max_id - min_id + 1) + min_id
+
+        code_id = rnd.get() % (max_id - min_id + 1) + min_id
 
         # fetch the latest code revision
-        c.execute("SELECT code FROM items WHERE id=?", (the_id,))
-        the_code = c.fetchone()[0]
-        c.execute("SELECT MAX(id) FROM items WHERE code=?", (the_code,))
-        the_id = c.fetchone()[0]
+        c.execute("""SELECT i.code, r.id, MAX(iter)
+                     FROM item_revisions AS r
+                     LEFT JOIN items AS i
+                         ON i.id = r.code_id
+                     WHERE r.code_id=?""", (code_id,))
+        (code, rev_id, iter_) = c.fetchone()
 
-
-        c.execute("SELECT code FROM items WHERE id=?", (the_id,))
-        code = c.fetchone()[0]
-
-        print("%s/%s) Updating code '%s', id=%d"%(cnt, 120, code, the_id))
+        print("%s/%s) Updating code '%s', rid=%d"%(cnt, 200, code, rev_id))
 
         if code.startswith("81"):
             # no assembly
-            new_id, new_rev = revise_code(c, the_id)
+            new_id, new_rev = revise_code(c, rev_id)
             fn1 = "documents/drawings/%s_rev%s.txt"%(code, new_rev)
             open(fn1, "w").write("Type: mechanical drawing\nCode:%s\n"%(
                 code, ))
             c.execute("""INSERT INTO drawings(
-                    code, item_id, filename, fullpath
+                    code, revision_id, filename, fullpath
                 ) VALUES ( ?, ?, ?, ? )
                     """, (code, new_id, os.path.basename(fn1), fn1)
             )
+
         elif code.startswith("82"):
-            # assembly
-            new_id, new_rev = revise_code(c, the_id)
-            fn1 = "documents/drawings/%s_rev%s.txt"%(code, new_rev)
-            open(fn1, "w").write("Type: mechanical drawing\nCode:%s\n"%(
-                code, ))
-            c.execute("""INSERT INTO drawings(
-                    code, item_id, filename, fullpath
-                ) VALUES ( ?, ?, ?, ? )
-                    """, (code, new_id, os.path.basename(fn1), fn1)
-            )
-            fn2 = "documents/assembling-procedures/%s_rev%s.txt"%(code, new_rev)
-            open(fn2, "w").write("Type: assembling procedure\nCode:%s\n"%(
-                code, ))
-            c.execute("""INSERT INTO drawings(
-                    code, item_id, filename, fullpath
-                ) VALUES ( ?, ?, ?, ? )
-                    """, (code, new_id, os.path.basename(fn2), fn2)
-            )
-            # update the assembly
-            revise_assembly(c, the_id, new_id)
+                # assembly
+                new_id, new_rev = revise_assembly(c, rev_id)
+                fn1 = "documents/drawings/%s_rev%s.txt"%(code, new_rev)
+                open(fn1, "w").write("Type: mechanical drawing\nCode:%s\n"%(
+                    code, ))
+                c.execute("""INSERT INTO drawings(
+                        code, revision_id, filename, fullpath
+                    ) VALUES ( ?, ?, ?, ? )
+                        """, (code, new_id, os.path.basename(fn1), fn1)
+                )
+                fn2 = "documents/assembling-procedures/%s_rev%s.txt"%(code, new_rev)
+                open(fn2, "w").write("Type: assembling procedure\nCode:%s\n"%(
+                    code, ))
+                c.execute("""INSERT INTO drawings(
+                        code, revision_id, filename, fullpath
+                    ) VALUES ( ?, ?, ?, ? )
+                        """, (code, new_id, os.path.basename(fn2), fn2)
+                )
+
         elif code.startswith("6"):
-            new_id, new_rev = revise_code(c, the_id)
-            fn1 = "documents/boards/%s_rev0.txt"%(code)
-            open(fn1, "w").write("Type: board drawing\nCode: %s\nNr components: %d\n"%(
-                code, ncomponents))
-            c.execute("""INSERT INTO drawings(
-                    code, item_id, filename, fullpath
-                ) VALUES ( ?, ?, ?, ? )
-                    """, (code, new_id, os.path.basename(fn1), fn1)
-            )
-            # update the assembly
-            revise_assembly(c, the_id, new_id)
+                new_id, new_rev = revise_assembly(c, rev_id)
+                fn1 = "documents/boards/%s_rev0.txt"%(code)
+                open(fn1, "w").write("Type: board drawing\nCode: %s\n"%(
+                    code,))
+                c.execute("""INSERT INTO drawings(
+                        code, revision_id, filename, fullpath
+                    ) VALUES ( ?, ?, ?, ? )
+                        """, (code, new_id, os.path.basename(fn1), fn1)
+                )
+
 
         elif code.startswith("1"):
             print("WARNING: code ", code, " is ignore")
@@ -940,9 +688,9 @@ def make_changes(c):
             assert(False)
 
 
-        parents = update_assemblies_for_new_code(c, the_id, new_id)
+        #parents = update_assemblies_for_new_code(c, the_id, new_id)
         #print("parents=",len(parents))
-        rec_update_assemblies(c, parents)
+        #rec_update_assemblies(c, parents)
 
 def xrmdir(path):
         if os.path.isdir(path):
@@ -969,32 +717,43 @@ def create_db():
     c = conn.cursor()
 
     # 510xxx
+    print("Insert resistor 510xxx")
     insert_resistor(c)
     # 520xxx
+    print("Insert capacitor 520xxx")
     insert_capacitor(c)
     # 530xxx
+    print("Insert uprocessor 530xxx")
     insert_microprocessor(c)
 
     # 710xxx
+    print("Insert screws 710xxx")
     insert_screws(c)
     # 720xxx
+    print("Insert washer 720xxx")
     insert_washer(c)
     # 730xxx
+    print("Insert elastic washer 730xxx")
     insert_elastic_washer(c)
 
     # 610xxx
+    print("Insert boards 610xxx")
     insert_board(c)
 
     # 810###
+    print("Insert mechanical componets 810xxx")
     insert_mechanical_components(c)
 
     # 820 #
+    print("Insert mechanical assemblies 820xxx")
     insert_mechanical_assemblies(c)
 
     # 100xxx
+    print("Insert top codes 100xxx")
     insert_top_codes(c)
 
     # 101xxx
+    print("Insert spare parts 101xxx")
     insert_spare_parts(c)
 
     conn.commit()
