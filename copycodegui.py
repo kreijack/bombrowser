@@ -62,7 +62,7 @@ class CopyCode(QDialog):
 
     def _init_gui(self):
         grid = QGridLayout()
-        self.setWindowTitle("BOMBrowser: Copy / Revise code dialog")
+        self.setWindowTitle("BOMBrowser - Copy / Revise code")
         #w = QWidget()
         #w.setLayout(grid)
         #self.setCentralWidget(w)

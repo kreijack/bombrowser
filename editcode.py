@@ -378,7 +378,7 @@ class EditWindow(QMainWindow):
         self._update_btn.clicked.connect(self._save_changes)
         g.addWidget(self._update_btn, 100, 13)
 
-        self.setWindowTitle("BOMBrowser: edit code")
+        self.setWindowTitle("BOMBrowser - Edit code")
 
         w = QWidget()
         w.setLayout(g)

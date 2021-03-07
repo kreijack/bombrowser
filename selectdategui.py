@@ -75,7 +75,7 @@ class SelectDate(QDialog):
 
     def _init_gui(self):
         grid = QGridLayout()
-        self.setWindowTitle("BOMBrowser: Select date")
+        self.setWindowTitle("BOMBrowser - Select date")
 
         self._table = QTableView()
         self._table.horizontalHeader().setStretchLastSection(True)
