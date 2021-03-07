@@ -97,15 +97,24 @@ class EditDates(QDialog):
             rid = int(self._table.item(row, 0).text())
             date_from = self._table.item(row, 4).text()
             date_to = self._table.item(row, 5).text()
+
             try:
                 date_from_days = db.iso_to_days(date_from)
-                date_to_days = db.iso_to_days(date_to)
+                if date_to != '':
+                    date_to_days = db.iso_to_days(date_to)
+                else:
+                    date_to_days = db.end_of_the_world
             except:
                 QMessageBox.critical(self, "BOMBrowser",
                     "Error in date format row %d"%(row+1))
                 return
 
             dates.append([rid, date_from, date_from_days, date_to, date_to_days])
+
+        if dates[0][3] != "" and dates[0][2] > dates[0][4]:
+            QMessageBox.critical(self, "BOMBrowser",
+                "Error in dates at row %d"%(row+1))
+            return
 
         for i in range(1, row_cnt):
             if dates[i - 1][2] <= dates[i][2]:
@@ -114,8 +123,8 @@ class EditDates(QDialog):
                     "Error in date row %d and %d"%(i, i+1))
                 return
 
-        dates[0][3] = ''
-        dates[0][4] = db.end_of_the_world
+        if dates[0][3] == "":
+            dates[0][4] = db.end_of_the_world
 
         d = db.DB()
         try:
@@ -181,8 +190,9 @@ class EditDates(QDialog):
             self._table.setItem(row, 4, i)
 
             i = QTableWidgetItem(date_to)
-            i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-            i.setFont(f)
+            if row != 0:
+                i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                i.setFont(f)
             self._table.setItem(row, 5, i)
 
             row += 1
@@ -193,22 +203,34 @@ class EditDates(QDialog):
             QHeaderView.ResizeToContents)
 
     def _cell_changed(self, row, col):
-        if col != 4:
+        # check the date from column
+        # and check the date to in row 0 cell
+        if col != 4 and not (col == 5 and row == 0):
             return
 
         dt = self._table.item(row, col).text()
         err = False
 
-        try:
-                from_date = db.iso_to_days(dt)
-        except:
-            err = True
-
-        if row > 0 and (self._table.item(row -1 , col).text() < dt):
-            err = True
-        if ((row < self._table.rowCount() - 1) and
-            (self._table.item(row +1 , col).text() > dt)):
+        if row == 0 and col == 5:
+            if dt != "":
+                try:
+                        from_date = db.iso_to_days(dt)
+                except:
+                    err = True
+                if not err:
+                    err = self._table.item(row, 4).text() > dt
+        else:
+            try:
+                    from_date = db.iso_to_days(dt)
+            except:
                 err = True
+
+            if not err:
+                if row > 0 and (self._table.item(row -1 , col).text() < dt):
+                    err = True
+                if ((row < self._table.rowCount() - 1) and
+                    (self._table.item(row +1 , col).text() > dt)):
+                        err = True
 
         if err:
             self._table.clearSelection()
@@ -219,7 +241,7 @@ class EditDates(QDialog):
         self._table.item(row, col).setBackground(
             self._table.item(row, 0).background())
 
-        if row < self._table.rowCount() - 1:
+        if col == 4 and row < self._table.rowCount() - 1:
             to_date = from_date - 1
             to_date = db.days_to_iso(to_date)
             self._table.item(row+1, col+1).setText(to_date)
@@ -374,7 +396,7 @@ class EditWindow(QMainWindow):
         closeAction.setShortcut("Ctrl+Q")
         closeAction.triggered.connect(self.close)
         exitAction = QAction("Exit", self)
-        exitAction.setShortcut("Ctrl+X")
+        exitAction.triggered.connect(self._exit_app)
 
         fileMenu.addAction(closeAction)
         fileMenu.addAction(exitAction)
@@ -385,6 +407,11 @@ class EditWindow(QMainWindow):
         a = QAction("About ...", self)
         a.triggered.connect(lambda : utils.about(self))
         helpMenu.addAction(a)
+
+    def _exit_app(self):
+        ret = QMessageBox.question(self, "BOMBrowser", "Do you want to exit from the application ?")
+        if ret == QMessageBox.Yes:
+            sys.exit(0)
 
     def _build_windows_menu(self):
         utils.build_windows_menu(self._windowsMenu, self)
