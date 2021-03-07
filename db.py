@@ -156,6 +156,8 @@ class DBSQLServer:
                 ALTER TABLE item_properties RENAME TO old_item_properties;
                 ALTER TABLE items RENAME TO old_items;
                 ALTER TABLE drawings RENAME TO old_drawings;
+                ALTER TABLE database_props RENAME TO old_database_props;
+
             """
 
             for s in smts.split(";"):
@@ -317,6 +319,7 @@ class DBSQLServer:
             DROP TABLE IF EXISTS database_props;
             DROP TABLE IF EXISTS drawings;
             DROP TABLE IF EXISTS items;
+            DROP TABLE IF EXISTS item_revisions;
 
             CREATE TABLE    items (
                 id          INTEGER NOT NULL IDENTITY PRIMARY KEY,
@@ -391,7 +394,7 @@ class DBSQLServer:
                 value       VARCHAR(255)
             );
 
-            INSERT INTO database_props ("key", value) VALUES ('ver', '0.2');
+            INSERT INTO database_props ("key", value) VALUES ('ver', '0.3');
 
             CREATE TABLE drawings (
                 id          INTEGER NOT NULL IDENTITY PRIMARY KEY,
@@ -411,10 +414,9 @@ class DBSQLServer:
 
     def create_db(self):
 
-        stms = self._get_db_v0_3(self)
+        stms = self._get_db_v0_3()
         c = self._conn.cursor()
         for s in stms.split(";"):
-            #print("Executing '%s'"%(s))
             self._sqlex(c, s)
 
         self._conn.commit()
@@ -1039,7 +1041,8 @@ class DBSQLServer:
 
         return new_rid
 
-    def revise_code(self, rid, descr, copy_props=True, copy_docs=True):
+    def revise_code(self, rid, descr, copy_props=True, copy_docs=True,
+                    new_date_from_days=None):
         c = self._conn.cursor()
         self._sqlex(c, "BEGIN")
         try:
@@ -1055,7 +1058,8 @@ class DBSQLServer:
 
             (latest_rid, old_date_from_days, old_iter) = c.fetchone()
 
-            new_date_from_days = now_to_days()
+            if new_date_from_days is None:
+                new_date_from_days = now_to_days()
             new_date_from = days_to_iso(new_date_from_days)
 
             if new_date_from_days <= old_date_from_days:
@@ -1184,7 +1188,7 @@ class DBSQLServer:
 
     def update_by_rid(self, rid, descr, ver, default_unit,
             gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8,
-            drawings, children):
+            drawings=None, children=None):
 
         c = self._conn.cursor()
         self._sqlex(c, "BEGIN")
@@ -1200,29 +1204,31 @@ class DBSQLServer:
                      gval6, gval7, gval8,
                      rid))
 
-            self._sqlex(c, """
-                DELETE FROM drawings
-                WHERE revision_id = ?
-            """, (rid, ))
+            if not drawings is None:
+                self._sqlex(c, """
+                    DELETE FROM drawings
+                    WHERE revision_id = ?
+                """, (rid, ))
 
-            self._sqlexm(c, """
-                    INSERT INTO drawings(revision_id, filename, fullpath)
-                    VALUES (?, ?, ?)
-                """, [(rid, name, path) for (name, path) in drawings])
+                self._sqlexm(c, """
+                        INSERT INTO drawings(revision_id, filename, fullpath)
+                        VALUES (?, ?, ?)
+                    """, [(rid, name, path) for (name, path) in drawings])
 
-            self._sqlex(c, """
-                DELETE FROM assemblies
-                WHERE revision_id = ?
-            """, (rid, ))
+            if not children is None:
+                self._sqlex(c, """
+                    DELETE FROM assemblies
+                    WHERE revision_id = ?
+                """, (rid, ))
 
 
-            # (code_id, qty, each, unit)
-            self._sqlexm(c, """
-                    INSERT INTO assemblies(
-                        revision_id, child_id, qty, each, ref, unit)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, [(rid, code_id, qty, each, ref, unit)
-                    for (code_id, qty, each, unit, ref) in children])
+                # (code_id, qty, each, unit)
+                self._sqlexm(c, """
+                        INSERT INTO assemblies(
+                            revision_id, child_id, qty, each, ref, unit)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    """, [(rid, code_id, qty, each, ref, unit)
+                        for (code_id, qty, each, unit, ref) in children])
 
 
         except:
@@ -1274,6 +1280,10 @@ class DBSQLite(DBSQLServer):
             DBSQLServer._sqlex(self, c, query, *args, **kwargs)
         except sqlite3.Error as er:
             errmsg = 'SQLite error: %s' % (' '.join(er.args)) + "\n"
+            errmsg += "SQLite query:\n"
+            errmsg += "-"*30+"\n"
+            errmsg += query + "\n"
+            errmsg += "-"*30+"\n"
             errmsg += "Exception class is: " + str(er.__class__) + "\n"
             errmsg += 'SQLite traceback: \n'
             exc_type, exc_value, exc_tb = sys.exc_info()
@@ -1288,6 +1298,10 @@ class DBSQLite(DBSQLServer):
             DBSQLServer._sqlexm(self, c, query, *args, **kwargs)
         except sqlite3.Error as er:
             errmsg = 'SQLite error: %s' % (' '.join(er.args)) + "\n"
+            errmsg += "SQLite query:\n"
+            errmsg += "-"*30+"\n"
+            errmsg += query + "\n"
+            errmsg += "-"*30+"\n"
             errmsg += "Exception class is: " + str(er.__class__) + "\n"
             errmsg += 'SQLite traceback: \n'
             exc_type, exc_value, exc_tb = sys.exc_info()
