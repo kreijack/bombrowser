@@ -189,6 +189,8 @@ class EditDates(QDialog):
 
         self.setWindowTitle("BOMBrowser - Edit dates: %s"%(code))
         self._table.cellChanged.connect(self._cell_changed)
+        self._table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeToContents)
 
     def _cell_changed(self, row, col):
         if col != 4:
@@ -561,7 +563,8 @@ class EditWindow(QMainWindow):
 
         self._children_table.setSortingEnabled(True)
         self._children_table.cellChanged.connect(self._children_cell_changed)
-
+        self._children_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeToContents)
         # drawings
 
         drawings = list(d.get_drawings_by_code_id(self._rid))
@@ -580,6 +583,8 @@ class EditWindow(QMainWindow):
             self._drawings_table.setItem(row, 0, QTableWidgetItem(name))
             self._drawings_table.setItem(row, 1, QTableWidgetItem(path))
             row += 1
+        self._drawings_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeToContents)
 
     def _children_cell_changed(self, row, col):
         table = self._children_table
