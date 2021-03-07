@@ -304,23 +304,7 @@ class CodesWindow(QMainWindow):
     def _show_assembly(self):
         if not self._codes_widget.getCodeId():
             QApplication.beep()
-
-        d = db.DB()
-        if not d.is_assembly(self._codes_widget.getCodeId()):
-            QApplication.beep()
-            QMessageBox.critical(self, "BOMBrowser", "The item is not an assembly")
-            return
-
-        code_id, code, date_from, descr = self._get_code_and_date()
-        if code == 0:
-            return
-
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        w = asmgui.AssemblyWindow(None) #self)
-        w.show()
-        data = d.get_bom_by_code_id2(self._codes_widget.getCodeId(), date_from)
-        w.populate(*data)
-        QApplication.restoreOverrideCursor()
+        asmgui.show_assembly(self._codes_widget.getCodeId(), self)
 
     def _revise_code(self):
         if not self._codes_widget.getCodeId():
@@ -339,23 +323,11 @@ class CodesWindow(QMainWindow):
         if not self._codes_widget.getCodeId():
             QApplication.beep()
             return
-
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        d = db.DB()
-        data = d.get_where_used_from_id_code(self._codes_widget.getCodeId())
-        #pprint.pprint(data)
-        if len(data[1]) == 1:
-            QApplication.restoreOverrideCursor()
-            QApplication.beep()
-            QMessageBox.critical(self, "BOMBrowser", "The item is not in an assembly")
-            return
-
-        #w = asmgui.WhereUsedWindow(self)
-        w = asmgui.WhereUsedWindow(None)
-        w.show()
-        w.populate(*data)
-        QApplication.restoreOverrideCursor()
+        asmgui.where_used(self._codes_widget.getCodeId(), self)
 
     def _show_valid_where_used(self):
+        if not self._codes_widget.getCodeId():
+            QApplication.beep()
+            return
         asmgui.valid_where_used(self._codes_widget.getCodeId(), self)
 
