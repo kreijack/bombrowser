@@ -161,17 +161,7 @@ class AssemblyWindow(QMainWindow):
     def __init__(self, parent, asm=True, valid_where_used=False):
         QMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self._main_data = [
-            ("Code", "code"),
-            ("Version", "ver"),
-            ("Iteration", "iter"),
-            ("Description", "descr"),
-            ("Unit", "unit"),
-            ("Quantity", "qty"),
-            ("Each", "each"),
-            ("Date from", "date_from"),
-            ("Date to", "date_to"),
-        ]
+
         self._asm = asm
         self._valid_where_used = valid_where_used
         self._data = dict()

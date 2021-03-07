@@ -83,7 +83,7 @@ class CodesWidget(QWidget):
         self._table.setAlternatingRowColors(True)
         self._table.setSelectionMode(self._table.SingleSelection)
         self._table.setColumnCount(5)
-        self._table.setHorizontalHeaderLabels(["id", "Code", "Description", "Ver", "Iter"])
+        self._table.setHorizontalHeaderLabels(["id", "Code", "Description", "Rev", "Iter"])
         self._splitter.addWidget(self._table)
         self._splitter.addWidget(QWidget())
         self._splitter.setSizes([700, 1024-700])
@@ -111,14 +111,14 @@ class CodesWidget(QWidget):
             QApplication.beep()
             return
 
-        self._copy_info = "\t".join(["id", "Code", "Version", "Iteration", "Description"])
+        self._copy_info = "\t".join(["id", "Code", "Rev", "Iteration", "Description"])
         self._copy_info += "\n"
         self._copy_info += "\n".join(["\t".join(map(str, row[:5])) for row in ret])
 
         self._table.setSortingEnabled(False)
         self._table.clear()
         self._table.setColumnCount(5)
-        self._table.setHorizontalHeaderLabels(["id", "Code", "Description", "Ver", "Iter"])
+        self._table.setHorizontalHeaderLabels(["id", "Code", "Description", "Rev", "Iter"])
         self._table.setRowCount(len(ret))
         row = 0
         for data in ret:

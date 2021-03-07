@@ -69,7 +69,7 @@ class CodeWidget(QWidget):
         self._ref = ref
         self._main_data = [
             ("Code", "code"),
-            ("Version", "ver"),
+            ("Revision", "ver"),
             ("Iteration", "iter"),
             ("Description", "descr"),
             ("Unit", "unit"),
