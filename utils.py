@@ -52,7 +52,7 @@ class BBMainWindow(QMainWindow):
 
 def about(w):
     QMessageBox.about(w, "BOMBrowser - about",
-        "BOMBrowser v0.4.0b1\n"+
+        "BOMBrowser v0.4.0b2\n"+
         "Copyright 2020,2021 G.Baroncelli\n")
 
 def clean_menu(m):
