@@ -250,6 +250,9 @@ class DBSQLServer:
                 ) AS rev
                     ON rev.code_id = oip.item_id;
 
+                UPDATE item_revisions
+                SET date_to=''
+                WHERE date_to='None';
 
             """
             for s in stms.split(";"):

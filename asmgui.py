@@ -631,7 +631,7 @@ def valid_where_used(code_id, winParent):
         deps = dict()
         for idx in data2[k]["deps"]:
             it = data[1][idx]
-            if it["date_from"] == "" or it["date_to"] == "":
+            if it["date_to_days"] == db.end_of_the_world:
                 deps[idx] = data2[k]["deps"][idx]
         data2[k]["deps"] = deps
 
