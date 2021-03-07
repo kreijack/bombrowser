@@ -103,14 +103,15 @@ class SelectDate(QDialog):
 
     def _populate_table(self):
         d = db.DB()
-               # code descr  date_from rev iter
+
+               # code descr  rev   iter  date_from
         data = [(r[0], r[1], r[7], r[8], r[2])
             for r in d.get_dates_by_code_id2(self._code_id)]
-        sorted(data, reverse=True, key=lambda x : x[2])
+        sorted(data, reverse=True, key=lambda x : x[3])
 
 
         if not self._only_data_code:
-            last = (data[0][1], data[0][3], data[0][4])
+            last = (data[0][1], data[0][2], data[0][3])
             m = dict()
             for code, descr, rev, iter_, date_from in data:
                 m[date_from] = (descr, rev, iter_)
