@@ -28,7 +28,7 @@ from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtCore import Qt, QItemSelectionModel, QAbstractTableModel
 import pprint, traceback
 
-import db, utils
+import db, utils, selectdategui
 
 class DiffWindow(QMainWindow):
     def __init__(self, id1, code1, date1, id2, code2, date2, parent=None):
@@ -366,17 +366,50 @@ class DiffDialog(QDialog):
 
 _diffDialog = None
 
-def set_from(id_, code, date):
-    global _diffDialog
-    if _diffDialog is None:
-        _diffDialog = DiffDialog()
-    _diffDialog.show()
-    _diffDialog.set_from(str(id_), code, date)
+def set_from(code_id, parent):
+    if not code_id:
+        QApplication.beep()
+        return
 
-def set_to(id_, code, date):
+    d = db.DB()
+    if not d.is_assembly(code_id):
+        QApplication.beep()
+        QMessageBox.critical(parent, "BOMBrowser", "The item is not an assembly")
+        return
+
+    dlg = selectdategui.SelectDate(code_id, parent)
+    ret = dlg.exec_()
+    if not ret:
+        return
+
+    (code, date_from, descr) = dlg.get_result()
+
     global _diffDialog
     if _diffDialog is None:
         _diffDialog = DiffDialog()
     _diffDialog.show()
-    _diffDialog.set_to(str(id_), code, date)
+    _diffDialog.set_from(str(code_id), code, date_from)
+
+def set_to(code_id, parent):
+    if not code_id:
+        QApplication.beep()
+        return
+
+    d = db.DB()
+    if not d.is_assembly(code_id):
+        QApplication.beep()
+        QMessageBox.critical(parent, "BOMBrowser", "The item is not an assembly")
+        return
+
+    dlg = selectdategui.SelectDate(code_id, parent)
+    ret = dlg.exec_()
+    if not ret:
+        return
+
+    (code, date_from, descr) = dlg.get_result()
+    global _diffDialog
+    if _diffDialog is None:
+        _diffDialog = DiffDialog()
+    _diffDialog.show()
+    _diffDialog.set_to(str(code_id), code, date_from)
 

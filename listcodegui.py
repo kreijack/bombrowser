@@ -272,34 +272,14 @@ class CodesWindow(QMainWindow):
     def _set_diff_from(self):
         if not self._codes_widget.getCodeId():
             QApplication.beep()
-
-        d = db.DB()
-        if not d.is_assembly(self._codes_widget.getCodeId()):
-            QApplication.beep()
-            QMessageBox.critical(self, "BOMBrowser", "The item is not an assembly")
             return
-
-        code_id, code, date_from, date_to = self._get_code_and_date()
-        if code == 0:
-            return
-
-        diffgui.set_from(code_id, code, date_from)
+        diffgui.set_from(self._codes_widget.getCodeId(), self)
 
     def _set_diff_to(self):
         if not self._codes_widget.getCodeId():
             QApplication.beep()
-
-        d = db.DB()
-        if not d.is_assembly(self._codes_widget.getCodeId()):
-            QApplication.beep()
-            QMessageBox.critical(self, "BOMBrowser", "The item is not an assembly")
             return
-
-        code_id, code, date_from, date_to = self._get_code_and_date()
-        if code == 0:
-            return
-
-        diffgui.set_to(code_id, code, date_from)
+        diffgui.set_to(self._codes_widget.getCodeId(), self)
 
     def _show_assembly(self):
         if not self._codes_widget.getCodeId():

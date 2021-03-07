@@ -355,7 +355,6 @@ class AssemblyWindow(QMainWindow):
         path = self._get_path()
         if len(path) == 0:
             return
-
         id_ = self._data[path[-1]]["id"]
 
         editcode.edit_code_by_code_id(id_)
@@ -364,70 +363,48 @@ class AssemblyWindow(QMainWindow):
         path = self._get_path()
         if len(path) == 0:
             return
-
         id_ = self._data[path[-1]]["id"]
 
         copycodegui.revise_copy_code(id_, self)
 
     def _set_diff_from(self):
-        key = self._get_path()[-1]
-        code = self._data[key]["code"]
-        date = self._data[key]["date_from"]
-
-        id_ = self._data[key]["id"]
-        d = db.DB()
-        if not d.is_assembly(id_):
-            QApplication.beep()
-            QMessageBox.critical(self, "BOMBrowser", "The item is not an assembly")
+        path = self._get_path()
+        if len(path) == 0:
             return
+        id_ = self._data[path[-1]]["id"]
 
-        diffgui.set_from(id_, code, date)
+        diffgui.set_from(id_, self)
 
     def _set_diff_to(self):
-        key = self._get_path()[-1]
-        code = self._data[key]["code"]
-        date = self._data[key]["date_from"]
-
-        id_ = self._data[key]["id"]
-        d = db.DB()
-        if not d.is_assembly(id_):
-            QApplication.beep()
-            QMessageBox.critical(self, "BOMBrowser", "The item is not an assembly")
+        path = self._get_path()
+        if len(path) == 0:
             return
+        id_ = self._data[path[-1]]["id"]
 
-        diffgui.set_to(id_, code, date)
-
+        diffgui.set_to(id_, self)
 
     def _show_assembly(self):
         path = self._get_path()
         if len(path) == 0:
             return
-
         id_ = self._data[path[-1]]["id"]
-        d = db.DB()
-        if not d.is_assembly(id_):
-            QApplication.beep()
-            QMessageBox.critical(self, "BOMBrowser", "The item is not an assembly")
-            return
 
-        id_ = self._data[path[-1]]["id"]
         show_assembly(id_, self.parent())
 
     def _show_where_used(self):
         path = self._get_path()
         if len(path) == 0:
             return
-
         id_ = self._data[path[-1]]["id"]
-        where_used(id_, self.parent())
 
+        where_used(id_, self.parent())
 
     def _show_valid_where_used(self):
         path = self._get_path()
         if len(path) == 0:
             return
-
         id_ = self._data[path[-1]]["id"]
+
         valid_where_used(id_, self.parent())
 
     def populate(self, top, data, date_from=None):
@@ -580,7 +557,6 @@ class ValidWhereUsedWindow(AssemblyWindow):
             valid_where_used = True)
 
 def where_used(code_id, winParent):
-
     if not code_id:
         QApplication.beep()
         return
@@ -588,21 +564,18 @@ def where_used(code_id, winParent):
     d = db.DB()
     QApplication.setOverrideCursor(Qt.WaitCursor)
     data = d.get_where_used_from_id_code(code_id)
-    #pprint.pprint(data)
     if len(data[1]) == 1:
         QApplication.restoreOverrideCursor()
         QApplication.beep()
         QMessageBox.critical(winParent, "BOMBrowser", "The item is not in an assembly")
         return
 
-    #w = WhereUsedWindow(winParent)
     w = WhereUsedWindow(None)
     w.show()
     w.populate(*data)
     QApplication.restoreOverrideCursor()
 
 def valid_where_used(code_id, winParent):
-
     if not code_id:
         QApplication.beep()
         return
@@ -611,7 +584,6 @@ def valid_where_used(code_id, winParent):
     QApplication.setOverrideCursor(Qt.WaitCursor)
     data = d.get_where_used_from_id_code(code_id)
 
-    #pprint.pprint(data)
     if len(data[1]) <= 1:
         QApplication.restoreOverrideCursor()
         QApplication.beep()
@@ -648,7 +620,6 @@ def show_assembly(code_id, winParent):
     ret = dlg.exec_()
     if not ret:
         return
-    print ("ret =", ret, dlg.get_result())
 
     QApplication.setOverrideCursor(Qt.WaitCursor)
     w = AssemblyWindow(None)
