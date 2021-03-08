@@ -132,6 +132,8 @@ class CodesWidget(QWidget):
             row += 1
         self._table.setSortingEnabled(True)
         self._table.selectionModel().selectionChanged.connect(self._table_clicked)
+        if len(ret) > 0:
+            self._table.selectRow(0)
         self._table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
 
     def _table_clicked(self, to, from_):
