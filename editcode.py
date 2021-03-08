@@ -57,6 +57,8 @@ class SelectCode(QDialog):
 
         self.setLayout(grid)
 
+        self.setWindowTitle("BOMBrowser - Search code")
+
     def getCodeId(self):
         return self._search_widget.getCodeId()
 
@@ -118,7 +120,6 @@ class EditDates(QDialog):
 
         for i in range(1, row_cnt):
             if dates[i - 1][2] <= dates[i][2]:
-                print(dates[i - 1][2], dates[i][2])
                 QMessageBox.critical(self, "BOMBrowser",
                     "Error in date row %d and %d"%(i, i+1))
                 return
