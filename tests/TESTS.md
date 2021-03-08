@@ -610,7 +610,7 @@ Passed: [X]
 ### Test set 8.6 - Revise/copy code window
 
 Prepratory steps:
-- insert code 82040 in the "BOMBrowser codes list" window, then press search
+- insert code 820040 in the "BOMBrowser codes list" window, then press search
 - press the right mouse button on the first entry and select "Revise/copy code..." command
 - A "BOM Browser select date dialog" appears; double click on the *first* entry
 - The Revise/copy windows appears
@@ -679,7 +679,74 @@ Test description:
 - click on the copy checkbox
 - press "Copy/Revise button"
 - A confirmation dialog appears; press yes
-Expected results: An error dialog appears saying that the code already exists
+Expected results:
+- An error dialog appears saying that the code already exists
+- pressing OK, the Copy / Revise window still exists
+
+Passed: [X]
+
+#### Test 8.6.11 - Confirmation dialog / success
+Test description:
+- click on the copy checkbox
+- change the new/code in 82004A"
+- unmark the checkbox "start edit dialog after copy/revision"
+- press "Copy/Revise button"
+- A confirmation dialog appears; press yes
+Expected results: A successfull dialog appears
+Passed: [X]
+
+#### Test 8.6.12 - Confirmation dialog / success (2)
+Test description:
+- click on the copy checkbox
+- change the new/code in 82004B"
+- press "Copy/Revise button"
+- A confirmation dialog appears; press yes
+Expected results: The editor of the new code appears. There are attached document and a children list
+Passed: [X]
+
+#### Test 8.6.13 - Confirmation dialog / success (3)
+Test description:
+- click on the copy checkbox
+- change the new/code in 82004B"
+- press "Copy/Revise button"
+- A confirmation dialog appears; press yes
+Expected results: The editor of the new code appears. There are attached document and a children list
+Passed: [X]
+
+#### Test 8.6.14 - Confirmation dialog / success (3)
+Test description:
+- click on the copy checkbox
+- change the new/code in 82004C"
+- unmark the "Copy document" checkbox
+- press "Copy/Revise button"
+- A confirmation dialog appears; press yes
+Expected results: The editor of the new code appears. There are not attached document. There are children list.
+Passed: [X]
+
+#### Test 8.6.15 - Confirmation dialog / success (3)
+Test description:
+- click on the copy checkbox
+- change the new/code in 82004B"
+- A confirmation dialog appears; press yes
+Expected results: The editor of the new code appears. There are attached document and a children list
+Passed: [X]
+
+#### Test 8.6.14 - Confirmation dialog / success (3)
+Test description:
+- click on the copy checkbox
+- change the new/code in 82004C"
+- unmark the "Copy document" checkbox
+- press "Copy/Revise button"
+- A confirmation dialog appears; press yes
+Expected results: The editor of the new code appears. There are not attached document. There are children list.
+Passed: [X]
+
+#### Test 8.7 - revise a code
+Test description:
+- revise the code "820041" from the code list window
+- press "Copy/Revise button"
+- A confirmation dialog appears; press yes
+Expected results: The editor of the code appears. There are attached document. There are children list.
 Passed: [X]
 
 

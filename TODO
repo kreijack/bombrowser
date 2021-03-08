@@ -1,30 +1,28 @@
 
-
+- handle the case where the bombrowser.ini file is missing
 - make an handler in db.py for showing a error dialog for incorrect SQL
 - refresh the properties
 - open some window by command line (bombrowser -openassy <code>/<date>)
-- check the "valid where used" function
+
 - add the concept of "prototype" bom/code
 - remake the tests
-- add rev/iteration to the ShowDate dialog
+
 - rename get_drawings_by_code_id -> get_drawings_by_code_rid
 - show every where rid
-- canonize "version" vs "ver" vs "revision"
+
 - BUG: investigating the reason why in the edit dialog, children table
   the first column lost the 'italic' after an insert row
 - add a DB.get_last_code_by_code_id function which is more clear
 - in edit code add open assy
 
+- advance search (in all fields)
+- normalize/stanrdadize the unit (now are a free text)
+- replace QMainWindow with BBMainWindow to better handle the windows list/closure
 
------
+- In the AssemblyWindow, track the data of the bom, both in the window title
+  and in the next Show Assembly
 
+- In where used 810010, the code 820003 don't have a parent in one case and
+  have a parent in another: why ?
 
-
-- create 'edit code' window
-- create 'new code' window
-- create 'update parents' dialog
-- add support for develop bom
-- refactory database (v0.3 ?)
-	- create up to 10 (?) generic fields to items row and remove the
-	  current already specialized ones. The field name should be
-	  configured in the database 'props' tables
+- IN copy/revise window, add the Rev field
