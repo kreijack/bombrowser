@@ -338,7 +338,7 @@ class AssemblyWindow(QMainWindow):
         validWhereUsed.triggered.connect(self._show_valid_where_used)
 
         contextMenu.addSeparator()
-        reviseCode = contextMenu.addAction("Revise/copy code ...")
+        reviseCode = contextMenu.addAction("Copy/revise code ...")
         reviseCode.triggered.connect(self._revise_code)
         editCode = contextMenu.addAction("Edit code ...")
         editCode.triggered.connect(self._edit_code)
@@ -547,63 +547,45 @@ class AssemblyWindow(QMainWindow):
         self._grid_widget = scrollarea
         self._my_statusbar.showMessage("/".join(map(lambda x : self._data[x]["code"], path)))
 
+
 class WhereUsedWindow(AssemblyWindow):
     def __init__(self, parent):
         AssemblyWindow.__init__(self, parent, asm = False)
+
 
 class ValidWhereUsedWindow(AssemblyWindow):
     def __init__(self, parent):
         AssemblyWindow.__init__(self, parent, asm = False,
             valid_where_used = True)
 
-def where_used(code_id, winParent):
+
+def where_used(code_id, winParent, valid=False):
     if not code_id:
         QApplication.beep()
         return
 
     d = db.DB()
     QApplication.setOverrideCursor(Qt.WaitCursor)
-    data = d.get_where_used_from_id_code(code_id)
-    if len(data[1]) == 1:
+
+    (top, data) = d.get_where_used_from_id_code(code_id, valid)
+
+    if len(data) == 1:
         QApplication.restoreOverrideCursor()
         QApplication.beep()
         QMessageBox.critical(winParent, "BOMBrowser", "The item is not in an assembly")
         return
 
-    w = WhereUsedWindow(None)
+    if valid:
+        w = ValidWhereUsedWindow(None)
+    else:
+        w = WhereUsedWindow(None)
+
     w.show()
-    w.populate(*data)
+    w.populate(top, data)
     QApplication.restoreOverrideCursor()
 
 def valid_where_used(code_id, winParent):
-    if not code_id:
-        QApplication.beep()
-        return
-
-    d = db.DB()
-    QApplication.setOverrideCursor(Qt.WaitCursor)
-    data = d.get_where_used_from_id_code(code_id)
-
-    if len(data[1]) <= 1:
-        QApplication.restoreOverrideCursor()
-        QApplication.beep()
-        QMessageBox.critical(winParent, "BOMBrowser", "The item is not in an assembly")
-        return
-
-    data2 = dict()
-    for k in data[1].keys():
-        data2[k] = data[1][k]
-        deps = dict()
-        for idx in data2[k]["deps"]:
-            it = data[1][idx]
-            if it["date_to_days"] == db.end_of_the_world:
-                deps[idx] = data2[k]["deps"][idx]
-        data2[k]["deps"] = deps
-
-    w = ValidWhereUsedWindow(None)
-    w.show()
-    w.populate(data[0], data2)
-    QApplication.restoreOverrideCursor()
+    return where_used(code_id, winParent, valid=True)
 
 def show_assembly(code_id, winParent):
     if not code_id:

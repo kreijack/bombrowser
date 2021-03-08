@@ -248,7 +248,7 @@ class CodesWindow(QMainWindow):
         validWhereUsed = contextMenu.addAction("Valid where used ...")
         validWhereUsed.triggered.connect(self._show_valid_where_used)
         contextMenu.addSeparator()
-        reviseCode = contextMenu.addAction("Revise/copy code ...")
+        reviseCode = contextMenu.addAction("Copy/revise code ...")
         reviseCode.triggered.connect(self._revise_code)
         editCode = contextMenu.addAction("Edit code ...")
         editCode.triggered.connect(self._edit_code)
