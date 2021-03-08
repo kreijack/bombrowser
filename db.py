@@ -1057,7 +1057,7 @@ class DBSQLServer:
 
         return dates
 
-    def copy_code(self, new_code, rid, descr, copy_props=True, copy_docs=True):
+    def copy_code(self, new_code, rid, descr, rev, copy_props=True, copy_docs=True):
         c = self._conn.cursor()
         self._sqlex(c, "BEGIN")
         try:
@@ -1112,7 +1112,7 @@ class DBSQLServer:
                     ?,
                     ?,
                     '',
-                    ver,
+                    ?,
                     0,
                     note,
                     ? ,
@@ -1120,7 +1120,7 @@ class DBSQLServer:
                     gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
                 FROM item_revisions
                 WHERE id = ?
-            """, (new_code_id, new_date_from, new_date_from_days, descr, rid))
+            """, (new_code_id, new_date_from, new_date_from_days, rev, descr, rid))
 
             self._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
             new_rid = c.fetchone()[0]
@@ -1135,7 +1135,7 @@ class DBSQLServer:
 
         return new_rid
 
-    def revise_code(self, rid, descr, copy_props=True, copy_docs=True,
+    def revise_code(self, rid, descr, rev, copy_props=True, copy_docs=True,
                     new_date_from_days=None):
         c = self._conn.cursor()
         self._sqlex(c, "BEGIN")
@@ -1176,7 +1176,7 @@ class DBSQLServer:
                     ?,
                     ?,
                     '',
-                    ver,
+                    ?,
                     ?,
                     note,
                     ? ,
@@ -1184,7 +1184,7 @@ class DBSQLServer:
                     gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
                 FROM item_revisions
                 WHERE id = ?
-            """, (new_date_from, new_date_from_days, old_iter + 1, descr, rid))
+            """, (new_date_from, new_date_from_days, rev, old_iter + 1, descr, rid))
 
             self._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
             new_rid = c.fetchone()[0]

@@ -86,11 +86,17 @@ class CopyCode(QDialog):
         self._l_new_iter = QLabel()
         grid.addWidget(self._l_new_iter, 11, 2)
 
-        grid.addWidget(QLabel("Description:"), 12, 0)
+        grid.addWidget(QLabel("Rev:"), 12, 0)
+        self._l_old_rev = QLabel(self._old_ver)
+        grid.addWidget(self._l_old_rev, 12, 1)
+        self._l_new_rev = QLineEdit(self._old_ver)
+        grid.addWidget(self._l_new_rev, 12, 2)
+
+        grid.addWidget(QLabel("Description:"), 13, 0)
         self._l_old_descr = QLabel(self._old_descr)
-        grid.addWidget(self._l_old_descr, 12, 1)
+        grid.addWidget(self._l_old_descr, 13, 1)
         self._l_new_descr = QLineEdit(self._old_descr)
-        grid.addWidget(self._l_new_descr, 12, 2)
+        grid.addWidget(self._l_new_descr, 13, 2)
 
         self._cb_copy_rev = QCheckBox("Copy")
         self._cb_copy_rev.stateChanged.connect(self._change_copy_btn)
@@ -132,13 +138,15 @@ class CopyCode(QDialog):
         try:
             if self._cb_copy_rev.checkState() == Qt.CheckState.Checked:
                 new_rid = d.copy_code(self._l_new_code.text(),
-                        self._rid,
-                        self._l_new_descr.text(),
-                        self._cb_copy_props.checkState() == Qt.CheckState.Checked,
-                        self._cb_copy_docs.checkState() == Qt.CheckState.Checked)
+                    self._rid,
+                    self._l_new_descr.text(),
+                    self._l_new_rev.text(),
+                    self._cb_copy_props.checkState() == Qt.CheckState.Checked,
+                    self._cb_copy_docs.checkState() == Qt.CheckState.Checked)
             else:
                 new_rid = d.revise_code(self._rid,
                     self._l_new_descr.text(),
+                    self._l_new_rev.text(),
                     self._cb_copy_props.checkState() == Qt.CheckState.Checked,
                     self._cb_copy_docs.checkState() == Qt.CheckState.Checked)
 
@@ -177,10 +185,33 @@ class CopyCode(QDialog):
         if self._cb_copy_rev.checkState() == Qt.CheckState.Checked:
             self._l_new_code.setReadOnly(False)
             self._l_new_iter.setText("0")
+            self._l_new_rev.setText("0")
         else:
             self._l_new_code.setText(self._l_old_code.text())
             self._l_new_iter.setText("%d"%(self._last_iter+1))
             self._l_new_code.setReadOnly(True)
+            new_rev = self._l_old_rev.text()
+            try:
+                if new_rev == '':
+                    new_rev = '0'
+                else:
+                    lastchar = new_rev[-1]
+                    if new_rev == '0':
+                        new_rev = 'A'
+                    elif lastchar >= '0' and lastchar <= '9':
+                        try:
+                            new_rev = str(int(new_rev)+1)
+                        except:
+                            new_rev = new_rev +"_bis"
+                    elif lastchar >= 'A' and lastchar <= 'Y':
+                        new_rev = new_rev[:-1]+chr(ord(lastchar)+1)
+                    else:
+                        new_rev = new_rev +"_bis"
+            except:
+                raise
+                new_rev = new_rev +"_bis"
+
+            self._l_new_rev.setText(new_rev)
 
     def shouldStartEditor(self):
         return self._cb_start_edit.checkState() == Qt.CheckState.Checked
