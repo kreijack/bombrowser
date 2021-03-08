@@ -664,9 +664,9 @@ class EditWindow(QMainWindow):
     def _children_insert_before(self, offset=0):
         idxs = self._children_table.selectedIndexes()
         if len(idxs) < 1:
-            return
-
-        row = idxs[0].row() + offset
+            row = 0
+        else:
+            row = idxs[0].row() + offset
         if row < 0:
             row = 0
         elif row >= self._children_table.rowCount():
