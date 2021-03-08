@@ -689,9 +689,27 @@ Passed: [X]
 
 ## 4 - BOMBrowser - Valid where used
 
+### Test 4.1
+
+Test description: in the "Codes list" window search for the code 820017. Then select  the right click menu command "Valid where used"
+
+Expected result: the "valid where used" window is showed
+
+Passed: [X]
+
 ## 5 - BOMBrowser - Where used
 
+### Test 5.1
+
+Test description: in the "Codes list" window search for the code 820017. Then select  the right click menu command "Where used"
+
+Expected result: the where used window is showed
+
+Passed: [X]
+
 ## 6 - BOMBrowser - Select date
+
+This test is covered by the ones of the Assembly window
 
 ## 7 - BOMBrowser - Diff window
 
@@ -783,13 +801,13 @@ Passed: [X]
 #### Test 8.6.3 - Cancel (3)
 Test description:
 - press Cancel button
-- an exit confirmation dialog will appears; press yes
+- an exit confirmation dialog will appears; press no
 
 Expected results: the dialog is closed; the "Revise/copy windows" is opened
 
 Passed: [X]
 
-#### Test 8.6.4 - Revise/copy code window
+#### Test 8.6.4 - *Revise*/copy code window
 Check the editability of the following fields: New/Code, New/Iter, New/Description, New/Rev, New/Date from
 
 Expected results: only New/Description, New/date from and New/rev are editable
@@ -805,7 +823,7 @@ Passed: [X]
 
 #### Test 8.6.6 - Revise/copy code window
 Test description:
-- click on the copy checkbox
+- check the copy checkbox
 - check the editability of the following fields: New/Code, New/Iter, New/Description, New/Rev, New/Date from
 
 Expected results: the field New/Code, New/Description, New/Date from and New/Rev are editable
@@ -814,7 +832,7 @@ Passed: [X]
 
 #### Test 8.6.7 - Revise/copy code window
 Test description:
-- click on the copy checkbox
+- check the copy checkbox
 - check the field New/Iter
 
 Expected results: The field New/Iter is 0
@@ -877,22 +895,9 @@ Expected results:
 
 Passed: [X]
 
-#### Test 8.6.13 - Confirmation dialog / success (3)
-Test description:
-- click on the copy checkbox
-- change the new/code in 82004B"
-- press "Copy/Revise button"
-- A confirmation dialog appears; press yes
-
-Expected results:
-- The editor of the new code appears.
-- There are attached document and a children list
-
-Passed: [X]
-
 #### Test 8.6.14 - Confirmation dialog / success (3)
 Test description:
-- click on the copy checkbox
+- check the copy checkbox
 - change the new/code in 82004C"
 - unmark the "Copy document" checkbox
 - press "Copy/Revise button"
@@ -921,7 +926,7 @@ Passed: [X]
 Test description:
 - click on the copy checkbox
 - change the new/code in 82004C"
-- unmark the "Copy document" checkbox
+- check the "Copy document" checkbox
 - press "Copy/Revise button"
 - A confirmation dialog appears; press yes
 
@@ -937,7 +942,6 @@ Passed: [X]
 Test description:
 - enter an incorrect date (eg. 'xxxx')
 - press "Copy/Revise button"
-- A confirmation dialog appears; press yes
 
 Expected results:
 - An error dialog appears saying that the date format is incorrect
@@ -960,6 +964,9 @@ Passed: [X]
 ### Test 8.7 - revise a code
 Test description:
 - revise the code "820041" from the code list window
+- adjust the "new/from date" field to "old/from date" + 1 (or more, in any case a value different from the default one)
+- set the new/rev field to the default one + "bis_" as prefix
+- set the "new/description" field to the default one + "bis_" as prefix
 - press "Copy/Revise button"
 - A confirmation dialog appears; press yes
 
@@ -967,26 +974,540 @@ Expected results:
 - The editor of the code appears.
 - There are attached document.
 - There are children list.
+- The "From date" in the editor window is equal to the one of the previous dialog
+- The "Description" in the editor window is equal to the one of the previous dialog
+- The "Rev" in the editor window is equal to the one of the previous dialog
 
 Passed: [X]
 
-#### Test 8.6.10 - Copy code / date error
+### Test 8.8 - copy a code
 Test description:
-- enter an incorrect date (eg. 'xxxx')
+- revise the code "820041" from the code list window
+- check the "Copy" checkbox
+- set the "new/code" field to a new one (i.e. it must no exist)
+- adjust the "new/from date" field to "old/from date" + 1 (or more, in any case a value different from the default one)
+- set the new/rev field to the default one + "bis_" as prefix
+- set the "new/description" field to the default one + "bis_" as prefix
 - press "Copy/Revise button"
 - A confirmation dialog appears; press yes
 
 Expected results:
-- An error dialog appears saying that the date format is incorrect
-- pressing OK, the Copy / Revise window still exists
+- The editor of the code appears.
+- There are attached document.
+- There are children list.
+- The "From date" in the editor window is equal to the one of the previous dialog
+- The "Description" in the editor window is equal to the one of the previous dialog
+- The "Rev" in the editor window is equal to the one of the previous dialog
 
 Passed: [X]
 
 
+## Test set 9 - BomBrowser - Edit code
 
-## 9 - BomBrowser - Edit code
+Prepratory steps:
+- insert code 820001 in the "BOMBrowser codes list" window, then press search
+- press the right mouse button on the first entry and select "Edit code..." command
+- The Edit code windows appears
+
+### Test 9.1 - Edit code / Rev field
+
+Test description:
+- change the "rev" field prefixing it with "bis_"
+- press "save..." button
+- press "ok"
+- press "close"
+- reopen the edit window on the same code as described in the "preparatory steps"
+
+Expected result: the "rev" field is like the one changed
+
+Passed: [X]
+
+
+### Test 9.2 - Edit code / Default unit field
+
+Test description:
+- change the "Default unit" field prefixing it with "bis_"
+- press "save..." button
+- press "ok"
+- press "close"
+- reopen the edit window on the same code as described in the "preparatory steps"
+
+Expected result: the "Default unit" field is like the one changed
+
+Passed: [X]
+
+### Test 9.3 - Edit code / Description field
+
+Test description:
+- change the "Description" field prefixing it with "bis_"
+- press "save..." button
+- press "ok"
+- press "close"
+- reopen the edit window on the same code as described in the "preparatory steps"
+
+Expected result: the "Description" field is like the one changed
+
+Passed: [X]
+
+### Test 9.4 - Edit code / Generic properties field
+
+Test description:
+- repeat the test above for all the "Generic properties" fields
+
+Expected result: the "genric property" field is like the one changed
+
+Passed: [X]
+
+### Test 9.5 - Edit code / Drawing list - add drawing
+
+Test description:
+- click with the RMB on the drawing list panel
+- execute the command "add drawing"
+- press "save..." button
+- press "ok"
+- press "close"
+- reopen the edit window on the same code as described in the "preparatory steps"
+
+Expected result: the added drawing is still present
+
+Passed: [X]
+
+### Test 9.6 - Edit code / Drawing list - del drawing
+
+Test description:
+- click with the RMB on the drawing list panel
+- execute the command "delete drawing" on a drawing
+- press "save..." button
+- press "ok"
+- press "close"
+- reopen the edit window on the same code as described in the "preparatory steps"
+
+Expected result: the removed drawing is not present
+
+Passed: [X]
+
+### Test 9.7 - Edit code / Drawing list - view drawing
+
+Test description:
+- click with the RMB on the drawing list panel
+- execute the command "view drawing" on a drawing
+
+Expected result: the selected drawing is showed
+
+Passed: [X]
+
+### Test 9.8 - Edit code / Children panel - del a child
+
+Test description:
+- click with the RMB on the children list panel
+- execute the command "delete row" on a line
+- press "save..." button
+- press "ok"
+- press "close"
+- reopen the edit window on the same code as described in the "preparatory steps"
+
+Expected result: the removed item is not present
+
+Passed: [X]
+
+### Test 9.9 - Edit code / Children panel - add a child
+
+Test description:
+- click with the RMB on the children list panel
+- execute the command "insert row after" on a line
+- in the new line insert an (existant) code in the "code" column
+- the field "code-id" and "description" will autocomplete
+- press "save..." button
+- press "ok"
+- press "close"
+- reopen the edit window on the same code as described in the "preparatory steps"
+
+Expected result: the added item is present
+
+Passed: [X]
+
+### Test 9.10 - Edit code / Children panel - add a child
+
+Test description:
+- click with the RMB on the children list panel
+- execute the command "insert row before" on a line
+- in the new line insert an (existant) code in the "code" column
+- the field "code-id" and "description" will autocomplete
+- press "save..." button
+- press "ok"
+- press "close"
+- reopen the edit window on the same code as described in the "preparatory steps"
+
+Expected result: the added item is present
+
+Passed: [X]
+
+### Test 9.11 - Edit code / Children panel - edit a field - non existant code
+
+Test description:
+- in the children panel, try to change a code in a row with a non existant code (like 'z')
+
+Expected result: the cell changed is yellow
+
+Passed: [X]
+
+### Test 9.12 - Edit code / Children panel - edit a field  - non existant code
+
+Test description:
+- in the children panel, try to change a code in a row with a non existant code (like 'z')
+- press "save" button
+
+Expected result: an error dialog is showed, saying that there is an error in the code
+
+Passed: [X]
+
+### Test 9.13 - Edit code / Children panel - edit a field - duplicate code
+
+Test description:
+- in the children panel, try to change a code in a row with a already existant code (like the previous one or the next one)
+- press "save" button
+
+Expected result: an error dialog is showed, saying that there is a duplicate code
+
+Passed: [X]
+
+### Test 9.14 - Edit code / Children panel - edit a field - wrong qty
+
+Test description:
+- in the children panel, try to change a qty in a row with a non number value
+
+Expected result: the cell become yellow
+
+Passed: [X]
+
+### Test 9.15 - Edit code / Children panel - edit a field - wrong qty
+
+Test description:
+- in the children panel, try to change a qty in a row with a non number value
+- press "save"
+
+Expected result: an error dialog appears saying that the value is incorrect
+
+Passed: [X]
+
+### Test 9.16 - Edit code / Children panel - edit a field - wrong each
+
+Test description:
+- in the children panel, try to change a each in a row with a non number value
+
+Expected result: the cell become yellow
+
+Passed: [X]
+
+### Test 9.17 - Edit code / Children panel - edit a field - wrong each
+
+Test description:
+- in the children panel, try to change a each in a row with a non number value
+- press "save"
+
+Expected result: an error dialog appears saying that the value is incorrect
+
+Passed: [X]
+
+### Test 9.18 - Edit code / Children panel - sorting
+
+Test description:
+- in the children panel, change the row sequence sort by code (click on the "code" column header)
+- take note of the "seq" column values
+- remove a row
+
+Expected result: the seq values are reordered on the basis of the last sort
+
+Passed: [X]
+
+### Test 9.19 - Edit code / Children panel - sorting
+
+Test description:
+- in the children panel, change the row sequence sort by code (click on the "code" column header)
+- take note of the "seq" column values
+- insert before a row
+
+Expected result: the seq values are reordered on the basis of the last sort
+
+Passed: [X]
+
+### Test 9.20 - Edit code / Children panel - sorting
+
+Test description:
+- in the children panel, change the row sequence sort by code (click on the "code" column header)
+- take note of the "seq" column values
+- insert after a row
+
+Expected result: the seq values are reordered on the basis of the last sort
+
+Passed: [X]
+
+### Test 9.21 - Edit code / File -> quit
+
+Test description:
+- select the menu File->quit
+
+Expected result: the edit window is closed
+
+Passed: [X]
+
+### Test 9.22 - Edit code / File -> exit
+
+Test description:
+- select the menu File->exit
+
+Expected result: a dialog is opened asking if you want to exit from application
+
+Passed: [X]
+
+### Test 9.23 - Edit code / File -> exit
+
+Test description:
+- select the menu File->exit
+- press no
+
+Expected result: the dialog is closed, the edit windows is showed
+
+Passed: [X]
+
+### Test 9.24 - Edit code / File -> exit
+
+Test description:
+- select the menu File->exit
+- press yes
+
+Expected result: the application is closed, no window is opened
+
+Passed: [X]
+
+### Test 9.25 - Edit code / CTRL-Q
+
+Test description:
+- Press CTRL-Q
+
+Expected result: the edit window is closed
+
+Passed: [X]
+
+## 9.26 - Edit code / CTRL-X
+
+Test description:
+- select the menu File->exit
+
+Expected result: a dialog is opened asking if you want to exit from application
+
+Passed: [X]
+
+### Test 9.27 - Edit code / Windows
+
+Test description:
+- select the menu Windows menu
+
+Expected result: the opened window are showed
+
+Passed: [X]
+
+### Test 9.28 - Edit code / Help->about
+
+Test description:
+- select the menu Help->about menu
+
+Expected result: the about dialog is showed
+
+Passed: [X]
+
+
+### Test 9.29 - Edit code / Children panel - search code
+
+Test description:
+- click with the RMB on the children list panel
+- execute the command "search code" on a line
+
+Expected result: The "BOMBrowser - Search code" dialog appears
+
+Passed: [X]
+
+### Test 9.30 - Edit code / Children panel - search code
+
+Test description:
+- click with the RMB on the children list panel
+- execute the command "search code" on a line
+- The "BOMBrowser - Search code" dialog appears
+- search for a code in the dialog (e.g 810001)
+- select the first result
+- press OK
+
+Expected result: the dialog is closed and the new code replaces the old one
+
+Passed: [X]
+
+### Test 9.31 - Edit code / Children panel - search code
+
+Test description:
+- click with the RMB on the children list panel
+- execute the command "search code" on a line
+- The "BOMBrowser - Search code" dialog appears
+- press Cancel
+
+Expected result: the dialog is closed
+
+Passed: [X]
+
 
 ## 10 - BomBrowser - Edit date
+
+Prepratory steps:
+- insert code 820017 (or any other code with more revisions) in the "BOMBrowser codes list" window, then press search
+- press the right mouse button on the first entry and select "Edit code..." command
+- The Edit code windows appears
+- Select the "..." button near the "to date" field
+- An edit dates dialog is showed
+
+### Test 10.1
+
+Test description: press the cancel button
+
+Expected result: the edit dates dialog is closed
+
+Passed: [X]
+
+### Test 10.2
+
+Test description: press the save button
+
+Expected result: a confirmation dialog is showed
+
+Passed: [X]
+
+### Test 10.3
+
+Test description:
+- press the save button
+- a confirmation dialog is showed; press ok
+
+Expected result: the edit dates dialog is closed
+
+Passed: [X]
+
+### Test 10.4
+
+Test description:
+- change the "date from" of the last row with a valid one (but lower than the row above)
+- press save
+- reopen the edit dates dialog
+
+Expected result: the new date is showed in the last row
+
+Passed: [X]
+
+### Test 10.5
+
+Test description:
+- change the "date from" of the first row with a valid one (but higher than the row below)
+
+Expected result: the date in the row below and column "To date" is changed accordling (a day before)
+
+Passed: [X]
+
+### Test 10.6
+
+Test description:
+- change the "date from" of the first row with a not valid one (i.e. 'z')
+
+Expected result: the cell become yellow
+
+Passed: [X]
+
+### Test 10.7
+
+Test description:
+- change the "date from" of the first row with a not valid one (i.e. 'z')
+- the cell become yellow; press save
+
+Expected result: an error dialog is showed
+
+Passed: [X]
+
+### Test 10.8
+
+Test description:
+- change the "date from" of the first row with a not valid one (i.e. 'z')
+- the cell become yellow; press cancel
+- the edit dates dialog is closed, reopen it
+
+Expected result: the old date appear
+
+Passed: [X]
+
+### Test 10.9
+
+Test description:
+- change the "date from" of the first row with a not valid one (i.e. 2001-02-30)
+
+Expected result: the cell become yellow
+
+Passed: [X]
+
+### Test 10.10
+
+Test description:
+- change the "date from" of the first row with a a date before the row below
+
+Expected result: the cell become yellow
+
+Passed: [X]
+
+### Test 10.11
+
+Test description: check that all fields are read only with the exception of
+- the column From date
+- the Cell of the first row and column "To date"
+
+Expected result: only the cells listed above are read write
+
+Passed: [X]
+
+### Test 10.12
+
+Test description:
+- change the value of the cell of the first row and column "To date" with an
+  invalid one (i.e. 'z')
+
+Expected result: the cell become yellow
+
+Passed: [X]
+
+### Test 10.13
+
+Test description:
+- change the value of the cell of the first row and column "To date" with an
+  invalid one (i.e. 'z')
+- the cell become yellow, press save
+
+Expected result: an error dialog appear
+
+Passed: [X]
+
+### Test 10.14
+
+Test description:
+- change the value of the cell of the first row and column "To date" with an
+  date before of the left cell
+
+Expected result: the cell become yellow
+
+Passed: [X]
+
+### Test 10.15
+
+Test description:
+- change the value of the cell of the first row and column "To date" with a valid one
+- press the save button
+- reopen the Edit dates" dialog
+
+Expected result: the new date appears
+
+Passed: [X]
 
 
 # RESULTS:
