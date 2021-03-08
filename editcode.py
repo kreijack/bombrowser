@@ -279,7 +279,7 @@ class EditWindow(QMainWindow):
         g.addWidget(self._code, 11, 11)
         self._code.setDisabled(True)
 
-        g.addWidget(QLabel("Version"), 11, 12)
+        g.addWidget(QLabel("Rev"), 11, 12)
         self._ver = QLineEdit()
         g.addWidget(self._ver, 11, 13)
 
