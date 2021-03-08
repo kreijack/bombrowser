@@ -52,8 +52,11 @@ class BBMainWindow(QMainWindow):
 
 def about(w):
     QMessageBox.about(w, "BOMBrowser - about",
-        "BOMBrowser v0.4.0b2\n"+
-        "Copyright 2020,2021 G.Baroncelli\n")
+        "BOMBrowser v0.4.0b3\n" +
+        "Copyright 2020,2021 G.Baroncelli\n" +
+        "\n"
+        "https://gitlab.com/kreijack/bombrowser"
+    )
 
 def clean_menu(m):
         as_ = list(m.actions())
