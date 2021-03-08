@@ -124,7 +124,7 @@ class DiffWindow(QMainWindow):
         fileMenu.addAction(closeAction)
         fileMenu.addAction(exitAction)
 
-        self._windowsMenu = mainMenu.addMenu("Window")
+        self._windowsMenu = mainMenu.addMenu("Windows")
         self._windowsMenu.aboutToShow.connect(self._build_windows_menu)
 
         self._build_windows_menu()

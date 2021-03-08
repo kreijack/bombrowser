@@ -204,7 +204,7 @@ class CodesWindow(QMainWindow):
         copyAction.triggered.connect(self._copy_info_action)
         editMenu.addAction(copyAction)
 
-        self._windowsMenu = mainMenu.addMenu("Window")
+        self._windowsMenu = mainMenu.addMenu("Windows")
         self._windowsMenu.aboutToShow.connect(self._build_windows_menu)
 
         self._build_windows_menu()
