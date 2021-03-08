@@ -92,11 +92,21 @@ class CopyCode(QDialog):
         self._l_new_rev = QLineEdit(self._old_ver)
         grid.addWidget(self._l_new_rev, 12, 2)
 
-        grid.addWidget(QLabel("Description:"), 13, 0)
+        grid.addWidget(QLabel("Date from:"), 13, 0)
+        self._l_old_date_from = QLabel(self._date_from)
+        grid.addWidget(self._l_old_date_from, 13, 1)
+        self._l_new_date_from = QLineEdit(
+            db.days_to_iso(db.now_to_days())
+        )
+        grid.addWidget(self._l_new_date_from, 13, 2)
+
+
+        grid.addWidget(QLabel("Old Description:"), 17, 0)
         self._l_old_descr = QLabel(self._old_descr)
-        grid.addWidget(self._l_old_descr, 13, 1)
+        grid.addWidget(self._l_old_descr, 17, 1, 1, 2)
+        grid.addWidget(QLabel("New Description:"), 18, 0)
         self._l_new_descr = QLineEdit(self._old_descr)
-        grid.addWidget(self._l_new_descr, 13, 2)
+        grid.addWidget(self._l_new_descr, 18, 1, 1, 2)
 
         self._cb_copy_rev = QCheckBox("Copy")
         self._cb_copy_rev.stateChanged.connect(self._change_copy_btn)
@@ -127,7 +137,37 @@ class CopyCode(QDialog):
 
         self._change_copy_btn()
 
+    def _check_values(self):
+        try:
+            newdate = db.iso_to_days(self._l_new_date_from.text())
+        except:
+            QMessageBox.critical(self,
+                "BOMBrowser - error",
+                "The new 'From date' field format is incorrect")
+            return False
+
+        if self._cb_copy_rev.checkState() == Qt.CheckState.Unchecked:
+            if newdate <= self._date_from_days:
+                QMessageBox.critical(self,
+                    "BOMBrowser - error",
+                    "The new 'From date' is earlier than the old one")
+                return False
+
+        if self._cb_copy_rev.checkState() == Qt.CheckState.Checked:
+            d = db.DB()
+            data = d.get_codes_by_code(self._l_new_code.text())
+            if not data is None or not len(data) == 0:
+                QMessageBox.critical(self,
+                    "BOMBrowser - error",
+                    "The new Code already exists")
+            return False
+
+        return True
+
     def _do(self):
+        if not self._check_values():
+            return
+
         reply = QMessageBox.question(self, "Copy/revise confirmation",
                                 "Do you want to copy/revise the code ?",
                                 QMessageBox.Yes, QMessageBox.No);
@@ -135,20 +175,24 @@ class CopyCode(QDialog):
             return
 
         d = db.DB()
+
         try:
+            newdate = db.iso_to_days(self._l_new_date_from.text())
             if self._cb_copy_rev.checkState() == Qt.CheckState.Checked:
                 new_rid = d.copy_code(self._l_new_code.text(),
                     self._rid,
                     self._l_new_descr.text(),
                     self._l_new_rev.text(),
                     self._cb_copy_props.checkState() == Qt.CheckState.Checked,
-                    self._cb_copy_docs.checkState() == Qt.CheckState.Checked)
+                    self._cb_copy_docs.checkState() == Qt.CheckState.Checked,
+                    new_date_from_days=newdate)
             else:
                 new_rid = d.revise_code(self._rid,
                     self._l_new_descr.text(),
                     self._l_new_rev.text(),
                     self._cb_copy_props.checkState() == Qt.CheckState.Checked,
-                    self._cb_copy_docs.checkState() == Qt.CheckState.Checked)
+                    self._cb_copy_docs.checkState() == Qt.CheckState.Checked,
+                    new_date_from_days=newdate)
 
             self._new_code = self._l_new_code.text()
             self._new_rid = new_rid

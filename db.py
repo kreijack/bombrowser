@@ -1057,7 +1057,8 @@ class DBSQLServer:
 
         return dates
 
-    def copy_code(self, new_code, rid, descr, rev, copy_props=True, copy_docs=True):
+    def copy_code(self, new_code, rid, descr, rev, copy_props=True,
+                  copy_docs=True, new_date_from_days=None):
         c = self._conn.cursor()
         self._sqlex(c, "BEGIN")
         try:
@@ -1092,7 +1093,8 @@ class DBSQLServer:
             print(new_date_from, new_date_from_days, descr, rid)
             """
 
-            new_date_from_days = now_to_days()
+            if new_date_from_days is None:
+                new_date_from_days = now_to_days()
             new_date_from = days_to_iso(new_date_from_days)
 
             self._sqlex(c, """
