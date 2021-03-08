@@ -96,8 +96,7 @@ class CodeWidget(QWidget):
                 (icode, idescr, idate_from, idate_from_days, idate_to,
                  idate_to_days, rid) = data2[:7]
 
-                self._list.addItem("%s - %s (%s .. %s)"%(
-                    icode, idescr, idate_from, idate_to))
+                self._list.addItem("%s .. %s"%(idate_from, idate_to))
 
             self._grid.addWidget(self._list, 0, 1)
             self._date_from = self._dates[0][2]
