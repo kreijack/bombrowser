@@ -760,7 +760,7 @@ class DBSQLServer:
 
     def _get_parents(self, c, id_code, date_from_days, date_to_days):
         self._sqlex(c, """
-            SELECT a.unit, c.code, r.default_unit, a.qty, a.each, r.date_from, r.date_to,
+            SELECT a.unit, c.code, r.default_unit, a.qty, a.each,
                     r.iter, r.code_id, r.date_from, r.date_to, r.date_from_days,
                     r.date_to_days
             FROM assemblies AS a
@@ -769,11 +769,35 @@ class DBSQLServer:
             LEFT JOIN items AS c
                 ON r.code_id = c.id
 
-            WHERE child_id = ?
-              AND r.date_from_days >= ?
-              AND r.date_to_days <= ?
+            WHERE a.child_id = ?
+              AND NOT (
+                   r.date_from_days > ?
+                OR r.date_to_days < ?
+              )
             ORDER BY c.code, r.date_from_days DESC
-            """, (id_code, date_from_days, date_to_days))
+            """, (id_code, date_to_days, date_from_days))
+
+        res = c.fetchall()
+        if not res:
+            return None
+        else:
+            return res
+
+    def _get_valid_parents(self, c, id_code):
+        self._sqlex(c, """
+            SELECT a.unit, c.code, r.default_unit, a.qty, a.each,
+                    r.iter, r.code_id, r.date_from, r.date_to, r.date_from_days,
+                    r.date_to_days
+            FROM assemblies AS a
+            LEFT JOIN item_revisions AS r
+                ON a.revision_id = r.id
+            LEFT JOIN items AS c
+                ON r.code_id = c.id
+
+            WHERE a.child_id = ?
+              AND r.date_to_days = ?
+            ORDER BY c.code, r.date_from_days DESC
+            """, (id_code, end_of_the_world))
 
         res = c.fetchall()
         if not res:
@@ -824,7 +848,8 @@ class DBSQLServer:
             data.pop(keys[i+1])
             keys.pop(i+1)
 
-    def get_where_used_from_id_code(self, id_code, xdate_from=0, xdate_to=end_of_the_world):
+    # TO BE REMOVED
+    def get_where_used_from_id_code_old(self, id_code, xdate_from=0, xdate_to=end_of_the_world):
         c = self._conn.cursor()
 
         self._sqlex(c, """
@@ -904,6 +929,72 @@ class DBSQLServer:
         #self._join_data(data)
 
         return ((code0, xdate_from0, xdate_to0), data)
+
+    def get_where_used_from_id_code(self, id_code, valid=False):
+        c = self._conn.cursor()
+
+        self._sqlex(c, """
+            SELECT code FROM items WHERE id=?
+        """, (id_code,))
+        code0 = c.fetchone()[0]
+
+        self._sqlex(c, """
+            SELECT MIN(date_from_days)
+            FROM item_revisions
+            WHERE code_id = ?
+        """, (id_code, ))
+        (xdate_from_days0, ) = c.fetchone()
+
+        self._sqlex(c, """
+            SELECT MAX(date_to_days)
+            FROM item_revisions
+            WHERE code_id = ?
+        """, (id_code,))
+        (xdate_to_days0, ) = c.fetchone()
+
+        todo = [(id_code, xdate_from_days0, xdate_to_days0 )]
+        data = dict()
+        done = set()
+
+        while len(todo):
+            (id_, xdate_from_days, xdate_to_days) = todo.pop()
+            done.add((id_, xdate_from_days))
+
+            d2 = self._get_code(c, id_, xdate_from_days)
+            d = d2["properties"]
+            d2.pop("properties")
+            d.update(d2)
+            d["deps"] = dict()
+
+            if valid:
+                parents = self._get_valid_parents(c, id_)
+            else:
+                parents = self._get_parents(c, id_, xdate_from_days0, xdate_to_days0)
+            if parents is None or len(parents) == 0:
+                data[(d["code"], xdate_from_days)] = d
+                continue
+
+            for (unit, cc, def_unit, qty, each, it,
+                    parent_id, date_from_, date_to_, date_from_days_,
+                    date_to_days_) in parents:
+                if unit is None:
+                   unit = def_unit
+                d["deps"][(cc, date_from_days_)] = {
+                    "code": cc,
+                    "unit": unit,
+                    "qty": qty,
+                    "each": each,
+                    "iter": it,
+                    "ref": "",
+                }
+
+                if not (parent_id, date_from_days_) in done:
+                    todo.append((parent_id, date_from_days_, date_to_days_))
+
+            data[(d["code"], xdate_from_days)] = d
+
+        top = (code0, xdate_from_days0)
+        return (top, data)
 
     def get_drawings_by_code_id(self, rev_id):
         c = self._conn.cursor()
