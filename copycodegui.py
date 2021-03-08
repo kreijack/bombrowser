@@ -211,9 +211,11 @@ def revise_copy_code(code_id, parent):
             return None
 
         if not w.shouldStartEditor():
+            QMessageBox.information(self, "BOMBrowser",
+                "Success: you created a new code/revision")
             return None
 
-        w2 = editcode.EditWindow(rid=2007)
+        w2 = editcode.EditWindow(w.getNewRId())
         w2.show()
 
         return w2
