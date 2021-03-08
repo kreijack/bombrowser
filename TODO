@@ -19,10 +19,21 @@
 - normalize/stanrdadize the unit (now are a free text)
 - replace QMainWindow with BBMainWindow to better handle the windows list/closure
 
-- In the AssemblyWindow, track the data of the bom, both in the window title
+- In the AssemblyWindow,
   and in the next Show Assembly
 
 - In where used 810010, the code 820003 don't have a parent in one case and
   have a parent in another: why ?
 
 - IN copy/revise window, add the Rev field
+
+- Implement an extern module to customize some function:
+  - code validator
+  - revise validator
+  - export format
+  - repo format (?)
+
+
+- Ensure that during revise the latest rev_id is not changed
+- Ensure that during dates update latest rev_id is not changed,
+  and the date are always the same
