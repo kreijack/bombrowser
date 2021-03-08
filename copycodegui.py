@@ -83,8 +83,7 @@ class CopyCode(QDialog):
         grid.addWidget(QLabel("Iter:"), 11, 0)
         self._l_old_revision = QLabel("%d"%(self._old_iter))
         grid.addWidget(self._l_old_revision, 11, 1)
-        self._l_new_iter = QLineEdit()
-        self._l_new_iter.setReadOnly(True)
+        self._l_new_iter = QLabel()
         grid.addWidget(self._l_new_iter, 11, 2)
 
         grid.addWidget(QLabel("Description:"), 12, 0)
@@ -211,7 +210,7 @@ def revise_copy_code(code_id, parent):
             return None
 
         if not w.shouldStartEditor():
-            QMessageBox.information(self, "BOMBrowser",
+            QMessageBox.information(parent, "BOMBrowser",
                 "Success: you created a new code/revision")
             return None
 
