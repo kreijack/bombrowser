@@ -156,11 +156,11 @@ class CopyCode(QDialog):
         if self._cb_copy_rev.checkState() == Qt.CheckState.Checked:
             d = db.DB()
             data = d.get_codes_by_code(self._l_new_code.text())
-            if not data is None or not len(data) == 0:
+            if not data is None and len(data) != 0:
                 QMessageBox.critical(self,
                     "BOMBrowser - error",
                     "The new Code already exists")
-            return False
+                return False
 
         return True
 
