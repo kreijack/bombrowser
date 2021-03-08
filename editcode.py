@@ -660,7 +660,7 @@ class EditWindow(QMainWindow):
         contextMenu.exec_(self._children_table.viewport().mapToGlobal(point))
         pass
 
-    def _children_insert_after(self, offset=0):
+    def _children_insert_before(self, offset=0):
         idxs = self._children_table.selectedIndexes()
         if len(idxs) < 1:
             return
@@ -678,10 +678,11 @@ class EditWindow(QMainWindow):
 
         for row in range(self._children_table.rowCount()):
             self._children_table.item(row, 0).setText("%03d"%(row+1))
+        self._children_table.sortByColumn(0,Qt.AscendingOrder)
         self._children_table.setSortingEnabled(True)
 
-    def _children_insert_before(self):
-        self._children_insert_after(+1)
+    def _children_insert_after(self):
+        self._children_insert_before(+1)
 
     def _children_delete(self):
         idxs = self._children_table.selectedIndexes()
@@ -694,6 +695,7 @@ class EditWindow(QMainWindow):
         self._children_table.removeRow(row)
         for row in range(self._children_table.rowCount()):
             self._children_table.item(row, 0).setText("%03d"%(row+1))
+        self._children_table.sortByColumn(0,Qt.AscendingOrder)
         self._children_table.setSortingEnabled(True)
 
     def _children_search_code(self):
