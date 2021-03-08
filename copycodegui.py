@@ -74,13 +74,13 @@ class CopyCode(QDialog):
         grid.addWidget(QLabel("Old"), 9, 1)
         grid.addWidget(QLabel("New"), 9, 2)
 
-        grid.addWidget(QLabel("code:"), 10, 0)
+        grid.addWidget(QLabel("Code:"), 10, 0)
         self._l_old_code = QLabel(self._old_code)
         grid.addWidget(self._l_old_code, 10, 1)
         self._l_new_code = QLineEdit(self._old_code)
         grid.addWidget(self._l_new_code, 10, 2)
 
-        grid.addWidget(QLabel("Rev:"), 11, 0)
+        grid.addWidget(QLabel("Iter:"), 11, 0)
         self._l_old_revision = QLabel("%d"%(self._old_iter))
         grid.addWidget(self._l_old_revision, 11, 1)
         self._l_new_iter = QLineEdit()
