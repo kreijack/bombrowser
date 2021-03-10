@@ -966,6 +966,8 @@ class DBSQLServer:
             for (unit, cc, def_unit, qty, each, it,
                     parent_id, date_from_, date_to_, date_from_days_,
                     date_to_days_) in parents:
+                if cc == code0:
+                    continue
                 if unit is None:
                    unit = def_unit
                 d["deps"][(cc, date_from_days_)] = {
