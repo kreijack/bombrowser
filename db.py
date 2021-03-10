@@ -958,7 +958,7 @@ class DBSQLServer:
             if valid:
                 parents = self._get_valid_parents(c, id_)
             else:
-                parents = self._get_parents(c, id_, xdate_from_days0, xdate_to_days0)
+                parents = self._get_parents(c, id_, xdate_from_days, xdate_to_days)
             if parents is None or len(parents) == 0:
                 data[(d["code"], xdate_from_days)] = d
                 continue
