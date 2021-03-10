@@ -56,7 +56,7 @@ class FindDialog(QDialog):
         b.clicked.connect(self._search_next)
         grid.addWidget(b, 1, 1)
 
-        b = QPushButton("Cancel")
+        b = QPushButton("Close")
         b.clicked.connect(self.close)
         grid.addWidget(b, 1, 2)
 
