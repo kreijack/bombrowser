@@ -62,7 +62,7 @@ class Exporter:
         items = [ item["gval%d"%(i+1)] for i in range(len(self._add_headers))]
 
         f.write("\t".join(map(str, [
-            str(self._seq), str(level), item["code"], '"'+"    "*level + item["code"]+'"',
+            str(self._seq), str(level), item["code"], '"'+"... "*level + item["code"]+'"',
             item["descr"], unit,
             str(qty), str(each),
             *items,
