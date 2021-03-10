@@ -41,7 +41,7 @@ import datetime
 import configparser
 import time
 import jdutil
-import pyodbc
+
 
 def increase_date(d, inc=+1):
     return (datetime.date.fromisoformat(d) +
@@ -64,53 +64,26 @@ gvals_count = 8
 class DBException(RuntimeError):
     pass
 
-class DBSQLServer:
+class _BaseServer:
 
     def __init__(self, path):
         self._open(path)
 
 
-        #print("table list=", list(self._get_tables_list()))
         if "database_props" in self._get_tables_list():
-        #try:
             c = self._conn.cursor()
             self._sqlex(c, """SELECT value FROM database_props WHERE "key"='ver'""")
             self._ver = c.fetchone()[0]
-
             assert(self._ver == "0.3")
 
-            #self._check_for_db_update(c)
-        #except:
-            #print("WARN: table database_props might not exist")
-            #print("ver=", self._ver)
         else:
             self._ver = "empty"
 
-    def _sqlex_(self, c, query, *args, **kwargs):
-        # TODO handle the exception
+    def _sqlex(self, c, query, *args, **kwargs):
         c.execute(query, *args, **kwargs)
 
-    def _sqlexm_(self, c, query, *args, **kwargs):
-        # TODO handle the exception
+    def _sqlexm(self, c, query, *args, **kwargs):
         c.executemany(query, *args, **kwargs)
-
-    def _sqlex(self, c, query, *args, **kwargs):
-        try:
-            DBSQLServer._sqlex_(self, c, query, *args, **kwargs)
-        except pyodbc.ProgrammingError as er:
-            errmsg = 'ODBC error: %s' % (' '.join(er.args)) + "\n"
-            errmsg += "ODBC query:\n"
-            errmsg += "-"*30+"\n"
-            errmsg += query + "\n"
-            errmsg += "-"*30+"\n"
-            errmsg += "Exception class is: " + str(er.__class__) + "\n"
-            errmsg += 'ODBC traceback: \n'
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
-
-            print(errmsg)
-
-            raise DBException(errmsg)
 
     def _commit(self, c):
         c.commit()
@@ -119,248 +92,17 @@ class DBSQLServer:
         c.rollback()
 
     def _begin(self, c):
-        pass
-
-    def _sqlexm(self, c, query, *args, **kwargs):
-        try:
-            DBSQLServer._sqlexm_(self, c, query, *args, **kwargs)
-        except pyodbc.ProgrammingError as er:
-            errmsg = 'ODBC error: %s' % (' '.join(er.args)) + "\n"
-            errmsg += "ODBC query:\n"
-            errmsg += "-"*30+"\n"
-            errmsg += query + "\n"
-            errmsg += "-"*30+"\n"
-            errmsg += "Exception class is: " + str(er.__class__) + "\n"
-            errmsg += 'ODBC traceback: \n'
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
-
-            print(errmsg)
-
-            raise DBException(errmsg)
-
+        c.begin()
 
     def _sql_translate(self, s):
-        def process(l):
-            if " RENAME TO " in l:
-                l = l.replace("ALTER TABLE ", "EXEC sp_rename '")
-                l = l.replace(" RENAME TO ", "', '")
-                l = l.replace(";", "';")
-
-            return l
-        s = '\n'.join([process(line) for line in s.split("\n")])
         return s
 
     def _open(self, connection_string):
-        self._conn = pyodbc.connect(connection_string)
+        raise DBException("Cannot implemented")
 
     def _get_tables_list(self):
         cursor = self._conn.cursor()
         return [row.table_name for row in cursor.tables()]
-
-    def _check_for_db_update(self, c):
-        #print("self._ver =", self._ver)
-        if self._ver == "0.1":
-            smts = """
-                -- ver 0.1 -> ver 0.2
-                ALTER TABLE assemblies
-                ADD COLUMN date_from_days  INTEGER DEFAULT 0;
-
-                ALTER TABLE assemblies
-                ADD COLUMN date_to_days  INTEGER DEFAULT 999999;
-
-                UPDATE assemblies SET date_from = SUBSTR(date_from,1, 10);
-
-                UPDATE assemblies SET date_to = SUBSTR(date_to,1, 10);
-
-                UPDATE assemblies SET
-                    date_from_days = CAST(
-                        (JULIANDAY(date_from) - JULIANDAY('2000-01-01')) AS
-                        INTEGER);
-
-                UPDATE assemblies SET
-                    date_to_days = CAST(
-                        (JULIANDAY(date_to) - JULIANDAY('2000-01-01')) AS
-                        INTEGER);
-
-                UPDATE assemblies
-                SET date_to_days = 999999
-                WHERE date_to_sec = 9999999999;
-
-                UPDATE database_props
-                SET value = '0.2'
-                WHERE key == 'ver';
-            """
-
-            for s in smts.split(";"):
-                self._sqlex(c, s)
-            self._conn.commit()
-            self._ver = "0.2"
-
-        if self._ver == "0.2":
-
-            smts = """
-                -- ver 0.2 -> ver 0.3
-                DROP INDEX IF EXISTS items.item_code_idx;
-                DROP INDEX IF EXISTS items.item_code_ver_idx;
-                DROP INDEX IF EXISTS items.item_code_ver_iter;
-                DROP INDEX IF EXISTS drawings.drawing_idx;
-                DROP INDEX IF EXISTS assemblies.assemblies_child_idx;
-                DROP INDEX IF EXISTS assemblies.assemblies_parent_idx;
-
-                ALTER TABLE assemblies RENAME TO old_assemblies;
-                ALTER TABLE item_properties RENAME TO old_item_properties;
-                ALTER TABLE items RENAME TO old_items;
-                ALTER TABLE drawings RENAME TO old_drawings;
-                ALTER TABLE database_props RENAME TO old_database_props;
-
-            """
-            smts = self._sql_translate(smts)
-            print("smts=",smts)
-            for s in smts.split(";"):
-                self._sqlex(c, s)
-
-            stms = self._get_db_v0_3()
-            for s in stms.split(";"):
-                if "CREATE INDEX" in s or "CREATE UNIQUE INDEX" in s:
-                    continue
-                self._sqlex(c, s)
-
-            stms = """
-                INSERT INTO items(id, code)
-                SELECT id, code FROM old_items;
-
-                INSERT INTO item_revisions(
-                    code_id,
-                    date_from, date_to, date_from_days, date_to_days,
-                    ver, iter,
-                    note,
-                    descr, default_unit,
-                    gval1, gval2, gval3, gval4,
-                    gval5, gval6
-                ) SELECT DISTINCT
-                    a.parent_id,
-                    a.date_from, a.date_to, a.date_from_days, a.date_to_days,
-                    i.ver, i.iter,
-                    '',
-                    i.descr, i.default_unit,
-                    i.for1cod, i.for1name, i.prod1cod, i.prod1name,
-                    i.prod2cod, i.prod2name
-                FROM old_assemblies AS a
-                LEFT JOIN old_items AS i ON a.parent_id = i.id;
-
-                INSERT INTO item_revisions(
-                    code_id,
-                    -- dates are get from default
-                    ver, iter,
-                    note,
-                    descr, default_unit,
-                    gval1, gval2, gval3, gval4,
-                    gval5, gval6
-                ) SELECT
-                    id,
-                    0, 0,
-                    '',
-                    descr, default_unit,
-                    for1cod, for1name, prod1cod, prod1name,
-                    prod2cod, prod2name
-                FROM old_items
-                WHERE NOT id IN (SELECT DISTINCT parent_id FROM old_assemblies);
-
-                INSERT INTO assemblies (
-                    unit,
-                    child_id,
-                    revision_id,
-                    qty,
-                    each,
-                    ref
-                ) SELECT
-                    a.unit,
-                    a.child_id,
-                    r.id,
-                    a.qty,
-                    a.each,
-                    a.ref
-                FROM old_assemblies AS a
-                LEFT JOIN item_revisions AS r
-                   ON r.code_id = a.parent_id AND
-                    r.date_from_days = a.date_from_days AND
-                    r.date_to_days = a.date_to_days;
-
-                INSERT INTO drawings (code, revision_id, filename, fullpath)
-                SELECT od.code, rev.id, od.filename, od.fullpath
-                FROM old_drawings AS od
-                LEFT JOIN (
-                    SELECT code_id, id, MAX(date_from_days)
-                    FROM item_revisions
-                    GROUP BY code_id
-                ) AS rev
-                    ON rev.code_id = od.item_id;
-
-                INSERT INTO item_properties (descr, value, revision_id)
-                SELECT oip.descr, oip.value, rev.id
-                FROM old_item_properties AS oip
-                LEFT JOIN (
-                    SELECT code_id, id, MAX(date_from_days)
-                    FROM item_revisions
-                    GROUP BY code_id
-                ) AS rev
-                    ON rev.code_id = oip.item_id;
-
-                UPDATE item_revisions
-                SET date_to=''
-                WHERE date_to='None';
-
-            """
-            for s in stms.split(";"):
-                self._sqlex(c, s)
-
-            self._sqlex(c, """
-                SELECT code_id, date_from_days, id
-                FROM item_revisions
-                ORDER BY code_id, date_from_days
-                """)
-            data = list(c.fetchall())
-            prev=''
-            cnt = 0
-            for (code_id, date_from_days, rid) in data:
-                if prev != code_id:
-                    cnt = 0
-                    prev = code_id
-                else:
-                    cnt += 1
-                    self._sqlex(c, "UPDATE item_revisions SET iter = ? WHERE id= ?",
-                        (cnt, rid))
-
-            stms = self._get_db_v0_3()
-            for s in stms.split(";"):
-                if not ("CREATE INDEX" in s or "CREATE UNIQUE INDEX" in s):
-                    continue
-                self._sqlex(c, s)
-
-
-            stms = """
-                DROP TABLE IF EXISTS old_assemblies;
-                DROP TABLE IF EXISTS old_item_properties;
-                DROP TABLE IF EXISTS old_drawings;
-                DROP TABLE IF EXISTS old_items;
-            """
-            for s in stms.split(";"):
-                self._sqlex(c, s)
-
-            self._sqlex(c, """
-                UPDATE database_props
-                SET value = '0.3'
-                WHERE key == 'ver'
-            """)
-            self._conn.commit()
-            self._ver = "0.3"
-
-        if self._ver == "0.3":
-            return
-
-        print("Unknown database version: abort")
-        sys.exit(100)
 
     def _get_db_v0_3(self):
         stms = """
@@ -616,7 +358,7 @@ class DBSQLServer:
                 ON r.code_id = r2.id AND r.iter = r2.iter
             LEFT JOIN items AS i
                 ON r.code_id = i.id
-            ORDER r.iter DESC
+            ORDER BY r.iter DESC
             """, (code,))
         res = c.fetchall()
         if not res:
@@ -1344,9 +1086,68 @@ import traceback
 _cfg = configparser.ConfigParser()
 _cfg.read_file(open("bombrowser.ini"))
 
-class DBSQLite(DBSQLServer):
+class DBSQLServer(_BaseServer):
     def __init__(self, path=None):
-        DBSQLServer.__init__(self, path)
+        _BaseServer.__init__(self, path)
+
+    def _begin(self, c):
+        pass
+
+    def _sqlex(self, c, query, *args, **kwargs):
+        try:
+            _BaseServer._sqlex(self, c, query, *args, **kwargs)
+        except sqlite3.Error as er:
+            errmsg = 'ODBC error: %s' % (' '.join(er.args)) + "\n"
+            errmsg += "ODBC query:\n"
+            errmsg += "-"*30+"\n"
+            errmsg += query + "\n"
+            errmsg += "-"*30+"\n"
+            errmsg += "Exception class is: " + str(er.__class__) + "\n"
+            errmsg += 'ODBC traceback: \n'
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+
+            print(errmsg)
+
+            raise DBException(errmsg)
+
+    def _sqlexm(self, c, query, *args, **kwargs):
+        try:
+            _BaseServer._sqlexm(self, c, query, *args, **kwargs)
+        except sqlite3.Error as er:
+            errmsg = 'ODBC error: %s' % (' '.join(er.args)) + "\n"
+            errmsg += "ODBC query:\n"
+            errmsg += "-"*30+"\n"
+            errmsg += query + "\n"
+            errmsg += "-"*30+"\n"
+            errmsg += "Exception class is: " + str(er.__class__) + "\n"
+            errmsg += 'ODBC traceback: \n'
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+
+            print(errmsg)
+
+            raise DBException(errmsg)
+
+    def _sql_translate(self, s):
+        def process(l):
+            if " RENAME TO " in l:
+                l = l.replace("ALTER TABLE ", "EXEC sp_rename '")
+                l = l.replace(" RENAME TO ", "', '")
+                l = l.replace(";", "';")
+
+            return l
+        s = '\n'.join([process(line) for line in s.split("\n")])
+        return s
+
+    def _open(self, connection_string):
+        import pyodbc
+        self._conn = pyodbc.connect(connection_string)
+
+
+class DBSQLite(_BaseServer):
+    def __init__(self, path=None):
+        _BaseServer.__init__(self, path)
 
     def _open(self, path):
         if path != "":
@@ -1365,10 +1166,9 @@ class DBSQLite(DBSQLServer):
     def _begin(self, c):
         c.execute("BEGIN")
 
-
     def _sqlex(self, c, query, *args, **kwargs):
         try:
-            DBSQLServer._sqlex_(self, c, query, *args, **kwargs)
+            _BaseServer._sqlex(self, c, query, *args, **kwargs)
         except sqlite3.Error as er:
             errmsg = 'SQLite error: %s' % (' '.join(er.args)) + "\n"
             errmsg += "SQLite query:\n"
@@ -1386,7 +1186,7 @@ class DBSQLite(DBSQLServer):
 
     def _sqlexm(self, c, query, *args, **kwargs):
         try:
-            DBSQLServer._sqlexm_(self, c, query, *args, **kwargs)
+            _BaseServer._sqlexm(self, c, query, *args, **kwargs)
         except sqlite3.Error as er:
             errmsg = 'SQLite error: %s' % (' '.join(er.args)) + "\n"
             errmsg += "SQLite query:\n"
