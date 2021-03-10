@@ -287,8 +287,13 @@ def insert_board(c):
         components_table = []
 
         #resistor
+        did = set()
         for i in range(rnd.get() % 120 + 5):
             cid = rnd.get() % (max_id - min_id) + min_id
+
+            if cid in did:
+                continue
+            did.add(cid)
 
             ts = datetime.date.fromisoformat(date0).toordinal()
 
@@ -382,9 +387,14 @@ def insert_mechanical_assemblies(c):
 
 
         #up to 127 sub assemblies
+        did =set()
         for i in range(ncomponents):
             cid = (rnd.get() %
                 (old_mech_max_id - boards_min_id) + boards_min_id)
+
+            if cid in did:
+                continue
+            did.add(cid)
 
             ts = datetime.date.fromisoformat(date0).toordinal()
 
@@ -526,16 +536,25 @@ def revise_code(c, old_rid):
         global date0
 
         c.execute("""
-            SELECT id, MAX(date_from_days), iter, ver
+            SELECT code_id, MAX(iter)
             FROM item_revisions
             WHERE code_id = (
                 SELECT code_id
                 FROM item_revisions
                 WHERE id = ?
             )
+            GROUP BY code_id
             """, (old_rid, ))
+        (code_id, old_iter) = c.fetchone()
 
-        (latest_rid, old_date_from_days, old_iter, rev) = c.fetchone()
+        c.execute("""
+            SELECT id, date_from_days, ver
+            FROM item_revisions
+            WHERE code_id = ?
+            AND iter = ?
+            """, (code_id, old_iter))
+
+        (latest_rid, old_date_from_days, rev) = c.fetchone()
 
         #print("Code, ver, iter=", code, ver, iter_)
         if rev == '0':
@@ -623,12 +642,19 @@ def make_changes(c):
         code_id = rnd.get() % (max_id - min_id + 1) + min_id
 
         # fetch the latest code revision
-        c.execute("""SELECT i.code, r.id, MAX(iter)
-                     FROM item_revisions AS r
-                     LEFT JOIN items AS i
-                         ON i.id = r.code_id
-                     WHERE r.code_id=?""", (code_id,))
-        (code, rev_id, iter_) = c.fetchone()
+        c.execute("""SELECT MAX(iter)
+                     FROM item_revisions
+                     WHERE code_id=?""", (code_id,))
+        (iter_,) = c.fetchone()
+        c.execute("""SELECT id
+                     FROM item_revisions
+                     WHERE code_id=?
+                       AND iter=?""", (code_id, iter_))
+        (rev_id,) = c.fetchone()
+        c.execute("""SELECT code
+                     FROM items
+                     WHERE id=?""", (code_id,))
+        (code,) = c.fetchone()
 
         print("%s/%s) Updating code '%s', rid=%d"%(cnt, 200, code, rev_id))
 
