@@ -4,8 +4,9 @@
 - refresh the properties
 - open some window by command line (bombrowser -openassy <code>/<date>)
 
-- add the concept of "prototype" bom/code
-- remake the tests
+- todiscuss: add the concept of "prototype" bom/code
+
+- remake the db tests
 
 - rename get_drawings_by_code_id -> get_drawings_by_code_rid
 - show every where rid
@@ -16,16 +17,10 @@
 - in edit code add open assy
 
 - advance search (in all fields)
-- normalize/stanrdadize the unit (now are a free text)
+- normalize/standardize the unit (now are a free text)
 - replace QMainWindow with BBMainWindow to better handle the windows list/closure
 
-- In the AssemblyWindow,
-  and in the next Show Assembly
-
-- In where used 810010, the code 820003 don't have a parent in one case and
-  have a parent in another: why ?
-
-- IN copy/revise window, add the Rev field
+- In the AssemblyWindow track the date and use it in the next Show Assembly
 
 - Implement an extern module to customize some function:
   - code validator
@@ -33,7 +28,14 @@
   - export format
   - repo format (?)
 
-
 - Ensure that during revise the latest rev_id is not changed
 - Ensure that during dates update latest rev_id is not changed,
   and the date are always the same
+
+- add a README
+
+- add a template for an export file
+
+- add move children rows in the edit dialogs
+
+- add refresh in asm
