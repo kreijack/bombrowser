@@ -740,7 +740,21 @@ def create_db():
 
     #conn = sqlite3.connect(dbname)
     conn = d._conn
-    c = conn.cursor()
+    cursor = d._conn.cursor()
+
+    class MyCursor:
+        def __init__(self, c, d):
+            self._cursor = c
+            self._db = d
+        def execute(self, query, *args):
+            q2=self._db._sql_translate(query)
+            return self._cursor.execute(q2, *args)
+        def fetchone(self):
+            return self._cursor.fetchone()
+        def fetchall(self):
+            return self._cursor.fetchall()
+
+    c = MyCursor(cursor, d)
 
     # 510xxx
     print("Insert resistor 510xxx")

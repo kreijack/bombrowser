@@ -191,7 +191,7 @@ class _BaseServer:
             CREATE INDEX assemblies_revision_idx ON assemblies(revision_id);
 
             CREATE TABLE database_props (
-                id          INTEGER NOT NULL IDENTITY PRIMARY  KEY,
+                id          INTEGER NOT NULL IDENTITY PRIMARY KEY,
                 "key"       VARCHAR(255),
                 value       VARCHAR(255)
             );
@@ -1218,7 +1218,7 @@ class DBSQLite(_BaseServer):
         self._sqlex(c, "SELECT name FROM sqlite_master WHERE type='table';")
         return [x[0] for x in c.fetchall()]
 
-import MySQLdb
+#import MySQLdb
 class DBMariaDB(_BaseServer):
 
     def __init__(self, server, port, db, username, pwd):
@@ -1298,6 +1298,83 @@ class DBMariaDB(_BaseServer):
         self._sqlex(c, "SELECT table_name FROM information_schema.tables")
         return [x[0] for x in c.fetchall()]
 
+class DBPG(_BaseServer):
+    import psycopg2
+    def __init__(self, path=None):
+        _BaseServer.__init__(self, path)
+
+    def _commit(self, c):
+        self._conn.commit()
+
+    def _rollback(self, c):
+        self._conn.rollback()
+
+    def _begin(self, c):
+        c.execute("BEGIN")
+
+    def _sqlex(self, c, query, *args, **kwargs):
+        query = self._sql_translate(query)
+        try:
+            _BaseServer._sqlex(self, c, query, *args, **kwargs)
+        except self.psycopg2.Error as e:
+            errmsg = "PGError: %s\n"%(e.pgerror)        # error number
+            errmsg = "PGCode: %s\n"%(e.pgcode)        # error number
+            errmsg += "-"*30+"\n"
+            errmsg += query + "\n"
+            errmsg += "-"*30+"\n"
+            errmsg += 'Traceback: \n'
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+
+            print(errmsg)
+
+            raise DBException(errmsg)
+
+    def _sqlexm(self, c, query, *args, **kwargs):
+        query = self._sql_translate(query)
+        try:
+            _BaseServer._sqlexm(self, c, query, *args, **kwargs)
+        except self.psycopg2.Error as e:
+            errmsg = "PGError: %s\n"%(e.pgerror)        # error number
+            errmsg = "PGCode: %s\n"%(e.pgcode)        # error number
+            errmsg += "-"*30+"\n"
+            errmsg += query + "\n"
+            errmsg += "-"*30+"\n"
+            errmsg += 'Traceback: \n'
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+
+            print(errmsg)
+
+            raise DBException(errmsg)
+
+
+    def _sql_translate(self, s):
+        def process(l):
+            if "?" in l:
+                l = l.replace("?", "%s")
+            if "INTEGER NOT NULL IDENTITY PRIMARY KEY" in l:
+                l = l.replace("INTEGER NOT NULL IDENTITY PRIMARY KEY",
+                    "SERIAL PRIMARY KEY")
+            return l
+        s = '\n'.join([process(line) for line in s.split("\n")])
+        return s
+
+    def _open(self, path):
+
+        self._conn = self.psycopg2.connect(path)
+
+    def _get_tables_list(self):
+        c = self._conn.cursor()
+        self._sqlex(c, """
+            SELECT tablename
+                FROM pg_catalog.pg_tables
+                WHERE schemaname != 'pg_catalog' AND
+                    schemaname != 'information_schema';
+            """)
+
+        return [x[0] for x in c.fetchall()]
+
 
 _globaDBInstance = None
 def DB(path=None):
@@ -1331,6 +1408,16 @@ def DB(path=None):
         }
         connection_string = "DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password}".format(**d)
         _globaDBInstance = DBSQLServer(connection_string)
+        return _globaDBInstance
+    elif dbtype == "postgresql":
+        d = {
+            "server": _cfg.get("POSTGRESQL", "server"),
+            "database": _cfg.get("POSTGRESQL", "database"),
+            "username": _cfg.get("POSTGRESQL", "username"),
+            "password": _cfg.get("POSTGRESQL", "password"),
+        }
+        connection_string = "host={server} dbname={database} user={username} password={password}".format(**d)
+        _globaDBInstance = DBPG(connection_string)
         return _globaDBInstance
     elif dbtype == "mariadb":
         _globaDBInstance = DBMariaDB(_cfg.get("MARIADB", "server"),

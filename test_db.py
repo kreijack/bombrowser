@@ -34,9 +34,24 @@ def _test_insert_items(c):
 _connection_string="SQLITE::memory:"
 
 def _create_db():
-    d = db.DB(_connection_string)
+    d = db.DB() #_connection_string)
     d.create_db()
-    return (d, d._conn.cursor())
+    cursor = d._conn.cursor()
+
+    class MyCursor:
+        def __init__(self, c, d):
+            self._cursor = c
+            self._db = d
+        def execute(self, query, *args):
+            q2=self._db._sql_translate(query)
+            return self._cursor.execute(q2, *args)
+        def fetchone(self):
+            return self._cursor.fetchone()
+        def fetchall(self):
+            return self._cursor.fetchall()
+
+    mc = MyCursor(cursor, d)
+    return (d, mc)
 
 def test_double_recreate_db():
     d, c = _create_db()
