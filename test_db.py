@@ -427,7 +427,7 @@ if __name__ == "__main__":
             d = {
                 "driver": cfg.get("SQLSERVER", "driver"),
                 "server": cfg.get("SQLSERVER", "server"),
-                "database": cfg.get("SQLSERVER", "database")+"_test",
+                "database": cfg.get("SQLSERVER", "database"),
                 "username": cfg.get("SQLSERVER", "username"),
                 "password": cfg.get("SQLSERVER", "password"),
             }
