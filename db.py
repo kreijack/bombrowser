@@ -616,6 +616,7 @@ class DBSQLServer:
                 ON r.code_id = r2.id AND r.iter = r2.iter
             LEFT JOIN items AS i
                 ON r.code_id = i.id
+            ORDER r.iter DESC
             """, (code,))
         res = c.fetchall()
         if not res:
@@ -639,6 +640,7 @@ class DBSQLServer:
                 ON r.code_id = r2.id AND r.iter = r2.iter
             LEFT JOIN items AS i
                 ON r.code_id = i.id
+            ORDER BY i.code, r.iter DESC
             """, (code,))
         res = c.fetchall()
         if not res:
@@ -662,6 +664,7 @@ class DBSQLServer:
                 ON r.code_id = r2.id AND r.iter = r2.iter
             LEFT JOIN items AS i
                 ON r.code_id = i.id
+            ORDER BY i.code, r.iter DESC
 
             """, (descr, ))
         res = c.fetchall()
@@ -686,6 +689,7 @@ class DBSQLServer:
                 ON r.code_id = r2.id AND r.iter = r2.iter
             LEFT JOIN items AS i
                 ON r.code_id = i.id
+            ORDER BY i.code, r.iter DESC
             """, (code, descr))
         res = c.fetchall()
         if not res:
@@ -760,12 +764,14 @@ class DBSQLServer:
         c = self._conn.cursor()
 
         self._sqlex(c, """SELECT i.code, r.date_from_days, r.date_to_days, r.id
-                     FROM item_revisions AS r
-                     LEFT JOIN items AS i
-                       ON i.id = r.code_id
-                     WHERE  r.code_id = ?
-                       AND  r.date_from_days <= ?
-                       AND   ? <= r.date_to_days """,
+                         FROM item_revisions AS r
+                         LEFT JOIN items AS i
+                           ON i.id = r.code_id
+                         WHERE  r.code_id = ?
+                           AND  r.date_from_days <= ?
+                           AND   ? <= r.date_to_days
+                         ORDER BY r.date_from_days DESC
+                     """,
                      (code_id0, date_from_days_ref, date_from_days_ref) )
 
         data2 = list(c.fetchall())
