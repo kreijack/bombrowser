@@ -41,6 +41,7 @@ import datetime
 import configparser
 import time
 import jdutil
+import pyodbc
 
 def increase_date(d, inc=+1):
     return (datetime.date.fromisoformat(d) +
@@ -76,26 +77,81 @@ class DBSQLServer:
             self._sqlex(c, """SELECT value FROM database_props WHERE "key"='ver'""")
             self._ver = c.fetchone()[0]
 
-            self._check_for_db_update(c)
+            assert(self._ver == "0.3")
+
+            #self._check_for_db_update(c)
         #except:
             #print("WARN: table database_props might not exist")
             #print("ver=", self._ver)
         else:
             self._ver = "empty"
 
-    def _sqlex(self, c, query, *args, **kwargs):
+    def _sqlex_(self, c, query, *args, **kwargs):
         # TODO handle the exception
         c.execute(query, *args, **kwargs)
 
-    def _sqlexm(self, c, query, *args, **kwargs):
+    def _sqlexm_(self, c, query, *args, **kwargs):
         # TODO handle the exception
         c.executemany(query, *args, **kwargs)
 
+    def _sqlex(self, c, query, *args, **kwargs):
+        try:
+            DBSQLServer._sqlex_(self, c, query, *args, **kwargs)
+        except pyodbc.ProgrammingError as er:
+            errmsg = 'ODBC error: %s' % (' '.join(er.args)) + "\n"
+            errmsg += "ODBC query:\n"
+            errmsg += "-"*30+"\n"
+            errmsg += query + "\n"
+            errmsg += "-"*30+"\n"
+            errmsg += "Exception class is: " + str(er.__class__) + "\n"
+            errmsg += 'ODBC traceback: \n'
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+
+            print(errmsg)
+
+            raise DBException(errmsg)
+
+    def _commit(self, c):
+        c.commit()
+
+    def _rollback(self, c):
+        c.rollback()
+
+    def _begin(self, c):
+        pass
+
+    def _sqlexm(self, c, query, *args, **kwargs):
+        try:
+            DBSQLServer._sqlexm_(self, c, query, *args, **kwargs)
+        except pyodbc.ProgrammingError as er:
+            errmsg = 'ODBC error: %s' % (' '.join(er.args)) + "\n"
+            errmsg += "ODBC query:\n"
+            errmsg += "-"*30+"\n"
+            errmsg += query + "\n"
+            errmsg += "-"*30+"\n"
+            errmsg += "Exception class is: " + str(er.__class__) + "\n"
+            errmsg += 'ODBC traceback: \n'
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+
+            print(errmsg)
+
+            raise DBException(errmsg)
+
+
     def _sql_translate(self, s):
+        def process(l):
+            if " RENAME TO " in l:
+                l = l.replace("ALTER TABLE ", "EXEC sp_rename '")
+                l = l.replace(" RENAME TO ", "', '")
+                l = l.replace(";", "';")
+
+            return l
+        s = '\n'.join([process(line) for line in s.split("\n")])
         return s
 
     def _open(self, connection_string):
-        import pyodbc
         self._conn = pyodbc.connect(connection_string)
 
     def _get_tables_list(self):
@@ -145,12 +201,12 @@ class DBSQLServer:
 
             smts = """
                 -- ver 0.2 -> ver 0.3
-                DROP INDEX IF EXISTS item_code_idx;
-                DROP INDEX IF EXISTS item_code_ver_idx;
-                DROP INDEX IF EXISTS item_code_ver_iter;
-                DROP INDEX IF EXISTS drawing_idx;
-                DROP INDEX IF EXISTS assemblies_child_idx;
-                DROP INDEX IF EXISTS assemblies_parent_idx;
+                DROP INDEX IF EXISTS items.item_code_idx;
+                DROP INDEX IF EXISTS items.item_code_ver_idx;
+                DROP INDEX IF EXISTS items.item_code_ver_iter;
+                DROP INDEX IF EXISTS drawings.drawing_idx;
+                DROP INDEX IF EXISTS assemblies.assemblies_child_idx;
+                DROP INDEX IF EXISTS assemblies.assemblies_parent_idx;
 
                 ALTER TABLE assemblies RENAME TO old_assemblies;
                 ALTER TABLE item_properties RENAME TO old_item_properties;
@@ -159,7 +215,8 @@ class DBSQLServer:
                 ALTER TABLE database_props RENAME TO old_database_props;
 
             """
-
+            smts = self._sql_translate(smts)
+            print("smts=",smts)
             for s in smts.split(";"):
                 self._sqlex(c, s)
 
@@ -310,19 +367,19 @@ class DBSQLServer:
             --
             -- ver 0.3
             --
-            DROP INDEX IF EXISTS item_code_idx;
-            DROP INDEX IF EXISTS item_code_ver_idx;
-            DROP INDEX IF EXISTS item_code_ver_iter;
-            DROP INDEX IF EXISTS drawing_idx;
-            DROP INDEX IF EXISTS assemblies_child_idx;
-            DROP INDEX IF EXISTS assemblies_parent_idx;
+            DROP INDEX IF EXISTS items.item_code_idx;
+            DROP INDEX IF EXISTS items.item_code_ver_idx;
+            DROP INDEX IF EXISTS items.item_code_ver_iter;
+            DROP INDEX IF EXISTS drawings.drawing_idx;
+            DROP INDEX IF EXISTS drawings.assemblies_child_idx;
+            DROP INDEX IF EXISTS drawings.assemblies_parent_idx;
 
             DROP TABLE IF EXISTS assemblies;
             DROP TABLE IF EXISTS item_properties;
             DROP TABLE IF EXISTS database_props;
             DROP TABLE IF EXISTS drawings;
-            DROP TABLE IF EXISTS items;
             DROP TABLE IF EXISTS item_revisions;
+            DROP TABLE IF EXISTS items;
 
             CREATE TABLE    items (
                 id          INTEGER NOT NULL IDENTITY PRIMARY KEY,
@@ -385,7 +442,7 @@ class DBSQLServer:
                 ref             VARCHAR(255) DEFAULT '',
 
                 FOREIGN KEY (child_id) REFERENCES items(id),
-                FOREIGN KEY (revision_id) REFERENCES item_revision(id)
+                FOREIGN KEY (revision_id) REFERENCES item_revisions(id)
             );
 
             CREATE INDEX assemblies_child_idx ON assemblies(child_id);
@@ -424,8 +481,8 @@ class DBSQLServer:
 
         self._conn.commit()
 
-    def get_code(self, id_code, date_from):
-        return self._get_code(self._conn.cursor(), id_code, date_from)
+    def get_code(self, id_code, date_from_days):
+        return self._get_code(self._conn.cursor(), id_code, date_from_days)
 
     def _get_code(self, c, id_code, date_from_days):
 
@@ -544,18 +601,22 @@ class DBSQLServer:
 
     def get_codes_by_code(self, code):
         c = self._conn.cursor()
+
         self._sqlex(c, """
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
-            FROM items AS i
-            LEFT JOIN  (
-                SELECT descr, ver, iter, default_unit, code_id, MAX(date_from_days)
-                FROM item_revisions
-                GROUP BY code_id
-            ) AS r
+            FROM (
+                    SELECT i.id, MAX(iter) AS iter
+                    FROM items AS i
+                    LEFT JOIN item_revisions AS r
+                        ON r.code_id = i.id
+                    WHERE i.code = ?
+                    GROUP BY i.id
+            ) AS r2
+            LEFT JOIN item_revisions AS r
+                ON r.code_id = r2.id AND r.iter = r2.iter
+            LEFT JOIN items AS i
                 ON r.code_id = i.id
-            WHERE code=?
-            ORDER BY id
-            """, (code, ))
+            """, (code,))
         res = c.fetchall()
         if not res:
             return None
@@ -566,16 +627,19 @@ class DBSQLServer:
         c = self._conn.cursor()
         self._sqlex(c, """
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
-            FROM items AS i
-            LEFT JOIN (
-                SELECT descr, ver, iter, default_unit, code_id, MAX(date_from_days)
-                FROM item_revisions
-                GROUP BY code_id
-            ) AS r
+            FROM (
+                    SELECT i.id, MAX(iter) AS iter
+                    FROM items AS i
+                    LEFT JOIN item_revisions AS r
+                        ON r.code_id = i.id
+                    WHERE i.code LIKE ?
+                    GROUP BY i.id
+            ) AS r2
+            LEFT JOIN item_revisions AS r
+                ON r.code_id = r2.id AND r.iter = r2.iter
+            LEFT JOIN items AS i
                 ON r.code_id = i.id
-            WHERE i.code LIKE ?
-            ORDER BY i.id
-            """, (code, ))
+            """, (code,))
         res = c.fetchall()
         if not res:
             return None
@@ -586,15 +650,19 @@ class DBSQLServer:
         c = self._conn.cursor()
         self._sqlex(c, """
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
-            FROM items AS i
-            LEFT JOIN  (
-                SELECT descr, ver, iter, default_unit, code_id, MAX(date_from_days)
-                FROM item_revisions
-                GROUP BY code_id
-            ) AS r
+            FROM (
+                    SELECT i.id, MAX(iter) AS iter
+                    FROM item_revisions AS r
+                    LEFT JOIN items AS i
+                        ON r.code_id = i.id
+                    WHERE r.descr LIKE ?
+                    GROUP BY i.id
+            ) AS r2
+            LEFT JOIN item_revisions AS r
+                ON r.code_id = r2.id AND r.iter = r2.iter
+            LEFT JOIN items AS i
                 ON r.code_id = i.id
-            WHERE r.descr LIKE ?
-            ORDER BY i.id
+
             """, (descr, ))
         res = c.fetchall()
         if not res:
@@ -606,16 +674,19 @@ class DBSQLServer:
         c = self._conn.cursor()
         self._sqlex(c, """
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
-            FROM items AS i
-            LEFT JOIN  (
-                SELECT descr, ver, iter, default_unit, code_id, MAX(date_from_days)
-                FROM item_revisions
-                GROUP BY code_id
-            ) AS r
+            FROM (
+                    SELECT i.id, MAX(iter) AS iter
+                    FROM item_revisions AS r
+                    LEFT JOIN items AS i
+                        ON r.code_id = i.id
+                    WHERE i.code LIKE ? AND r.descr LIKE ?
+                    GROUP BY i.id
+            ) AS r2
+            LEFT JOIN item_revisions AS r
+                ON r.code_id = r2.id AND r.iter = r2.iter
+            LEFT JOIN items AS i
                 ON r.code_id = i.id
-            WHERE r.descr LIKE ? LIKE i.code LIKE ?
-            ORDER BY i.id
-            """, (descr, code))
+            """, (code, descr))
         res = c.fetchall()
         if not res:
             return None
@@ -848,88 +919,6 @@ class DBSQLServer:
             data.pop(keys[i+1])
             keys.pop(i+1)
 
-    # TO BE REMOVED
-    def get_where_used_from_id_code_old(self, id_code, xdate_from=0, xdate_to=end_of_the_world):
-        c = self._conn.cursor()
-
-        self._sqlex(c, """
-            SELECT code FROM items WHERE id=?
-        """, (id_code,))
-        code0 = c.fetchone()[0]
-
-        self._sqlex(c, """
-            SELECT MIN(date_from_days)
-            FROM item_revisions
-            WHERE code_id = ? AND date_from_days >= ?
-        """, (id_code, xdate_from))
-        xdate_from0 = c.fetchone()[0]
-
-        self._sqlex(c, """
-            SELECT MIN(date_to_days)
-            FROM item_revisions
-            WHERE code_id = ? AND date_to_days >= ?
-        """, (id_code, xdate_to))
-        xdate_to0 = c.fetchone()[0]
-
-        todo = [(id_code, xdate_from0, xdate_to0)]
-        data = dict()
-        done = []
-
-        while len(todo):
-            id_, xdate_from, xdate_to = todo.pop()
-            done.append((id_, xdate_from, xdate_to))
-
-            d2 = self._get_code(c, id_, xdate_from)
-            d2["id"] = id_
-            d = d2["properties"]
-            d2.pop("properties")
-            if xdate_from > 0:
-                d["date_from"] = datetime.date.fromordinal(xdate_from).isoformat()
-            else:
-                d["date_from"] = ""
-            if xdate_to < end_of_the_world:
-                d["date_to"] = datetime.date.fromordinal(xdate_to).isoformat()
-            else:
-                d["date_to"] = ""
-
-            d.update(d2)
-            parents = self._get_parents(c, id_, xdate_from, xdate_to)
-            d["deps"] = dict()
-            if parents is None or len(parents) == 0:
-                data[(d["code"], xdate_from, xdate_to)] = d
-                continue
-
-            for (unit, cc, def_unit, qty, each, date_from, date_to, it,
-                    parent_id, date_from_, date_to_, date_from_days,
-                    date_to_days) in parents:
-                if unit is None:
-                   unit = def_unit
-                d["deps"][(cc, date_from_days, date_to_days)] = {
-                    "code": cc,
-                    "unit": unit,
-                    "qty": qty,
-                    "each": each,
-                    "iter": it,
-                    "ref": "",
-                }
-
-                #print(date_from_days, xdate_from)
-                assert(date_from_days >= xdate_from)
-
-                if not (parent_id, date_from_days, date_to_days) in done:
-                    todo.append((parent_id, date_from_days, date_to_days))
-
-
-
-            data[(d["code"], xdate_from, xdate_to)] = d
-            #pprint.pprint(data)
-            #pprint.pprint(todo)
-            #print("todo=", todo)
-
-        #self._join_data(data)
-
-        return ((code0, xdate_from0, xdate_to0), data)
-
     def get_where_used_from_id_code(self, id_code, valid=False):
         c = self._conn.cursor()
 
@@ -1060,7 +1049,7 @@ class DBSQLServer:
     def copy_code(self, new_code, rid, descr, rev, copy_props=True,
                   copy_docs=True, new_date_from_days=None):
         c = self._conn.cursor()
-        self._sqlex(c, "BEGIN")
+        self._begin(c)
         try:
 
             try:
@@ -1072,26 +1061,6 @@ class DBSQLServer:
 
             self._sqlex(c, """SELECT MAX(id) FROM items""")
             new_code_id = c.fetchone()[0]
-
-            """
-            self._sqlex(c, "" "
-                SELECT id, MAX(date_from_days)
-                FROM item_revisions
-                WHERE code_id = (
-                    SELECT code_id
-                    FROM item_revisions
-                    WHERE id = ?
-                )
-                "" ", (rid, ))
-
-            (old_rid, old_date_from_days) = c.fetchone()
-            assert(old_rid == rid)
-
-
-            assert(new_date_from_days > old_date_from_days)
-
-            print(new_date_from, new_date_from_days, descr, rid)
-            """
 
             if new_date_from_days is None:
                 new_date_from_days = now_to_days()
@@ -1130,27 +1099,34 @@ class DBSQLServer:
             self._revise_code_copy_others(c, new_rid, rid, copy_docs, copy_props)
 
         except:
-            self._sqlex(c, "ROLLBACK")
+            self._rollback(c)
             raise
 
-        self._sqlex(c, "COMMIT")
+        self._commit(c)
 
         return new_rid
 
     def revise_code(self, rid, descr, rev, copy_props=True, copy_docs=True,
                     new_date_from_days=None):
         c = self._conn.cursor()
-        self._sqlex(c, "BEGIN")
+        self._begin(c)
         try:
             self._sqlex(c, """
-                SELECT id, MAX(date_from_days), iter
-                FROM item_revisions
-                WHERE code_id = (
-                    SELECT code_id
-                    FROM item_revisions
-                    WHERE id = ?
-                )
+                SELECT r2.id, r2.date_from_days, r2.iter
+                FROM (
+                    SELECT r.code_id, MAX(r.iter) AS iter
+                    FROM item_revisions AS r
+                    WHERE r.code_id = (
+                        SELECT DISTINCT code_id
+                        FROM item_revisions
+                        WHERE id = ?
+                    )
+                    GROUP BY r.code_id
+                ) AS r
+                LEFT JOIN item_revisions AS r2
+                    ON r.code_id=r2.code_id AND r.iter=r2.iter
                 """, (rid, ))
+
 
             (latest_rid, old_date_from_days, old_iter) = c.fetchone()
 
@@ -1203,10 +1179,10 @@ class DBSQLServer:
             self._revise_code_copy_others(c, new_rid, rid, copy_docs, copy_props)
 
         except:
-            self._sqlex(c, "ROLLBACK")
+            self._rollback(c)
             raise
 
-        self._sqlex(c, "COMMIT")
+        self._commit(c)
 
         return new_rid
 
@@ -1264,17 +1240,19 @@ class DBSQLServer:
     def get_children_by_rid(self, rid):
         c = self._conn.cursor()
         self._sqlex(c, """
-            SELECT a.child_id, i.code, r.descr, a.qty, a.each, a.unit,
+            SELECT a.child_id, i.code, r2.descr, a.qty, a.each, a.unit,
                    a.ref
             FROM assemblies AS a
             LEFT JOIN (
-                SELECT code_id, descr, MAX(iter)
+                SELECT code_id, MAX(iter) AS iter
                 FROM item_revisions
                 GROUP BY code_id
             ) AS r
               ON r.code_id = a.child_id
             LEFT JOIN items AS i
               ON a.child_id = i.id
+            LEFT JOIN item_revisions AS r2
+              ON r2.code_id = a.child_id AND r2.iter = r.iter
             WHERE a.revision_id = ?
             ORDER BY a.id
         """, (rid,))
@@ -1286,7 +1264,7 @@ class DBSQLServer:
             drawings=None, children=None):
 
         c = self._conn.cursor()
-        self._sqlex(c, "BEGIN")
+        self._begin(c)
         try:
             self._sqlex(c, """
                 UPDATE item_revisions SET
@@ -1327,15 +1305,16 @@ class DBSQLServer:
 
 
         except:
-            self._sqlex(c, "ROLLBACK")
+            self._rollback(c)
             raise
 
-        self._sqlex(c, "COMMIT")
+        self._commit(c)
+
 
     def update_dates(self, dates):
         # dates.append((rid, date_from, date_from_days, date_to, date_to_days))
         c = self._conn.cursor()
-        self._sqlex(c, "BEGIN")
+        self._begin(c)
         try:
             for (rid, date_from, date_from_days, date_to, date_to_days) in dates:
                 self._sqlex(c, """
@@ -1345,10 +1324,10 @@ class DBSQLServer:
                     WHERE id = ?
                 """, (date_from, date_from_days, date_to, date_to_days, rid))
         except:
-            self._sqlex(c, "ROLLBACK")
+            self._rollback()
             raise
 
-        self._sqlex(c, "COMMIT")
+        self._commit(c)
 
 
 import sqlite3
@@ -1369,9 +1348,19 @@ class DBSQLite(DBSQLServer):
 
         self._conn = sqlite3.connect(self._db_path)
 
+    def _commit(self, c):
+        self._conn.commit()
+
+    def _rollback(self, c):
+        self._conn.rollback()
+
+    def _begin(self, c):
+        c.execute("BEGIN")
+
+
     def _sqlex(self, c, query, *args, **kwargs):
         try:
-            DBSQLServer._sqlex(self, c, query, *args, **kwargs)
+            DBSQLServer._sqlex_(self, c, query, *args, **kwargs)
         except sqlite3.Error as er:
             errmsg = 'SQLite error: %s' % (' '.join(er.args)) + "\n"
             errmsg += "SQLite query:\n"
@@ -1389,7 +1378,7 @@ class DBSQLite(DBSQLServer):
 
     def _sqlexm(self, c, query, *args, **kwargs):
         try:
-            DBSQLServer._sqlexm(self, c, query, *args, **kwargs)
+            DBSQLServer._sqlexm_(self, c, query, *args, **kwargs)
         except sqlite3.Error as er:
             errmsg = 'SQLite error: %s' % (' '.join(er.args)) + "\n"
             errmsg += "SQLite query:\n"
