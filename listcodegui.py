@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sys
+import sys, configparser
 
 from PySide2.QtWidgets import QMainWindow, QScrollArea, QStatusBar
 from PySide2.QtWidgets import QSplitter, QTableView, QLabel
@@ -32,6 +32,9 @@ from PySide2.QtCore import Qt, QAbstractTableModel, QEvent, Signal, QPoint
 import db, asmgui, codegui, diffgui, utils, editcode
 import copycodegui, selectdategui
 
+_cfg = configparser.ConfigParser()
+_cfg.read_file(open("bombrowser.ini"))
+
 class CodesWidget(QWidget):
     #tableCustomContextMenuRequested = Signal(QPoint)
     rightMenu = Signal(QPoint)
@@ -43,7 +46,8 @@ class CodesWidget(QWidget):
         self._copy_info = ""
         self._code_id = None
         self._code = None
-
+        self._descr_force_uppercase = _cfg["BOMBROWSER"].get("description_force_uppercase", 1)
+        self._code_force_uppercase = _cfg["BOMBROWSER"].get("code_force_uppercase", 1)
         self._data = dict()
 
         self._init_gui()
@@ -62,7 +66,6 @@ class CodesWidget(QWidget):
         self._descr_search = QLineEdit()
         self._descr_search.returnPressed.connect(self._search)
         hr.addWidget(self._descr_search)
-
 
         b = QPushButton("Search")
         b.clicked.connect(self._search)
@@ -99,13 +102,19 @@ class CodesWidget(QWidget):
 
     def _search(self):
         d = db.DB()
-        if self._code_search.text() != "" and self._descr_search.text():
-            ret = d.get_codes_by_like_code_and_descr(
-                self._code_search.text(), self._descr_search.text())
-        elif self._code_search.text() == "":
-            ret = d.get_codes_by_like_descr(self._descr_search.text())
+        cs = self._code_search.text()
+        ds = self._descr_search.text()
+        if not self._descr_force_uppercase:
+                ds = ds.upper()
+        if not self._code_force_uppercase:
+                cs = cs.upper()
+
+        if cs != "" and ds:
+            ret = d.get_codes_by_like_code_and_descr(cs, ds)
+        elif cs == "":
+            ret = d.get_codes_by_like_descr(ds)
         else:
-            ret = d.get_codes_by_like_code(self._code_search.text())
+            ret = d.get_codes_by_like_code(cs)
 
         if not ret or len(ret) == 0:
             QApplication.beep()

@@ -247,12 +247,17 @@ class EditDates(QDialog):
             to_date = db.days_to_iso(to_date)
             self._table.item(row+1, col+1).setText(to_date)
 
+_cfg = configparser.ConfigParser()
+_cfg.read_file(open("bombrowser.ini"))
+
 class EditWindow(QMainWindow):
     def __init__(self, rid, parent=None):
         QMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._rid = rid
         self._orig_revision = None
+        self._descr_force_uppercase = _cfg["BOMBROWSER"].get("description_force_uppercase", 1)
+        self._code_force_uppercase = _cfg["BOMBROWSER"].get("code_force_uppercase", 1)
 
         self._init_gui()
 
@@ -438,10 +443,10 @@ class EditWindow(QMainWindow):
             name = self._drawings_table.item(i, 0).text()
             path = self._drawings_table.item(i, 1).text()
             if name in drawings_set:
-                return ("Duplicate in drawings: row=%d, name='%s'"%(i + 1, name),
+                return ("Duplicate name in drawings: row=%d"%(i + 1),
                             None)
             if path in drawings_set:
-                return ("Duplicate in drawings: row='%s'"%(i + 1, name), None)
+                return ("Duplicate path in drawings: row='%s'"%(i + 1), None)
             drawings_set.add(name)
             drawings_set.add(path)
             drawings.append((name, path))
@@ -493,11 +498,15 @@ class EditWindow(QMainWindow):
 
         (gvals, drawings, children) = data
 
+        descr = self._descr.text()
+        if self._descr_force_uppercase:
+            descr = descr.upper()
+
         d = db.DB()
 
         try:
-            d.update_by_rid(self._rid,
-                self._descr.text(), self._ver.text(), self._unit.text(),
+            d.update_by_rid(self._rid, descr
+                , self._ver.text(), self._unit.text(),
                 *gvals, drawings, children
             )
         except db.DBException as e:

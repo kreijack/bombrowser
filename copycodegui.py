@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sys
+import sys, configparser
 
 from PySide2.QtWidgets import QMainWindow, QScrollArea, QStatusBar, QGroupBox
 from PySide2.QtWidgets import QMenu, QTableView, QFileDialog, QAbstractItemView
@@ -30,6 +30,9 @@ import pprint
 
 import db, codegui, diffgui, editcode
 import exporter, utils, selectdategui
+
+_cfg = configparser.ConfigParser()
+_cfg.read_file(open("bombrowser.ini"))
 
 class CopyCode(QDialog):
     def __init__(self, rev_id, parent):
@@ -57,6 +60,10 @@ class CopyCode(QDialog):
         self._last_iter = data[0][8]
         self._last_ver = data[0][7]
         self._last_revid = data[0][6]
+
+        self._descr_force_uppercase = _cfg["BOMBROWSER"].get("description_force_uppercase", 1)
+        self._code_force_uppercase = _cfg["BOMBROWSER"].get("code_force_uppercase", 1)
+
 
         self._init_gui()
 
@@ -176,19 +183,26 @@ class CopyCode(QDialog):
 
         d = db.DB()
 
+        code = self._l_new_code.text()
+        descr = self._l_new_descr.text()
+        if self._descr_force_uppercase:
+                descr = descr.upper()
+        if self._code_force_uppercase:
+                code = code.upper()
+
         try:
             newdate = db.iso_to_days(self._l_new_date_from.text())
             if self._cb_copy_rev.checkState() == Qt.CheckState.Checked:
-                new_rid = d.copy_code(self._l_new_code.text(),
+                new_rid = d.copy_code(code,
                     self._rid,
-                    self._l_new_descr.text(),
+                    descr,
                     self._l_new_rev.text(),
                     self._cb_copy_props.checkState() == Qt.CheckState.Checked,
                     self._cb_copy_docs.checkState() == Qt.CheckState.Checked,
                     new_date_from_days=newdate)
             else:
                 new_rid = d.revise_code(self._rid,
-                    self._l_new_descr.text(),
+                    descr,
                     self._l_new_rev.text(),
                     self._cb_copy_props.checkState() == Qt.CheckState.Checked,
                     self._cb_copy_docs.checkState() == Qt.CheckState.Checked,

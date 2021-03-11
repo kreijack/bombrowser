@@ -1,6 +1,10 @@
 [BOMBROWSER]
 #db=sqlite
 db=sqlserver
+#db=mariadb
+#db=postgresql
+description_force_uppercase=1
+code_force_uppercase=1
 
 # the name of gvalN (n=1..8) fields separated by comma
 # it is allowed to have less than 8 fields
@@ -16,3 +20,18 @@ database = bombrowser
 username = bombrowserUser
 password = bombrowserPassword1.
 driver   = ODBC Driver 17 for SQL Server
+
+# not tested, don't use
+[MARIADB]
+server   = 127.0.0.1
+port     = 3306
+database = bombrowser
+username = bombrowser
+password = bombrowser1
+
+
+[POSTGRESQL]
+server   = 127.0.0.1
+database = bombrowser
+username = bombrowser
+password = bombrowser1
