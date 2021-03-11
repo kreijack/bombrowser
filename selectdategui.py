@@ -39,7 +39,11 @@ class SelectDate(QDialog):
         self._only_data_code = only_data_code
 
         self._init_gui()
+        self.show()
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         self._populate_table()
+        QApplication.restoreOverrideCursor()
 
     class TableModel(QAbstractTableModel):
         def __init__(self, data, header):
