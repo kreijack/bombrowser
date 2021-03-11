@@ -191,6 +191,12 @@ class AssemblyWindow(QMainWindow):
         export_assy = QAction("Export assemblies list as JSON file format...", self)
         export_assy.triggered.connect(self._export_assemblies_list)
 
+        export_as = []
+        for tmpl in exporter.get_template_list():
+            m = QAction("Export bom as template '%s'"%(tmpl), self)
+            m.triggered.connect(lambda : self._export_as_template(tmpl))
+            export_as.append(m)
+
         closeAction = QAction("Close", self)
         closeAction.setShortcut("Ctrl+Q")
         closeAction.triggered.connect(self.close)
@@ -200,6 +206,13 @@ class AssemblyWindow(QMainWindow):
         copyAction = QAction("Copy", self)
         copyAction.setShortcut("Ctrl+C")
         copyAction.triggered.connect(self._copy_info_action)
+
+        copy_as = []
+        for tmpl in exporter.get_template_list():
+            m = QAction("Copy bom as template '%s'"%(tmpl), self)
+            m.triggered.connect(lambda : self._copy_as_template(tmpl))
+            copy_as.append(m)
+
         findAction = QAction("Find", self)
         findAction.setShortcut("Ctrl+F")
         findAction.triggered.connect(self._start_find)
@@ -227,10 +240,15 @@ class AssemblyWindow(QMainWindow):
 
         fileMenu.addAction(export_bom)
         fileMenu.addAction(export_assy)
+        for m in export_as:
+            fileMenu.addAction(m)
         fileMenu.addSeparator()
         fileMenu.addAction(closeAction)
         fileMenu.addAction(exitAction)
         editMenu.addAction(copyAction)
+        editMenu.addSeparator()
+        for m in copy_as:
+            editMenu.addAction(m)
         searchMenu.addAction(findAction)
 
         self._build_windows_menu()
@@ -267,6 +285,23 @@ class AssemblyWindow(QMainWindow):
             return
         e = exporter.Exporter(self._top , self._data)
         e.export_as_json(nf[0])
+
+    def _export_as_template(self, template):
+        nf = QFileDialog.getSaveFileName(self, "BOMBrowser - export bom",
+                                    filter="CSV file (*.csv);; All files (*.*)",
+                                    selectedFilter="*.csv")
+        if nf[0] == '':
+            return
+        e = exporter.Exporter(self._top , self._data)
+        data = e.export_as_table_by_template(template)
+        open(nf[0], "w").write(data)
+
+    def _copy_as_template(self, template):
+        e = exporter.Exporter(self._top , self._data)
+        cb = QApplication.clipboard()
+        cb.clear(mode=cb.Clipboard )
+        data = e.export_as_table_by_template(template)
+        cb.setText(data, mode=cb.Clipboard)
 
     def _show_up_to(self, lev):
         if lev == -1:

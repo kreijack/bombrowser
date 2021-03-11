@@ -28,6 +28,13 @@ import db
 _cfg = configparser.ConfigParser()
 _cfg.read_file(open("bombrowser.ini"))
 
+def get_template_list():
+    ret = []
+    template_list = _cfg.get("BOMBROWSER", "templates_list").split(",")
+    for template_section in template_list:
+        ret.append(_cfg.get(template_section, "name"))
+    return ret
+
 class Exporter:
     def __init__(self, rootnode, data):
         self._data = data
@@ -82,3 +89,113 @@ class Exporter:
             "data": self._data
         }, f, sort_keys=True, indent=4, default=str)
         f.close()
+
+
+# available columns type
+# seq -> sequential number AFTER the sorting
+# level -> level of identation
+# code -> code
+# paren -> parent_code
+# indented_code code indented (prefixe by "... ... " depending by the level )
+# descr -> code description
+# qty -> code quantity
+# unit -> unit
+# each -> each
+# ref -> ref
+# drawings -> drawings path
+# gval0, glval1 -> generic fields
+# rev -> code revision
+# iter -> code iteration
+# date_from -> from date
+# date_to -> date_to
+
+    def _export_as_table_by_template_it(self, unique, table, columns,
+                key, level=0, qty="", each="", unit="", ref="", parent="",
+                parent_descr=""):
+
+        if unique:
+            if key in self._did:
+                return
+            self._did.add(key)
+
+        row = []
+        item = self._data[key]
+        for col in columns:
+            if col=="seq":
+                row += [str(self._seq)]
+            elif col=="level":
+                row += [str(level)]
+            elif col=="qty":
+                row += [str(qty)]
+            elif col=="each":
+                row += [str(each)]
+            elif col=="ref":
+                row += [ref]
+            elif col=="parent_descr":
+                row += [parent_descr]
+            elif col=="unit":
+                row += [unit]
+            elif col=="parent":
+                row += [parent]
+            elif col=="unit":
+                row += [unit]
+            elif col=="rev":
+                row += [item["ver"]]
+            elif col=="drawings":
+                row += ["TBD"]
+            elif col=="indented_code":
+                row += ["... "*level + item["code"]]
+            elif col in ["code", "descr", "iter", "date_from", "date_to"]:
+                row += [str(item[col])]
+            elif col.startswith("gval"):
+                row += [item[col]]
+            elif col.startswith('"'):
+                col = col[1:]
+                if col.endswith('"'):
+                    col = col[:-1]
+                row += [col]
+            elif col == "":
+                row += [""]
+            else:
+                row += ["Unknown col '%s'"%(col)]
+
+        table += [row]
+        self._seq += 1
+        for child_id in item["deps"]:
+            child = item["deps"][child_id]
+            self._export_as_table_by_template_it(unique, table, columns,
+                child_id, level + 1, child["qty"], child["each"],
+                child["unit"], child["ref"],
+                item["code"], item["descr"])
+
+
+    def export_as_table_by_template(self, template_name):
+        template_list = _cfg.get("BOMBROWSER", "templates_list").split(",")
+        for template_section in template_list:
+            if _cfg.get(template_section, "name") == template_name:
+                break
+        else:
+            # TBD show an error
+            assert(False)
+
+        sortby=int(_cfg[template_section].get("sortby", -1))
+        columns=_cfg[template_section].get("columns").split(",")
+        captions=_cfg[template_section].get("captions").split(",")
+        unique=int(_cfg[template_section].get("unique", 0))
+        table = []
+
+        self._seq = 0
+        self.did = set()
+        self._export_as_table_by_template_it(unique, table, columns, self._rootnode)
+
+        if sortby >= 0:
+            table.sort(key=lambda x : x[sortby])
+
+
+        f = io.StringIO()
+        f.write("\t".join(captions)+"\n")
+        for line in table:
+            f.write("\t".join(line)+"\n")
+
+        return f.getvalue()
+
