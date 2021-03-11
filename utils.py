@@ -52,7 +52,7 @@ class BBMainWindow(QMainWindow):
 
 def about(w):
     QMessageBox.about(w, "BOMBrowser - about",
-        "BOMBrowser v0.4.0b4\n" +
+        "BOMBrowser v0.4.0b5\n" +
         "Copyright 2020,2021 G.Baroncelli\n" +
         "\n"
         "https://gitlab.com/kreijack/bombrowser"
