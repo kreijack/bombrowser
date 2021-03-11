@@ -330,12 +330,14 @@ class AssemblyWindow(QMainWindow):
             return
 
         contextMenu = QMenu(self)
-        showAssembly = contextMenu.addAction("Show assembly")
-        showAssembly.triggered.connect(self._show_assembly)
+        showLatestAssembly = contextMenu.addAction("Show latest assembly")
+        showLatestAssembly.triggered.connect(self._show_latest_assembly)
         whereUsed = contextMenu.addAction("Where used")
         whereUsed.triggered.connect(self._show_where_used)
         validWhereUsed = contextMenu.addAction("Valid where used")
         validWhereUsed.triggered.connect(self._show_valid_where_used)
+        showAssembly = contextMenu.addAction("Show assembly by date")
+        showAssembly.triggered.connect(self._show_assembly)
 
         contextMenu.addSeparator()
         reviseCode = contextMenu.addAction("Copy/revise code ...")
@@ -391,6 +393,14 @@ class AssemblyWindow(QMainWindow):
 
         show_assembly(id_, self.parent())
 
+    def _show_latest_assembly(self):
+        path = self._get_path()
+        if len(path) == 0:
+            return
+        id_ = self._data[path[-1]]["id"]
+
+        show_latest_assembly(id_)
+
     def _show_where_used(self):
         path = self._get_path()
         if len(path) == 0:
@@ -411,9 +421,11 @@ class AssemblyWindow(QMainWindow):
         top_code = data[top]["code"]
 
         if self._asm:
-                dt = data[top]["date_from"][:10]
+                dt2 = date_from
+                if date_from == db.days_to_iso(db.end_of_the_world):
+                    dt2 = "LATEST"
                 self.setWindowTitle("BOMBrowser - Assembly: "+top_code+" @ " +
-                    date_from)
+                    dt2)
         elif self._valid_where_used:
                 self.setWindowTitle("BOMBrowser - Valid where used: "+top_code)
         else:
@@ -601,6 +613,7 @@ def show_assembly(code_id, winParent):
     dlg = selectdategui.SelectDate(code_id, winParent)
     ret = dlg.exec_()
     if not ret:
+        QApplication.restoreOverrideCursor()
         return
 
     QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -611,4 +624,20 @@ def show_assembly(code_id, winParent):
     w.populate(*data, date_from=res[1])
     QApplication.restoreOverrideCursor()
 
+def show_latest_assembly(code_id):
+    if not code_id:
+        QApplication.beep()
+        return
 
+    d = db.DB()
+    if not d.is_assembly(code_id):
+        QApplication.beep()
+        QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
+        return
+
+    w = AssemblyWindow(None)
+    w.show()
+    dt = db.days_to_iso(db.end_of_the_world)
+    data = d.get_bom_by_code_id2(code_id, dt)
+    w.populate(*data, date_from=dt)
+    QApplication.restoreOverrideCursor()

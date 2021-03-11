@@ -243,12 +243,14 @@ class CodesWindow(QMainWindow):
 
     def _tree_context_menu(self, point):
         contextMenu = QMenu(self)
-        showAssembly = contextMenu.addAction("Show assembly ...")
-        showAssembly.triggered.connect(self._show_assembly)
-        whereUsed = contextMenu.addAction("Where used ...")
+        showLatestAssembly = contextMenu.addAction("Show latest assembly")
+        showLatestAssembly.triggered.connect(self._show_latest_assembly)
+        whereUsed = contextMenu.addAction("Where used")
         whereUsed.triggered.connect(self._show_where_used)
-        validWhereUsed = contextMenu.addAction("Valid where used ...")
+        validWhereUsed = contextMenu.addAction("Valid where used")
         validWhereUsed.triggered.connect(self._show_valid_where_used)
+        showAssembly = contextMenu.addAction("Show assembly by date")
+        showAssembly.triggered.connect(self._show_assembly)
         contextMenu.addSeparator()
         reviseCode = contextMenu.addAction("Copy/revise code ...")
         reviseCode.triggered.connect(self._revise_code)
@@ -282,6 +284,12 @@ class CodesWindow(QMainWindow):
             QApplication.beep()
             return
         diffgui.set_to(self._codes_widget.getCodeId(), self)
+
+    def _show_latest_assembly(self):
+        if not self._codes_widget.getCodeId():
+            QApplication.beep()
+            return
+        asmgui.show_latest_assembly(self._codes_widget.getCodeId())
 
     def _show_assembly(self):
         if not self._codes_widget.getCodeId():
