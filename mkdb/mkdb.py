@@ -280,7 +280,7 @@ def insert_board(c):
         c.execute("""INSERT INTO drawings(
                 code, revision_id, filename, fullpath
             ) VALUES ( ?, ?, ?, ? )
-                """, (code, board_id, os.path.basename(fn1), fn1)
+                """, (code, board_id, os.path.basename(fn1), os.path.abspath(fn1))
         )
 
         # create the board assy
@@ -332,7 +332,7 @@ def insert_mechanical_components(c):
         c.execute("""INSERT INTO drawings(
                 code, revision_id, filename, fullpath
             ) VALUES ( ?, ?, ?, ? )
-                """, (code, mech_id, os.path.basename(fn1), fn1)
+                """, (code, mech_id, os.path.basename(fn1), os.path.abspath(fn1))
         )
         cnt += 1
 
@@ -377,12 +377,12 @@ def insert_mechanical_assemblies(c):
         c.execute("""INSERT INTO drawings(
                 code, revision_id, filename, fullpath
             ) VALUES ( ?, ?, ?, ? )
-                """, (code, mech_id, os.path.basename(fn1), fn1)
+                """, (code, mech_id, os.path.basename(fn1), os.path.abspath(fn1))
         )
         c.execute("""INSERT INTO drawings(
                 code, revision_id, filename, fullpath
             ) VALUES ( ?, ?, ?, ? )
-                """, (code, mech_id, os.path.basename(fn2), fn2)
+                """, (code, mech_id, os.path.basename(fn2), os.path.abspath(fn1))
         )
 
 
@@ -447,7 +447,7 @@ def insert_top_codes(c):
         c.execute("""INSERT INTO drawings(
                 code, revision_id, filename, fullpath
             ) VALUES ( ?, ?, ?, ? )
-                """, (code, top_id, os.path.basename(fn1), fn1)
+                """, (code, top_id, os.path.basename(fn1), os.path.abspath(fn1))
         )
 
         #up to 127 sub assemblies
@@ -505,7 +505,7 @@ def insert_spare_parts(c):
         c.execute("""INSERT INTO drawings(
                 code, revision_id, filename, fullpath
             ) VALUES ( ?, ?, ?, ? )
-                """, (code, top_id, os.path.basename(fn1), fn1)
+                """, (code, top_id, os.path.basename(fn1), os.path.abspath(fn1))
         )
 
         ts = datetime.date.fromisoformat(date0).toordinal()
@@ -667,7 +667,7 @@ def make_changes(c):
             c.execute("""INSERT INTO drawings(
                     code, revision_id, filename, fullpath
                 ) VALUES ( ?, ?, ?, ? )
-                    """, (code, new_id, os.path.basename(fn1), fn1)
+                    """, (code, new_id, os.path.basename(fn1), os.path.abspath(fn1))
             )
 
         elif code.startswith("82"):
@@ -679,7 +679,7 @@ def make_changes(c):
                 c.execute("""INSERT INTO drawings(
                         code, revision_id, filename, fullpath
                     ) VALUES ( ?, ?, ?, ? )
-                        """, (code, new_id, os.path.basename(fn1), fn1)
+                        """, (code, new_id, os.path.basename(fn1), os.path.abspath(fn1))
                 )
                 fn2 = "documents/assembling-procedures/%s_(ass)_rev%s.txt"%(code, new_rev)
                 open(fn2, "w").write("Type: assembling procedure\nCode:%s\n"%(
@@ -687,7 +687,7 @@ def make_changes(c):
                 c.execute("""INSERT INTO drawings(
                         code, revision_id, filename, fullpath
                     ) VALUES ( ?, ?, ?, ? )
-                        """, (code, new_id, os.path.basename(fn2), fn2)
+                        """, (code, new_id, os.path.basename(fn2), os.path.abspath(fn1))
                 )
 
         elif code.startswith("6"):
@@ -698,7 +698,7 @@ def make_changes(c):
                 c.execute("""INSERT INTO drawings(
                         code, revision_id, filename, fullpath
                     ) VALUES ( ?, ?, ?, ? )
-                        """, (code, new_id, os.path.basename(fn1), fn1)
+                        """, (code, new_id, os.path.basename(fn1), os.path.abspath(fn1))
                 )
 
 
