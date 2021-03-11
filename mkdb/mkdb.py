@@ -382,7 +382,7 @@ def insert_mechanical_assemblies(c):
         c.execute("""INSERT INTO drawings(
                 code, revision_id, filename, fullpath
             ) VALUES ( ?, ?, ?, ? )
-                """, (code, mech_id, os.path.basename(fn2), os.path.abspath(fn1))
+                """, (code, mech_id, os.path.basename(fn2), os.path.abspath(fn2))
         )
 
 
@@ -687,7 +687,7 @@ def make_changes(c):
                 c.execute("""INSERT INTO drawings(
                         code, revision_id, filename, fullpath
                     ) VALUES ( ?, ?, ?, ? )
-                        """, (code, new_id, os.path.basename(fn2), os.path.abspath(fn1))
+                        """, (code, new_id, os.path.basename(fn2), os.path.abspath(fn2))
                 )
 
         elif code.startswith("6"):
