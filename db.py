@@ -785,7 +785,7 @@ class _BaseServer:
                     dates.append((date_from, date_from_days))
 
             self._sqlex(c, """
-                    SELECT a.child_id
+                    SELECT DISTINCT a.child_id
                     FROM assemblies AS a
                     LEFT JOIN item_revisions AS r
                       ON a.revision_id = r.id
