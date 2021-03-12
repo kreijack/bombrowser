@@ -1,10 +1,17 @@
 [BOMBROWSER]
+
+# select db source
 #db=sqlite
 db=sqlserver
 #db=mariadb
 #db=postgresql
+
+# force uppercase for code and description
 description_force_uppercase=1
 code_force_uppercase=1
+
+templates_list=template_simple,template_all,template_dummy
+
 
 # the name of gvalN (n=1..8) fields separated by comma
 # it is allowed to have less than 8 fields
@@ -21,7 +28,6 @@ username = bombrowserUser
 password = bombrowserPassword1.
 driver   = ODBC Driver 17 for SQL Server
 
-# not tested, don't use
 [MARIADB]
 server   = 127.0.0.1
 port     = 3306
@@ -29,9 +35,50 @@ database = bombrowser
 username = bombrowser
 password = bombrowser1
 
-
 [POSTGRESQL]
 server   = 127.0.0.1
 database = bombrowser
 username = bombrowser
 password = bombrowser1
+
+
+[template_simple]
+# available columns type
+# seq -> sequential number AFTER the sorting
+# level -> level of identation
+# code -> code
+# indented_code code indented (prefixe by "... ... " depending by the level )
+# descr -> code description
+# qty -> code quantity
+# unit -> unit
+# each -> each
+# ref -> ref
+# paren -> parent_code
+# drawings -> drawings path
+# gval0, glval1 -> generic fields
+# rev -> code revision
+# iter -> code iteration
+# date_from -> from date
+# date_to -> date_to
+name=Simple table
+#sortby=-1
+columns=seq,level,code,indented_code,descr,qty,each,unit,ref,rev,iter,date_from,date_to
+captions=Seq,Level,Code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date
+#unique
+
+[template_all]
+name=Full table
+#sortby=2
+columns=seq,level,parent,parent_descr,"-",code,indented_code,descr,qty,each,unit,ref,rev,iter,date_from,date_to,gval1,gval2,gval3,gval4,gval5,gval6
+captions=Seq,Level,Parent code,Parent descritpion,-,Code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date,Supplier#1 PN,Supplier#1 name,Manufacturer#1 PN,Manufacturer#1 name,Manufacturer#2 PN,Manufacturer#2 name
+#unique
+
+[template_dummy]
+name=Dummy table
+sortby=2
+columns=seq,parent,code,descr,qty,each,unit,ref,rev,iter,date_from,date_to
+captions=Seq,Parent code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date
+#unique
+
+
+
