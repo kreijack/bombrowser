@@ -41,7 +41,7 @@ import datetime
 import configparser
 import time
 import jdutil
-
+import customize
 
 def increase_date(d, inc=+1):
     return (datetime.date.fromisoformat(d) +
@@ -626,49 +626,6 @@ class _BaseServer:
             return None
         else:
             return res
-
-    # TODO FIX ME
-    def _join_data(self, data):
-        #return
-        keys = list(data.keys())
-        keys.sort(reverse=True)
-        pprint.pprint(keys)
-
-        i = 0
-        while i < len(keys)-1:
-            (code1, date_from1, date_to1) = keys[i]
-            (code2, date_from2, date_to2) = keys[i+1]
-
-            if code1 != code2:
-                i += 1
-                continue
-
-            v1 = data[keys[i]]
-            v2 = data[keys[i+1]]
-
-            #assert(date_from2 > date_to1)
-
-            #date1to = datetime.date.fromisoformat(v1["date_to"]).toordinal()
-            #date2from = datetime.date.fromisoformat(v2["date_from"]).toordinal()
-            if (date_from2 - date_to1) > 1:
-                i += 1
-                continue
-
-            equal = True
-            for k in v1.keys():
-                if k == "date_from" or k == "date_to":
-                    continue
-                if v1[k] != v2[k]:
-                    equal = False
-                    break
-
-            if not equal:
-                i += 1
-                continue
-
-            data[keys[i]]["date_to"] = data[keys[i+1]]["date_to"]
-            data.pop(keys[i+1])
-            keys.pop(i+1)
 
     def get_where_used_from_id_code(self, id_code, valid=False):
         c = self._conn.cursor()
@@ -1406,6 +1363,7 @@ def DB(path=None):
             "username": _cfg.get("SQLSERVER", "username"),
             "password": _cfg.get("SQLSERVER", "password"),
         }
+        d["password"] = customize.database_password(d["password"])
         connection_string = "DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password}".format(**d)
         _globaDBInstance = DBSQLServer(connection_string)
         return _globaDBInstance
@@ -1416,13 +1374,15 @@ def DB(path=None):
             "username": _cfg.get("POSTGRESQL", "username"),
             "password": _cfg.get("POSTGRESQL", "password"),
         }
+        d["password"] = customize.database_password(d["password"])
         connection_string = "host={server} dbname={database} user={username} password={password}".format(**d)
         _globaDBInstance = DBPG(connection_string)
         return _globaDBInstance
     elif dbtype == "mariadb":
+        pwd = customize.database_password(_cfg.get("MARIADB", "password"))
         _globaDBInstance = DBMariaDB(_cfg.get("MARIADB", "server"),
             _cfg.get("MARIADB", "port"), _cfg.get("MARIADB", "database"),
-            _cfg.get("MARIADB", "username"),_cfg.get("MARIADB", "password"))
+            _cfg.get("MARIADB", "username"), pwd)
 
         return _globaDBInstance
     assert(False)
