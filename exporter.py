@@ -157,7 +157,7 @@ class Exporter:
             else:
                 row += ["Unknown col '%s'"%(col)]
 
-        table.append([str(x) for x in row]])
+        table.append([str(x) for x in row])
         self._seq += 1
         for child_id in item["deps"]:
             child = item["deps"][child_id]
@@ -167,7 +167,7 @@ class Exporter:
                 item["code"], item["descr"])
 
 
-    def export_as_table_by_template(self, template_name):
+    def _export_as_table_by_template(self, template_name):
         template_list = _cfg.get("BOMBROWSER", "templates_list").split(",")
         for template_section in template_list:
             if _cfg.get(template_section, "name") == template_name:
@@ -180,6 +180,7 @@ class Exporter:
         columns=_cfg[template_section].get("columns").split(",")
         captions=_cfg[template_section].get("captions").split(",")
         unique=int(_cfg[template_section].get("unique", 0))
+        captions=_cfg[template_section].get("captions").split(",")
         table = []
 
         self._seq = 0
@@ -189,6 +190,10 @@ class Exporter:
         if sortby >= 0:
             table.sort(key=lambda x : x[sortby])
 
+        return table, captions
+
+    def export_as_table_by_template(self, template_name):
+        table, captions = self._export_as_table_by_template(template_name)
 
         f = io.StringIO()
         f.write("\t".join(captions)+"\n")
@@ -197,3 +202,20 @@ class Exporter:
 
         return f.getvalue()
 
+
+    def export_as_csv_table_by_template(self, template_name):
+        table, captions = self._export_as_table_by_template(template_name)
+
+        f = io.StringIO()
+
+        def csvstring(s):
+            s = s.replace('"', '""')
+            s = s.replace('\n', '')
+            s = s.replace('\r', '')
+            return '"' + s + '"'
+
+        f.write(", ".join([csvstring(x) for x in captions])+"\n")
+        for line in table:
+            f.write(", ".join([csvstring(x) for x in line])+"\n")
+
+        return f.getvalue()
