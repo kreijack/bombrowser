@@ -256,8 +256,8 @@ class EditWindow(QMainWindow):
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._rid = rid
         self._orig_revision = None
-        self._descr_force_uppercase = _cfg["BOMBROWSER"].get("description_force_uppercase", 1)
-        self._code_force_uppercase = _cfg["BOMBROWSER"].get("code_force_uppercase", 1)
+        self._descr_force_uppercase = _cfg["BOMBROWSER"].get("description_force_uppercase", "1")
+        self._code_force_uppercase = _cfg["BOMBROWSER"].get("code_force_uppercase", "1")
 
         self._init_gui()
 
@@ -499,7 +499,7 @@ class EditWindow(QMainWindow):
         (gvals, drawings, children) = data
 
         descr = self._descr.text()
-        if self._descr_force_uppercase:
+        if self._descr_force_uppercase == "1":
             descr = descr.upper()
 
         d = db.DB()

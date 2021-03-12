@@ -46,8 +46,8 @@ class CodesWidget(QWidget):
         self._copy_info = ""
         self._code_id = None
         self._code = None
-        self._descr_force_uppercase = _cfg["BOMBROWSER"].get("description_force_uppercase", 1)
-        self._code_force_uppercase = _cfg["BOMBROWSER"].get("code_force_uppercase", 1)
+        self._descr_force_uppercase = _cfg["BOMBROWSER"].get("description_force_uppercase", "1")
+        self._code_force_uppercase = _cfg["BOMBROWSER"].get("code_force_uppercase", "1")
         self._data = dict()
 
         self._init_gui()
@@ -104,9 +104,9 @@ class CodesWidget(QWidget):
         d = db.DB()
         cs = self._code_search.text()
         ds = self._descr_search.text()
-        if not self._descr_force_uppercase:
+        if self._descr_force_uppercase == "1":
                 ds = ds.upper()
-        if not self._code_force_uppercase:
+        if self._code_force_uppercase == "1":
                 cs = cs.upper()
 
         if cs != "" and ds:

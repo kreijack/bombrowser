@@ -61,8 +61,8 @@ class CopyCode(QDialog):
         self._last_ver = data[0][7]
         self._last_revid = data[0][6]
 
-        self._descr_force_uppercase = _cfg["BOMBROWSER"].get("description_force_uppercase", 1)
-        self._code_force_uppercase = _cfg["BOMBROWSER"].get("code_force_uppercase", 1)
+        self._descr_force_uppercase = _cfg["BOMBROWSER"].get("description_force_uppercase", "1")
+        self._code_force_uppercase = _cfg["BOMBROWSER"].get("code_force_uppercase", "1")
 
 
         self._init_gui()
@@ -185,9 +185,9 @@ class CopyCode(QDialog):
 
         code = self._l_new_code.text()
         descr = self._l_new_descr.text()
-        if self._descr_force_uppercase:
+        if self._descr_force_uppercase == "1":
                 descr = descr.upper()
-        if self._code_force_uppercase:
+        if self._code_force_uppercase == "1":
                 code = code.upper()
 
         try:
