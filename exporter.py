@@ -185,7 +185,7 @@ class Exporter:
         table = []
 
         self._seq = 0
-        self.did = set()
+        self._did = set()
         self._export_as_table_by_template_it(unique, table, columns, self._rootnode)
 
         if sortby >= 0:
