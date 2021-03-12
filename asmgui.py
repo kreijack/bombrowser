@@ -188,7 +188,7 @@ class AssemblyWindow(QMainWindow):
 
         export_bom = QAction("Export bom as CSV file...", self)
         export_bom.triggered.connect(self._export_bom)
-        export_assy = QAction("Export assemblies list as JSON file format...", self)
+        export_assy = QAction("Export bom as JSON file format...", self)
         export_assy.triggered.connect(self._export_assemblies_list)
 
         class Caller:
@@ -200,7 +200,7 @@ class AssemblyWindow(QMainWindow):
 
         export_as = []
         for tmpl in exporter.get_template_list():
-            m = QAction("Export bom as template '%s'"%(tmpl), self)
+            m = QAction("Export bom as CSV template '%s'"%(tmpl), self)
             m.triggered.connect(Caller(self._export_as_template, tmpl))
             export_as.append(m)
 
