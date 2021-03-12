@@ -191,10 +191,17 @@ class AssemblyWindow(QMainWindow):
         export_assy = QAction("Export assemblies list as JSON file format...", self)
         export_assy.triggered.connect(self._export_assemblies_list)
 
+        class Caller:
+            def __init__(self, f, arg):
+                self._f = f
+                self._arg = arg
+            def __call__(self):
+                self._f(self._arg)
+
         export_as = []
         for tmpl in exporter.get_template_list():
             m = QAction("Export bom as template '%s'"%(tmpl), self)
-            m.triggered.connect(lambda : self._export_as_template(tmpl))
+            m.triggered.connect(Caller(self._export_as_template, tmpl))
             export_as.append(m)
 
         closeAction = QAction("Close", self)
@@ -210,19 +217,12 @@ class AssemblyWindow(QMainWindow):
         copy_as = []
         for tmpl in exporter.get_template_list():
             m = QAction("Copy bom as template '%s'"%(tmpl), self)
-            m.triggered.connect(lambda : self._copy_as_template(tmpl))
+            m.triggered.connect(Caller(self._copy_as_template, tmpl))
             copy_as.append(m)
 
         findAction = QAction("Find", self)
         findAction.setShortcut("Ctrl+F")
         findAction.triggered.connect(self._start_find)
-
-        class Caller:
-            def __init__(self, c, idx):
-                self._c = c
-                self._idx = idx
-            def __call__(self):
-                self._c(self._idx)
 
         for i in range(9):
             a = QAction("Show up to level %d"%(i+1), self)
@@ -293,7 +293,7 @@ class AssemblyWindow(QMainWindow):
         if nf[0] == '':
             return
         e = exporter.Exporter(self._top , self._data)
-        data = e.export_as_table_by_template(template)
+        data = e.export_as_csv_table_by_template(template)
         open(nf[0], "w").write(data)
 
     def _copy_as_template(self, template):
@@ -676,3 +676,4 @@ def show_latest_assembly(code_id):
     data = d.get_bom_by_code_id2(code_id, dt)
     w.populate(*data, date_from=dt)
     QApplication.restoreOverrideCursor()
+
