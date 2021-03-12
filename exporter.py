@@ -122,13 +122,13 @@ class Exporter:
         item = self._data[key]
         for col in columns:
             if col=="seq":
-                row += [str(self._seq)]
+                row += [self._seq]
             elif col=="level":
-                row += [str(level)]
+                row += [level]
             elif col=="qty":
-                row += [str(qty)]
+                row += [qty]
             elif col=="each":
-                row += [str(each)]
+                row += [each]
             elif col=="ref":
                 row += [ref]
             elif col=="parent_descr":
@@ -137,8 +137,6 @@ class Exporter:
                 row += [unit]
             elif col=="parent":
                 row += [parent]
-            elif col=="unit":
-                row += [unit]
             elif col=="rev":
                 row += [item["ver"]]
             elif col=="drawings":
@@ -146,7 +144,7 @@ class Exporter:
             elif col=="indented_code":
                 row += ["... "*level + item["code"]]
             elif col in ["code", "descr", "iter", "date_from", "date_to"]:
-                row += [str(item[col])]
+                row += [item[col]]
             elif col.startswith("gval"):
                 row += [item[col]]
             elif col.startswith('"'):
@@ -159,7 +157,7 @@ class Exporter:
             else:
                 row += ["Unknown col '%s'"%(col)]
 
-        table += [row]
+        table.append([str(x) for x in row]])
         self._seq += 1
         for child_id in item["deps"]:
             child = item["deps"][child_id]
