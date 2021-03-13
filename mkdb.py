@@ -1,3 +1,22 @@
+"""
+BOM Browser - tool to browse a bom
+Copyright (C) 2020 Goffredo Baroncelli <kreijack@inwind.it>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""
+
 import db
 import sqlite3
 import os
@@ -18,25 +37,6 @@ class MyRandom:
 rnd = MyRandom()
 
 dbname="database.sqlite"
-
-
-"""
-        CREATE TABLE    items (
-            id          INTEGER NOT NULL PRIMARY KEY,
-            descr       TEXT NOT NULL,
-            code        TEXT NOT NULL,
-            ver         TEXT NOT NULL,
-            iter        INTEGER,
-            default_unit TEXT NOT NULL,
-            for1cod     TEXT DEFAILT "",
-            for1id      TEXT DEFAILT "",
-            for1name    TEXT DEFAILT "",
-            prod1cod    TEXT DEFAILT "",
-            prod1name   TEXT DEFAILT "",
-            prod2cod    TEXT DEFAILT "",
-            prod2name   TEXT DEFAILT ""
-        );
-"""
 
 def insert_code(c, descr, code, ver, iter_, default_unit, gval1, gval2):
             c.execute("INSERT INTO items(code) VALUES (?)", (
@@ -724,7 +724,7 @@ def xrmdir(path):
                 ffn = os.path.join(path, fn)
                 xrmdir(ffn)
             os.rmdir(path)
-        else:
+        elif os.path.exists(path):
             os.unlink(path)
 
 def create_db():
