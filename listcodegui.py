@@ -30,10 +30,7 @@ from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtCore import Qt, QAbstractTableModel, QEvent, Signal, QPoint
 
 import db, asmgui, codegui, diffgui, utils, editcode
-import copycodegui, selectdategui
-
-_cfg = configparser.ConfigParser()
-_cfg.read_file(open("bombrowser.ini"))
+import copycodegui, selectdategui, cfg
 
 class CodesWidget(QWidget):
     #tableCustomContextMenuRequested = Signal(QPoint)
@@ -46,8 +43,8 @@ class CodesWidget(QWidget):
         self._copy_info = ""
         self._code_id = None
         self._code = None
-        self._descr_force_uppercase = _cfg["BOMBROWSER"].get("description_force_uppercase", "1")
-        self._code_force_uppercase = _cfg["BOMBROWSER"].get("code_force_uppercase", "1")
+        self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
+        self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
         self._data = dict()
 
         self._init_gui()

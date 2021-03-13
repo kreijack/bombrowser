@@ -29,10 +29,7 @@ from PySide2.QtCore import Qt, QItemSelectionModel, QAbstractTableModel
 import pprint
 
 import db, codegui, diffgui, editcode
-import exporter, utils, selectdategui
-
-_cfg = configparser.ConfigParser()
-_cfg.read_file(open("bombrowser.ini"))
+import exporter, utils, selectdategui, cfg
 
 class CopyCode(QDialog):
     def __init__(self, rev_id, parent):
@@ -61,8 +58,8 @@ class CopyCode(QDialog):
         self._last_ver = data[0][7]
         self._last_revid = data[0][6]
 
-        self._descr_force_uppercase = _cfg["BOMBROWSER"].get("description_force_uppercase", "1")
-        self._code_force_uppercase = _cfg["BOMBROWSER"].get("code_force_uppercase", "1")
+        self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
+        self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
 
 
         self._init_gui()

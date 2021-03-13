@@ -29,10 +29,7 @@ from PySide2.QtGui import QStandardItemModel, QStandardItem, QColor
 
 from PySide2.QtCore import Qt, QAbstractTableModel, QEvent, QTimer
 
-import db, asmgui, codegui, diffgui, utils, listcodegui, jdutil
-
-_cfg = configparser.ConfigParser()
-_cfg.read_file(open("bombrowser.ini"))
+import db, asmgui, codegui, diffgui, utils, listcodegui, jdutil, cfg
 
 class SelectCode(QDialog):
     def __init__(self, parent):
@@ -247,17 +244,14 @@ class EditDates(QDialog):
             to_date = db.days_to_iso(to_date)
             self._table.item(row+1, col+1).setText(to_date)
 
-_cfg = configparser.ConfigParser()
-_cfg.read_file(open("bombrowser.ini"))
-
 class EditWindow(QMainWindow):
     def __init__(self, rid, parent=None):
         QMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._rid = rid
         self._orig_revision = None
-        self._descr_force_uppercase = _cfg["BOMBROWSER"].get("description_force_uppercase", "1")
-        self._code_force_uppercase = _cfg["BOMBROWSER"].get("code_force_uppercase", "1")
+        self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
+        self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
 
         self._init_gui()
 
@@ -329,7 +323,7 @@ class EditWindow(QMainWindow):
         qgb.setLayout(qgbg)
 
         self._gvals = []
-        gvalnames = _cfg.get("BOMBROWSER", "gvalnames").split(",")
+        gvalnames = cfg.config().get("BOMBROWSER", "gvalnames").split(",")
         i = 0
         row = 0
         for i in range(len(gvalnames)):

@@ -31,11 +31,7 @@ from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtCore import Qt, QAbstractTableModel, QEvent
 import pprint, configparser
 
-import db, asmgui
-
-_cfg = configparser.ConfigParser()
-_cfg.read_file(open("bombrowser.ini"))
-
+import db, asmgui, cfg
 
 class QHLine(QFrame):
     def __init__(self):
@@ -75,7 +71,7 @@ class CodeWidget(QWidget):
             ("Unit", "unit"),
         ]
 
-        gvalnames = _cfg.get("BOMBROWSER", "gvalnames").split(",")
+        gvalnames = cfg.config().get("BOMBROWSER", "gvalnames").split(",")
         i = 0
         for i in range(len(gvalnames)):
             self._main_data.append((gvalnames[i], "gval%d"%(i+1)))

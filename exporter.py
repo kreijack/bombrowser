@@ -21,18 +21,15 @@ import sys
 import os
 import json
 import io
-import configparser
 
 import db
-
-_cfg = configparser.ConfigParser()
-_cfg.read_file(open("bombrowser.ini"))
+import cfg
 
 def get_template_list():
     ret = []
-    template_list = _cfg.get("BOMBROWSER", "templates_list").split(",")
+    template_list = cfg.config().get("BOMBROWSER", "templates_list").split(",")
     for template_section in template_list:
-        ret.append(_cfg.get(template_section, "name"))
+        ret.append(cfg.config().get(template_section, "name"))
     return ret
 
 class Exporter:
@@ -43,7 +40,7 @@ class Exporter:
             "Seq", "Level", "Code", "Code",
             "Description", "Unit",
             "Quantity", "Each", "Date from", "Date to"]
-        self._add_headers = _cfg.get("BOMBROWSER", "gvalnames").split(",")
+        self._add_headers = cfg.config().get("BOMBROWSER", "gvalnames").split(",")
         self._headers += self._add_headers
         self._db = db.DB()
 
@@ -168,19 +165,19 @@ class Exporter:
 
 
     def _export_as_table_by_template(self, template_name):
-        template_list = _cfg.get("BOMBROWSER", "templates_list").split(",")
+        template_list = cfg.config().get("BOMBROWSER", "templates_list").split(",")
         for template_section in template_list:
-            if _cfg.get(template_section, "name") == template_name:
+            if cfg.config().get(template_section, "name") == template_name:
                 break
         else:
             # TBD show an error
             assert(False)
 
-        sortby=int(_cfg[template_section].get("sortby", -1))
-        columns=_cfg[template_section].get("columns").split(",")
-        captions=_cfg[template_section].get("captions").split(",")
-        unique=int(_cfg[template_section].get("unique", 0))
-        captions=_cfg[template_section].get("captions").split(",")
+        sortby=int(cfg.config()[template_section].get("sortby", -1))
+        columns=cfg.config()[template_section].get("columns").split(",")
+        captions=cfg.config()[template_section].get("captions").split(",")
+        unique=int(cfg.config()[template_section].get("unique", 0))
+        captions=cfg.config()[template_section].get("captions").split(",")
         table = []
 
         self._seq = 0
