@@ -74,7 +74,9 @@ class _BaseServer:
             c = self._conn.cursor()
             self._sqlex(c, """SELECT value FROM database_props WHERE "key"='ver'""")
             self._ver = c.fetchone()[0]
-            assert(self._ver == "0.3")
+
+            # for now v0.3 and v0.4 are equal
+            assert(self._ver == "0.4" or self._ver == "0.3")
 
         else:
             self._ver = "empty"
@@ -104,10 +106,10 @@ class _BaseServer:
         cursor = self._conn.cursor()
         return [row.table_name for row in cursor.tables()]
 
-    def _get_db_v0_3(self):
+    def _get_db_v0_4(self):
         stms = """
             --
-            -- ver 0.3
+            -- ver 0.4
             --
             DROP INDEX IF EXISTS items.item_code_idx;
             DROP INDEX IF EXISTS items.item_code_ver_idx;
@@ -133,15 +135,16 @@ class _BaseServer:
             CREATE TABLE item_revisions (
                 id              INTEGER NOT NULL IDENTITY PRIMARY KEY,
                 code_id         INTEGER,
-                date_from       VARCHAR(255) NOT NULL DEFAULT '2000-01-01',
-                date_to         VARCHAR(255) DEFAULT NULL,
-                date_from_days  INTEGER DEFAULT 0, -- 2000-01-01
+                date_from       VARCHAR(10) NOT NULL DEFAULT '2000-01-01',
+                date_to         VARCHAR(10) DEFAULT '',
+                date_from_days  INTEGER DEFAULT 0,          -- 2000-01-01
                 date_to_days    INTEGER DEFAULT 999999,
                 ver             VARCHAR(10) NOT NULL,
                 iter            INTEGER,
+                type            VARCHAR(255),
                 note            VARCHAR(255),
                 descr           VARCHAR(255) NOT NULL,
-                default_unit    VARCHAR(255) NOT NULL,
+                default_unit    VARCHAR(10) NOT NULL,
                 gval1           VARCHAR(255) DEFAULT '',
                 gval2           VARCHAR(255) DEFAULT '',
                 gval3           VARCHAR(255) DEFAULT '',
@@ -167,7 +170,7 @@ class _BaseServer:
             CREATE TABLE item_properties (
                 id          INTEGER NOT NULL PRIMARY KEY,
                 descr       VARCHAR(255),
-                value       VARCHAR(255),
+                value       VARCHAR(1024),
                 revision_id     INTEGER,
 
                 FOREIGN KEY (revision_id) REFERENCES item_revisions(id)
@@ -176,12 +179,12 @@ class _BaseServer:
 
             CREATE TABLE assemblies (
                 id              INTEGER NOT NULL IDENTITY PRIMARY KEY,
-                unit            VARCHAR(255),
+                unit            VARCHAR(10),
                 child_id        INTEGER,
                 revision_id     INTEGER,
                 qty             FLOAT,
                 each            FLOAT DEFAULT 1.0,
-                ref             VARCHAR(255) DEFAULT '',
+                ref             VARCHAR(600) DEFAULT '',
 
                 FOREIGN KEY (child_id) REFERENCES items(id),
                 FOREIGN KEY (revision_id) REFERENCES item_revisions(id)
@@ -196,7 +199,7 @@ class _BaseServer:
                 value       VARCHAR(255)
             );
 
-            INSERT INTO database_props ("key", value) VALUES ('ver', '0.3');
+            INSERT INTO database_props ("key", value) VALUES ('ver', '0.4');
 
             CREATE TABLE drawings (
                 id          INTEGER NOT NULL IDENTITY PRIMARY KEY,
@@ -216,7 +219,7 @@ class _BaseServer:
 
     def create_db(self):
 
-        stms = self._get_db_v0_3()
+        stms = self._get_db_v0_4()
         c = self._conn.cursor()
         for s in stms.split(";"):
             s = s.strip()
