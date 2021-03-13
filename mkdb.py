@@ -803,5 +803,25 @@ def create_db():
     finally:
         conn.commit()
 
+
+    cursor.executemany("""
+        INSERT INTO database_props("key", value)
+        VALUES (?, ?)
+    """,(
+            ("cfg.template_simple.name", "Simple table"),
+            ("cfg.template_simple.columns", "seq,level,code,indented_code,descr,qty,each,unit,ref,rev,iter,date_from,date_to"),
+            ("cfg.template_simple.captions", "Seq,Level,Code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date"),
+
+            ("cfg.template_all.name", "Full table"),
+            ("cfg.template_all.columns", "seq,level,parent,parent_descr,\"-\",code,indented_code,descr,qty,each,unit,ref,rev,iter,date_from,date_to,gval1,gval2,gval3,gval4,gval5,gval6"),
+            ("cfg.template_all.captions", "Seq,Level,Parent code,Parent descritpion,-,Code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date,Supplier#1 PN,Supplier#1 name,Manufacturer#1 PN,Manufacturer#1 name,Manufacturer#2 PN,Manufacturer#2 name"),
+
+            ("cfg.template_dummy.name", "Dummy table"),
+            ("cfg.template_dummy.columns", "seq,parent,code,descr,qty,each,unit,ref,rev,iter,date_from,date_to"),
+            ("cfg.template_dummy.captions", "Seq,Parent code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date")
+
+    ))
+    conn.commit()
+
 create_db()
 
