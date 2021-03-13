@@ -198,7 +198,7 @@ class _BaseServer:
             CREATE TABLE database_props (
                 id          INTEGER NOT NULL IDENTITY PRIMARY KEY,
                 "key"       VARCHAR(255),
-                value       VARCHAR(255)
+                value       VARCHAR(500)
             );
 
             INSERT INTO database_props ("key", value) VALUES ('ver', '0.4');
@@ -976,7 +976,7 @@ class _BaseServer:
 
     def update_by_rid(self, rid, descr, ver, default_unit,
             gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8,
-            drawings=None, children=None):
+            drawings=[], children=[]):
 
         c = self._conn.cursor()
         self._begin(c)
@@ -992,24 +992,24 @@ class _BaseServer:
                      gval6, gval7, gval8,
                      rid))
 
-            if not drawings is None:
-                self._sqlex(c, """
-                    DELETE FROM drawings
-                    WHERE revision_id = ?
-                """, (rid, ))
+            self._sqlex(c, """
+                DELETE FROM drawings
+                WHERE revision_id = ?
+            """, (rid, ))
+
+            if len(drawings) > 0:
 
                 self._sqlexm(c, """
                         INSERT INTO drawings(revision_id, filename, fullpath)
                         VALUES (?, ?, ?)
                     """, [(rid, name, path) for (name, path) in drawings])
 
-            if not children is None:
-                self._sqlex(c, """
-                    DELETE FROM assemblies
-                    WHERE revision_id = ?
-                """, (rid, ))
+            self._sqlex(c, """
+                DELETE FROM assemblies
+                WHERE revision_id = ?
+            """, (rid, ))
 
-
+            if len(children) > 0:
                 # (code_id, qty, each, unit)
                 self._sqlexm(c, """
                         INSERT INTO assemblies(
