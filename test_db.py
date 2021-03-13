@@ -1,3 +1,22 @@
+"""
+BOM Browser - tool to browse a bom
+Copyright (C) 2020 Goffredo Baroncelli <kreijack@inwind.it>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""
+
 import db
 import sys
 import datetime
@@ -31,10 +50,13 @@ def _test_insert_items(c):
                 "FOR1COD", "FOR1NAME"
             ))
 
-_connection_string="SQLITE::memory:"
+_use_memory_sqlite=True
 
 def _create_db():
-    d = db.DB() #_connection_string)
+    if _use_memory_sqlite:
+        d = db.DBSQLite(":memory:")
+    else:
+        d = db.DB() #_connection_string)
     d.create_db()
     cursor = d._conn.cursor()
 
@@ -403,6 +425,24 @@ def test_valid_where_used():
     assert(find_in_bom("O"))
 
 
+def test_get_config():
+    d, c = _create_db()
+
+    import cfg
+
+    c.execute("""
+        INSERT INTO database_props("key", value)
+        VALUES ('cfg.test_sect.test_key', 'test-value')
+    """)
+
+    ret = d.get_config()
+    cfg.update_cfg(ret)
+
+    assert(cfg.config()["test_sect"]["test_key"] == 'test-value')
+
+
+#------
+
 def run_test(filters):
     import inspect
     from inspect import getmembers, isfunction
@@ -435,18 +475,8 @@ if __name__ == "__main__":
             d = getdb.DB()
             d.create_db()
             sys.exit()
-        elif sys.argv[i] == "--sqlserver":
-            import configparser
-            cfg = configparser.ConfigParser()
-            cfg.read_file(open("bombrowser.ini"))
-            d = {
-                "driver": cfg.get("SQLSERVER", "driver"),
-                "server": cfg.get("SQLSERVER", "server"),
-                "database": cfg.get("SQLSERVER", "database"),
-                "username": cfg.get("SQLSERVER", "username"),
-                "password": cfg.get("SQLSERVER", "password"),
-            }
-            _connection_string = "SQLSERVER:DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password}".format(**d)
+        elif sys.argv[i] == "--use-ini-config":
+            _use_memory_sqlite=False
         elif sys.argv[i] == "--test":
             run_test(sys.argv[i+1:])
 

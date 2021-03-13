@@ -42,6 +42,8 @@ import configparser
 import time
 import jdutil
 import customize
+import cfg
+import traceback
 
 def increase_date(d, inc=+1):
     return (datetime.date.fromisoformat(d) +
@@ -1042,12 +1044,31 @@ class _BaseServer:
 
         self._commit(c)
 
+    def get_config(self):
+        ret = dict()
+        c = self._conn.cursor()
+        self._sqlex(c, """
+            SELECT "key", value FROM database_props
+        """)
+        for (key, value) in c.fetchall():
+            if not key.startswith("cfg."):
+                continue
+            key = key[4:] # skip cfg.
+            key1,key2 = key.split(".")
+
+            if not key1 in ret:
+                ret[key1] = dict()
+
+            ret[key1][key2] = value
+
+        return ret
+
+
+
+
 
 import sqlite3
 import traceback
-
-_cfg = configparser.ConfigParser()
-_cfg.read_file(open("bombrowser.ini"))
 
 class DBSQLServer(_BaseServer):
     def __init__(self, path=None):
@@ -1140,8 +1161,11 @@ class DBSQLite(_BaseServer):
             errmsg += "-"*30+"\n"
             errmsg += "Exception class is: " + str(er.__class__) + "\n"
             errmsg += 'SQLite traceback: \n'
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+            errmsg += traceback.format_exc()
+            #exc_type, exc_value, exc_tb = sys.exc_info()
+            #errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+            #print("e=",er)
+
 
             print(errmsg)
 
@@ -1353,18 +1377,18 @@ def DB(path=None):
 
         assert (False)
 
-    dbtype = _cfg.get("BOMBROWSER", "db")
+    dbtype = cfg.config().get("BOMBROWSER", "db")
     if dbtype == "sqlite":
-        path = _cfg.get("SQLITE", "path")
+        path = cfg.config().get("SQLITE", "path")
         _globaDBInstance = DBSQLite(path)
         return _globaDBInstance
     elif dbtype == "sqlserver":
         d = {
-            "driver": _cfg.get("SQLSERVER", "driver"),
-            "server": _cfg.get("SQLSERVER", "server"),
-            "database": _cfg.get("SQLSERVER", "database"),
-            "username": _cfg.get("SQLSERVER", "username"),
-            "password": _cfg.get("SQLSERVER", "password"),
+            "driver": cfg.config().get("SQLSERVER", "driver"),
+            "server": cfg.config().get("SQLSERVER", "server"),
+            "database": cfg.config().get("SQLSERVER", "database"),
+            "username": cfg.config().get("SQLSERVER", "username"),
+            "password": cfg.config().get("SQLSERVER", "password"),
         }
         d["password"] = customize.database_password(d["password"])
         connection_string = "DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password}".format(**d)
@@ -1372,20 +1396,21 @@ def DB(path=None):
         return _globaDBInstance
     elif dbtype == "postgresql":
         d = {
-            "server": _cfg.get("POSTGRESQL", "server"),
-            "database": _cfg.get("POSTGRESQL", "database"),
-            "username": _cfg.get("POSTGRESQL", "username"),
-            "password": _cfg.get("POSTGRESQL", "password"),
+            "server": cfg.config().get("POSTGRESQL", "server"),
+            "database": cfg.config().get("POSTGRESQL", "database"),
+            "username": cfg.config().get("POSTGRESQL", "username"),
+            "password": cfg.config().get("POSTGRESQL", "password"),
         }
         d["password"] = customize.database_password(d["password"])
         connection_string = "host={server} dbname={database} user={username} password={password}".format(**d)
         _globaDBInstance = DBPG(connection_string)
         return _globaDBInstance
     elif dbtype == "mariadb":
-        pwd = customize.database_password(_cfg.get("MARIADB", "password"))
-        _globaDBInstance = DBMariaDB(_cfg.get("MARIADB", "server"),
-            _cfg.get("MARIADB", "port"), _cfg.get("MARIADB", "database"),
-            _cfg.get("MARIADB", "username"), pwd)
+        pwd = customize.database_password(cfg.config().get("MARIADB", "password"))
+        _globaDBInstance = DBMariaDB(cfg.config().get("MARIADB", "server"),
+            cfg.config().get("MARIADB", "port"),
+            cfg.config().get("MARIADB", "database"),
+            cfg.config().get("MARIADB", "username"), pwd)
 
         return _globaDBInstance
     assert(False)
