@@ -1,44 +1,52 @@
+# TODO LIST:
 
-- handle the case where the bombrowser.ini file is missing
-- make an handler in db.py for showing a error dialog for incorrect SQL
-- refresh the properties
-- open some window by command line (bombrowser -openassy <code>/<date>)
+## UI
 
-- todiscuss: add the concept of "prototype" bom/code
+- [ ] add move children rows in the edit dialogs
+- [ ] add refresh in asm
+- [ ] show every where rid
+- [ ] in edit code add open assy
 
-- remake the db tests
+## GENERAL
 
-- rename get_drawings_by_code_id -> get_drawings_by_code_rid
-- show every where rid
-
-- BUG: investigating the reason why in the edit dialog, children table
-  the first column lost the 'italic' after an insert row
-- add a DB.get_last_code_by_code_id function which is more clear
-- in edit code add open assy
-
-- advance search (in all fields)
-- normalize/standardize the unit (now are a free text)
-- replace QMainWindow with BBMainWindow to better handle the windows list/closure
-
-- In the AssemblyWindow track the date and use it in the next Show Assembly
-
-- Implement an extern module to customize some function:
+- [ ] handle the case where the bombrowser.ini file is missing
+- [ ] refresh the properties
+- [ ] todiscuss: add the concept of "prototype" bom/code
+- [ ] advance search (in all fields)
+- [ ] normalize/standardize the unit (now are a free text)
+- [ ] gval: create a listbox menu
+- [ ] replace QMainWindow with BBMainWindow to better handle the windows list/closure
+- [ ] In the AssemblyWindow track the date and use it in the next Show Assembly
+- [ ] Implement an extern module to customize some function:
   - code validator
   - revise validator
-  - export format
-  - repo format (?)
+- [ ] add a README
+- [ ] check for loop when iterating a bom (e.g. exporter)
+- [ ] refactor the codegui in order to minimize the use of db
 
-- Ensure that during revise the latest rev_id is not changed
-- Ensure that during dates update latest rev_id is not changed,
-  and the date are always the same
+## Database
 
-- add a README
+- [ ] add a DB.get_last_code_by_code_id function which is more clear
+- [ ] remake the db tests (partially done)
+- [ ] Ensure that during revise the latest rev_id is not changed
+- [ ] Ensure that during dates update latest rev_id is not changed, and the date are always the same
+- [ ] add test for updating function
 
-- add move children rows in the edit dialogs
+## BUGS
 
-- add refresh in asm
+- [ ] BUG: investigating the reason why in the edit dialog, children table the first column lost the 'italic' after an insert row
+- [ ] make an handler in db.py for showing a error dialog for incorrect SQL
+- [ ] rename get_drawings_by_code_id -> get_drawings_by_code_rid
 
-- check for loop when iterating a bom (e.g. exporter)
+## TESTS
 
-- add test for template
-- add test fro assembly latest
+- [ ] add test for template
+- [ ] add test for assembly latest
+
+# DONE
+
+2021/03/12
+- [X] open some window by command line (bombrowser -openassy *code/date*)
+
+2021/03/11
+- [X] Implement a modular export format
