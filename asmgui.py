@@ -672,7 +672,12 @@ def show_latest_assembly(code_id):
 
     w = AssemblyWindow(None)
     w.show()
-    dt = db.days_to_iso(db.end_of_the_world)
+    dates = d.get_dates_by_code_id2(code_id)
+
+    dt = dates[0][4]
+    if dt == "":
+        dt = db.days_to_iso(db.end_of_the_world)
+
     data = d.get_bom_by_code_id2(code_id, dt)
     w.populate(*data, date_from=dt)
     QApplication.restoreOverrideCursor()
