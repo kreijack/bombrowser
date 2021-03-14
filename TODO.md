@@ -9,7 +9,6 @@
 
 ## GENERAL
 
-- [ ] handle the case where the bombrowser.ini file is missing
 - [ ] refresh the properties
 - [ ] todiscuss: add the concept of "prototype" bom/code
 - [ ] advance search (in all fields)
@@ -44,6 +43,9 @@
 - [ ] add test for assembly latest
 
 # DONE
+
+2021/03/14
+- [X] handle the case where the bombrowser.ini file is missing
 
 2021/03/12
 - [X] open some window by command line (bombrowser -openassy *code/date*)
