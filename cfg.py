@@ -21,7 +21,7 @@ import configparser
 
 _cfg = None
 
-def init(self):
+def init():
     global _cfg
     _cfg = configparser.ConfigParser()
     _cfg.read_file(open("bombrowser.ini"))
