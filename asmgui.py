@@ -157,9 +157,9 @@ class FindDialog(QDialog):
         self._do_search(next=True)
 
 
-class AssemblyWindow(QMainWindow):
+class AssemblyWindow(utils.BBMainWindow):
     def __init__(self, parent, asm=True, valid_where_used=False):
-        QMainWindow.__init__(self, parent)
+        utils.BBMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self._asm = asm
@@ -260,7 +260,6 @@ class AssemblyWindow(QMainWindow):
 
     def _build_windows_menu(self):
         utils.build_windows_menu(self._windowsMenu, self)
-        return
 
     def _copy_info_action(self):
         e = exporter.Exporter(self._top , self._data)

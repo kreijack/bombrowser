@@ -275,9 +275,9 @@ class EditDates(QDialog):
             to_date = db.days_to_iso(to_date)
             self._table.item(row+1, col+1).setText(to_date)
 
-class EditWindow(QMainWindow):
+class EditWindow(utils.BBMainWindow):
     def __init__(self, rid, parent=None):
-        QMainWindow.__init__(self, parent)
+        utils.BBMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._rid = rid
         self._orig_revision = None

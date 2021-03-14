@@ -177,11 +177,9 @@ class CodesWidget(QWidget):
     def getTableText(self):
         return self._copy_info
 
-
-
-class CodesWindow(QMainWindow):
+class CodesWindow(utils.BBMainWindowNotClose):
     def __init__(self, parent=None):
-        QMainWindow.__init__(self, parent)
+        utils.BBMainWindowNotClose.__init__(self, parent)
         self.setWindowTitle("BOMBrowser - Codes list")
 
         self._init_gui()
@@ -221,7 +219,7 @@ class CodesWindow(QMainWindow):
         helpMenu.addAction(a)
 
     def _build_windows_menu(self):
-        utils.build_windows_menu(self._windowsMenu, self, codes_list = False)
+        utils.build_windows_menu(self._windowsMenu, self)
         return
 
     def _exit_app(self):

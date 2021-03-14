@@ -30,9 +30,9 @@ import pprint, traceback
 
 import db, utils, selectdategui
 
-class DiffWindow(QMainWindow):
+class DiffWindow(utils.BBMainWindow):
     def __init__(self, id1, code1, date1, id2, code2, date2, parent=None):
-        QMainWindow.__init__(self, parent)
+        utils.BBMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._init_gui(id1, code1, date1, id2, code2, date2)
         self._create_menu()
