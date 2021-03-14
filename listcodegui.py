@@ -201,14 +201,12 @@ class CodesWindow(QMainWindow):
         closeAction.setShortcut("Ctrl+Q")
         closeAction.triggered.connect(self.close)
         exitAction = QAction("Exit", self)
-        exitAction.setShortcut("Ctrl+X")
         exitAction.triggered.connect(self._exit_app)
         fileMenu.addAction(closeAction)
         fileMenu.addAction(exitAction)
 
         editMenu = mainMenu.addMenu("Edit")
-        copyAction = QAction("Copy", self)
-        copyAction.setShortcut("Ctrl+C")
+        copyAction = QAction("Copy table values", self)
         copyAction.triggered.connect(self._copy_info_action)
         editMenu.addAction(copyAction)
 
