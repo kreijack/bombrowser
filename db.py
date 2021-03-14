@@ -460,39 +460,35 @@ class _BaseServer:
 
         return list(c.fetchall())
 
-    # TO REMOVE
-    def get_dates_by_code_id(self, id_code):
+    def get_parent_dates_range_by_code_id(self, id_code):
         c = self._conn.cursor()
-        self._sqlex(c, """SELECT DISTINCT i.code, r.date_from, r.date_to
-                     FROM            item_revisions AS r
-                     LEFT JOIN items AS i ON r.code_id = i.id
-                     WHERE           r.code_id = ?
-                     ORDER BY        r.date_from ASC
+        self._sqlex(c, """
+                SELECT r.code_id AS pid,
+                       MIN(r.date_from_days) AS dfrom,
+                       MAX(r.date_to_days) AS dto
+                FROM assemblies AS a
+                LEFT JOIN item_revisions AS r
+                    ON a.revision_id = r.id
+                WHERE a.child_id = ?
+                GROUP BY r.code_id
                   """, (id_code, ))
 
-        l =  [list(x) for x in c.fetchall()]
-        dtmax = ""
-        for i in l:
-            if i[2] == "":
-                dtmax = ""
-                break
-            if dtmax < i[2]:
-                dtmax = i[2]
-        l.sort(key= lambda x: x[1])
+        return list(c.fetchall())
 
-        i = 0
-        while i < len(l) -1:
-            if l[i][1] == l[i+1][1]:
-                l.pop(i)
-                continue
-            i += 1
+    def get_children_dates_range_by_rid(self, rid):
+        c = self._conn.cursor()
+        self._sqlex(c, """
+                SELECT a.child_id AS c_id,
+                       MIN(r.date_from_days) AS dfrom,
+                       MAX(r.date_to_days) AS dto
+                FROM assemblies AS a
+                LEFT JOIN item_revisions AS r
+                    ON a.child_id = r.code_id
+                WHERE a.revision_id = ?
+                GROUP BY a.child_id
+                  """, (rid, ))
 
-        for i in range(len(l)-1):
-            l[i][2] = increase_date(l[i+1][1], -1)
-
-        l[-1][2] = dtmax
-
-        return l
+        return list(c.fetchall())
 
     def is_assembly(self, id_code):
         c = self._conn.cursor()

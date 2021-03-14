@@ -90,8 +90,12 @@ class EditDates(QDialog):
 
     def _save(self):
 
+        d = db.DB()
+
         dates = []
         row_cnt = self._table.rowCount()
+        min_date_from_days = None
+        max_date_to_days = None
         for row in range(row_cnt):
             rid = int(self._table.item(row, 0).text())
             date_from = self._table.item(row, 4).text()
@@ -108,7 +112,38 @@ class EditDates(QDialog):
                     "Error in date format row %d"%(row+1))
                 return
 
+            if min_date_from_days is None or min_date_from_days > date_from_days:
+                min_date_from_days = date_from_days
+            if max_date_to_days is None or max_date_to_days > date_to_days:
+                max_date_to_days = date_to_days
+
             dates.append([rid, date_from, date_from_days, date_to, date_to_days])
+
+            # check that the date range has a shorter life than
+            # the children
+            for (cid, cdate_from_days, cdate_to_days) in d.get_children_dates_range_by_rid(rid):
+
+                if (cdate_from_days > date_from_days or
+                    cdate_to_days < date_to_days):
+
+                        QMessageBox.critical(self, "BOMBrowser",
+                            "The code dates (row=%d) are wider than the child id=%d ones"%(
+                                row+1, cid))
+                        return
+
+        # check that the date range has a wider life than
+        # any parents
+        for (pid, pdate_from_days, pdate_to_days) in d.get_parent_dates_range_by_code_id(self._code_id):
+
+            print("parent: ", (pid, pdate_from_days, pdate_to_days))
+            print("code: ", min_date_from_days, max_date_to_days)
+            if (pdate_from_days < min_date_from_days or
+                pdate_to_days > max_date_to_days):
+
+                    QMessageBox.critical(self, "BOMBrowser",
+                        "The code dates range are shorter than the parent id=%id one"%(
+                            pid))
+                    return
 
         if dates[0][3] != "" and dates[0][2] > dates[0][4]:
             QMessageBox.critical(self, "BOMBrowser",
@@ -124,7 +159,18 @@ class EditDates(QDialog):
         if dates[0][3] == "":
             dates[0][4] = db.end_of_the_world
 
-        d = db.DB()
+        # check that the date range has a wider life than
+        # the parent
+        for row in range(row_cnt):
+            rid = int(self._table.item(row, 0).text())
+            l = len(d.get_parent_dates_range_by_code_id(rid))
+            if l > 0:
+                QMessageBox.critical(self, "BOMBrowser",
+                    "The code dates (row=%d) are wider than the child '%d' ones"%(
+                        row+1, rid))
+                return
+
+
         try:
             d.update_dates(dates)
         except db.DBException as e:
@@ -420,7 +466,17 @@ class EditWindow(QMainWindow):
     def _change_dates(self):
         d = EditDates(int(self._id.text()), self)
         d.exec_()
-        self._populate_table()
+
+        d = db.DB()
+        data = d.get_code_from_rid(self._rid)
+
+        self.setWindowTitle("BOMBrowser - Edit code: %s @ %s"%(
+            data["code"], data["date_from"]))
+
+        self._from_date.setText(data["date_from"])
+        self._to_date.setText(data["date_to"])
+        self._from_date_days = data["date_from_days"]
+        self._to_date_days = data["date_to_days"]
 
     def _save_changes_prepare_data(self):
         d = db.DB()
@@ -476,6 +532,18 @@ class EditWindow(QMainWindow):
             if code in codes_set:
                 return ("Duplicated code '%s' in row %d'"%(code, i + 1),
                             None)
+
+
+            dates = d.get_dates_by_code_id2(code_id)
+            min_date_from_days = min([x[3] for x in dates])
+            max_date_to_days = min([x[5] for x in dates])
+
+            if (self._from_date_days < min_date_from_days or
+                self._to_date_days > max_date_to_days):
+
+                    return ("Children code '%s' in row %d' has shorter life date"%(code, i + 1),
+                            None)
+
             codes_set.add(code)
 
             children.append((code_id, qty, each, unit, ref))
@@ -554,8 +622,10 @@ class EditWindow(QMainWindow):
         self._orig_revision = data["ver"]
         self._iter.setText(str(data["iter"]))
         self._unit.setText(data["unit"])
-        self._from_date.setText(str(data["date_from"]))
+        self._from_date.setText(data["date_from"])
         self._to_date.setText(data["date_to"])
+        self._from_date_days = data["date_from_days"]
+        self._to_date_days = data["date_to_days"]
 
         # add the properties
         for i in range(len(self._gvals)):
@@ -626,6 +696,8 @@ class EditWindow(QMainWindow):
         if col == 2:
             d = db.DB()
             i = table.item(row, 2)
+            if self._code_force_uppercase == "1":
+                i.setText(i.text().upper())
             codes = d.get_codes_by_code(i.text())
 
             if codes is None or len(codes) == 0:

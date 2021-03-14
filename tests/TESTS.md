@@ -1509,6 +1509,80 @@ Expected result: the new date appears
 
 Passed: [X]
 
+### Test 10.16 - conflict date
+
+Preparatory steps:
+- create a component code (copying from an existing component); name it as COMP-A; set a Date from 2020-01-01.
+- Create a component code (copying from an existing component); name it as COMP-B; set a Date from 2020-01-01. Set "Date to" 2021-01-01
+- Create a component code (copying from an existing component); name it as ASS-A; set a Date from 2020-01-01. Set "Date to" 2021-01-01
+- Edit the code "ASS-A" adding as child the coponents COMP-A and COMP-B.
+
+### Test 10.16.1 - parent too early
+
+Test description:
+- enter in the edit dialog of code ASS-A
+- enter in the edit date dialog
+- change the "From date" to 2019-01-01
+- press "Save button"
+
+Expected result: an error dialog appears saying that the date range is wider than the children one
+
+Passed: [X]
+
+### Test 10.16.2 - parent too late
+
+Test description:
+- enter in the edit dialog of code ASS-A
+- enter in the edit date dialog
+- change the "To date" to 2022-01-01
+- press "Save button"
+
+Expected result: an error dialog appears saying that the date range is wider than the children one
+
+Passed: [X]
+
+### Test 10.16.3 - children too late
+
+Test description:
+- enter in the edit dialog of code COMP-B
+- enter in the edit date dialog
+- change the "From date" to 2020-06-01
+- press "Save button"
+
+Expected result: an error dialog appears saying that the date range is shorter than the parent one
+
+### Test 10.16.4 - children too early
+
+Test description:
+- enter in the edit dialog of code ASS-A
+- enter in the edit date dialog
+- change the "To date" to 2020-06-01
+- press "Save button"
+- enter in the edit dialog of code COMP-B
+- enter in the edit date dialog
+- change the "To date" to 2020-03-01
+- press "Save button"
+
+Expected result: an error dialog appears saying that the date range is shorter than the parent one
+
+Passed: [X]
+
+### Test 10.16.4 - children too early
+
+Test description:
+- enter in the edit dialog of code ASS-A
+- remove the child COMP-B
+- press "Save" and the "Cancel"
+- enter in the edit dialog of code COMP-B
+- enter in the edit date dialog
+- change the "To date" to 2020-03-01
+- enter in the edit dialog of code ASS-A
+- add as child COMP-B
+
+Expected result: an error dialog appears saying that the date range is shorter than the parent one
+
+Passed: [X]
+
 
 # RESULTS:
 2020-03-08 v0.4.0b2

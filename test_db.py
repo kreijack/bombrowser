@@ -263,6 +263,75 @@ def _test_insert_assembly(c):
                             '//')
                     )
 
+def test_get_parent_dates_range_by_code_id():
+    d, c = _create_db()
+
+    _test_insert_assembly(c)
+
+    c.execute("SELECT id FROM items WHERE code=?", ("I",))
+    i_id = c.fetchone()[0]
+
+    data = d.get_parent_dates_range_by_code_id(i_id)
+
+    c.execute("SELECT id FROM items WHERE code=?", ("M",))
+    m_id = c.fetchone()[0]
+    c.execute("SELECT id FROM items WHERE code=?", ("C",))
+    c_id = c.fetchone()[0]
+
+    for row in data:
+        if row[0] == m_id:
+            break
+
+    assert(row[0] == m_id)
+    assert(row[1] == db.iso_to_days("2020-01-25"))
+    assert(row[2] == db.end_of_the_world)
+
+    for row in data:
+        if row[0] == c_id:
+            break
+
+    assert(row[0] == c_id)
+    assert(row[1] == db.iso_to_days("2020-01-15"))
+    assert(row[2] == db.end_of_the_world)
+
+def test_get_children_dates_range_by_rid():
+    d, c = _create_db()
+
+    _test_insert_assembly(c)
+
+    c.execute("""
+        SELECT MAX(r.id)
+        FROM item_revisions AS r
+        LEFT JOIN items AS i
+          ON r.code_id = i.id
+        WHERE i.code=?""", ("A",))
+    a_rid = c.fetchone()[0]
+
+    data = d.get_children_dates_range_by_rid(a_rid)
+
+    assert(len(data) == 2)
+
+    c.execute("SELECT id FROM items WHERE code=?", ("B",))
+    b_id = c.fetchone()[0]
+    c.execute("SELECT id FROM items WHERE code=?", ("M",))
+    m_id = c.fetchone()[0]
+
+    for row in data:
+        if row[0] == b_id:
+            break
+
+    assert(row[0] == b_id)
+    assert(row[1] == db.iso_to_days("2020-01-10"))
+    assert(row[2] == db.end_of_the_world)
+
+    for row in data:
+        if row[0] == m_id:
+            break
+
+    assert(row[0] == m_id)
+    assert(row[1] == db.iso_to_days("2020-01-25"))
+    assert(row[2] == db.end_of_the_world)
+
 def test_is_assembly():
     d, c = _create_db()
 
