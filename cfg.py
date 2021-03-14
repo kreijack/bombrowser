@@ -19,8 +19,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import configparser
 
-_cfg = configparser.ConfigParser()
-_cfg.read_file(open("bombrowser.ini"))
+_cfg = None
+
+def init(self):
+    global _cfg
+    _cfg = configparser.ConfigParser()
+    _cfg.read_file(open("bombrowser.ini"))
 
 def config():
     return _cfg

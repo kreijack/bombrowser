@@ -22,15 +22,15 @@ import sys
 from PySide2.QtWidgets import QApplication
 from PySide2.QtWidgets import QMessageBox
 
-import db, listcodegui
+import db, listcodegui, cfg
 
 def main(args):
     app = QApplication(sys.argv)
 
     try:
-        import cfg
+        cfg.init()
     except:
-        QMessageBox.critical(None, "BOMBrowser", "Cannot load configuration\nAbort")
+        QMessageBox.critical(None, "BOMBrowser", "Cannot load configuration: may be bombroser.ini missing ?\nAbort")
         return
 
     d = db.DB()
