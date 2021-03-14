@@ -2,6 +2,20 @@
 
 # BOMBrowser tests list
 
+## Index
+
+- 1 - BOMBrowser - Codes list
+- 2 - 'Code gui' panel
+- 3 - BOMBrowser - Assembly
+- 4 - BOMBrowser - Valid where used
+- 5 - BOMBrowser - Where used
+- 6 - BOMBrowser - Select date (empty)
+- 7 - BOMBrowser - Diff window (TBD)
+- 8 - BOMBrowser - Copy/revise code
+- 9 - BOMBrowser - Edit code
+- 10 - BOMBrowser - Edit date
+- 11 - Generic test
+
 ## Preface
 
 This tests list assumes that you are working with the test database generaded
@@ -12,7 +26,7 @@ This tests list is related to the v0.4.
 
 ### Test 1.1 - search a code
 
-Test description: Insert the code '820037' in the 'Code' field and press ENTER
+Test description: Insert the code '820037' in the 'Code' field and press **ENTER**
 
 Expected results: The code 820037 is showed
 
@@ -20,7 +34,7 @@ Passed: [X]
 
 ### Test 1.2 - search a code (2)
 
-Test description: Insert the code '820038' in the 'Code' field and press the button 'Search'
+Test description: Insert the code '820038' in the 'Code' field and press the button **'Search'**
 
 Expected results: The code 820038 is showed
 
@@ -38,7 +52,7 @@ Passed: [X]
 
 Test description: Insert the code '%BOARD%13' in the 'Description' field and press ENTER
 
-Expected results: The code 610014 - "BOARD 13" is showed
+Expected results: The code 610013 - "BOARD 13" is showed
 
 Passed: [X]
 
@@ -60,15 +74,7 @@ Passed: [X]
 
 ### Test 1.7 - assembly
 
-Test description: Insert the code '820037' in the 'Code' field,  and press the button 'Search'; press the right mouse button on the first entry and select the "Show assembly" command.
-
-Expected results: The "BOMBrowser: select date" dialog is showed; thsi dialog contains a list of 820037 codes.
-
-Passed: [X]
-
-### Test 1.9 - assembly
-
-Test description: Insert the code '820037' in the 'Code' field,  and press the button 'Search'; ipress the right mouse button on the first entry and select the "Show assembly" command.
+Test description: Insert the code '820037' in the 'Code' field,  and press the button 'Search'; press the right mouse button on the first entry and select the "Show assembly by date" command.
 
 Expected results: The "BOMBrowser: select date" dialog is showed; this dialog contains a list of 820037 codes.
 
@@ -84,7 +90,7 @@ Passed: [X]
 
 ### Test 1.12 - where used (2)
 
-Test description: Insert the code '100037' in the 'Code' field,  and press the button 'Search'; press the right mouse button on the first entry and select the "Show where used" command.
+Test description: Insert the code '10037' in the 'Code' field,  and press the button 'Search'; press the right mouse button on the first entry and select the "Show where used" command.
 
 Expected results: The "BOMBrowser" error dialog is showed; this dialog says "The item is not in an assembly".
 
@@ -92,7 +98,11 @@ Passed: [X]
 
 ### Test 1.13 - valid where used
 
-Test description: Insert the code '810036' in the 'Code' field,  and press the button 'Search'; press the right mouse button on the first entry and select the "Show where used" command.
+Test description:
+- Insert the code '810036' in the 'Code' field
+- press the button 'Search'
+- press the right mouse button on the first entry
+- select the "Show where used" command.
 
 Expected results: The "BOMBrowser - Valid where used" window is showed
 
@@ -100,7 +110,11 @@ Passed: [X]
 
 ### Test 1.14 - valid where used (2)
 
-Test description: Insert the code '100037' in the 'Code' field,  and press the button 'Search'; press the right mouse button on the first entry and select the "Show where used" command.
+Test description:
+- Insert the code '100037' in the 'Code' field
+- and press the button 'Search'
+- press the right mouse button on the first entry
+- select the "Show where used" command.
 
 Expected results: The "BOMBrowser" error dialog is showed; this dialog says "The item is not in an assembly".
 
@@ -108,7 +122,11 @@ Passed: [X]
 
 ### Test 1.15 - revise/copy code
 
-Test description: Insert the code '810037' in the 'Code' field,  and press the button 'Search'; press the right mouse button on the first entry and select the "Revise/copy code" command.
+Test description:
+- Insert the code '810037' in the 'Code' field,
+- press the button 'Search'
+- press the right mouse button on the first entry
+- select the "Revise/copy code" command.
 
 Expected results: The "BOMBrowser: select date" dialog is showed; this contains a list of the code 810037.
 
@@ -116,7 +134,11 @@ Passed: [X]
 
 ### Test 1.16 - edit code
 
-Test description: Insert the code '810036' in the 'Code' field,  and press the button 'Search'; press the right mouse button on the first entry and select the "Edit code" command.
+Test description:
+- Insert the code '810036' in the 'Code' field
+- and press the button 'Search'
+- press the right mouse button on the first entry
+- select the "Edit code" command.
 
 Expected results: The "BOMBrowser - Edit code" window showed; this contains the code 810036 properties.
 
@@ -124,7 +146,11 @@ Passed: [X]
 
 ### Test 1.17 - diff from
 
-Test description: Insert the code '810037' in the 'Code' field,  and press the button 'Search'; press the right mouse button on the first entry and select the "Diff from" command.
+Test description:
+- Insert the code '810037' in the 'Code' field
+- press the button 'Search'
+- press the right mouse button on the first entry
+- select the "Diff from" command.
 
 Expected results: The "BOMBrowser" error dialog is showed; this dialog says "The item is not in an assembly".
 
@@ -132,7 +158,11 @@ Passed: [X]
 
 ### Test 1.18 - diff from (2x)
 
-Test description: Insert the code '820036' in the 'Code' field,  and press the button 'Search'; press the right mouse button on the first entry and select the "Diff from" command.
+Test description:
+- Insert the code '820036' in the 'Code' field
+- press the button 'Search'
+- press the right mouse button on the first entry
+- select the "Diff from" command.
 
 Expected results: The "BOMBrowser: select date" dialog is showed; this dialog contains a list of 820036 codes.
 
@@ -140,7 +170,11 @@ Passed: [X]
 
 ### Test 1.19 - diff to
 
-Test description: Insert the code '810037' in the 'Code' field,  and press the button 'Search'; press the right mouse button on the first entry and select the "Diff to" command.
+Test description:
+- Insert the code '810037' in the 'Code' field
+- press the button 'Search'
+- press the right mouse button on the first entry
+- select the "Diff to" command.
 
 Expected results: The "BOMBrowser" error dialog is showed; this dialog says "The item is not in an assembly".
 
@@ -148,11 +182,15 @@ Passed: [X]
 
 ### Test 1.20 - diff to (2x)
 
-Test description: Insert the code '820036' in the 'Code' field,  and press the button 'Search'; press the right mouse button on the first entry and select the "Diff to" command.
+Test description:
+- Insert the code '820036' in the 'Code' field
+- press the button 'Search'
+- press the right mouse button on the first entry
+- select the "Diff to" command.
 
 Expected results: The "BOMBrowser: select date" dialog is showed; this dialog contains a list of 820036 codes.
 
-Passed: [X]
+Passed: X ]
 
 ### Test 1.21 - menu->help->about
 
@@ -165,22 +203,31 @@ Passed: [X]
 ### Test 1.22 - menu->window
 
 Test description:
- - insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
- - go back to the "BOMBrowser - code list"; press the right mouse button on the first entry and select the "Where used" command.
- - go back to the "BOMBrowser - code list"; press the right mouse button on the first entry and select the "Valid where used" command.
-- go back to the "BOMBrowser - code list"; press the right mouse button on the first entry and select the "Edit code" command.
+- insert code 820037
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date and doubleckick on it
+- go back to the "BOMBrowser - code list"
+- press the right mouse button on the first entry
+- select the "Where used" command.
+- go back to the "BOMBrowser - code list"
+- press the right mouse button on the first entry
+- select the "Valid where used" command.
+- go back to the "BOMBrowser - code list"
+- press the right mouse button on the first entry
+- select the "Edit code" command.
 
-Four windows are opened. Select the "Windows menu" in the "BOMBrowser - Codes list" window:
+- Four windows are opened. Select the "Windows menu" in the "BOMBrowser - Codes list" window:
 
-Expected results: in the menu are showed the three windows: BOMBrowser - Where used, BOM Browser - valid where used, BOMBrowser assembly.
+Expected results: in the menu are showed the four windows: BOMBrowser - Where used, BOM Browser - valid where used, BOMBrowser assembly, BOMBrowser - edit
 
 Passed: [X]
 
 ### Test 1.23 - menu->file->close
 Test description:
- - insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
- - go back to the "BOMBrowser - code list"; press the right mouse button on the first entry and select the "Where used" command.
-Two windows are opened. Select the "File->Quit" in the "BOMBrowser - Codes list" window:
+- insert code 820037
+- press the right mouse button on the first entry and select the "Where used" command.
+- Two windows are opened. Select the "File->Quit" in the "BOMBrowser - Codes list" window:
 
 Expected results: The "BOMBrowser - Codes" list is closed. "BOMBrowser - Where used" is opened.
 
@@ -188,8 +235,8 @@ Passed: [X]
 
 ### Test 1.24 -Ctrl-Q  menu->file->close
 Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
-- go back to the "BOMBrowser - code list"; press the right mouse button on the first entry and select the "Where used" command.
+- insert code 820037
+- press the right mouse button on the first entry and select the "Where used" command.
 - Two windows are opened. Set the focus to the "BOMBrowser - Codes list"
 - press CTRL-Q
 
@@ -199,8 +246,8 @@ Passed: [X]
 
 ### Test 1.25 - menu->file->exit
 Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
-- go back to the "BOMBrowser - code list"; press the right mouse button on the first entry and select the "Where used" command.
+- insert code 820037
+- press the right mouse button on the first entry and select the "Where used" command.
 - Two windows are opened. Select the "File->Exit" in the "BOMBrowser - Codes list" window:
 
 Expected results: a dialog BOMBrowser asking about the possibility to exit is showed.
@@ -209,8 +256,8 @@ Passed: [X]
 
 ### Test 1.26 - menu->file->exit (2)
 Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
-- go back to the "BOMBrowser - code list"; press the right mouse button on the first entry and select the "Where used" command.
+- insert code 820037
+- press the right mouse button on the first entry and select the "Where used" command.
 - Two windows are opened. Select the "File->Exit" in the "BOMBrowser - Codes list" window
 - A dialog BOMBrowser asking about the possibility to exit is showed. Press No
 
@@ -220,82 +267,54 @@ Passed: [X]
 
 ### Test 1.27 - menu->file->exit (3)
 Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
-- go back to the "BOMBrowser - code list"; press the right mouse button on the first entry and select the "Where used" command.
+- insert code 820037
+- press the right mouse button on the first entry and select the "Where used" command.
 - Two windows are opened. Select the "File->Exit" in the "BOMBrowser - Codes list" window:
 - A dialog BOMBrowser asking about the possibility to exit is showed. Press Yes
 
-Expected results: The application is ended. Now window is hsowed
+Expected results: The application is ended. Now window is sowed
 
 Passed: [X]
 
-
-### Test 1.28 -Ctrl-X menu->file->exit
-Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
-- go back to the "BOMBrowser - code list"; press the right mouse button on the first entry and select the "Where used" command.
-- Two windows are opened. Set the focus to the "BOMBrowser - Codes list", then press CTRL-X
-
-Expected results: a dialog BOMBrowser asking about the possibility to exit is showed.
-
-Passed: [X]
-
-### Test 1.29 -Ctrl-X menu->file->exit (2)
-Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
-- go back to the "BOMBrowser - code list"; press the right mouse button on the first entry and select the "Where used" command.
-- Two windows are opened. Set the focus to the "BOMBrowser - Codes list", then press CTRL-X.
-- a dialog BOMBrowser asking about the possibility to exit is showed. Press no.
-
-Expected results: Two windows are opened
-
-Passed: [X]
-
-### Test 1.30 -Ctrl-X menu->file->exit (3)
-Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
-- go back to the "BOMBrowser - code list"; press the right mouse button on the first entry and select the "Where used" command.
-- Two windows are opened. Set the focus to the "BOMBrowser - Codes list", then press CTRL-X.
-- a dialog BOMBrowser asking about the possibility to exit is showed. Press yes.
-
-Expected results: The application is ended. No window is showed
-
-Passed: [X]
 
 ### Test 1.31 - Menu->edit->copy
-Test description: insert code %6% and press ENTER;  select menu->edit->copy
+Test description:
+- insert code %6% and press ENTER;
+- select menu->edit->copy
 
 Expected results: Paste the clipboard in an editr and check that there is the same table showed in the BOMBrowser - Codes list. Check that the number of row are the same +1 of the "BOMBrowser - Codes list" widow (there is the header)
 
 Passed: [X]
 
-### Test 1.32 - Ctrl-C (Menu->edit->copy)
 
-Test description: insert code %6% and press ENTER;  press CTRL-C.
-
-Expected result: Paste the clipboard in an editr and check that there is the same table showed in the BOMBrowser - Codes list. Check that the number of row are the same +1 of the "BOMBrowser - Codes list" widow (there is the header)
-
-Passed: [X]
 
 ### Test 1.33 - Code gui
-Test description: insert code 8200% and press ENTER; Select the first entry
+Test description:
+- insert code 8200% and press ENTER
+- Select the first entry
 
 Expected result: the information of the selected code is showed in the right panel
 
 Passed: [X]
 
 ### Test 1.34 - Code gui (2)
-Test description: insert code 8200% and press ENTER; Select the first entry; then select the 2nd entry.
+Test description:
+- insert code 8200% and press ENTER
+- Select the first entry
+- then select the 2nd entry.
 
-Expected result: the information of the selected code is showed in the right panel
+Expected result: the information of the selected codes are showed in the right panel
 
 Passed: [X]
 
 
-## 2 - 'Code gui'
+## 2 - 'Code gui' panel
 
 ### Test 2.1 - general
-Test description: In the "BOMBrowser - codes list" window insert code 8200% and press ENTER; Select the first entry (820000)
+Test description:
+- In the "BOMBrowser - codes list" window insert code 8200%
+- press ENTER
+- Select the first entry (820000)
 
 Expected result: on the left panel there are the information of the selected code
 
@@ -303,8 +322,10 @@ Passed: [X]
 
 ### Test 2.2 - multiple revision
 Test description:
-- In the "BOMBrowser - codes list" window insert code 8200% and press ENTER; Select the 2nd entry (820001)
-- Select another date in the rightmodt combobox
+- In the "BOMBrowser - codes list" window insert code 8200%
+- press ENTER
+- Select the 2nd entry (820001)
+- Select another date in the rightmost combobox
 
 Expected result: The information on the panel are changed accordly
 
@@ -320,7 +341,9 @@ Passed: [X]
 
 ### Test 2.4 - documents
 Test description:
-- In the "BOMBrowser - codes list" window insert code 8200% and press ENTER; Select the 2nd entry (820001)
+- In the "BOMBrowser - codes list" window insert code 8200%
+- press ENTER
+- Select the 2nd entry (820001)
 
 Expected result: In the bottom part are showed two buttons with two documens
 
@@ -328,7 +351,10 @@ Passed: [X]
 
 ### Test 2.5 - documents (2x)
 Test description:
-- In the "BOMBrowser - codes list" window insert code 8200% and press ENTER; Select the 2nd entry (820001)
+- In the "BOMBrowser - codes list" window insert code 8200%
+- press ENTER
+- Select the 2nd entry (820001)
+- Select a document button
 
 Expected result: Clicking one button document, the related document will be opened
 
@@ -336,7 +362,10 @@ Passed: [X]
 
 ### Test 2.6 - Copy info..
 Test description:
-- In the "BOMBrowser - codes list" window insert code 8200% and press ENTER; Select the 2nd entry (820001); Press copy info
+- In the "BOMBrowser - codes list" window insert code 8200%
+- press ENTER
+- Select the 2nd entry (820001)
+- Press copy info
 
 Expected result: Pasting the clipboard content in a editor, the relevant information are showed
 
@@ -348,7 +377,7 @@ Passed: [X]
 Test description:
 - insert code "820037" in "BOMBrowser - Code list"
 - press the right mouse button on the first entry
-- select the "Show assembly" command.
+- select the "Show assembly by date" command.
 - "The BOMBrowser: Select Date" dialog is showed.
 - Check that it is a modal dialog trying to click in the "parent" window
 
@@ -360,8 +389,8 @@ Passed: [X]
 Test description:
 - insert code "820037" in "BOMBrowser - Code list"
 - press the right mouse button on the first entry
-- select the "Show assembly" command.
-- "The BOMBrowser: Select Date" dialog is showed.
+- select the "Show assembly by date" command.
+- "The BOMBrowser: Select Date" dialog is showed.d.
 - Press the Cancel button
 
 Expected result: The dialog disappear
@@ -372,9 +401,10 @@ Passed: [X]
 Test description:
 - insert code "820037" in "BOMBrowser - Code list"
 - press the right mouse button on the first entry
-- select the "Show assembly" command.
+- select the "Show assembly by date" command.
 - "The BOMBrowser: Select Date" dialog is showed.
-- Select the first item, the press the "Select" button.
+- Select the first item
+- press the "Select" button.
 
 Expected result: The "BOMBrowser - Assembly" window appears. Check that the date in the window title is the same that you selected
 
@@ -384,7 +414,7 @@ Passed: [X]
 Test description:
 - insert code "810037" in "BOMBrowser - Code list"
 - press the right mouse button on the first entry
-- select the "Show assembly" command.
+- select the "Show assembly by date" command.
 
 Expected results: The "BOMBrowser" error dialog is showed; this dialog says "The item is not an assembly".
 
@@ -394,12 +424,12 @@ Passed: [X]
 Test description:
 - insert code "820037" in "BOMBrowser - Code list"
 - press the right mouse button on the first entry
-- select the "Show assembly" command.
+- select the "Show assembly by date" command.
 - "The BOMBrowser: Select Date" dialog is showed.
-- Select the first item, and press the "Select button". The Assembly window
-  appears
-- Select an item with an assembly (e.g electronic board)
-- then RMB click and then execute Show Assembly.
+- Select the first item
+- press the "Select" button".
+- The Assembly window appears; Select an item with an assembly (e.g electronic board)
+- then RMB click and then execute "Show Assembly by date".
 
 Expected result: A new "Select date" window is showed.
 
@@ -408,7 +438,7 @@ Passed: [X]
 ### Test 3.8 - where used (2)
 - insert code "100000" in "BOMBrowser - Code list"
 - press the right mouse button on the first entry
-- select the "Show assembly" command.
+- select the "Show assembly by date" command.
 - "The BOMBrowser: Select Date" dialog is showed.
 - Select the first item, and press the "Select button". The Assembly window
   appears
@@ -430,7 +460,7 @@ Passed: [X]
 
 Expected result: a where used window appears
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.11- menu->help->about
 
@@ -443,9 +473,10 @@ Passed: [X]
 ### Test 3.12 - menu->window
 
 Test description:
-- insert code 82037 in "BOMBrowser - Codes list"
-- press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
-- go back to the "BOMBrowser - code list"; press the right mouse button on the first entry and select the "Where used" command.
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
 
 Two windows are opened. Select the "Windows menu" in the "BOMBrowser - Assembly" window:
 
@@ -455,10 +486,11 @@ Passed: [X]
 
 ### Test 3.13 - menu->file->close
 Test description:
-- insert code 82037 in "BOMBrowser - Codes list"
-- press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
- - go back to the "BOMBrowser - Assembly"; press the right mouse button on the first entry and select the "Where used" command.
-Two windows are opened. Select the "File->Quit" in the "BOMBrowser - Assembly" window:
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
+- Two windows are opened. Select the "File->Quit" in the "BOMBrowser - Assembly" window:
 
 Expected results: The "BOMBrowser - Assembly" list is closed. "BOMBrowser - Codes list" is opened.
 
@@ -466,9 +498,11 @@ Passed: [X]
 
 ### Test 3.14 -Ctrl-Q  menu->file->close
 Test description:
-- insert code 82037 in "BOMBrowser - Codes list"
-- press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
-Two windows are opened. Set the focus to the "BOMBrowser - Assembly", then press CTRL-Q
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
+- two windows are opened. Set the focus to the "BOMBrowser - Assembly", then press CTRL-Q
 
 Expected results: The "BOMBrowser - Assembly" is closed. "BOMBrowser - Codes list" is opened.
 
@@ -476,16 +510,22 @@ Passed: [X]
 
 ### Test 3.15 - menu->file->exit
 Test description:
-- insert code 82037 in "BOMBrowser - Codes list"
-- press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
-Two windows are opened. Select the "File->Exit" in the "BOMBrowser - Assembly" window:
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
+- Two windows are opened. Select the "File->Exit" in the "BOMBrowser - Assembly" window:
+
 Expected results: a dialog BOMBrowser asking about the possibility to exit is showed.
+
 Passed: [X]
 
 ### Test 3.16 - menu->file->exit (2)
 Test description:
-- insert code 82037 in "BOMBrowser - Codes list"
-- press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
 - Two windows are opened. Select the "File->Exit" in the "BOMBrowser - Codes list" window:
 - A dialog BOMBrowser asking about the possibility to exit is showed. Press No
 
@@ -495,8 +535,10 @@ Passed: [X]
 
 ### Test 3.17 - menu->file->exit (3)
 Test description:
-- insert code 82037 in "BOMBrowser - Codes list"
-- press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
 - Two windows are opened. Select the "File->Exit" in the "BOMBrowser - Assembly" window:
 - a dialog BOMBrowser asking about the possibility to exit is showed; press Yes
 
@@ -506,16 +548,22 @@ Passed: [X]
 
 ### Test 3.18 - menu->file->exit
 Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
 - Two windows are opened. Press CTRL-X
 
 Expected results: a dialog BOMBrowser asking about the possibility to exit is showed.
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.19 - menu->file->exit (2)
 Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
 - Two windows are opened. Press CTRL-X
 - A dialog BOMBrowser asking about the possibility to exit is showed. Press No
 
@@ -525,7 +573,10 @@ Passed: [X]
 
 ### Test 3.20 - menu->file->exit (3)
 Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
 - Two windows are opened. Press CTRL-X
 - A dialog BOMBrowser asking about the possibility to exit is showed. Press Yes
 
@@ -536,7 +587,10 @@ Passed: [X]
 
 ### Test 3.21 - menu->file->export as json
 Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
 - Select File->export as json
 - Save the file and reopen it in a editor
 
@@ -546,8 +600,11 @@ Passed: [X]
 
 ### Test 3.22 - menu->file->export as CVS
 Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
-- Select File->export as json
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
+- Select File->export as csv
 - Save the file and reopen it in a editor
 
 Expected results: The file is in a CVS (tab separated fields) format
@@ -556,7 +613,10 @@ Passed: [X]
 
 ### Test 3.23 - menu->view->show up level 1
 Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
 - Select View->show up level 1
 
 Expected results: The bom is collapsed to showing only the first level (top code and its children)
@@ -565,7 +625,10 @@ Passed: [X]
 
 ### Test 3.24 - menu->view->show up level 2
 Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
 - Select View->show up level 2
 
 Expected results: The bom is collapsed to showing only the two levels (top code and its children, and their children)
@@ -574,8 +637,11 @@ Passed: [X]
 
 ### Test 3.25 - menu->view->show all levels
 Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
-- Select View->show up level 2
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
+- Select View->show all level
 
 Expected results: The bom is showing all levels
 
@@ -583,7 +649,10 @@ Passed: [X]
 
 ### Test 3.26 - menu->view->show up level 1 (ctrl-1)
 Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
 - Press CTRL-1
 
 Expected results: The bom is collapsed to showing only the first level (top code and its children)
@@ -592,7 +661,10 @@ Passed: [X]
 
 ### Test 3.27 - menu->view->show up level 2 (ctrl-2)
 Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
 - Press CTRL-2
 
 Expected results: The bom is collapsed to showing only the two levels (top code and its children, and their children)
@@ -601,7 +673,10 @@ Passed: [X]
 
 ### Test 3.28 - menu->view->show all levels (CTRL-A)
 Test description:
-- insert code 82037;  press the right mouse button on the first entry and select the "Show assembly" command; select the first date doubleckicking on it.
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
 - Press CTRL-A
 
 Expected results: The bom is showing all levels
@@ -611,8 +686,9 @@ Passed: [X]
 ### Test Set 3.29 - find
 
 Prepratory steps:
-- insert code 82037 in the BOMBrowser codes list window
-- press the right mouse button on the first entry and select the "Show assembly" command
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
 - select the first date doubleckicking on it.
 - the BOMBrowser Assembly window is showed
 
@@ -634,7 +710,7 @@ Passed: [X]
 Test description:
 - Select Search->Find
 - The find dialog is showed
-- Press "cancel" button
+- Press "Close" button
 
 Expected results: The find dialog is closed
 
@@ -677,6 +753,7 @@ Expected results: After thelast action a dialog "Data not found" is showed
 Passed: [X]
 
 #### Test 3.29.7 - find a code
+
 Test description:
 - Select Search->Find
 - The find dialog is showed
@@ -684,6 +761,36 @@ Test description:
 - Press "next" going below the bom until a dialog "Data not found" is showed
 
 Expected results: After thelast action a dialog "Data not found" is showed
+
+Passed: [X]
+
+### Test 3.30 - show latest assembly
+
+Test description:
+- in "Code list" window, select the code 820017
+- select the code
+- look at right panel codegui. Check that the "Date to" is blank
+- if not, edit the code and change the "Date to" date accordling
+- from the RBM menu select "Show latest assembly"
+
+Expected results:
+- The window "Assembly" is showed
+- The date on the title is replaced by "LATEST"
+
+Passed: [X]
+
+### Test 3.31 - show latest assembly
+
+Test description:
+- in "Code list" window, select the code 100017
+- select the code
+- look at right panel codegui. Check that the "Date to" is **not** blank
+- if not, edit the code and change the "Date to" date accordling
+- from the RBM menu select "Show latest assembly"
+
+Expected results:
+- The window "Assembly" is showed
+- The date on the title is replaced by the "Date to" value
 
 Passed: [X]
 
@@ -713,11 +820,14 @@ This test is covered by the ones of the Assembly window
 
 ## 7 - BOMBrowser - Diff window
 
+TBD
+
 ## 8 - BOMBrowser - Copy/revise code
 
 ### Test 8.1 - date dialog
 Test description
-- insert code 82040 in the "BOMBrowser codes list" window, then press search
+- insert code 820040 in the "BOMBrowser codes list" window
+- press search
 - press the right mouse button on the first entry and select "Revise/copy code..." command
 
 Expected results: A "BOM Browser select date dialog" appears
@@ -725,16 +835,19 @@ Expected results: A "BOM Browser select date dialog" appears
 Passed: [X]
 
 ### Test 8.2 - date dialog
-Test description
-- insert code 82040 in the "BOMBrowser codes list" window, then press search
+- insert code 820040 in the "BOMBrowser codes list" window
+- press search
 - press the right mouse button on the first entry and select "Revise/copy code..." command
 - A "BOM Browser select date dialog" appears; press cancel
+
 Expected results: The dialog disappears
+
 Passed: [X]
 
 ### Test 8.3 - date dialog
 Test description
-- insert code 82040 in the "BOMBrowser codes list" window, then press search
+- insert code 820040 in the "BOMBrowser codes list" window
+- press search
 - press the right mouse button on the first entry and select "Revise/copy code..." command
 - A "BOM Browser select date dialog" appears; press select
 
@@ -744,7 +857,8 @@ Passed: [X]
 
 ### Test 8.4 - date dialog
 Test description
-- insert code 82040 in the "BOMBrowser codes list" window, then press search
+- insert code 820040 in the "BOMBrowser codes list" window
+- press search
 - press the right mouse button on the first entry and select "Revise/copy code..." command
 - A "BOM Browser select date dialog" appears; double click on the first entry
 
@@ -754,7 +868,8 @@ Passed: [X]
 
 ### Test 8.5 - Revise/copy code window
 Test description
-- insert code 82040 in the "BOMBrowser codes list" window, then press search
+- insert code 820040 in the "BOMBrowser codes list" window
+- press search
 - press the right mouse button on the first entry and select "Revise/copy code..." command
 - A "BOM Browser select date dialog" appears; double click on the *first* entry
 - The Revise/copy windows appears
@@ -765,7 +880,8 @@ Passed: [X]
 
 ### Test 8.6 - Revise/copy code window
 Test description
-- insert code 82040 in the "BOMBrowser codes list" window, then press search
+- insert code 820040 in the "BOMBrowser codes list" window
+- press search
 - press the right mouse button on the first entry and select "Revise/copy code..." command
 - A "BOM Browser select date dialog" appears; double click on the *second* entry
 - The Revise/copy windows appears
@@ -777,7 +893,8 @@ Passed: [X]
 ### Test set 8.6 - Revise/copy code window
 
 Prepratory steps:
-- insert code 820040 in the "BOMBrowser codes list" window, then press search
+- insert code 820040 in the "BOMBrowser codes list" window
+- press search
 - press the right mouse button on the first entry and select "Revise/copy code..." command
 - A "BOM Browser select date dialog" appears; double click on the *first* entry
 - The Revise/copy windows appears
@@ -844,29 +961,21 @@ Test description:
 - click on the copy checkbox
 - press "Copy/Revise button"
 
-Expected results: A confirmation dialog appears
-
-Passed: [X]
-
-#### Test 8.6.9 - Confirmation dialog
-Test description:
-- click on the copy checkbox
-- press "Copy/Revise button"
-- A confirmation dialog appears; press no
-
-Expected results: The confirmation dialog disappears
-
-Passed: [X]
-
-#### Test 8.6.10 - Confirmation dialog / error
-Test description:
-- click on the copy checkbox
-- press "Copy/Revise button"
-- A confirmation dialog appears; press yes
-
 Expected results:
 - An error dialog appears saying that the code already exists
 - pressing OK, the Copy / Revise window still exists
+
+Passed: [ ]
+
+#### Test 8.6.10 - Confirmation dialog / success
+Test description:
+- click on the copy checkbox
+- change the new/code in 82004A"
+- unmark the checkbox "start edit dialog after copy/revision"
+- press "Copy/Revise button"
+- A confirmation dialog appears; press no
+
+Expected results: de dialog disappear; the "BOMBrowser - copy /revise code" windows is opened.
 
 Passed: [X]
 
@@ -910,34 +1019,6 @@ Expected results:
 
 Passed: [X]
 
-#### Test 8.6.15 - Confirmation dialog / success (3)
-Test description:
-- click on the copy checkbox
-- change the new/code in 82004B"
-- A confirmation dialog appears; press yes
-
-Expected results:
-- The editor of the new code appears.
-- There are attached document and a children list
-
-Passed: [X]
-
-#### Test 8.6.14 - Confirmation dialog / success (3)
-Test description:
-- click on the copy checkbox
-- change the new/code in 82004C"
-- check the "Copy document" checkbox
-- press "Copy/Revise button"
-- A confirmation dialog appears; press yes
-
-Expected results:
-- The editor of the new code appears.
-- There are not attached document.
-- There are children list.
-
-Passed: [X]
-
-
 #### Test 8.6.15 - Revise a code / date error
 Test description:
 - enter an incorrect date (eg. 'xxxx')
@@ -951,7 +1032,7 @@ Passed: [X]
 
 #### Test 8.6.16 - Revise a code / date error
 Test description:
-- enter an date euqal to the Old/Date from
+- enter an date eqal to the Old/Date from
 - press "Copy/Revise button"
 - A confirmation dialog appears; press yes
 
@@ -975,8 +1056,8 @@ Expected results:
 - There are attached document.
 - There are children list.
 - The "From date" in the editor window is equal to the one of the previous dialog
-- The "Description" in the editor window is equal to the one of the previous dialog
-- The "Rev" in the editor window is equal to the one of the previous dialog
+- The "Description" in the editor window is equal to the one of the previous dialog (with 'bis_' as prefix)
+- The "Rev" in the editor window is equal to the one of the previous dialog (with 'bis_' as prefix)
 
 Passed: [X]
 
@@ -1002,10 +1083,11 @@ Expected results:
 Passed: [X]
 
 
-## Test set 9 - BomBrowser - Edit code
+## 9 - BomBrowser - Edit code
 
 Prepratory steps:
-- insert code 820001 in the "BOMBrowser codes list" window, then press search
+- insert code 820001 in the "BOMBrowser codes list" window
+- press search
 - press the right mouse button on the first entry and select "Edit code..." command
 - The Edit code windows appears
 
@@ -1242,10 +1324,10 @@ Expected result: the seq values are reordered on the basis of the last sort
 
 Passed: [X]
 
-### Test 9.21 - Edit code / File -> quit
+### Test 9.21 - Edit code / File -> close
 
 Test description:
-- select the menu File->quit
+- select the menu File->close
 
 Expected result: the edit window is closed
 
@@ -1289,15 +1371,6 @@ Expected result: the edit window is closed
 
 Passed: [X]
 
-## 9.26 - Edit code / CTRL-X
-
-Test description:
-- select the menu File->exit
-
-Expected result: a dialog is opened asking if you want to exit from application
-
-Passed: [X]
-
 ### Test 9.27 - Edit code / Windows
 
 Test description:
@@ -1325,7 +1398,7 @@ Test description:
 
 Expected result: The "BOMBrowser - Search code" dialog appears
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.30 - Edit code / Children panel - search code
 
@@ -1357,7 +1430,8 @@ Passed: [X]
 ## 10 - BomBrowser - Edit date
 
 Prepratory steps:
-- insert code 820017 (or any other code with more revisions) in the "BOMBrowser codes list" window, then press search
+- insert code 820017 (or any other code with more revisions) in the "BOMBrowser codes list" window
+- press search
 - press the right mouse button on the first entry and select "Edit code..." command
 - The Edit code windows appears
 - Select the "..." button near the "to date" field
@@ -1392,7 +1466,8 @@ Passed: [X]
 ### Test 10.4
 
 Test description:
-- change the "date from" of the last row with a valid one (but lower than the row above)
+- use the procedure described in the "preparatory steps" using the code 81036 instead of the code 820017.
+- change the "date from" of the last (lower) row with a valid one (but lower than the row above)
 - press save
 - reopen the edit dates dialog
 
@@ -1435,7 +1510,7 @@ Test description:
 - the cell become yellow; press cancel
 - the edit dates dialog is closed, reopen it
 
-Expected result: the old date appear
+Expected result: the valid old date appear
 
 Passed: [X]
 
@@ -1501,6 +1576,7 @@ Passed: [X]
 ### Test 10.15
 
 Test description:
+- use the procedure described in the "preparatory steps" using the code 10036 instead of the code 820017.
 - change the value of the cell of the first row and column "To date" with a valid one
 - press the save button
 - reopen the Edit dates" dialog
@@ -1551,6 +1627,8 @@ Test description:
 
 Expected result: an error dialog appears saying that the date range is shorter than the parent one
 
+Passed: [X]
+
 ### Test 10.16.4 - children too early
 
 Test description:
@@ -1567,7 +1645,7 @@ Expected result: an error dialog appears saying that the date range is shorter t
 
 Passed: [X]
 
-### Test 10.16.4 - children too early
+### Test 10.16.5 - children too early
 
 Test description:
 - enter in the edit dialog of code ASS-A
@@ -1584,6 +1662,33 @@ Expected result: an error dialog appears saying that the date range is shorter t
 Passed: [X]
 
 
+## 11 - Generic test
+
+### Test 11.1
+
+Test description: rename bombrowser.ini as bombrowser.ini.no
+
+Expected result: at start up time, an error dialog is showed saying that the confuguration cannot be load: bombrowser.ini file may be missing
+
+Passed: [X]
+
+### Test 11.2
+
+Test description: shutdown the sql server
+
+Expected result: at start up time, an error dialog is showed saying that it is imposible to access to the server
+
+Passed: [X]
+
+## 11 - Config test
+
+TBD: test the configuration:
+- force_*_uppercase
+- template
+- the overriding of the configuration store in the server
+
+
+
 # RESULTS:
-2020-03-08 v0.4.0b2
+2020-03-12 v0.4.0b6
 Failed tests list: 0

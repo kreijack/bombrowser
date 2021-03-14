@@ -36,6 +36,7 @@
 - [ ] BUG: investigating the reason why in the edit dialog, children table the first column lost the 'italic' after an insert row
 - [ ] make an handler in db.py for showing a error dialog for incorrect SQL
 - [ ] rename get_drawings_by_code_id -> get_drawings_by_code_rid
+- [ ] If the dates are changed, then the codegui in "codes list" window may be confused
 
 ## TESTS
 
