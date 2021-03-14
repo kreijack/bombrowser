@@ -114,7 +114,7 @@ class EditDates(QDialog):
 
             if min_date_from_days is None or min_date_from_days > date_from_days:
                 min_date_from_days = date_from_days
-            if max_date_to_days is None or max_date_to_days > date_to_days:
+            if max_date_to_days is None or max_date_to_days < date_to_days:
                 max_date_to_days = date_to_days
 
             dates.append([rid, date_from, date_from_days, date_to, date_to_days])
@@ -134,14 +134,11 @@ class EditDates(QDialog):
         # check that the date range has a wider life than
         # any parents
         for (pid, pdate_from_days, pdate_to_days) in d.get_parent_dates_range_by_code_id(self._code_id):
-
-            print("parent: ", (pid, pdate_from_days, pdate_to_days))
-            print("code: ", min_date_from_days, max_date_to_days)
             if (pdate_from_days < min_date_from_days or
                 pdate_to_days > max_date_to_days):
 
                     QMessageBox.critical(self, "BOMBrowser",
-                        "The code dates range are shorter than the parent id=%id one"%(
+                        "The code dates range are shorter than the parent id=%i one"%(
                             pid))
                     return
 
@@ -158,18 +155,6 @@ class EditDates(QDialog):
 
         if dates[0][3] == "":
             dates[0][4] = db.end_of_the_world
-
-        # check that the date range has a wider life than
-        # the parent
-        for row in range(row_cnt):
-            rid = int(self._table.item(row, 0).text())
-            l = len(d.get_parent_dates_range_by_code_id(rid))
-            if l > 0:
-                QMessageBox.critical(self, "BOMBrowser",
-                    "The code dates (row=%d) are wider than the child '%d' ones"%(
-                        row+1, rid))
-                return
-
 
         try:
             d.update_dates(dates)
@@ -535,12 +520,8 @@ class EditWindow(QMainWindow):
 
 
             dates = d.get_dates_by_code_id2(code_id)
-            print(dates)
             min_date_from_days = min([x[3] for x in dates])
             max_date_to_days = max([x[5] for x in dates])
-
-            print(code, self._from_date_days,min_date_from_days,
-                self._to_date_days, max_date_to_days)
 
             if (self._from_date_days < min_date_from_days or
                 self._to_date_days > max_date_to_days):
