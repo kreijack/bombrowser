@@ -31,10 +31,11 @@ def main(args):
         cfg.init()
     except:
         QMessageBox.critical(None, "BOMBrowser", "Cannot load configuration: may be bombroser.ini missing ?\nAbort")
-        return
+        raise
 
-    d = db.DB()
+
     try:
+        d = db.DB()
         data = d.get_config()
     except:
         QMessageBox.critical(None, "BOMBrowser", "Cannot connect to database\nAbort")
