@@ -535,8 +535,12 @@ class EditWindow(QMainWindow):
 
 
             dates = d.get_dates_by_code_id2(code_id)
+            print(dates)
             min_date_from_days = min([x[3] for x in dates])
-            max_date_to_days = min([x[5] for x in dates])
+            max_date_to_days = max([x[5] for x in dates])
+
+            print(code, self._from_date_days,min_date_from_days,
+                self._to_date_days, max_date_to_days)
 
             if (self._from_date_days < min_date_from_days or
                 self._to_date_days > max_date_to_days):
