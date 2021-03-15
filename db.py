@@ -170,7 +170,7 @@ class _BaseServer:
                 ON item_revisions(code_id, iter);
 
             CREATE TABLE item_properties (
-                id          INTEGER NOT NULL PRIMARY KEY,
+                id          INTEGER NOT NULL IDENTITY PRIMARY KEY,
                 descr       VARCHAR(255),
                 value       VARCHAR(1024),
                 revision_id     INTEGER,
@@ -725,7 +725,6 @@ class _BaseServer:
             """, (code_id,))
 
         date_from_min = c.fetchone()[0]
-
         while len(todo):
 
             cid = todo.pop()
@@ -735,6 +734,7 @@ class _BaseServer:
                     FROM item_revisions AS r
                     WHERE r.code_id = ?
                 """, (cid,))
+
             for (date_from, date_from_days) in c.fetchall():
                 if date_from_days < date_from_min:
                     continue
@@ -750,11 +750,9 @@ class _BaseServer:
                     WHERE r.code_id = ?
                 """, (cid,))
 
-            for (cid,) in c.fetchall():
-                if cid in done:
-                    continue
-                todo.append(cid)
-
+            l = set([x[0] for x in c.fetchall()])
+            l = l.difference(done)
+            todo += list(l)
         return dates
 
     def copy_code(self, new_code, rid, descr, rev, copy_props=True,
@@ -1115,7 +1113,8 @@ class DBSQLServer(_BaseServer):
                 l = l.replace("ALTER TABLE ", "EXEC sp_rename '")
                 l = l.replace(" RENAME TO ", "', '")
                 l = l.replace(";", "';")
-
+            if "VARCHAR" in l:
+                l = l.replace("VARCHAR", "NVARCHAR")
             return l
         s = '\n'.join([process(line) for line in s.split("\n")])
         return s
