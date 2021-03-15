@@ -14,7 +14,6 @@
 - [ ] advance search (in all fields)
 - [ ] normalize/standardize the unit (now are a free text)
 - [ ] gval: create a listbox menu
-- [ ] replace QMainWindow with BBMainWindow to better handle the windows list/closure
 - [ ] In the AssemblyWindow track the date and use it in the next Show Assembly
 - [ ] Implement an extern module to customize some function:
   - code validator
@@ -47,6 +46,7 @@
 
 2021/03/14
 - [X] handle the case where the bombrowser.ini file is missing
+- [X] replace QMainWindow with BBMainWindow to better handle the windows list/closure
 
 2021/03/12
 - [X] open some window by command line (bombrowser -openassy *code/date*)
