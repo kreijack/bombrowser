@@ -730,6 +730,17 @@ def xrmdir(path):
         elif os.path.exists(path):
             os.unlink(path)
 
+# create washer
+def insert_strange_code(c):
+    s="UTF8 TEST HELLO WORLD - 你好世界"
+    insert_code(c, s, "T-HELLOWORLD", 0,
+                0, "NR", "", "")
+    insert_code(c, "all lowercase", "T-alllowercase", 0,
+                0, "NR", "", "")
+    insert_code(c, "ALL UPPER CASE", "T-ALLUPPERCASE", 0,
+                0, "NR", "", "")
+
+    print(s)
 def create_db():
     d = db.DB()
     d.create_db()
@@ -824,6 +835,18 @@ def create_db():
             ("cfg.template_dummy.captions", "Seq,Parent code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date")
 
     ))
+    conn.commit()
+
+    insert_strange_code(c)
+
+    c.execute("""
+        SELECT * FROM item_revisions AS r
+        LEFT JOIN items AS i ON r.code_id = i.id
+        WHERE i.code LIKE 'T%'
+    """)
+    print(c.fetchall())
+
+
     conn.commit()
 
 create_db()
