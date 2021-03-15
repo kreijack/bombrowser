@@ -164,7 +164,7 @@ def build_windows_menu(m, win):
 
 def about(w):
     QMessageBox.about(w, "BOMBrowser - about",
-        "BOMBrowser v0.4.0b6\n" +
+        "BOMBrowser v0.4.0b7\n" +
         "Copyright 2020,2021 G.Baroncelli\n" +
         "\n"
         "https://gitlab.com/kreijack/bombrowser"
