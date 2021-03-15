@@ -22,11 +22,8 @@ genericnames=
 path=database.sqlite
 
 [SQLSERVER]
-server   = tcp:127.0.0.1
-database = bombrowser
-username = bombrowserUser
-password = bombrowserPassword1.
-driver   = ODBC Driver 17 for SQL Server
+conn = DRIVER=ODBC Driver 17 for SQL Server;SERVER=tcp:127.0.0.1;DATABASE=bombrowser;UID=bombrowserUser;PWD=bombrowserPassword1.
+
 
 [MARIADB]
 server   = 127.0.0.1

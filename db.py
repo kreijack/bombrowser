@@ -1379,15 +1379,7 @@ def DB(path=None):
         _globaDBInstance = DBSQLite(path)
         return _globaDBInstance
     elif dbtype == "sqlserver":
-        d = {
-            "driver": cfg.config().get("SQLSERVER", "driver"),
-            "server": cfg.config().get("SQLSERVER", "server"),
-            "database": cfg.config().get("SQLSERVER", "database"),
-            "username": cfg.config().get("SQLSERVER", "username"),
-            "password": cfg.config().get("SQLSERVER", "password"),
-        }
-        d["password"] = customize.database_password(d["password"])
-        connection_string = "DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password}".format(**d)
+        connection_string = cfg.config().get("SQLSERVER", "conn")
         _globaDBInstance = DBSQLServer(connection_string)
         return _globaDBInstance
     elif dbtype == "postgresql":
