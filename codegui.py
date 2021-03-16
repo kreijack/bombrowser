@@ -19,17 +19,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import sys
 import webbrowser
+import pprint, os
 
 from PySide2.QtWidgets import QMainWindow, QScrollArea, QStatusBar
 from PySide2.QtWidgets import QSplitter, QTableView, QLabel, QDialog
 from PySide2.QtWidgets import QGridLayout, QWidget, QApplication
 from PySide2.QtWidgets import QMessageBox, QAction, QLineEdit, QFrame
 from PySide2.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton
-from PySide2.QtWidgets import QHeaderView, QComboBox
+from PySide2.QtWidgets import QHeaderView, QComboBox, QMenu
 from PySide2.QtGui import QStandardItemModel, QStandardItem
 
 from PySide2.QtCore import Qt, QAbstractTableModel, QEvent
-import pprint, configparser
 
 import db, asmgui, cfg
 
@@ -210,15 +210,21 @@ class CodeWidget(QWidget):
         for drw in drawings:
             b = QPushButton(drw[0])
             class Opener:
-                def __init__(self, obj, fullpath):
+                def __init__(self, obj, *args):
                     self._obj = obj
-                    self._fullpath = fullpath+""
-                def __call__(self):
-                    self._obj(self._fullpath)
+                    self._args = args
+                def __call__(self, *args0):
+                    self._obj(*args0, *self._args)
 
             b.clicked.connect(Opener(self._open_file, drw[1]))
             txt += "  Drawing: %s\n"%(drw[0])
+            b.setToolTip("File: %s\nFullpath: %s"%(
+                drw[0], drw[1]))
 
+            b.setContextMenuPolicy(Qt.CustomContextMenu)
+            b.customContextMenuRequested.connect(
+                Opener(self._btn_context_menu, drw[1], b)
+            )
             grid.addWidget(b, row, 0, 1, 2)
             row += 1
 
@@ -232,10 +238,32 @@ class CodeWidget(QWidget):
 
         self._text_info = txt
 
-    def _copy_info(self):
+    def _btn_context_menu(self, point, fullpath, btn):
+        name = os.path.basename(fullpath)
+        dirname = os.path.dirname(fullpath)
+        popMenu = QMenu(self)
+        a = QAction('Open dir', self)
+        a.triggered.connect(lambda : self._open_file(dirname))
+        popMenu.addAction(a)
+        a = QAction('Copy filename', self)
+        a.triggered.connect(lambda : self._copy_str(name))
+        popMenu.addAction(a)
+        a = QAction('Copy dirname', self)
+        a.triggered.connect(lambda : self._copy_str(dirname))
+        popMenu.addAction(a)
+        a = QAction('Copy full path', self)
+        a.triggered.connect(lambda : self._copy_str(fullpath))
+        popMenu.addAction(a)
+
+        popMenu.exec_(btn.mapToGlobal(point))
+
+    def _copy_str(self, s):
         cb = QApplication.clipboard()
         cb.clear(mode=cb.Clipboard )
-        cb.setText(self._text_info, mode=cb.Clipboard)
+        cb.setText(s, mode=cb.Clipboard)
+
+    def _copy_info(self):
+        self._copy(self._text_info)
 
     def _open_file(self, nf):
         webbrowser.open(nf)
