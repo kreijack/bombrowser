@@ -436,7 +436,7 @@ class EditWindow(utils.BBMainWindow):
 
         helpMenu = mainMenu.addMenu("Help")
         a = QAction("About ...", self)
-        a.triggered.connect(lambda : utils.about(self))
+        a.triggered.connect(lambda : utils.about(self, db.connection))
         helpMenu.addAction(a)
 
     def _exit_app(self):

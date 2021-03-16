@@ -62,6 +62,7 @@ _db_path = "database.sqlite"
 # infinity date
 end_of_the_world = 999999
 gvals_count = 8
+connection="Server: <UNDEF>"
 
 class DBException(RuntimeError):
     pass
@@ -1358,6 +1359,7 @@ class DBPG(_BaseServer):
 _globaDBInstance = None
 def DB(path=None):
     global _globaDBInstance
+    global connection
 
     if _globaDBInstance:
         return _globaDBInstance
@@ -1376,10 +1378,12 @@ def DB(path=None):
     if dbtype == "sqlite":
         path = cfg.config().get("SQLITE", "path")
         _globaDBInstance = DBSQLite(path)
+        connection="Server: SQLITE:"+path[-30:]
         return _globaDBInstance
     elif dbtype == "sqlserver":
         connection_string = cfg.config().get("SQLSERVER", "conn")
         _globaDBInstance = DBSQLServer(connection_string)
+        connection="Server: SQLSERVER"
         return _globaDBInstance
     elif dbtype == "postgresql":
         d = {
@@ -1390,6 +1394,7 @@ def DB(path=None):
         }
         d["password"] = customize.database_password(d["password"])
         connection_string = "host={server} dbname={database} user={username} password={password}".format(**d)
+        connection="Server: PostgreSQL:"+d["username"]+"@"+d["server"]+":"+d["database"]
         _globaDBInstance = DBPG(connection_string)
         return _globaDBInstance
     elif dbtype == "mariadb":
