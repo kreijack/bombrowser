@@ -1075,7 +1075,7 @@ class DBSQLServer(_BaseServer):
     def _sqlex(self, c, query, *args, **kwargs):
         try:
             _BaseServer._sqlex(self, c, query, *args, **kwargs)
-        except sqlite3.Error as er:
+        except self._mod.Error as er:
             errmsg = 'ODBC error: %s' % (' '.join(er.args)) + "\n"
             errmsg += "ODBC query:\n"
             errmsg += "-"*30+"\n"
@@ -1093,7 +1093,7 @@ class DBSQLServer(_BaseServer):
     def _sqlexm(self, c, query, *args, **kwargs):
         try:
             _BaseServer._sqlexm(self, c, query, *args, **kwargs)
-        except sqlite3.Error as er:
+        except self._mod.Error as er:
             errmsg = 'ODBC error: %s' % (' '.join(er.args)) + "\n"
             errmsg += "ODBC query:\n"
             errmsg += "-"*30+"\n"
@@ -1122,6 +1122,7 @@ class DBSQLServer(_BaseServer):
 
     def _open(self, connection_string):
         import pyodbc
+        self._mod = pyodbc
         self._conn = pyodbc.connect(connection_string)
 
 
@@ -1279,8 +1280,9 @@ class DBMariaDB(_BaseServer):
         return [x[0] for x in c.fetchall()]
 
 class DBPG(_BaseServer):
-    import psycopg2
     def __init__(self, path=None):
+        import psycopg2
+        self._mod = psycopg2
         _BaseServer.__init__(self, path)
 
     def _commit(self, c):
@@ -1296,7 +1298,7 @@ class DBPG(_BaseServer):
         query = self._sql_translate(query)
         try:
             _BaseServer._sqlex(self, c, query, *args, **kwargs)
-        except self.psycopg2.Error as e:
+        except self._mod.Error as e:
             errmsg = "PGError: %s\n"%(e.pgerror)        # error number
             errmsg = "PGCode: %s\n"%(e.pgcode)        # error number
             errmsg += "-"*30+"\n"
@@ -1314,7 +1316,7 @@ class DBPG(_BaseServer):
         query = self._sql_translate(query)
         try:
             _BaseServer._sqlexm(self, c, query, *args, **kwargs)
-        except self.psycopg2.Error as e:
+        except self._mod.Error as e:
             errmsg = "PGError: %s\n"%(e.pgerror)        # error number
             errmsg = "PGCode: %s\n"%(e.pgcode)        # error number
             errmsg += "-"*30+"\n"
