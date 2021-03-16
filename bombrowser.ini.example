@@ -3,7 +3,6 @@
 # select db source
 #db=sqlite
 db=sqlserver
-#db=mariadb
 #db=postgresql
 
 # force uppercase for code and description
@@ -23,14 +22,6 @@ path=database.sqlite
 
 [SQLSERVER]
 conn = DRIVER=ODBC Driver 17 for SQL Server;SERVER=tcp:127.0.0.1;DATABASE=bombrowser;UID=bombrowserUser;PWD=bombrowserPassword1.
-
-
-[MARIADB]
-server   = 127.0.0.1
-port     = 3306
-database = bombrowser
-username = bombrowser
-password = bombrowser1
 
 [POSTGRESQL]
 server   = 127.0.0.1

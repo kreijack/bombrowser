@@ -1059,9 +1059,6 @@ class _BaseServer:
         return ret
 
 
-
-
-
 import sqlite3
 import traceback
 
@@ -1199,85 +1196,6 @@ class DBSQLite(_BaseServer):
         self._sqlex(c, "SELECT name FROM sqlite_master WHERE type='table';")
         return [x[0] for x in c.fetchall()]
 
-#import MySQLdb
-class DBMariaDB(_BaseServer):
-
-    def __init__(self, server, port, db, username, pwd):
-
-        _BaseServer.__init__(self, (server, port, db, username, pwd))
-
-    def _commit(self, c):
-        self._conn.commit()
-
-    def _rollback(self, c):
-        self._conn.rollback()
-
-    def _begin(self, c):
-        c.execute("BEGIN")
-
-    def _sqlex(self, c, query, *args, **kwargs):
-        try:
-            _BaseServer._sqlex(self, c, query, *args, **kwargs)
-        except MySQLdb.MySQLError as e:
-            errmsg = "MySqlError: %r\n"%(e)        # error number
-            errmsg += "-"*30+"\n"
-            errmsg += query + "\n"
-            errmsg += "-"*30+"\n"
-            errmsg += 'MySQLdb traceback: \n'
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
-
-            print(errmsg)
-
-            raise DBException(errmsg)
-
-    def _sqlexm(self, c, query, *args, **kwargs):
-        try:
-            _BaseServer._sqlexm(self, c, query, *args, **kwargs)
-        except MySQLdb.MySQLError as e:
-            errmsg = "MySqlError: %r\n"%(e)        # error number
-            errmsg += "-"*30+"\n"
-            errmsg += query + "\n"
-            errmsg += "-"*30+"\n"
-            errmsg += 'MySQLdb traceback: \n'
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
-
-            print(errmsg)
-
-            raise DBException(errmsg)
-
-
-    def _sql_translate(self, s):
-        def process(l):
-            if "DROP INDEX IF EXISTS " in l:
-                return ";"
-                i = l.find(".")
-                j = l.find("DROP INDEX IF EXISTS ")+21
-                k = l.find(";")
-
-                l = l[:k]
-                table = l[j:i]
-                print("table=",table)
-                l = l[:j]+l[i+1:] + " ON " + table +";"
-                print(l)
-
-            if "IDENTITY" in l:
-                l = l.replace("IDENTITY", "")
-
-            return l
-        s = '\n'.join([process(line) for line in s.split("\n")])
-        return s
-
-    def _open(self, arg):
-        (server, port, db, username, pwd) = arg
-        self._conn = MySQLdb.connect(host=server, port=int(port), db=db,
-            user=username, passwd=pwd)
-
-    def _get_tables_list(self):
-        c = self._conn.cursor()
-        self._sqlex(c, "SELECT table_name FROM information_schema.tables")
-        return [x[0] for x in c.fetchall()]
 
 class DBPG(_BaseServer):
     def __init__(self, path=None):
@@ -1399,14 +1317,7 @@ def DB(path=None):
         connection="Server: PostgreSQL:"+d["username"]+"@"+d["server"]+":"+d["database"]
         _globaDBInstance = DBPG(connection_string)
         return _globaDBInstance
-    elif dbtype == "mariadb":
-        pwd = customize.database_password(cfg.config().get("MARIADB", "password"))
-        _globaDBInstance = DBMariaDB(cfg.config().get("MARIADB", "server"),
-            cfg.config().get("MARIADB", "port"),
-            cfg.config().get("MARIADB", "database"),
-            cfg.config().get("MARIADB", "username"), pwd)
 
-        return _globaDBInstance
     assert(False)
 
 
