@@ -54,7 +54,7 @@ class SelectCode(QDialog):
 
         self.setLayout(grid)
 
-        self.setWindowTitle("BOMBrowser - Search code")
+        self.setWindowTitle(utils.window_title + " - Search code")
 
     def getCodeId(self):
         return self._search_widget.getCodeId()
@@ -226,7 +226,7 @@ class EditDates(QDialog):
 
             row += 1
 
-        self.setWindowTitle("BOMBrowser - Edit dates: %s"%(code))
+        self.setWindowTitle(utils.window_title + " - Edit dates: %s"%(code))
         self._table.cellChanged.connect(self._cell_changed)
         self._table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeToContents)
@@ -409,7 +409,7 @@ class EditWindow(utils.BBMainWindow):
         self._update_btn.clicked.connect(self._save_changes)
         g.addWidget(self._update_btn, 100, 13)
 
-        self.setWindowTitle("BOMBrowser - Edit code")
+        self.setWindowTitle(utils.window_title + " - Edit code")
 
         w = QWidget()
         w.setLayout(g)
@@ -455,7 +455,7 @@ class EditWindow(utils.BBMainWindow):
         d = db.DB()
         data = d.get_code_from_rid(self._rid)
 
-        self.setWindowTitle("BOMBrowser - Edit code: %s @ %s"%(
+        self.setWindowTitle(utils.window_title + " - Edit code: %s @ %s"%(
             data["code"], data["date_from"]))
 
         self._from_date.setText(data["date_from"])
@@ -596,7 +596,7 @@ class EditWindow(utils.BBMainWindow):
 
         data = d.get_code_from_rid(self._rid)
 
-        self.setWindowTitle("BOMBrowser - Edit code: %s @ %s"%(
+        self.setWindowTitle(utils.window_title + " - Edit code: %s @ %s"%(
             data["code"], data["date_from"]))
 
         self._rid_w.setText(str(self._rid))

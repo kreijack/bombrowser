@@ -25,6 +25,9 @@ from PySide2.QtWidgets import QMessageBox, QMainWindow
 _bbmainwindows_list = []
 _bbmainwindows_list_cnt = 0
 
+version = "v0.4.0b7"
+window_title = "BOMBrowser " + version
+
 class BBMainWindow(QMainWindow):
     def __init__(self, parent=None):
         global _bbmainwindows_list_cnt
@@ -164,7 +167,7 @@ def build_windows_menu(m, win):
 
 def about(w):
     QMessageBox.about(w, "BOMBrowser - about",
-        "BOMBrowser v0.4.0b7\n" +
+        window_title + "\n" +
         "Copyright 2020,2021 G.Baroncelli\n" +
         "\n"
         "https://gitlab.com/kreijack/bombrowser"

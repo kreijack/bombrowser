@@ -180,7 +180,7 @@ class CodesWidget(QWidget):
 class CodesWindow(utils.BBMainWindowNotClose):
     def __init__(self, parent=None):
         utils.BBMainWindowNotClose.__init__(self, parent)
-        self.setWindowTitle("BOMBrowser - Codes list")
+        self.setWindowTitle(utils.window_title + " - Codes list")
 
         self._init_gui()
         self.resize(1024, 600)

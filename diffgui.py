@@ -38,8 +38,9 @@ class DiffWindow(utils.BBMainWindow):
         self._create_menu()
         self._create_statusbar()
         self.resize(1024, 600)
-        self.setWindowTitle("BOMBrowser - Diff window: %s @ %s <-> %s @ %s"%(
-            code1, date1[:10], code2, date2[:10]))
+        self.setWindowTitle(utils.window_title +
+                " - Diff window: %s @ %s <-> %s @ %s"%(
+                        code1, date1[:10], code2, date2[:10]))
 
 
     def _create_statusbar(self):
@@ -305,7 +306,7 @@ class DiffDialog(QDialog):
         grid.addWidget(QLabel("Codes"), 0, 2)
         grid.addWidget(QLabel("Dates"), 0, 3)
 
-        self.setWindowTitle("BOMBrowser - Diff dialog")
+        self.setWindowTitle(utils.window_title + " - Diff dialog")
 
         b=QPushButton("Hide")
         b.clicked.connect(self._do_hide)

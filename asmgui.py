@@ -458,12 +458,14 @@ class AssemblyWindow(utils.BBMainWindow):
                 dt2 = date_from
                 if date_from == db.days_to_iso(db.end_of_the_world):
                     dt2 = "LATEST"
-                self.setWindowTitle("BOMBrowser - Assembly: "+top_code+" @ " +
-                    dt2)
+                self.setWindowTitle(utils.window_title +
+                        " - Assembly: " + top_code + " @ " + dt2)
         elif self._valid_where_used:
-                self.setWindowTitle("BOMBrowser - Valid where used: "+top_code)
+                self.setWindowTitle(utils.window_title +
+                        " - Valid where used: " + top_code)
         else:
-                self.setWindowTitle("BOMBrowser - Where used: "+top_code)
+                self.setWindowTitle(utils.window_title +
+                        " - Where used: "+top_code)
         self._data = data
         self._top = top
 
