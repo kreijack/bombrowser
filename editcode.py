@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sys, configparser, webbrowser, os
+import sys, configparser, os
 
 from PySide2.QtWidgets import QMainWindow, QScrollArea, QStatusBar
 from PySide2.QtWidgets import QSplitter, QTableView, QLabel, QTableWidgetItem
@@ -25,7 +25,7 @@ from PySide2.QtWidgets import QGridLayout, QWidget, QApplication, QFileDialog
 from PySide2.QtWidgets import QMessageBox, QAction, QLineEdit, QFrame, QSplitter
 from PySide2.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QDialog
 from PySide2.QtWidgets import QHeaderView, QMenu, QGroupBox, QTableWidget
-from PySide2.QtGui import QStandardItemModel, QStandardItem, QColor
+from PySide2.QtGui import QStandardItemModel, QStandardItem, QColor, QDesktopServices
 
 from PySide2.QtCore import Qt, QAbstractTableModel, QEvent, QTimer
 
@@ -793,7 +793,7 @@ class EditWindow(utils.BBMainWindow):
         for idx in idxs:
             r = idx.row()
             path = self._drawings_table.item(r, 1).text()
-            webbrowser.open(path)
+            QDesktopServices.openUrl(path)
 
     def _delete_drawing(self):
         idxs = self._drawings_table.selectedIndexes()

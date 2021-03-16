@@ -18,7 +18,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
 import sys
-import webbrowser
 import pprint, os
 
 from PySide2.QtWidgets import QMainWindow, QScrollArea, QStatusBar
@@ -27,7 +26,7 @@ from PySide2.QtWidgets import QGridLayout, QWidget, QApplication
 from PySide2.QtWidgets import QMessageBox, QAction, QLineEdit, QFrame
 from PySide2.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton
 from PySide2.QtWidgets import QHeaderView, QComboBox, QMenu
-from PySide2.QtGui import QStandardItemModel, QStandardItem
+from PySide2.QtGui import QStandardItemModel, QStandardItem, QDesktopServices
 
 from PySide2.QtCore import Qt, QAbstractTableModel, QEvent, QMimeData, QUrl
 from PySide2.QtCore import QByteArray
@@ -277,7 +276,7 @@ class CodeWidget(QWidget):
         self._copy(self._text_info)
 
     def _open_file(self, nf):
-        webbrowser.open(nf)
+        QDesktopServices.openUrl(nf)
 
     def _change_code(self):
         if not self._code_id:
