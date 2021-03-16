@@ -20,14 +20,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import sys
 
-from PySide2.QtWidgets import QMainWindow, QScrollArea, QStatusBar
+from PySide2.QtWidgets import QMainWindow, QScrollArea, QStatusBar, QProgressDialog
 from PySide2.QtWidgets import QMenu, QTableView, QFileDialog, QAbstractItemView
 from PySide2.QtWidgets import QSplitter, QTreeView, QLabel, QLineEdit
 from PySide2.QtWidgets import QGridLayout, QWidget, QApplication, QPushButton
 from PySide2.QtWidgets import QMessageBox, QAction, QDialog, QHeaderView
 from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtCore import Qt, QItemSelectionModel, QAbstractTableModel
-import pprint
+import pprint, shutil
 
 import db, codegui, diffgui, copycodegui
 import exporter, utils, selectdategui, editcode
@@ -204,6 +204,9 @@ class AssemblyWindow(utils.BBMainWindow):
             m.triggered.connect(Caller(self._export_as_template, tmpl))
             export_as.append(m)
 
+        copyFiles = QAction("Copy files ...", self)
+        copyFiles.triggered.connect(self._copy_all_bom_files)
+
         closeAction = QAction("Close", self)
         closeAction.setShortcut("Ctrl+Q")
         closeAction.triggered.connect(self.close)
@@ -243,6 +246,8 @@ class AssemblyWindow(utils.BBMainWindow):
         for m in export_as:
             fileMenu.addAction(m)
         fileMenu.addSeparator()
+        fileMenu.addAction(copyFiles)
+        fileMenu.addSeparator()
         fileMenu.addAction(closeAction)
         fileMenu.addAction(exitAction)
         editMenu.addAction(copyAction)
@@ -257,6 +262,48 @@ class AssemblyWindow(utils.BBMainWindow):
         a = QAction("About ...", self)
         a.triggered.connect(lambda : utils.about(self, db.connection))
         helpMenu.addAction(a)
+
+    def _copy_all_bom_files(self):
+        dest = QFileDialog.getExistingDirectory(self, "Save to...",
+                                                "",
+                                                QFileDialog.ShowDirsOnly)
+        if dest == "":
+            return
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        d = db.DB()
+        fnl = []
+        for k in self._data:
+            rid = self._data[k]["rid"]
+            drawings = d.get_drawings_by_code_id(rid)
+            fnl += [x[1] for x in drawings]
+
+        fname = ''
+
+        progress = QProgressDialog("Copying files...", "Abort Copy", 0, len(fnl), self)
+        progress.setWindowModality(Qt.WindowModal)
+
+        for i in range(len(fnl)):
+            fname = fnl[i]
+            progress.setValue(i)
+
+            if progress.wasCanceled():
+                break
+            #... copy one file
+
+            progress.setLabelText(fname)
+            try:
+                shutil.copy(fname, dest)
+            except Exception as e:
+                progress.forceShow()
+                ret = QMessageBox.question(self, "BOMBrowser",
+                    "Error during the copy of '%s'\nEnd the copy ?"%(fname))
+                if ret == QMessageBox.Yes:
+                    print(er)
+                    QApplication.restoreOverrideCursor()
+        progress.setValue(len(fnl))
+
+        QApplication.restoreOverrideCursor()
 
     def _build_windows_menu(self):
         utils.build_windows_menu(self._windowsMenu, self)
