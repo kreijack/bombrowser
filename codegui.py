@@ -29,7 +29,8 @@ from PySide2.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton
 from PySide2.QtWidgets import QHeaderView, QComboBox, QMenu
 from PySide2.QtGui import QStandardItemModel, QStandardItem
 
-from PySide2.QtCore import Qt, QAbstractTableModel, QEvent
+from PySide2.QtCore import Qt, QAbstractTableModel, QEvent, QMimeData, QUrl
+from PySide2.QtCore import QByteArray
 
 import db, asmgui, cfg
 
@@ -254,6 +255,9 @@ class CodeWidget(QWidget):
         a = QAction('Copy full path', self)
         a.triggered.connect(lambda : self._copy_str(fullpath))
         popMenu.addAction(a)
+        a = QAction('Copy file', self)
+        a.triggered.connect(lambda : self._copy_file(fullpath))
+        popMenu.addAction(a)
 
         popMenu.exec_(btn.mapToGlobal(point))
 
@@ -261,6 +265,13 @@ class CodeWidget(QWidget):
         cb = QApplication.clipboard()
         cb.clear(mode=cb.Clipboard )
         cb.setText(s, mode=cb.Clipboard)
+
+    def _copy_file(self, fn):
+        md = QMimeData()
+        md.setUrls([QUrl.fromLocalFile(fn)])
+        cb = QApplication.clipboard()
+        cb.clear(mode=cb.Clipboard )
+        cb.setMimeData(md)
 
     def _copy_info(self):
         self._copy(self._text_info)
