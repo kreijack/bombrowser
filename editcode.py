@@ -102,7 +102,10 @@ class EditDates(QDialog):
             date_to = self._table.item(row, 5).text()
 
             try:
-                date_from_days = db.iso_to_days(date_from)
+                if date_from == "PROTOTYPE":
+                    date_from_days = db.prototype_date
+                else:
+                    date_from_days = db.iso_to_days(date_from)
                 if date_to != '':
                     date_to_days = db.iso_to_days(date_to)
                 else:
@@ -115,7 +118,7 @@ class EditDates(QDialog):
             if min_date_from_days is None or min_date_from_days > date_from_days:
                 min_date_from_days = date_from_days
             if max_date_to_days is None or max_date_to_days < date_to_days:
-                max_date_to_days = date_to_days
+                 max_date_to_days = date_to_days
 
             dates.append([rid, date_from, date_from_days, date_to, date_to_days])
 
@@ -216,6 +219,9 @@ class EditDates(QDialog):
             self._table.setItem(row, 3, i)
 
             i = QTableWidgetItem(db.days_to_txt(date_from_days))
+            if date_from_days == db.prototype_date:
+                i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                i.setFont(f)
             self._table.setItem(row, 4, i)
 
             i = QTableWidgetItem(db.days_to_txt(date_to_days))
@@ -223,6 +229,13 @@ class EditDates(QDialog):
                 i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                 i.setFont(f)
             self._table.setItem(row, 5, i)
+
+            if date_from_days == db.prototype_date:
+                # the row is prototype: we can't change anything
+                self._table.item(row, 4).setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                self._table.item(row, 5).setFont(f)
+                self._table.item(row, 5).setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                self._table.item(row, 5).setFont(f)
 
             row += 1
 
@@ -235,6 +248,10 @@ class EditDates(QDialog):
         # check the date from column
         # and check the date to in row 0 cell
         if col != 4 and not (col == 5 and row == 0):
+            return
+
+        # if the row 0 is prototype, we can't do anything
+        if row == 0 and self._table.item(row, 4).text() == "PROTOTYPE":
             return
 
         dt = self._table.item(row, col).text()
