@@ -718,6 +718,7 @@ def show_latest_assembly(code_id):
         QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
         return
 
+    QApplication.setOverrideCursor(Qt.WaitCursor)
     w = AssemblyWindow(None)
     w.show()
     dates = d.get_dates_by_code_id2(code_id)
