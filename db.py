@@ -55,6 +55,18 @@ def iso_to_days(txt):
 def days_to_iso(n):
     return jdutil.jd_to_datetime(int(n) + 2451544.5).strftime("%Y-%m-%d")
 
+def days_to_txt(n):
+    if n is None:
+        return ""
+    if n == end_of_the_world:
+        return ""
+    elif n == prototype_date:
+        return "PROTOTYPE"
+    elif n == prototype_date - 1:
+        return ""
+    else:
+        return jdutil.jd_to_datetime(int(n) + 2451544.5).strftime("%Y-%m-%d")
+
 def now_to_days():
     return int(jdutil.datetime.now().to_jd() - 2451544.5)
 
@@ -270,9 +282,9 @@ class _BaseServer:
         data["gval7"] = res[16]
         data["gval8"] = res[17]
 
-        data["date_from"] = res[11]
+        data["date_from"] = days_to_txt(res[12])
         data["date_from_days"] = res[12]
-        data["date_to"] = res[13]
+        data["date_to"] = days_to_txt(res[14])
         data["date_to_days"] = res[14]
 
         data["rid"] = res[15]
@@ -328,9 +340,9 @@ class _BaseServer:
         data["gval7"] = res[16]
         data["gval8"] = res[17]
 
-        data["date_from"] = res[11]
+        data["date_from"] = days_to_txt(res[12])
         data["date_from_days"] = res[12]
-        data["date_to"] = res[13]
+        data["date_to"] = days_to_txt(res[14])
         data["date_to_days"] = res[14]
 
         data["id"] = res[15]
