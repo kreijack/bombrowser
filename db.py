@@ -254,7 +254,7 @@ class _BaseServer:
         self._sqlex(c, """
             SELECT i.code, r.descr, r.ver, r.iter, r.default_unit,
                 r.gval1, r.gval2, r.gval3, r.gval4, r.gval5, r.gval6,
-                r.date_from, r.date_from_days, r.date_to, r.date_to_days, r.id,
+                r.date_from_days, r.date_to_days, r.id,
                 r.gval7, r.gval8
             FROM item_revisions AS r
             LEFT JOIN items AS i
@@ -279,15 +279,15 @@ class _BaseServer:
         data["gval3"] = res[7]
         data["gval5"] = res[9]
         data["gval6"] = res[10]
-        data["gval7"] = res[16]
-        data["gval8"] = res[17]
+        data["gval7"] = res[14]
+        data["gval8"] = res[15]
 
-        data["date_from"] = days_to_txt(res[12])
-        data["date_from_days"] = res[12]
-        data["date_to"] = days_to_txt(res[14])
-        data["date_to_days"] = res[14]
+        data["date_from"] = days_to_txt(res[11])
+        data["date_from_days"] = res[11]
+        data["date_to"] = days_to_txt(res[12])
+        data["date_to_days"] = res[12]
 
-        data["rid"] = res[15]
+        data["rid"] = res[13]
         data["id"] = id_code
 
         data["properties"] = dict()
@@ -313,7 +313,7 @@ class _BaseServer:
         self._sqlex(c, """
             SELECT i.code, r.descr, r.ver, r.iter, r.default_unit,
                 r.gval1, r.gval2, r.gval3, r.gval4, r.gval5, r.gval6,
-                r.date_from, r.date_from_days, r.date_to, r.date_to_days,
+                r.date_from_days, r.date_to_days,
                 i.id, r.gval7, r.gval8
             FROM item_revisions AS r
             LEFT JOIN items AS i
@@ -337,15 +337,15 @@ class _BaseServer:
         data["gval4"] = res[8]
         data["gval5"] = res[9]
         data["gval6"] = res[10]
-        data["gval7"] = res[16]
-        data["gval8"] = res[17]
+        data["gval7"] = res[14]
+        data["gval8"] = res[15]
 
-        data["date_from"] = days_to_txt(res[12])
-        data["date_from_days"] = res[12]
-        data["date_to"] = days_to_txt(res[14])
-        data["date_to_days"] = res[14]
+        data["date_from"] = days_to_txt(res[11])
+        data["date_from_days"] = res[11]
+        data["date_to"] = days_to_txt(res[12])
+        data["date_to_days"] = res[12]
 
-        data["id"] = res[15]
+        data["id"] = res[13]
         data["rid"] = rid
 
 
