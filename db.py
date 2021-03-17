@@ -60,7 +60,9 @@ def now_to_days():
 
 _db_path = "database.sqlite"
 # infinity date
-end_of_the_world = 999999
+end_of_the_world = 999999   # around 5000 ac
+prototype_date = 999900
+prototype_iter = 999999
 gvals_count = 8
 connection="Server: <UNDEF>"
 
@@ -847,6 +849,12 @@ class _BaseServer:
             if new_date_from_days <= old_date_from_days:
                 raise DBException("A revision already occurred this day")
 
+
+            if new_date_from_days == prototype_date:
+                new_iter = prototype_iter
+            else:
+                new_iter = old_iter + 1
+
             self._sqlex(c, """
                 INSERT INTO item_revisions(
                     code_id,
@@ -872,7 +880,7 @@ class _BaseServer:
                     gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
                 FROM item_revisions
                 WHERE id = ?
-            """, (new_date_from, new_date_from_days, rev, old_iter + 1, descr, rid))
+            """, (new_date_from, new_date_from_days, rev, new_iter, descr, rid))
 
             self._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
             new_rid = c.fetchone()[0]
