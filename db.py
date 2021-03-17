@@ -470,7 +470,7 @@ class _BaseServer:
                      FROM  item_revisions AS r
                      LEFT JOIN items AS i ON r.code_id = i.id
                      WHERE           r.code_id = ?
-                     ORDER BY        r.date_from DESC
+                     ORDER BY        r.date_from_days DESC
                   """, (id_code, ))
 
         return list(c.fetchall())
@@ -551,7 +551,7 @@ class _BaseServer:
             d["deps"] = dict()
 
             self._sqlex(c, """
-                SELECT a.unit, a.qty, a.each, rc.date_from, rc.date_to,
+                SELECT a.unit, a.qty, a.each,
                         rc.iter, a.child_id, rc.code_id, rc.date_from_days,
                         rc.date_to_days, a.ref, rc.id
                 FROM assemblies AS a
@@ -569,8 +569,8 @@ class _BaseServer:
                 data[d["id"]] = d
                 continue
 
-            for (unit, qty, each, date_from_, date_to_, it, child_id,
-                 parent_id, date_from_days_, date_to_days_, ref, crid) in children:
+            for (unit, qty, each, it, child_id,parent_id,
+                 date_from_days_, date_to_days_, ref, crid) in children:
                 d["deps"][child_id] = {
                     "code_id": child_id,
                     "unit": unit,
@@ -597,8 +597,7 @@ class _BaseServer:
     def _get_parents(self, c, id_code, date_from_days, date_to_days):
         self._sqlex(c, """
             SELECT a.unit, c.code, r.default_unit, a.qty, a.each,
-                    r.iter, r.code_id, r.date_from, r.date_to, r.date_from_days,
-                    r.date_to_days
+                    r.iter, r.code_id, r.date_from_days, r.date_to_days
             FROM assemblies AS a
             LEFT JOIN item_revisions AS r
                 ON a.revision_id = r.id
@@ -622,8 +621,7 @@ class _BaseServer:
     def _get_valid_parents(self, c, id_code):
         self._sqlex(c, """
             SELECT a.unit, c.code, r.default_unit, a.qty, a.each,
-                    r.iter, r.code_id, r.date_from, r.date_to, r.date_from_days,
-                    r.date_to_days
+                    r.iter, r.code_id, r.date_from_days, r.date_to_days
             FROM assemblies AS a
             LEFT JOIN item_revisions AS r
                 ON a.revision_id = r.id
@@ -686,8 +684,7 @@ class _BaseServer:
                 continue
 
             for (unit, cc, def_unit, qty, each, it,
-                    parent_id, date_from_, date_to_, date_from_days_,
-                    date_to_days_) in parents:
+                    parent_id, date_from_days_, date_to_days_) in parents:
                 if cc == code0:
                     continue
                 if unit is None:
@@ -742,12 +739,12 @@ class _BaseServer:
             cid = todo.pop()
             done.add(cid)
             self._sqlex(c, """
-                    SELECT r.date_from, r.date_from_days
+                    SELECT r.date_from_days
                     FROM item_revisions AS r
                     WHERE r.code_id = ?
                 """, (cid,))
 
-            for (date_from, date_from_days) in c.fetchall():
+            for (date_from_days,) in c.fetchall():
                 if date_from_days < date_from_min:
                     continue
                 if not date_from_days in sdates:
@@ -1040,7 +1037,6 @@ class _BaseServer:
 
 
     def update_dates(self, dates):
-        # dates.append((rid, date_from, date_from_days, date_to, date_to_days))
         c = self._conn.cursor()
         self._begin(c)
         try:
