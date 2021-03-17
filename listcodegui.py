@@ -260,15 +260,6 @@ class CodesWindow(utils.BBMainWindowNotClose):
 
         contextMenu.exec_(point)
 
-    def _get_code_and_date(self):
-        w = selectdategui.SelectDate(self._codes_widget.getCodeId(), self)
-        ret = w.exec_()
-        if not ret:
-            return (0, 0, 0, 0)
-
-        (code, date_from, date_to) = w.get_result()
-        return(self._codes_widget.getCodeId(), code, date_from, date_to)
-
     def _set_diff_from(self):
         if not self._codes_widget.getCodeId():
             QApplication.beep()

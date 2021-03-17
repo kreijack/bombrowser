@@ -322,11 +322,11 @@ def revise_copy_code(code_id, parent):
         if not ret:
             return None
 
-        (code, date_from, date_to) = w.get_result()
+        (code, date_from_days) = w.get_code_and_date_from_days()
         if code == 0:
             return None
 
-        data = d.get_code(code_id, db.iso_to_days(date_from))
+        data = d.get_code(code_id, date_from_days)
         rid = data["rid"]
 
         w = CopyCode(rid, None)

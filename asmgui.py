@@ -497,15 +497,19 @@ class AssemblyWindow(utils.BBMainWindow):
 
         valid_where_used(id_, self.parent())
 
-    def populate(self, top, data, date_from=None):
+    def populate(self, top, data, caption_date=None):
         top_code = data[top]["code"]
 
         if self._asm:
-                dt2 = date_from
-                if date_from == db.days_to_iso(db.prototype_date -1):
+                if caption_date == db.prototype_date -1:
                     dt2 = "LATEST"
-                elif date_from == db.days_to_iso(db.end_of_the_world):
+                elif caption_date == db.end_of_the_world:
                     dt2 = "PROTOTYPE"
+                elif caption_date == db.prototype_date:
+                    dt2 = "PROTOTYPE"
+                else:
+                    dt2 = db.days_to_iso(caption_date)
+
                 self.setWindowTitle(utils.window_title +
                         " - Assembly: " + top_code + " @ " + dt2)
         elif self._valid_where_used:
@@ -703,9 +707,9 @@ def show_assembly(code_id, winParent):
     QApplication.setOverrideCursor(Qt.WaitCursor)
     w = AssemblyWindow(None)
     w.show()
-    res = dlg.get_result()
-    data = d.get_bom_by_code_id2(code_id, res[1])
-    w.populate(*data, date_from=res[1])
+    (code, date_from_days) = dlg.get_code_and_date_from_days()
+    data = d.get_bom_by_code_id3(code_id, date_from_days)
+    w.populate(*data, caption_date=date_from_days)
     QApplication.restoreOverrideCursor()
 
 def show_latest_assembly(code_id):
@@ -724,12 +728,10 @@ def show_latest_assembly(code_id):
     w.show()
     dates = d.get_dates_by_code_id3(code_id)
 
-    dt = db.days_to_txt(dates[0][3])
-    if dt == "":
-        dt = db.days_to_iso(db.prototype_date-1)
+    dt = min(db.prototype_date - 1, dates[0][3])
 
-    data = d.get_bom_by_code_id2(code_id, dt)
-    w.populate(*data, date_from=dt)
+    data = d.get_bom_by_code_id3(code_id, dt)
+    w.populate(*data, caption_date=db.prototype_date - 1)
     QApplication.restoreOverrideCursor()
 
 def show_proto_assembly(code_id):
@@ -747,12 +749,8 @@ def show_proto_assembly(code_id):
     w = AssemblyWindow(None)
     w.show()
     dates = d.get_dates_by_code_id3(code_id)
-
-    dt = db.days_to_txt(dates[0][3])
-    if dt == "":
-        dt = db.days_to_iso(db.end_of_the_world)
-
-    data = d.get_bom_by_code_id2(code_id, dt)
-    w.populate(*data, date_from=dt)
+    dt = min(db.end_of_the_world, dates[0][3])
+    data = d.get_bom_by_code_id3(code_id, dates[0][3])
+    w.populate(*data, caption_date=db.end_of_the_world)
     QApplication.restoreOverrideCursor()
 

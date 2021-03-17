@@ -31,8 +31,11 @@ import pprint, traceback
 import db, utils, selectdategui
 
 class DiffWindow(utils.BBMainWindow):
-    def __init__(self, id1, code1, date1, id2, code2, date2, parent=None):
+    def __init__(self, id1, code1, date1, date_days1, id2, code2,
+                        date2, date_days2, parent=None):
         utils.BBMainWindow.__init__(self, parent)
+        self._date_from_days1 = date_days1
+        self._date_from_days2 = date_days2
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._init_gui(id1, code1, date1, id2, code2, date2)
         self._create_menu()
@@ -156,10 +159,10 @@ class DiffWindow(utils.BBMainWindow):
 
     def _do_diff(self):
         d = db.DB()
-        code1, data1 = d.get_bom_by_code_id2(int(self._ql_id1.text()),
-                                   self._ql_date1.text())
-        code2, data2 = d.get_bom_by_code_id2(int(self._ql_id2.text()),
-                                   self._ql_date2.text())
+        code1, data1 = d.get_bom_by_code_id3(int(self._ql_id1.text()),
+                                   self._date_from_days1)
+        code2, data2 = d.get_bom_by_code_id3(int(self._ql_id2.text()),
+                                   self._date_from_days2)
 
         # put the head of boms to the same ID to enshure to compare the "same" head
         if code1 != code2:
@@ -322,8 +325,10 @@ class DiffDialog(QDialog):
         self._date2 = ""
 
     def _do_diff(self):
-        w = DiffWindow(self._id1, self._code1, self._date1,
-                       self._id2, self._code2, self._date2,
+        w = DiffWindow(self._id1, self._code1,
+                       self._date1, self._date_from_days1,
+                       self._id2, self._code2,
+                       self._date2, self._date_from_days2,
                       parent=self)
         w.do_diff()
         w.show()
@@ -347,21 +352,24 @@ class DiffDialog(QDialog):
         self._ql_code2.setText(code)
         self._ql_date2.setText(date)
 
-    def set_from(self, code_id, code, date):
+    def set_from(self, code_id, code, date, date_from_days):
         self._id1 = code_id
         self._code1 = code
         self._date1 = date
         self._ql_id1.setText(code_id)
         self._ql_code1.setText(code)
         self._ql_date1.setText(date)
+        self._date_from_days1 = date_from_days
 
-    def set_to(self, code_id, code, date):
+    def set_to(self, code_id, code, date, date_from_days):
         self._id2 = code_id
         self._code2 = code
         self._date2 = date
         self._ql_id2.setText(code_id)
         self._ql_code2.setText(code)
         self._ql_date2.setText(date)
+        self._date_from_days2 = date_from_days
+
         if self._code1 != "":
             self._do_diff()
 
@@ -383,13 +391,14 @@ def set_from(code_id, parent):
     if not ret:
         return
 
-    (code, date_from, descr) = dlg.get_result()
+    (code, date_from_days) = dlg.get_code_and_date_from_days()
+    date_from = db.days_to_txt(date_from_days)
 
     global _diffDialog
     if _diffDialog is None:
         _diffDialog = DiffDialog()
     _diffDialog.show()
-    _diffDialog.set_from(str(code_id), code, date_from)
+    _diffDialog.set_from(str(code_id), code, date_from, date_from_days)
 
 def set_to(code_id, parent):
     if not code_id:
@@ -407,10 +416,12 @@ def set_to(code_id, parent):
     if not ret:
         return
 
-    (code, date_from, descr) = dlg.get_result()
+    (code, date_from_days) = dlg.get_code_and_date_from_days()
+    date_from = db.days_to_txt(date_from_days)
+
     global _diffDialog
     if _diffDialog is None:
         _diffDialog = DiffDialog()
     _diffDialog.show()
-    _diffDialog.set_to(str(code_id), code, date_from)
+    _diffDialog.set_to(str(code_id), code, date_from, date_from_days)
 
