@@ -245,24 +245,18 @@ class CodesWindow(utils.BBMainWindowNotClose):
 
     def _tree_context_menu(self, point):
         contextMenu = QMenu(self)
-        showLatestAssembly = contextMenu.addAction("Show latest assembly")
-        showLatestAssembly.triggered.connect(self._show_latest_assembly)
-        whereUsed = contextMenu.addAction("Where used")
-        whereUsed.triggered.connect(self._show_where_used)
-        validWhereUsed = contextMenu.addAction("Valid where used")
-        validWhereUsed.triggered.connect(self._show_valid_where_used)
-        showAssembly = contextMenu.addAction("Show assembly by date")
-        showAssembly.triggered.connect(self._show_assembly)
+
+        contextMenu.addAction("Show latest assembly").triggered.connect(self._show_latest_assembly)
+        contextMenu.addAction("Where used").triggered.connect(self._show_where_used)
+        contextMenu.addAction("Valid where used").triggered.connect(self._show_valid_where_used)
+        contextMenu.addAction("Show assembly by date").triggered.connect(self._show_assembly)
+        contextMenu.addAction("Show prototype assembly").triggered.connect(self._show_proto_assembly)
         contextMenu.addSeparator()
-        reviseCode = contextMenu.addAction("Copy/revise code ...")
-        reviseCode.triggered.connect(self._revise_code)
-        editCode = contextMenu.addAction("Edit code ...")
-        editCode.triggered.connect(self._edit_code)
+        contextMenu.addAction("Copy/revise code ...").triggered.connect(self._revise_code)
+        contextMenu.addAction("Edit code ...").triggered.connect(self._edit_code)
         contextMenu.addSeparator()
-        doDiff1 = contextMenu.addAction("Diff from")
-        doDiff1.triggered.connect(self._set_diff_from)
-        doDiff2 = contextMenu.addAction("Diff to")
-        doDiff2.triggered.connect(self._set_diff_to)
+        contextMenu.addAction("Diff from").triggered.connect(self._set_diff_from)
+        contextMenu.addAction("Diff to").triggered.connect(self._set_diff_to)
 
         contextMenu.exec_(point)
 
@@ -298,6 +292,12 @@ class CodesWindow(utils.BBMainWindowNotClose):
             QApplication.beep()
             return
         asmgui.show_assembly(self._codes_widget.getCodeId(), self)
+
+    def _show_proto_assembly(self):
+        if not self._codes_widget.getCodeId():
+            QApplication.beep()
+            return
+        asmgui.show_proto_assembly(self._codes_widget.getCodeId())
 
     def _revise_code(self):
         if not self._codes_widget.getCodeId():

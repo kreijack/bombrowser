@@ -411,26 +411,17 @@ class AssemblyWindow(utils.BBMainWindow):
             return
 
         contextMenu = QMenu(self)
-        showLatestAssembly = contextMenu.addAction("Show latest assembly")
-        showLatestAssembly.triggered.connect(self._show_latest_assembly)
-        whereUsed = contextMenu.addAction("Where used")
-        whereUsed.triggered.connect(self._show_where_used)
-        validWhereUsed = contextMenu.addAction("Valid where used")
-        validWhereUsed.triggered.connect(self._show_valid_where_used)
-        showAssembly = contextMenu.addAction("Show assembly by date")
-        showAssembly.triggered.connect(self._show_assembly)
-
+        contextMenu.addAction("Show latest assembly").triggered.connect(self._show_latest_assembly)
+        contextMenu.addAction("Where used").triggered.connect(self._show_where_used)
+        contextMenu.addAction("Valid where used").triggered.connect(self._show_valid_where_used)
+        contextMenu.addAction("Show assembly by date").triggered.connect(self._show_assembly)
+        contextMenu.addAction("Show latest assembly").triggered.connect(self._show_proto_assembly)
         contextMenu.addSeparator()
-        reviseCode = contextMenu.addAction("Copy/revise code ...")
-        reviseCode.triggered.connect(self._revise_code)
-        editCode = contextMenu.addAction("Edit code ...")
-        editCode.triggered.connect(self._edit_code)
+        contextMenu.addAction("Copy/revise code ...").triggered.connect(self._revise_code)
+        contextMenu.addAction("Edit code ...").triggered.connect(self._edit_code)
         contextMenu.addSeparator()
-
-        doDiff1 = contextMenu.addAction("Diff from...")
-        doDiff1.triggered.connect(self._set_diff_from)
-        doDiff2 = contextMenu.addAction("Diff to...")
-        doDiff2.triggered.connect(self._set_diff_to)
+        contextMenu.addAction("Diff from...").triggered.connect(self._set_diff_from)
+        contextMenu.addAction("Diff to...").triggered.connect(self._set_diff_to)
 
         contextMenu.exec_(self._tree.viewport().mapToGlobal(point))
 
@@ -482,6 +473,14 @@ class AssemblyWindow(utils.BBMainWindow):
 
         show_latest_assembly(id_)
 
+    def _show_proto_assembly(self):
+        path = self._get_path()
+        if len(path) == 0:
+            return
+        id_ = self._data[path[-1]]["id"]
+
+        show_proto_assembly(id_)
+
     def _show_where_used(self):
         path = self._get_path()
         if len(path) == 0:
@@ -503,8 +502,10 @@ class AssemblyWindow(utils.BBMainWindow):
 
         if self._asm:
                 dt2 = date_from
-                if date_from == db.days_to_iso(db.end_of_the_world):
+                if date_from == db.days_to_iso(db.prototype_date -1):
                     dt2 = "LATEST"
+                elif date_from == db.days_to_iso(db.end_of_the_world):
+                    dt2 = "PROTOTYPE"
                 self.setWindowTitle(utils.window_title +
                         " - Assembly: " + top_code + " @ " + dt2)
         elif self._valid_where_used:
@@ -708,6 +709,29 @@ def show_assembly(code_id, winParent):
     QApplication.restoreOverrideCursor()
 
 def show_latest_assembly(code_id):
+    if not code_id:
+        QApplication.beep()
+        return
+
+    d = db.DB()
+    if not d.is_assembly(code_id):
+        QApplication.beep()
+        QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
+        return
+
+    w = AssemblyWindow(None)
+    w.show()
+    dates = d.get_dates_by_code_id2(code_id)
+
+    dt = dates[0][4]
+    if dt == "":
+        dt = db.days_to_iso(db.prototype_date-1)
+
+    data = d.get_bom_by_code_id2(code_id, dt)
+    w.populate(*data, date_from=dt)
+    QApplication.restoreOverrideCursor()
+
+def show_proto_assembly(code_id):
     if not code_id:
         QApplication.beep()
         return
