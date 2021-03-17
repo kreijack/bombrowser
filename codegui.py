@@ -86,22 +86,21 @@ class CodeWidget(QWidget):
 
         if self._date_from_days is None:
 
-            self._dates = d.get_dates_by_code_id2(self._code_id)
+            self._dates = d.get_dates_by_code_id3(self._code_id)
             self._list = QComboBox()
             for data2 in self._dates:
-                (icode, idescr, idate_from, idate_from_days, idate_to,
-                 idate_to_days, rid) = data2[:7]
+                (icode, idescr, idate_from_days, idate_to_days, rid) = data2[:5]
 
                 self._list.addItem("%s .. %s"%(
                     db.days_to_txt(idate_from_days),
                     db.days_to_txt(idate_to_days)))
 
             self._grid.addWidget(self._list, 0, 1)
-            self._date_from = db.days_to_txt(self._dates[0][3])
-            self._date_from_days = self._dates[0][3]
-            self._date_to = db.days_to_txt(self._dates[0][5])
-            self._date_to_days = self._dates[0][5]
-            self._rid = self._dates[0][6]
+            self._date_from = db.days_to_txt(self._dates[0][2])
+            self._date_from_days = self._dates[0][2]
+            self._date_to = db.days_to_txt(self._dates[0][3])
+            self._date_to_days = self._dates[0][3]
+            self._rid = self._dates[0][4]
             self._list.currentIndexChanged.connect(self._list_change_index)
 
         b = QPushButton("Copy info...")
@@ -114,10 +113,10 @@ class CodeWidget(QWidget):
         self._update_widget(d)
 
     def _list_change_index(self, i):
-        self._date_from = db.days_to_txt(self._dates[i][3])
-        self._date_from_days = self._dates[i][3]
-        self._date_to = db.days_to_txt(self._dates[i][5])
-        self._date_to_days = self._dates[i][5]
+        self._date_from = db.days_to_txt(self._dates[i][2])
+        self._date_from_days = self._dates[i][2]
+        self._date_to = db.days_to_txt(self._dates[i][3])
+        self._date_to_days = self._dates[i][3]
 
         self._update_widget(db.DB())
 

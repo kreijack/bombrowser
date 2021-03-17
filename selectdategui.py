@@ -108,28 +108,32 @@ class SelectDate(QDialog):
     def _populate_table(self):
         d = db.DB()
 
-               # code descr  rev   iter  date_from
-        data = [(r[0], r[1], r[7], r[8], r[2])
-            for r in d.get_dates_by_code_id2(self._code_id)]
+               # code descr  rev   iter  date_from,            date_from_days
+        data = [(r[0], r[1], r[5], r[6], db.days_to_txt(r[2]), r[2])
+            for r in d.get_dates_by_code_id3(self._code_id)]
+        pprint.pprint(data)
         sorted(data, reverse=True, key=lambda x : x[3])
-
+        pprint.pprint(data)
 
         if not self._only_data_code:
-            last = (data[0][1], data[0][2], data[0][3])
+            last = (data[-1][1], data[-1][2], data[-1][3])
             m = dict()
-            for code, descr, rev, iter_, date_from in data:
-                m[date_from] = (descr, rev, iter_)
+            for code, descr, rev, iter_, date_from, date_from_days in data:
+                m[date_from_days] = (descr, rev, iter_)
 
-            data = d.get_bom_dates_by_code_id(self._code_id)
-            data.sort(reverse=True)
-            assert(len(data))
 
             data2 = []
-            for r in data:
-                if r[0] in m:
-                    last = m[r[0]]
-                data2.append((code, last[0], last[1], last[2], r[0]))
 
+            data = d.get_bom_dates_by_code_id(self._code_id)
+            assert(len(data))
+            data.sort() # from lower to higher
+            for date_from_days in data:
+                if date_from_days in m:
+                    last = m[date_from_days]
+                data2.append((code, last[0], last[1], last[2],
+                    db.days_to_txt(date_from_days), date_from_days))
+
+            data2.sort(reverse=True, key=lambda x: x[3]) # from higher to lower
             data = data2
 
         assert(len(data))

@@ -175,7 +175,7 @@ class EditDates(QDialog):
     def _populate(self):
 
         d = db.DB()
-        data = d.get_dates_by_code_id2(self._code_id)
+        data = d.get_dates_by_code_id3(self._code_id)
 
         self._table.clear()
         self._table.horizontalHeader().setStretchLastSection(True)
@@ -190,8 +190,8 @@ class EditDates(QDialog):
 
         row = 0
         for line in data:
-            (code, descr, date_from, date_from_days, date_to, date_to_days,
-                rid, rev, iter_) = line[:9]
+            (code, descr, date_from_days, date_to_days,
+                rid, rev, iter_) = line[:7]
 
             i = QTableWidgetItem(str(rid))
             i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
@@ -215,10 +215,10 @@ class EditDates(QDialog):
             i.setFont(f)
             self._table.setItem(row, 3, i)
 
-            i = QTableWidgetItem(date_from)
+            i = QTableWidgetItem(db.days_to_txt(date_from_days))
             self._table.setItem(row, 4, i)
 
-            i = QTableWidgetItem(date_to)
+            i = QTableWidgetItem(db.days_to_txt(date_to_days))
             if row != 0:
                 i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                 i.setFont(f)
@@ -519,9 +519,9 @@ class EditWindow(utils.BBMainWindow):
                             None)
 
 
-            dates = d.get_dates_by_code_id2(code_id)
-            min_date_from_days = min([x[3] for x in dates])
-            max_date_to_days = max([x[5] for x in dates])
+            dates = d.get_dates_by_code_id3(code_id)
+            min_date_from_days = min([x[2] for x in dates])
+            max_date_to_days = max([x[3] for x in dates])
 
             if (self._from_date_days < min_date_from_days or
                 self._to_date_days > max_date_to_days):
@@ -818,10 +818,10 @@ class EditWindow(utils.BBMainWindow):
 
 def edit_code_by_code_id(code_id):
     d = db.DB()
-    dates = d.get_dates_by_code_id2(code_id)
+    dates = d.get_dates_by_code_id3(code_id)
     assert(len(dates))
-    (code, descr, date_from, date_from_days, date_to, date_to_days,
-        rid, ver, iter_) = dates[0][:9]
+    (code, descr, date_from_days, date_to_days,
+        rid, ver, iter_) = dates[0][:7]
 
     w = EditWindow(rid =rid)
     w.show()

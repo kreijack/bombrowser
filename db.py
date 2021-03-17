@@ -462,11 +462,11 @@ class _BaseServer:
         else:
             return res
 
-    def get_dates_by_code_id2(self, id_code):
+    def get_dates_by_code_id3(self, id_code):
         c = self._conn.cursor()
         self._sqlex(c, """SELECT DISTINCT i.code, r.descr,
-                                     r.date_from, r.date_from_days, r.date_to,
-                                     r.date_to_days, r.id, r.ver, r.iter
+                                     r.date_from_days, r.date_to_days,
+                                     r.id, r.ver, r.iter
                      FROM  item_revisions AS r
                      LEFT JOIN items AS i ON r.code_id = i.id
                      WHERE           r.code_id = ?
@@ -727,7 +727,6 @@ class _BaseServer:
 
     def get_bom_dates_by_code_id(self, code_id):
         sdates = set()
-        dates = []
         done = set()
         todo = [code_id]
 
@@ -755,7 +754,6 @@ class _BaseServer:
                     continue
                 if not date_from_days in sdates:
                     sdates.add(date_from_days)
-                    dates.append((date_from, date_from_days))
 
             self._sqlex(c, """
                     SELECT DISTINCT a.child_id
@@ -768,6 +766,8 @@ class _BaseServer:
             l = set([x[0] for x in c.fetchall()])
             l = l.difference(done)
             todo += list(l)
+        dates = list(sdates)
+        dates.sort(reverse=True)
         return dates
 
     def copy_code(self, new_code, rid, descr, rev, copy_props=True,

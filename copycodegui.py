@@ -52,9 +52,9 @@ class CopyCode(QDialog):
         self._date_to_days = data["date_to_days"]
         self._code_id = data["id"]
 
-        data = self._db.get_dates_by_code_id2(self._code_id)
-        self._last_date = data[0][2]
-        self._last_date_days = data[0][3]
+        data = self._db.get_dates_by_code_id3(self._code_id)
+        self._last_date = db.days_to_txt(data[0][2])
+        self._last_date_days = data[0][2]
         self._last_iter = data[0][8]
         self._last_ver = data[0][7]
         self._last_revid = data[0][6]

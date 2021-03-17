@@ -722,9 +722,9 @@ def show_latest_assembly(code_id):
     QApplication.setOverrideCursor(Qt.WaitCursor)
     w = AssemblyWindow(None)
     w.show()
-    dates = d.get_dates_by_code_id2(code_id)
+    dates = d.get_dates_by_code_id3(code_id)
 
-    dt = dates[0][4]
+    dt = db.days_to_txt(dates[0][3])
     if dt == "":
         dt = db.days_to_iso(db.prototype_date-1)
 
@@ -746,9 +746,9 @@ def show_proto_assembly(code_id):
     QApplication.setOverrideCursor(Qt.WaitCursor)
     w = AssemblyWindow(None)
     w.show()
-    dates = d.get_dates_by_code_id2(code_id)
+    dates = d.get_dates_by_code_id3(code_id)
 
-    dt = dates[0][4]
+    dt = db.days_to_txt(dates[0][3])
     if dt == "":
         dt = db.days_to_iso(db.end_of_the_world)
 
