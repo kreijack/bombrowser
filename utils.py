@@ -75,15 +75,15 @@ class BBMainWindow(QMainWindow):
             if id_ == self.__bbmainwindow_list_cnt:
                 continue
 
-            if t.startswith("BOMBrowser - Diff window"):
+            if t.startswith(window_title + " - Diff window"):
                 diffwindows.append((t, id_))
-            elif t.startswith("BOMBrowser - Edit code"):
+            elif t.startswith(window_title + " - Edit code"):
                 editwindows.append((t, id_))
-            elif (t.startswith("BOMBrowser - Assembly") or
-                  t.startswith("BOMBrowser - Valid where used") or
-                  t.startswith("BOMBrowser - Where used")):
+            elif (t.startswith(window_title + " - Assembly") or
+                  t.startswith(window_title + " - Valid where used") or
+                  t.startswith(window_title + " - Where used")):
                 bomwindows.append((t, id_))
-            elif t.startswith("BOMBrowser - Codes list"):
+            elif t.startswith(window_title + " - Codes list"):
                 codewindows.append((t, id_))
 
         return (codewindows, bomwindows, diffwindows, editwindows)
