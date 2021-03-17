@@ -55,6 +55,7 @@ _use_memory_sqlite=True
 def _create_db():
     if _use_memory_sqlite:
         d = db.DBSQLite(":memory:")
+        db._globaDBInstance = d
     else:
         d = db.DB() #_connection_string)
     d.create_db()
@@ -347,7 +348,7 @@ def test_get_dates():
 
     id_ = d.get_codes_by_code("A")[0][0]
 
-    dates = [ x[2] for x in d.get_dates_by_code_id2(id_)]
+    dates = [ db.days_to_iso(x[2]) for x in d.get_dates_by_code_id3(id_)]
     assert(len(dates) == 2)
     assert("2020-01-10" in dates)
     assert("2020-01-25" in dates)
@@ -366,13 +367,13 @@ def test_get_bom():
         else:
             return False
 
-    (root, bom) = d.get_bom_by_code_id2(id_, "2020-01-25")
+    (root, bom) = d.get_bom_by_code_id3(id_, db.iso_to_days("2020-01-25"))
 
     assert(find_in_bom("L"))
     assert(not find_in_bom("H"))
     assert(find_in_bom("O"))
 
-    (root, bom) = d.get_bom_by_code_id2(id_, "2020-01-15")
+    (root, bom) = d.get_bom_by_code_id3(id_, db.iso_to_days("2020-01-15"))
 
     assert(not find_in_bom("L"))
     assert(find_in_bom("H"))
@@ -388,8 +389,8 @@ def test_get_bom_dates_by_code_id():
     dates = d.get_bom_dates_by_code_id(id_)
     assert(len(dates) == 4)
 
-    assert("2020-01-10" in [x[0] for x in dates])
-    assert("2020-01-25" in [x[0] for x in dates])
+    assert("2020-01-10" in [db.days_to_iso(x) for x in dates])
+    assert("2020-01-25" in [db.days_to_iso(x) for x in dates])
 
     id_ = d.get_codes_by_code("H")[0][0]
 
@@ -397,7 +398,7 @@ def test_get_bom_dates_by_code_id():
 
     assert(len(dates) == 1)
 
-    assert("2020-01-15" in [x[0] for x in dates])
+    assert("2020-01-15" in [db.days_to_iso(x) for x in dates])
 
     id_ = d.get_codes_by_code("B")[0][0]
 
@@ -405,8 +406,8 @@ def test_get_bom_dates_by_code_id():
 
     assert(len(dates) == 3)
 
-    assert("2020-01-10" in [x[0] for x in dates])
-    assert(not "2020-01-25" in [x[0] for x in dates])
+    assert("2020-01-10" in [db.days_to_iso(x) for x in dates])
+    assert(not "2020-01-25" in [db.days_to_iso(x) for x in dates])
 
 def test_get_children_by_rid():
     d, c = _create_db()
@@ -504,6 +505,7 @@ def test_get_config():
         VALUES ('cfg.test_sect.test_key', 'test-value')
     """)
 
+    cfg.init()
     ret = d.get_config()
     cfg.update_cfg(ret)
 
