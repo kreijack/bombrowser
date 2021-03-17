@@ -54,6 +54,7 @@ class CopyCode(QDialog):
 
         data = self._db.get_dates_by_code_id2(self._code_id)
         self._last_date = data[0][2]
+        self._last_date_days = data[0][3]
         self._last_iter = data[0][8]
         self._last_ver = data[0][7]
         self._last_revid = data[0][6]
@@ -129,6 +130,12 @@ class CopyCode(QDialog):
         self._cb_start_edit.setCheckState(Qt.CheckState.Checked)
         grid.addWidget(self._cb_start_edit, 21, 0, 1, 2)
 
+        self._cb_proto = QCheckBox("Prototype")
+        self._cb_proto.stateChanged.connect(self._change_proto_btn)
+        self._cb_proto.setCheckState(Qt.CheckState.Unchecked)
+        grid.addWidget(self._cb_proto, 21, 2)
+
+
         pb = QPushButton("Cancel")
         pb.clicked.connect(self._close)
         grid.addWidget(pb, 30, 0)
@@ -140,21 +147,30 @@ class CopyCode(QDialog):
         self.setLayout(grid)
 
         self._change_copy_btn()
+        self._change_proto_btn()
 
     def _check_values(self):
-        try:
-            newdate = db.iso_to_days(self._l_new_date_from.text())
-        except:
-            QMessageBox.critical(self,
-                "BOMBrowser - error",
-                "The new 'From date' field format is incorrect")
-            return False
-
-        if self._cb_copy_rev.checkState() == Qt.CheckState.Unchecked:
-            if newdate <= self._date_from_days:
+        if self._cb_proto.checkState() == Qt.CheckState.Checked:
+            newdate = db.prototype_date
+            if newdate <= self._last_date_days:
                 QMessageBox.critical(self,
                     "BOMBrowser - error",
-                    "The new 'From date' is earlier than the old one")
+                    "A prototype already exists")
+                return False
+        else:
+            try:
+                newdate = db.iso_to_days(self._l_new_date_from.text())
+            except:
+                QMessageBox.critical(self,
+                    "BOMBrowser - error",
+                    "The new 'From date' field format is incorrect")
+                return False
+
+        if self._cb_copy_rev.checkState() == Qt.CheckState.Unchecked:
+            if newdate <= self._last_date_days:
+                QMessageBox.critical(self,
+                    "BOMBrowser - error",
+                    "The new 'From date' is earlier than the previous ones")
                 return False
 
         if self._cb_copy_rev.checkState() == Qt.CheckState.Checked:
@@ -188,7 +204,10 @@ class CopyCode(QDialog):
                 code = code.upper()
 
         try:
-            newdate = db.iso_to_days(self._l_new_date_from.text())
+            if self._cb_proto.checkState() == Qt.CheckState.Checked:
+                newdate = db.prototype_date
+            else:
+                newdate = db.iso_to_days(self._l_new_date_from.text())
             if self._cb_copy_rev.checkState() == Qt.CheckState.Checked:
                 new_rid = d.copy_code(code,
                     self._rid,
@@ -236,15 +255,28 @@ class CopyCode(QDialog):
         if reply == QMessageBox.Yes:
             self.reject()
 
+    def _change_proto_btn(self):
+        if self._cb_proto.checkState() == Qt.CheckState.Checked:
+            self._l_new_date_from.setReadOnly(True)
+            self._l_new_date_from.setEnabled(False)
+            self._l_new_date_from.setText("PROTOTYPE")
+        else:
+            self._l_new_date_from.setReadOnly(False)
+            self._l_new_date_from.setEnabled(True)
+            self._l_new_date_from.setText(
+                db.days_to_iso(db.now_to_days())
+            )
+        self._update_new_iter()
+
     def _change_copy_btn(self):
         if self._cb_copy_rev.checkState() == Qt.CheckState.Checked:
             self._l_new_code.setReadOnly(False)
-            self._l_new_iter.setText("0")
+            self._l_new_code.setEnabled(True)
             self._l_new_rev.setText("0")
         else:
             self._l_new_code.setText(self._l_old_code.text())
-            self._l_new_iter.setText("%d"%(self._last_iter+1))
             self._l_new_code.setReadOnly(True)
+            self._l_new_code.setEnabled(False)
             new_rev = self._l_old_rev.text()
             try:
                 if new_rev == '':
@@ -267,6 +299,15 @@ class CopyCode(QDialog):
                 new_rev = new_rev +"_bis"
 
             self._l_new_rev.setText(new_rev)
+        self._update_new_iter()
+
+    def _update_new_iter(self):
+        if self._cb_proto.checkState() == Qt.CheckState.Checked:
+            self._l_new_iter.setText(str(db.prototype_iter))
+        elif self._cb_copy_rev.checkState() == Qt.CheckState.Checked:
+            self._l_new_iter.setText("0")
+        else:
+            self._l_new_iter.setText("%d"%(self._last_iter+1))
 
     def shouldStartEditor(self):
         return self._cb_start_edit.checkState() == Qt.CheckState.Checked
