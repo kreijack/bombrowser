@@ -57,7 +57,7 @@ class CodeWidget(QWidget):
         self._rid = rid
         self._qty = qty
         self._each = each
-        self._date_from = date_from
+        self._date_from = db.days_to_txt(date_from_days)
         self._date_from_days = date_from_days
         self._date_to = date_to
         self._winParent = winParent
@@ -92,12 +92,14 @@ class CodeWidget(QWidget):
                 (icode, idescr, idate_from, idate_from_days, idate_to,
                  idate_to_days, rid) = data2[:7]
 
-                self._list.addItem("%s .. %s"%(idate_from, idate_to))
+                self._list.addItem("%s .. %s"%(
+                    db.days_to_txt(idate_from_days),
+                    db.days_to_txt(idate_to_days)))
 
             self._grid.addWidget(self._list, 0, 1)
-            self._date_from = self._dates[0][2]
+            self._date_from = db.days_to_txt(self._dates[0][3])
             self._date_from_days = self._dates[0][3]
-            self._date_to = self._dates[0][4]
+            self._date_to = db.days_to_txt(self._dates[0][5])
             self._date_to_days = self._dates[0][5]
             self._rid = self._dates[0][6]
             self._list.currentIndexChanged.connect(self._list_change_index)
@@ -112,9 +114,9 @@ class CodeWidget(QWidget):
         self._update_widget(d)
 
     def _list_change_index(self, i):
-        self._date_from = self._dates[i][2]
+        self._date_from = db.days_to_txt(self._dates[i][3])
         self._date_from_days = self._dates[i][3]
-        self._date_to = self._dates[i][4]
+        self._date_to = db.days_to_txt(self._dates[i][5])
         self._date_to_days = self._dates[i][5]
 
         self._update_widget(db.DB())
