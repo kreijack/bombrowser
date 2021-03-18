@@ -41,26 +41,22 @@ class QHLine(QFrame):
 
 class CodeWidget(QWidget):
 
-    def __init__(self, id_, winParent, date_from_days=None, unit=None, qty=None,
-                 each=None, date_from=None, date_to=None,
-                 parent = None, ref=None, rid=None):
-        QWidget.__init__(self, parent)
+    def __init__(self):
+        QWidget.__init__(self)
+        self._text_info = ""
 
-        if ref is None or ref == "None":
-            ref = ""
-        if date_from is None or date_from == "None":
-            date_from = ""
-        if date_to is None or date_to == "None":
-            date_to = ""
+        self._init_gui()
 
-        self._code_id = id_
-        self._rid = rid
+    def populate(self, id_, date_from_days, qty, each, unit, ref):
+
+        d = db.DB()
+        data = d.get_code(id_, date_from_days)
+
+        self._data = data
         self._qty = qty
         self._each = each
-        self._date_from = db.days_to_txt(date_from_days)
-        self._date_from_days = date_from_days
-        self._date_to = date_to
-        self._winParent = winParent
+        if unit == "":
+            self._unit = data["unit"]
         self._unit = unit
         self._ref = ref
         self._main_data = [
@@ -75,33 +71,14 @@ class CodeWidget(QWidget):
         i = 0
         for i in range(len(gvalnames)):
             self._main_data.append((gvalnames[i], "gval%d"%(i+1)))
-        self._init_gui()
+
+        self._drawings = d.get_drawings_by_code_id(self._data["rid"])
+
+        self._update_widget()
 
     def _init_gui(self):
         self._grid = QGridLayout()
         self.setLayout(self._grid)
-
-        #self._grid.clear()
-        d = db.DB()
-
-        if self._date_from_days is None:
-
-            self._dates = d.get_dates_by_code_id3(self._code_id)
-            self._list = QComboBox()
-            for data2 in self._dates:
-                (icode, idescr, idate_from_days, idate_to_days, rid) = data2[:5]
-
-                self._list.addItem("%s .. %s"%(
-                    db.days_to_txt(idate_from_days),
-                    db.days_to_txt(idate_to_days)))
-
-            self._grid.addWidget(self._list, 0, 1)
-            self._date_from = db.days_to_txt(self._dates[0][2])
-            self._date_from_days = self._dates[0][2]
-            self._date_to = db.days_to_txt(self._dates[0][3])
-            self._date_to_days = self._dates[0][3]
-            self._rid = self._dates[0][4]
-            self._list.currentIndexChanged.connect(self._list_change_index)
 
         b = QPushButton("Copy info...")
         self._grid.addWidget(b, 0, 0)
@@ -110,17 +87,12 @@ class CodeWidget(QWidget):
 
         self._grid.addWidget(self._mainWidget, 10, 0, 1, 2)
 
-        self._update_widget(d)
+        #self._update_widget(d)
 
-    def _list_change_index(self, i):
-        self._date_from = db.days_to_txt(self._dates[i][2])
-        self._date_from_days = self._dates[i][2]
-        self._date_to = db.days_to_txt(self._dates[i][3])
-        self._date_to_days = self._dates[i][3]
+    def addDatesListWidget(self, list_widget):
+        self._grid.addWidget(list_widget, 0, 1)
 
-        self._update_widget(db.DB())
-
-    def _update_widget(self, d):
+    def _update_widget(self):
         # https://stackoverflow.com/questions/10416582/replacing-layout-on-a-qwidget-with-another-layout
         QWidget().setLayout(self._mainWidget.layout())
 
@@ -132,63 +104,56 @@ class CodeWidget(QWidget):
                 QLabel.__init__(self, *args, **kwargs)
                 self.setTextInteractionFlags(Qt.TextSelectableByMouse)
 
-        data = d.get_code(self._code_id, self._date_from_days)
-        if self._unit:
-            data["unit"] = self._unit
-
-        self._rid = data["rid"]
-
         txt = ""
         row = 0
 
         row += 1
         grid.addWidget(XLabel("RID"), row, 0)
-        grid.addWidget(XLabel(str(self._rid)), row , 1)
-        txt += "RID: %s\n"%(str(self._rid))
+        grid.addWidget(XLabel(str(self._data["rid"])), row , 1)
+        txt += "RID: %s\n"%(self._data["id"])
 
         row += 1
         grid.addWidget(XLabel("ID"), row, 0)
-        grid.addWidget(XLabel(str(self._code_id)), row , 1)
-        txt += "ID: %s\n"%(str(self._code_id))
+        grid.addWidget(XLabel(str(self._data["id"])), row , 1)
+        txt += "ID: %s\n"%(self._data["id"])
 
         row += 1
-        keys = set(data.keys())
+        keys = set(self._data.keys())
         for caption, key in self._main_data:
             grid.addWidget(XLabel(caption), row, 0)
-            if key in data:
-                grid.addWidget(XLabel(str(data[key])), row , 1)
+            if key in self._data:
+                grid.addWidget(XLabel(str(self._data[key])), row , 1)
                 keys.discard(key)
-                txt += "%s: %s\n"%(caption, data[key])
+                txt += "%s: %s\n"%(caption, self._data[key])
             else:
                 txt += "%s:\n"%(caption)
             row += 1
 
-        if not self._date_from is None:
+        if self._ref != "":
             grid.addWidget(XLabel("Reference:"), row, 0)
             grid.addWidget(XLabel(str(self._ref)), row , 1)
             txt += "Reference: %s\n"%(self._ref)
             row += 1
 
-        if not self._date_from is None:
-            grid.addWidget(XLabel("Date from:"), row, 0)
-            grid.addWidget(XLabel(str(self._date_from)), row , 1)
-            txt += "Date from: %s\n"%(self._date_from)
-            row += 1
+        dt = db.days_to_txt(self._data["date_from_days"])
+        grid.addWidget(XLabel("Date from:"), row, 0)
+        grid.addWidget(XLabel(dt), row , 1)
+        txt += "Date from: %s\n"%(dt)
+        row += 1
 
-        if not self._date_to is None:
-            grid.addWidget(XLabel("Date to:"), row, 0)
-            grid.addWidget(XLabel(str(self._date_to)), row , 1)
-            txt += "Date to: %s\n"%(self._date_to)
-            row += 1
+        dt = db.days_to_txt(self._data["date_to_days"])
+        grid.addWidget(XLabel("Date to:"), row, 0)
+        grid.addWidget(XLabel(dt), row , 1)
+        txt += "Date to: %s\n"%(dt)
+        row += 1
 
-
-        if not self._qty is None:
+        if self._qty != "":
             grid.addWidget(XLabel("Quantity"), row, 0)
             grid.addWidget(XLabel(str(self._qty)), row , 1)
             txt += "Quantity: %s\n"%(self._qty)
             row += 1
 
-        if not self._each is None:
+        if self._each != "":
             grid.addWidget(XLabel("   Each"), row, 0)
             grid.addWidget(XLabel(str(self._each)), row , 1)
             txt += "Each: %s\n"%(self._each)
@@ -197,18 +162,17 @@ class CodeWidget(QWidget):
         grid.addWidget(QHLine(), row, 0, 1, 2)
         row += 1
 
-        for k in data["properties"]:
+        for k in self._data["properties"]:
             grid.addWidget(XLabel(k), row, 0)
-            grid.addWidget(XLabel(str(data["properties"][k])), row , 1)
-            txt += "%s: %s\n"%(k, str(data["properties"][k]))
+            grid.addWidget(XLabel(str(self._data["properties"][k])), row , 1)
+            txt += "%s: %s\n"%(k, str(self._data["properties"][k]))
             row += 1
 
-        if len(data["properties"].keys()):
+        if len(self._data["properties"].keys()):
             grid.addWidget(QHLine(), row, 0, 1, 2)
             row += 1
 
-        drawings = d.get_drawings_by_code_id(self._rid)
-        for drw in drawings:
+        for drw in self._drawings:
             b = QPushButton(drw[0])
             class Opener:
                 def __init__(self, obj, *args):
@@ -229,7 +193,7 @@ class CodeWidget(QWidget):
             grid.addWidget(b, row, 0, 1, 2)
             row += 1
 
-        if drawings:
+        if self._drawings:
             grid.addWidget(QHLine(), row, 0, 1, 2)
             row += 1
 
@@ -274,7 +238,7 @@ class CodeWidget(QWidget):
         cb.setMimeData(md)
 
     def _copy_info(self):
-        self._copy(self._text_info)
+        self._copy_str(self._text_info)
 
     def _open_file(self, nf):
         QDesktopServices.openUrl(nf)
@@ -297,4 +261,42 @@ class CodeWidget(QWidget):
             QApplication.beep()
             return
         asmgui.show_assembly(self._code_id, self._winParent)
+
+
+class CodesWidget(CodeWidget):
+
+    def __init__(self):
+        CodeWidget.__init__(self)
+        self._list = QComboBox()
+        self.addDatesListWidget(self._list)
+        self._code_id = None
+        self._list.currentIndexChanged.connect(self._list_change_index)
+
+    def populate(self, code_id):
+        self._code_id = code_id
+
+        d = db.DB()
+        self._list.clear()
+        self._dates = d.get_dates_by_code_id3(self._code_id)
+        for data2 in self._dates:
+            (icode, idescr, idate_from_days, idate_to_days, rid) = data2[:5]
+
+            self._list.addItem("%s .. %s"%(
+                db.days_to_txt(idate_from_days),
+                db.days_to_txt(idate_to_days)))
+
+        self._date_from = db.days_to_txt(self._dates[0][2])
+        self._date_from_days = self._dates[0][2]
+        self._date_to = db.days_to_txt(self._dates[0][3])
+        self._date_to_days = self._dates[0][3]
+        self._rid = self._dates[0][4]
+
+        self._list_change_index(0)
+
+    def _list_change_index(self, i):
+        if self._code_id is None:
+            return
+        self._date_from_days = self._dates[i][2]
+        CodeWidget.populate(self, self._code_id, self._date_from_days,
+            "", "", "", "")
 

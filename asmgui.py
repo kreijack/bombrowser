@@ -397,8 +397,12 @@ class AssemblyWindow(utils.BBMainWindow):
         self._tree.setAlternatingRowColors(True)
         qs.addWidget(self._tree)
 
-        self._w = QWidget()
-        qs.addWidget(self._w)
+        self._code_widget = codegui.CodeWidget()
+        scrollarea = QScrollArea()
+        scrollarea.setWidget(self._code_widget)
+        scrollarea.setWidgetResizable(True)
+        qs.addWidget(scrollarea)
+
         qs.setSizes([700, 1024-700])
         self.setCentralWidget(qs)
 
@@ -619,32 +623,17 @@ class AssemblyWindow(utils.BBMainWindow):
             qty = ""
             each = ""
 
-        unit = None
-        date_from = None
-        date_to = None
-        ref = None
-        date_to = self._data[data_key]["date_to"]
-        date_from = self._data[data_key]["date_from"]
+        unit = ""
+        ref = ""
         date_from_days = self._data[data_key]["date_from_days"]
         if len(path) > 1:
-            #pprint.pprint(self._data[path[-2]])
             unit = self._data[path[-2]]["deps"][path[-1]]["unit"]
             ref = self._data[path[-2]]["deps"][path[-1]]["ref"]
-        scrollarea = QScrollArea()
-        scrollarea.setWidget(
-            codegui.CodeWidget(self._data[data_key]["id"],
-                date_from_days=self._data[data_key]["date_from_days"],
-                qty=qty, each=each, unit=unit,
-                date_from = date_from,
-                date_to = date_to,
-                ref = ref,
-                winParent = self.parent(),
-                rid=self._data[data_key]["rid"]))
 
-        # this to avoid unexpected crash
-        w = self._splitter.widget(1)
-        self._splitter.replaceWidget(1, scrollarea)
-        self._grid_widget = scrollarea
+        self._code_widget.populate(self._data[data_key]["id"],
+            self._data[data_key]["date_from_days"],
+            qty, each, unit, ref)
+
         self._my_statusbar.showMessage("/".join(map(lambda x : self._data[x]["code"], path)))
 
 

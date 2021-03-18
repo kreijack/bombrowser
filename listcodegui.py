@@ -85,7 +85,13 @@ class CodesWidget(QWidget):
         self._table.setColumnCount(5)
         self._table.setHorizontalHeaderLabels(["id", "Code", "Description", "Rev", "Iter"])
         self._splitter.addWidget(self._table)
-        self._splitter.addWidget(QWidget())
+
+        self._codes_widget = codegui.CodesWidget()
+        scrollarea = QScrollArea()
+        scrollarea.setWidget(self._codes_widget)
+        scrollarea.setWidgetResizable(True)
+        self._splitter.addWidget(scrollarea)
+
         self._splitter.setSizes([700, 1024-700])
 
         self.setLayout(vb)
@@ -159,14 +165,7 @@ class CodesWidget(QWidget):
         self._code_id = id_
         self._code = code
 
-        scrollarea = QScrollArea()
-        scrollarea.setWidget(codegui.CodeWidget(id_, self))
-
-        # this to avoid unexpected crash
-        w = self._splitter.widget(1)
-
-        self._splitter.replaceWidget(1, scrollarea)
-        self._grid_widget = scrollarea
+        self._codes_widget.populate(id_)
 
     def getCodeId(self):
         return self._code_id
