@@ -730,7 +730,7 @@ def xrmdir(path):
         elif os.path.exists(path):
             os.unlink(path)
 
-# create washer
+# insert non ascii string
 def insert_strange_code(c):
     s="UTF8 TEST HELLO WORLD - 你好世界"
     insert_code(c, s, "T-HELLOWORLD", 0,
@@ -739,8 +739,11 @@ def insert_strange_code(c):
                 0, "NR", "", "")
     insert_code(c, "ALL UPPER CASE", "T-ALLUPPERCASE", 0,
                 0, "NR", "", "")
+    insert_code(c, "DEGREE SYMBOL '°'", "T-DEGREE", 0,
+                0, "NR", "", "")
+    insert_code(c, "A-ACUTE 'à'", "T-AACUTE", 0,
+                0, "NR", "", "")
 
-    print(s)
 def create_db():
     d = db.DB()
     d.create_db()
@@ -763,6 +766,9 @@ def create_db():
         def execute(self, query, *args):
             q2=self._db._sql_translate(query)
             return self._cursor.execute(q2, *args)
+        def executemany(self, query, *args):
+            q2=self._db._sql_translate(query)
+            return self._cursor.executemany(q2, *args)
         def fetchone(self):
             return self._cursor.fetchone()
         def fetchall(self):
@@ -818,7 +824,7 @@ def create_db():
         conn.commit()
 
 
-    cursor.executemany("""
+    c.executemany("""
         INSERT INTO database_props("key", value)
         VALUES (?, ?)
     """,(
@@ -838,14 +844,6 @@ def create_db():
     conn.commit()
 
     insert_strange_code(c)
-
-    c.execute("""
-        SELECT * FROM item_revisions AS r
-        LEFT JOIN items AS i ON r.code_id = i.id
-        WHERE i.code LIKE 'T%'
-    """)
-    print(c.fetchall())
-
 
     conn.commit()
 
