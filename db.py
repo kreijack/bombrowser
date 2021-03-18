@@ -1277,6 +1277,7 @@ class DBPG(_BaseServer):
     def _open(self, path):
 
         self._conn = self._mod.connect(path)
+        self._conn.set_client_encoding("UNICODE")
 
     def _get_tables_list(self):
         c = self._conn.cursor()
