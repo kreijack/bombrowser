@@ -55,9 +55,9 @@ class CopyCode(QDialog):
         data = self._db.get_dates_by_code_id3(self._code_id)
         self._last_date = db.days_to_txt(data[0][2])
         self._last_date_days = data[0][2]
-        self._last_iter = data[0][8]
-        self._last_ver = data[0][7]
-        self._last_revid = data[0][6]
+        self._last_iter = data[0][6]
+        self._last_ver = data[0][5]
+        self._last_revid = data[0][4]
 
         self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
         self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
@@ -341,7 +341,7 @@ def revise_copy_code(code_id, parent):
                 "Success: you created a new code/revision")
             return None
 
-        w2 = editcode.EditWindow(w.getNewRId())
+        w2 = editcode.EditWindow(code_id)
         w2.show()
 
         return w2

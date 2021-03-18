@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import sys, configparser, os
 
-from PySide2.QtWidgets import QMainWindow, QScrollArea, QStatusBar
+from PySide2.QtWidgets import QMainWindow, QScrollArea, QStatusBar, QComboBox
 from PySide2.QtWidgets import QSplitter, QTableView, QLabel, QTableWidgetItem
 from PySide2.QtWidgets import QGridLayout, QWidget, QApplication, QFileDialog
 from PySide2.QtWidgets import QMessageBox, QAction, QLineEdit, QFrame, QSplitter
@@ -176,7 +176,6 @@ class EditDates(QDialog):
         self.reject()
 
     def _populate(self):
-
         d = db.DB()
         data = d.get_dates_by_code_id3(self._code_id)
 
@@ -293,17 +292,37 @@ class EditDates(QDialog):
             self._table.item(row+1, col+1).setText(to_date)
 
 class EditWindow(utils.BBMainWindow):
-    def __init__(self, rid, parent=None):
+    def __init__(self, code_id, parent=None):
         utils.BBMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self._rid = rid
+        self._code_id = code_id
+        self._rid = None
         self._orig_revision = None
         self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
         self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
+        self._dates_list_info = None
 
         self._init_gui()
 
-        self._populate_table()
+        self._populate_dates_list_info()
+        self._dates_list_change_index(0)
+        #self._populate_table()
+
+    def _populate_dates_list_info(self):
+        d = db.DB()
+        self._dates_list_info = d.get_dates_by_code_id3(self._code_id)
+        assert(len(self._dates_list_info))
+
+        self._dates_list.clear()
+        for row in self._dates_list_info:
+
+            (code, descr, date_from_days, date_to_days,
+                rid, ver, iter_) = row
+
+            self._dates_list.addItem("%s .. %s"%(
+                db.days_to_txt(date_from_days),
+                db.days_to_txt(date_to_days)))
+
 
     def _init_gui(self):
 
@@ -347,15 +366,10 @@ class EditWindow(utils.BBMainWindow):
         hl = QHBoxLayout()
         g.addLayout(hl, 15, 10, 1, 4)
 
-        hl.addWidget(QLabel("From date"))
-        self._from_date = QLineEdit()
-        self._from_date.setDisabled(True)
-        hl.addWidget(self._from_date)
-
-        hl.addWidget(QLabel("To date"))
-        self._to_date = QLineEdit()
-        self._to_date.setDisabled(True)
-        hl.addWidget(self._to_date)
+        hl.addWidget(QLabel("From/to date"))
+        self._dates_list = QComboBox()
+        hl.addWidget(self._dates_list)
+        self._dates_list.currentIndexChanged.connect(self._dates_list_change_index)
 
         b = QPushButton("...")
         b.clicked.connect(self._change_dates)
@@ -433,6 +447,17 @@ class EditWindow(utils.BBMainWindow):
         self.setCentralWidget(w)
         self.resize(1024, 768)
 
+    def _dates_list_change_index(self, i):
+        if self._dates_list_info is None:
+            return
+
+        # TODO: check if some data are changed
+
+        (code, descr, date_from_days, date_to_days,
+            rid, ver, iter_) = self._dates_list_info[i]
+
+        self._populate_table(rid)
+
     def _create_menu(self):
         mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu("File")
@@ -475,8 +500,6 @@ class EditWindow(utils.BBMainWindow):
         self.setWindowTitle(utils.window_title + " - Edit code: %s @ %s"%(
             data["code"], data["date_from"]))
 
-        self._from_date.setText(data["date_from"])
-        self._to_date.setText(data["date_to"])
         self._from_date_days = data["date_from_days"]
         self._to_date_days = data["date_to_days"]
 
@@ -608,7 +631,8 @@ class EditWindow(utils.BBMainWindow):
         self._children_table.setItem(row, 6, QTableWidgetItem(unit))
         self._children_table.setItem(row, 7, QTableWidgetItem(ref))
 
-    def _populate_table(self):
+    def _populate_table(self, rid):
+        self._rid = rid
         d = db.DB()
 
         data = d.get_code_from_rid(self._rid)
@@ -624,8 +648,6 @@ class EditWindow(utils.BBMainWindow):
         self._orig_revision = data["ver"]
         self._iter.setText(str(data["iter"]))
         self._unit.setText(data["unit"])
-        self._from_date.setText(data["date_from"])
-        self._to_date.setText(data["date_to"])
         self._from_date_days = data["date_from_days"]
         self._to_date_days = data["date_to_days"]
 
@@ -834,13 +856,7 @@ class EditWindow(utils.BBMainWindow):
 
 
 def edit_code_by_code_id(code_id):
-    d = db.DB()
-    dates = d.get_dates_by_code_id3(code_id)
-    assert(len(dates))
-    (code, descr, date_from_days, date_to_days,
-        rid, ver, iter_) = dates[0][:7]
-
-    w = EditWindow(rid =rid)
+    w = EditWindow(code_id)
     w.show()
     return w
 
