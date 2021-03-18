@@ -76,7 +76,7 @@ class SelectDate(QDialog):
                # code descr  rev   iter  date_from,            date_from_days
         data = [(r[0], r[1], r[5], r[6], db.days_to_txt(r[2]), r[2])
             for r in d.get_dates_by_code_id3(self._code_id)]
-        sorted(data, reverse=True, key=lambda x : x[3])
+        sorted(data, reverse=True, key=lambda x : x[5])
 
         if not self._only_data_code:
             last = (data[-1][1], data[-1][2], data[-1][3])
@@ -90,14 +90,16 @@ class SelectDate(QDialog):
             data = d.get_bom_dates_by_code_id(self._code_id)
             assert(len(data))
             data.sort() # from lower to higher
+            pprint.pprint(data)
             for date_from_days in data:
                 if date_from_days in m:
                     last = m[date_from_days]
                 data2.append((code, last[0], last[1], last[2],
                     db.days_to_txt(date_from_days), date_from_days))
 
-            data2.sort(reverse=True, key=lambda x: x[3]) # from higher to lower
+            data2.sort(reverse=True, key=lambda x: x[5]) # from higher to lower
             data = data2
+            pprint.pprint(data)
 
         assert(len(data))
         self._data = data
