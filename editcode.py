@@ -460,26 +460,32 @@ class EditWindow(utils.BBMainWindow):
 
     def _create_menu(self):
         mainMenu = self.menuBar()
-        fileMenu = mainMenu.addMenu("File")
+
+        m = mainMenu.addMenu("File")
+        a = QAction("Close", self)
+        a.setShortcut("Ctrl+Q")
+        a.triggered.connect(self.close)
+        m.addAction(a)
+        a = QAction("Exit", self)
+        a.triggered.connect(self._exit_app)
+        m.addAction(a)
+
+        m = mainMenu.addMenu("Edit")
+        a = QAction("Delete item revision...", self)
+        #m.triggered.connect(lambda x: True)
+        m.addAction(a)
+        a = QAction("Promote a prototype...", self)
+        #m.triggered.connect(lambda x: True)
+        m.addAction(a)
+
         self._windowsMenu = mainMenu.addMenu("Windows")
-
         self._windowsMenu.aboutToShow.connect(self._build_windows_menu)
-
-        closeAction = QAction("Close", self)
-        closeAction.setShortcut("Ctrl+Q")
-        closeAction.triggered.connect(self.close)
-        exitAction = QAction("Exit", self)
-        exitAction.triggered.connect(self._exit_app)
-
-        fileMenu.addAction(closeAction)
-        fileMenu.addAction(exitAction)
-
         self._build_windows_menu()
 
-        helpMenu = mainMenu.addMenu("Help")
+        m = mainMenu.addMenu("Help")
         a = QAction("About ...", self)
         a.triggered.connect(lambda : utils.about(self, db.connection))
-        helpMenu.addAction(a)
+        m.addAction(a)
 
     def _exit_app(self):
         ret = QMessageBox.question(self, "BOMBrowser", "Do you want to exit from the application ?")
