@@ -1276,7 +1276,7 @@ class DBPG(_BaseServer):
 
     def _open(self, path):
 
-        self._conn = self.psycopg2.connect(path)
+        self._conn = self._mod.connect(path)
 
     def _get_tables_list(self):
         c = self._conn.cursor()
