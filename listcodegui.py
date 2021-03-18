@@ -85,7 +85,13 @@ class CodesWidget(QWidget):
         self._table.setColumnCount(5)
         self._table.setHorizontalHeaderLabels(["id", "Code", "Description", "Rev", "Iter"])
         self._splitter.addWidget(self._table)
-        self._splitter.addWidget(QWidget())
+
+        self._codes_widget = codegui.CodesWidget()
+        scrollarea = QScrollArea()
+        scrollarea.setWidget(self._codes_widget)
+        scrollarea.setWidgetResizable(True)
+        self._splitter.addWidget(scrollarea)
+
         self._splitter.setSizes([700, 1024-700])
 
         self.setLayout(vb)
@@ -159,14 +165,7 @@ class CodesWidget(QWidget):
         self._code_id = id_
         self._code = code
 
-        scrollarea = QScrollArea()
-        scrollarea.setWidget(codegui.CodeWidget(id_, self))
-
-        # this to avoid unexpected crash
-        w = self._splitter.widget(1)
-
-        self._splitter.replaceWidget(1, scrollarea)
-        self._grid_widget = scrollarea
+        self._codes_widget.populate(id_)
 
     def getCodeId(self):
         return self._code_id
@@ -245,35 +244,20 @@ class CodesWindow(utils.BBMainWindowNotClose):
 
     def _tree_context_menu(self, point):
         contextMenu = QMenu(self)
-        showLatestAssembly = contextMenu.addAction("Show latest assembly")
-        showLatestAssembly.triggered.connect(self._show_latest_assembly)
-        whereUsed = contextMenu.addAction("Where used")
-        whereUsed.triggered.connect(self._show_where_used)
-        validWhereUsed = contextMenu.addAction("Valid where used")
-        validWhereUsed.triggered.connect(self._show_valid_where_used)
-        showAssembly = contextMenu.addAction("Show assembly by date")
-        showAssembly.triggered.connect(self._show_assembly)
+
+        contextMenu.addAction("Show latest assembly").triggered.connect(self._show_latest_assembly)
+        contextMenu.addAction("Where used").triggered.connect(self._show_where_used)
+        contextMenu.addAction("Valid where used").triggered.connect(self._show_valid_where_used)
+        contextMenu.addAction("Show assembly by date").triggered.connect(self._show_assembly)
+        contextMenu.addAction("Show prototype assembly").triggered.connect(self._show_proto_assembly)
         contextMenu.addSeparator()
-        reviseCode = contextMenu.addAction("Copy/revise code ...")
-        reviseCode.triggered.connect(self._revise_code)
-        editCode = contextMenu.addAction("Edit code ...")
-        editCode.triggered.connect(self._edit_code)
+        contextMenu.addAction("Copy/revise code ...").triggered.connect(self._revise_code)
+        contextMenu.addAction("Edit code ...").triggered.connect(self._edit_code)
         contextMenu.addSeparator()
-        doDiff1 = contextMenu.addAction("Diff from")
-        doDiff1.triggered.connect(self._set_diff_from)
-        doDiff2 = contextMenu.addAction("Diff to")
-        doDiff2.triggered.connect(self._set_diff_to)
+        contextMenu.addAction("Diff from").triggered.connect(self._set_diff_from)
+        contextMenu.addAction("Diff to").triggered.connect(self._set_diff_to)
 
         contextMenu.exec_(point)
-
-    def _get_code_and_date(self):
-        w = selectdategui.SelectDate(self._codes_widget.getCodeId(), self)
-        ret = w.exec_()
-        if not ret:
-            return (0, 0, 0, 0)
-
-        (code, date_from, date_to) = w.get_result()
-        return(self._codes_widget.getCodeId(), code, date_from, date_to)
 
     def _set_diff_from(self):
         if not self._codes_widget.getCodeId():
@@ -298,6 +282,12 @@ class CodesWindow(utils.BBMainWindowNotClose):
             QApplication.beep()
             return
         asmgui.show_assembly(self._codes_widget.getCodeId(), self)
+
+    def _show_proto_assembly(self):
+        if not self._codes_widget.getCodeId():
+            QApplication.beep()
+            return
+        asmgui.show_proto_assembly(self._codes_widget.getCodeId())
 
     def _revise_code(self):
         if not self._codes_widget.getCodeId():

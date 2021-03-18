@@ -55,12 +55,26 @@ def iso_to_days(txt):
 def days_to_iso(n):
     return jdutil.jd_to_datetime(int(n) + 2451544.5).strftime("%Y-%m-%d")
 
+def days_to_txt(n):
+    if n is None:
+        return ""
+    if n == end_of_the_world:
+        return ""
+    elif n == prototype_date:
+        return "PROTOTYPE"
+    elif n == prototype_date - 1:
+        return ""
+    else:
+        return jdutil.jd_to_datetime(int(n) + 2451544.5).strftime("%Y-%m-%d")
+
 def now_to_days():
     return int(jdutil.datetime.now().to_jd() - 2451544.5)
 
 _db_path = "database.sqlite"
 # infinity date
-end_of_the_world = 999999
+end_of_the_world = 999999   # around 5000 ac
+prototype_date = 999900
+prototype_iter = 999999
 gvals_count = 8
 connection="Server: <UNDEF>"
 
@@ -240,7 +254,7 @@ class _BaseServer:
         self._sqlex(c, """
             SELECT i.code, r.descr, r.ver, r.iter, r.default_unit,
                 r.gval1, r.gval2, r.gval3, r.gval4, r.gval5, r.gval6,
-                r.date_from, r.date_from_days, r.date_to, r.date_to_days, r.id,
+                r.date_from_days, r.date_to_days, r.id,
                 r.gval7, r.gval8
             FROM item_revisions AS r
             LEFT JOIN items AS i
@@ -265,15 +279,15 @@ class _BaseServer:
         data["gval3"] = res[7]
         data["gval5"] = res[9]
         data["gval6"] = res[10]
-        data["gval7"] = res[16]
-        data["gval8"] = res[17]
+        data["gval7"] = res[14]
+        data["gval8"] = res[15]
 
-        data["date_from"] = res[11]
-        data["date_from_days"] = res[12]
-        data["date_to"] = res[13]
-        data["date_to_days"] = res[14]
+        data["date_from"] = days_to_txt(res[11])
+        data["date_from_days"] = res[11]
+        data["date_to"] = days_to_txt(res[12])
+        data["date_to_days"] = res[12]
 
-        data["rid"] = res[15]
+        data["rid"] = res[13]
         data["id"] = id_code
 
         data["properties"] = dict()
@@ -282,7 +296,7 @@ class _BaseServer:
             SELECT descr, value
             FROM item_properties
             WHERE revision_id=?
-            """, (res[15], ))
+            """, (res[13], ))
 
         res = c.fetchall()
         if res:
@@ -299,7 +313,7 @@ class _BaseServer:
         self._sqlex(c, """
             SELECT i.code, r.descr, r.ver, r.iter, r.default_unit,
                 r.gval1, r.gval2, r.gval3, r.gval4, r.gval5, r.gval6,
-                r.date_from, r.date_from_days, r.date_to, r.date_to_days,
+                r.date_from_days, r.date_to_days,
                 i.id, r.gval7, r.gval8
             FROM item_revisions AS r
             LEFT JOIN items AS i
@@ -323,30 +337,30 @@ class _BaseServer:
         data["gval4"] = res[8]
         data["gval5"] = res[9]
         data["gval6"] = res[10]
-        data["gval7"] = res[16]
-        data["gval8"] = res[17]
+        data["gval7"] = res[14]
+        data["gval8"] = res[15]
 
-        data["date_from"] = res[11]
-        data["date_from_days"] = res[12]
-        data["date_to"] = res[13]
-        data["date_to_days"] = res[14]
+        data["date_from"] = days_to_txt(res[11])
+        data["date_from_days"] = res[11]
+        data["date_to"] = days_to_txt(res[12])
+        data["date_to_days"] = res[12]
 
-        data["id"] = res[15]
+        data["id"] = res[13]
         data["rid"] = rid
 
 
         data["properties"] = dict()
 
-        #self._sqlex(c, """
-        #    SELECT descr, value
-        #    FROM item_properties
-        #    WHERE item_id=?
-        #    """, (id_code, ))
-        #
-        #res = c.fetchall()
-        #if res:
-        #    for k,v in res:
-        #        data["properties"][k] = v
+        self._sqlex(c, """
+            SELECT descr, value
+            FROM item_properties
+            WHERE revision_id=?
+            """, (res[13], ))
+
+        res = c.fetchall()
+        if res:
+            for k,v in res:
+                data["properties"][k] = v
 
         return data
 
@@ -448,15 +462,15 @@ class _BaseServer:
         else:
             return res
 
-    def get_dates_by_code_id2(self, id_code):
+    def get_dates_by_code_id3(self, id_code):
         c = self._conn.cursor()
         self._sqlex(c, """SELECT DISTINCT i.code, r.descr,
-                                     r.date_from, r.date_from_days, r.date_to,
-                                     r.date_to_days, r.id, r.ver, r.iter
+                                     r.date_from_days, r.date_to_days,
+                                     r.id, r.ver, r.iter
                      FROM  item_revisions AS r
                      LEFT JOIN items AS i ON r.code_id = i.id
                      WHERE           r.code_id = ?
-                     ORDER BY        r.date_from DESC
+                     ORDER BY        r.date_from_days DESC
                   """, (id_code, ))
 
         return list(c.fetchall())
@@ -502,9 +516,7 @@ class _BaseServer:
 
         return c.fetchone()[0] > 0
 
-    def get_bom_by_code_id2(self, code_id0, date_from):
-
-        date_from_days_ref = iso_to_days(date_from)
+    def get_bom_by_code_id3(self, code_id0, date_from_days_ref):
 
         data = dict()
 
@@ -539,7 +551,7 @@ class _BaseServer:
             d["deps"] = dict()
 
             self._sqlex(c, """
-                SELECT a.unit, a.qty, a.each, rc.date_from, rc.date_to,
+                SELECT a.unit, a.qty, a.each,
                         rc.iter, a.child_id, rc.code_id, rc.date_from_days,
                         rc.date_to_days, a.ref, rc.id
                 FROM assemblies AS a
@@ -557,8 +569,8 @@ class _BaseServer:
                 data[d["id"]] = d
                 continue
 
-            for (unit, qty, each, date_from_, date_to_, it, child_id,
-                 parent_id, date_from_days_, date_to_days_, ref, crid) in children:
+            for (unit, qty, each, it, child_id,parent_id,
+                 date_from_days_, date_to_days_, ref, crid) in children:
                 d["deps"][child_id] = {
                     "code_id": child_id,
                     "unit": unit,
@@ -585,8 +597,7 @@ class _BaseServer:
     def _get_parents(self, c, id_code, date_from_days, date_to_days):
         self._sqlex(c, """
             SELECT a.unit, c.code, r.default_unit, a.qty, a.each,
-                    r.iter, r.code_id, r.date_from, r.date_to, r.date_from_days,
-                    r.date_to_days
+                    r.iter, r.code_id, r.date_from_days, r.date_to_days
             FROM assemblies AS a
             LEFT JOIN item_revisions AS r
                 ON a.revision_id = r.id
@@ -610,8 +621,7 @@ class _BaseServer:
     def _get_valid_parents(self, c, id_code):
         self._sqlex(c, """
             SELECT a.unit, c.code, r.default_unit, a.qty, a.each,
-                    r.iter, r.code_id, r.date_from, r.date_to, r.date_from_days,
-                    r.date_to_days
+                    r.iter, r.code_id, r.date_from_days, r.date_to_days
             FROM assemblies AS a
             LEFT JOIN item_revisions AS r
                 ON a.revision_id = r.id
@@ -674,8 +684,7 @@ class _BaseServer:
                 continue
 
             for (unit, cc, def_unit, qty, each, it,
-                    parent_id, date_from_, date_to_, date_from_days_,
-                    date_to_days_) in parents:
+                    parent_id, date_from_days_, date_to_days_) in parents:
                 if cc == code0:
                     continue
                 if unit is None:
@@ -713,7 +722,6 @@ class _BaseServer:
 
     def get_bom_dates_by_code_id(self, code_id):
         sdates = set()
-        dates = []
         done = set()
         todo = [code_id]
 
@@ -731,17 +739,16 @@ class _BaseServer:
             cid = todo.pop()
             done.add(cid)
             self._sqlex(c, """
-                    SELECT r.date_from, r.date_from_days
+                    SELECT r.date_from_days
                     FROM item_revisions AS r
                     WHERE r.code_id = ?
                 """, (cid,))
 
-            for (date_from, date_from_days) in c.fetchall():
+            for (date_from_days,) in c.fetchall():
                 if date_from_days < date_from_min:
                     continue
                 if not date_from_days in sdates:
                     sdates.add(date_from_days)
-                    dates.append((date_from, date_from_days))
 
             self._sqlex(c, """
                     SELECT DISTINCT a.child_id
@@ -754,6 +761,8 @@ class _BaseServer:
             l = set([x[0] for x in c.fetchall()])
             l = l.difference(done)
             todo += list(l)
+        dates = list(sdates)
+        dates.sort(reverse=True)
         return dates
 
     def copy_code(self, new_code, rid, descr, rev, copy_props=True,
@@ -847,6 +856,12 @@ class _BaseServer:
             if new_date_from_days <= old_date_from_days:
                 raise DBException("A revision already occurred this day")
 
+
+            if new_date_from_days == prototype_date:
+                new_iter = prototype_iter
+            else:
+                new_iter = old_iter + 1
+
             self._sqlex(c, """
                 INSERT INTO item_revisions(
                     code_id,
@@ -872,7 +887,7 @@ class _BaseServer:
                     gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
                 FROM item_revisions
                 WHERE id = ?
-            """, (new_date_from, new_date_from_days, rev, old_iter + 1, descr, rid))
+            """, (new_date_from, new_date_from_days, rev, new_iter, descr, rid))
 
             self._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
             new_rid = c.fetchone()[0]
@@ -1022,7 +1037,6 @@ class _BaseServer:
 
 
     def update_dates(self, dates):
-        # dates.append((rid, date_from, date_from_days, date_to, date_to_days))
         c = self._conn.cursor()
         self._begin(c)
         try:

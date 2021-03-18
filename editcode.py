@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import sys, configparser, os
 
-from PySide2.QtWidgets import QMainWindow, QScrollArea, QStatusBar
+from PySide2.QtWidgets import QMainWindow, QScrollArea, QStatusBar, QComboBox
 from PySide2.QtWidgets import QSplitter, QTableView, QLabel, QTableWidgetItem
 from PySide2.QtWidgets import QGridLayout, QWidget, QApplication, QFileDialog
 from PySide2.QtWidgets import QMessageBox, QAction, QLineEdit, QFrame, QSplitter
@@ -102,7 +102,10 @@ class EditDates(QDialog):
             date_to = self._table.item(row, 5).text()
 
             try:
-                date_from_days = db.iso_to_days(date_from)
+                if date_from == "PROTOTYPE":
+                    date_from_days = db.prototype_date
+                else:
+                    date_from_days = db.iso_to_days(date_from)
                 if date_to != '':
                     date_to_days = db.iso_to_days(date_to)
                 else:
@@ -115,7 +118,7 @@ class EditDates(QDialog):
             if min_date_from_days is None or min_date_from_days > date_from_days:
                 min_date_from_days = date_from_days
             if max_date_to_days is None or max_date_to_days < date_to_days:
-                max_date_to_days = date_to_days
+                 max_date_to_days = date_to_days
 
             dates.append([rid, date_from, date_from_days, date_to, date_to_days])
 
@@ -173,9 +176,8 @@ class EditDates(QDialog):
         self.reject()
 
     def _populate(self):
-
         d = db.DB()
-        data = d.get_dates_by_code_id2(self._code_id)
+        data = d.get_dates_by_code_id3(self._code_id)
 
         self._table.clear()
         self._table.horizontalHeader().setStretchLastSection(True)
@@ -190,8 +192,8 @@ class EditDates(QDialog):
 
         row = 0
         for line in data:
-            (code, descr, date_from, date_from_days, date_to, date_to_days,
-                rid, rev, iter_) = line[:9]
+            (code, descr, date_from_days, date_to_days,
+                rid, rev, iter_) = line[:7]
 
             i = QTableWidgetItem(str(rid))
             i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
@@ -215,14 +217,24 @@ class EditDates(QDialog):
             i.setFont(f)
             self._table.setItem(row, 3, i)
 
-            i = QTableWidgetItem(date_from)
+            i = QTableWidgetItem(db.days_to_txt(date_from_days))
+            if date_from_days == db.prototype_date:
+                i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                i.setFont(f)
             self._table.setItem(row, 4, i)
 
-            i = QTableWidgetItem(date_to)
+            i = QTableWidgetItem(db.days_to_txt(date_to_days))
             if row != 0:
                 i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                 i.setFont(f)
             self._table.setItem(row, 5, i)
+
+            if date_from_days == db.prototype_date:
+                # the row is prototype: we can't change anything
+                self._table.item(row, 4).setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                self._table.item(row, 5).setFont(f)
+                self._table.item(row, 5).setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                self._table.item(row, 5).setFont(f)
 
             row += 1
 
@@ -235,6 +247,10 @@ class EditDates(QDialog):
         # check the date from column
         # and check the date to in row 0 cell
         if col != 4 and not (col == 5 and row == 0):
+            return
+
+        # if the row 0 is prototype, we can't do anything
+        if row == 0 and self._table.item(row, 4).text() == "PROTOTYPE":
             return
 
         dt = self._table.item(row, col).text()
@@ -276,17 +292,37 @@ class EditDates(QDialog):
             self._table.item(row+1, col+1).setText(to_date)
 
 class EditWindow(utils.BBMainWindow):
-    def __init__(self, rid, parent=None):
+    def __init__(self, code_id, parent=None):
         utils.BBMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self._rid = rid
+        self._code_id = code_id
+        self._rid = None
         self._orig_revision = None
         self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
         self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
+        self._dates_list_info = None
 
         self._init_gui()
 
-        self._populate_table()
+        self._populate_dates_list_info()
+        self._dates_list_change_index(0)
+        #self._populate_table()
+
+    def _populate_dates_list_info(self):
+        d = db.DB()
+        self._dates_list_info = d.get_dates_by_code_id3(self._code_id)
+        assert(len(self._dates_list_info))
+
+        self._dates_list.clear()
+        for row in self._dates_list_info:
+
+            (code, descr, date_from_days, date_to_days,
+                rid, ver, iter_) = row
+
+            self._dates_list.addItem("%s .. %s"%(
+                db.days_to_txt(date_from_days),
+                db.days_to_txt(date_to_days)))
+
 
     def _init_gui(self):
 
@@ -330,15 +366,10 @@ class EditWindow(utils.BBMainWindow):
         hl = QHBoxLayout()
         g.addLayout(hl, 15, 10, 1, 4)
 
-        hl.addWidget(QLabel("From date"))
-        self._from_date = QLineEdit()
-        self._from_date.setDisabled(True)
-        hl.addWidget(self._from_date)
-
-        hl.addWidget(QLabel("To date"))
-        self._to_date = QLineEdit()
-        self._to_date.setDisabled(True)
-        hl.addWidget(self._to_date)
+        hl.addWidget(QLabel("From/to date"))
+        self._dates_list = QComboBox()
+        hl.addWidget(self._dates_list)
+        self._dates_list.currentIndexChanged.connect(self._dates_list_change_index)
 
         b = QPushButton("...")
         b.clicked.connect(self._change_dates)
@@ -416,28 +447,45 @@ class EditWindow(utils.BBMainWindow):
         self.setCentralWidget(w)
         self.resize(1024, 768)
 
+    def _dates_list_change_index(self, i):
+        if self._dates_list_info is None:
+            return
+
+        # TODO: check if some data are changed
+
+        (code, descr, date_from_days, date_to_days,
+            rid, ver, iter_) = self._dates_list_info[i]
+
+        self._populate_table(rid)
+
     def _create_menu(self):
         mainMenu = self.menuBar()
-        fileMenu = mainMenu.addMenu("File")
+
+        m = mainMenu.addMenu("File")
+        a = QAction("Close", self)
+        a.setShortcut("Ctrl+Q")
+        a.triggered.connect(self.close)
+        m.addAction(a)
+        a = QAction("Exit", self)
+        a.triggered.connect(self._exit_app)
+        m.addAction(a)
+
+        m = mainMenu.addMenu("Edit")
+        a = QAction("Delete item revision...", self)
+        #m.triggered.connect(lambda x: True)
+        m.addAction(a)
+        a = QAction("Promote a prototype...", self)
+        #m.triggered.connect(lambda x: True)
+        m.addAction(a)
+
         self._windowsMenu = mainMenu.addMenu("Windows")
-
         self._windowsMenu.aboutToShow.connect(self._build_windows_menu)
-
-        closeAction = QAction("Close", self)
-        closeAction.setShortcut("Ctrl+Q")
-        closeAction.triggered.connect(self.close)
-        exitAction = QAction("Exit", self)
-        exitAction.triggered.connect(self._exit_app)
-
-        fileMenu.addAction(closeAction)
-        fileMenu.addAction(exitAction)
-
         self._build_windows_menu()
 
-        helpMenu = mainMenu.addMenu("Help")
+        m = mainMenu.addMenu("Help")
         a = QAction("About ...", self)
         a.triggered.connect(lambda : utils.about(self, db.connection))
-        helpMenu.addAction(a)
+        m.addAction(a)
 
     def _exit_app(self):
         ret = QMessageBox.question(self, "BOMBrowser", "Do you want to exit from the application ?")
@@ -458,8 +506,6 @@ class EditWindow(utils.BBMainWindow):
         self.setWindowTitle(utils.window_title + " - Edit code: %s @ %s"%(
             data["code"], data["date_from"]))
 
-        self._from_date.setText(data["date_from"])
-        self._to_date.setText(data["date_to"])
         self._from_date_days = data["date_from_days"]
         self._to_date_days = data["date_to_days"]
 
@@ -519,9 +565,9 @@ class EditWindow(utils.BBMainWindow):
                             None)
 
 
-            dates = d.get_dates_by_code_id2(code_id)
-            min_date_from_days = min([x[3] for x in dates])
-            max_date_to_days = max([x[5] for x in dates])
+            dates = d.get_dates_by_code_id3(code_id)
+            min_date_from_days = min([x[2] for x in dates])
+            max_date_to_days = max([x[3] for x in dates])
 
             if (self._from_date_days < min_date_from_days or
                 self._to_date_days > max_date_to_days):
@@ -591,7 +637,8 @@ class EditWindow(utils.BBMainWindow):
         self._children_table.setItem(row, 6, QTableWidgetItem(unit))
         self._children_table.setItem(row, 7, QTableWidgetItem(ref))
 
-    def _populate_table(self):
+    def _populate_table(self, rid):
+        self._rid = rid
         d = db.DB()
 
         data = d.get_code_from_rid(self._rid)
@@ -607,8 +654,6 @@ class EditWindow(utils.BBMainWindow):
         self._orig_revision = data["ver"]
         self._iter.setText(str(data["iter"]))
         self._unit.setText(data["unit"])
-        self._from_date.setText(data["date_from"])
-        self._to_date.setText(data["date_to"])
         self._from_date_days = data["date_from_days"]
         self._to_date_days = data["date_to_days"]
 
@@ -817,13 +862,7 @@ class EditWindow(utils.BBMainWindow):
 
 
 def edit_code_by_code_id(code_id):
-    d = db.DB()
-    dates = d.get_dates_by_code_id2(code_id)
-    assert(len(dates))
-    (code, descr, date_from, date_from_days, date_to, date_to_days,
-        rid, ver, iter_) = dates[0][:9]
-
-    w = EditWindow(rid =rid)
+    w = EditWindow(code_id)
     w.show()
     return w
 

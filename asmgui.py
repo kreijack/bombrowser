@@ -397,8 +397,12 @@ class AssemblyWindow(utils.BBMainWindow):
         self._tree.setAlternatingRowColors(True)
         qs.addWidget(self._tree)
 
-        self._w = QWidget()
-        qs.addWidget(self._w)
+        self._code_widget = codegui.CodeWidget()
+        scrollarea = QScrollArea()
+        scrollarea.setWidget(self._code_widget)
+        scrollarea.setWidgetResizable(True)
+        qs.addWidget(scrollarea)
+
         qs.setSizes([700, 1024-700])
         self.setCentralWidget(qs)
 
@@ -411,26 +415,17 @@ class AssemblyWindow(utils.BBMainWindow):
             return
 
         contextMenu = QMenu(self)
-        showLatestAssembly = contextMenu.addAction("Show latest assembly")
-        showLatestAssembly.triggered.connect(self._show_latest_assembly)
-        whereUsed = contextMenu.addAction("Where used")
-        whereUsed.triggered.connect(self._show_where_used)
-        validWhereUsed = contextMenu.addAction("Valid where used")
-        validWhereUsed.triggered.connect(self._show_valid_where_used)
-        showAssembly = contextMenu.addAction("Show assembly by date")
-        showAssembly.triggered.connect(self._show_assembly)
-
+        contextMenu.addAction("Show latest assembly").triggered.connect(self._show_latest_assembly)
+        contextMenu.addAction("Where used").triggered.connect(self._show_where_used)
+        contextMenu.addAction("Valid where used").triggered.connect(self._show_valid_where_used)
+        contextMenu.addAction("Show assembly by date").triggered.connect(self._show_assembly)
+        contextMenu.addAction("Show latest assembly").triggered.connect(self._show_proto_assembly)
         contextMenu.addSeparator()
-        reviseCode = contextMenu.addAction("Copy/revise code ...")
-        reviseCode.triggered.connect(self._revise_code)
-        editCode = contextMenu.addAction("Edit code ...")
-        editCode.triggered.connect(self._edit_code)
+        contextMenu.addAction("Copy/revise code ...").triggered.connect(self._revise_code)
+        contextMenu.addAction("Edit code ...").triggered.connect(self._edit_code)
         contextMenu.addSeparator()
-
-        doDiff1 = contextMenu.addAction("Diff from...")
-        doDiff1.triggered.connect(self._set_diff_from)
-        doDiff2 = contextMenu.addAction("Diff to...")
-        doDiff2.triggered.connect(self._set_diff_to)
+        contextMenu.addAction("Diff from...").triggered.connect(self._set_diff_from)
+        contextMenu.addAction("Diff to...").triggered.connect(self._set_diff_to)
 
         contextMenu.exec_(self._tree.viewport().mapToGlobal(point))
 
@@ -482,6 +477,14 @@ class AssemblyWindow(utils.BBMainWindow):
 
         show_latest_assembly(id_)
 
+    def _show_proto_assembly(self):
+        path = self._get_path()
+        if len(path) == 0:
+            return
+        id_ = self._data[path[-1]]["id"]
+
+        show_proto_assembly(id_)
+
     def _show_where_used(self):
         path = self._get_path()
         if len(path) == 0:
@@ -498,13 +501,19 @@ class AssemblyWindow(utils.BBMainWindow):
 
         valid_where_used(id_, self.parent())
 
-    def populate(self, top, data, date_from=None):
+    def populate(self, top, data, caption_date=None):
         top_code = data[top]["code"]
 
         if self._asm:
-                dt2 = date_from
-                if date_from == db.days_to_iso(db.end_of_the_world):
+                if caption_date == db.prototype_date -1:
                     dt2 = "LATEST"
+                elif caption_date == db.end_of_the_world:
+                    dt2 = "PROTOTYPE"
+                elif caption_date == db.prototype_date:
+                    dt2 = "PROTOTYPE"
+                else:
+                    dt2 = db.days_to_iso(caption_date)
+
                 self.setWindowTitle(utils.window_title +
                         " - Assembly: " + top_code + " @ " + dt2)
         elif self._valid_where_used:
@@ -614,32 +623,17 @@ class AssemblyWindow(utils.BBMainWindow):
             qty = ""
             each = ""
 
-        unit = None
-        date_from = None
-        date_to = None
-        ref = None
-        date_to = self._data[data_key]["date_to"]
-        date_from = self._data[data_key]["date_from"]
+        unit = ""
+        ref = ""
         date_from_days = self._data[data_key]["date_from_days"]
         if len(path) > 1:
-            #pprint.pprint(self._data[path[-2]])
             unit = self._data[path[-2]]["deps"][path[-1]]["unit"]
             ref = self._data[path[-2]]["deps"][path[-1]]["ref"]
-        scrollarea = QScrollArea()
-        scrollarea.setWidget(
-            codegui.CodeWidget(self._data[data_key]["id"],
-                date_from_days=self._data[data_key]["date_from_days"],
-                qty=qty, each=each, unit=unit,
-                date_from = date_from,
-                date_to = date_to,
-                ref = ref,
-                winParent = self.parent(),
-                rid=self._data[data_key]["rid"]))
 
-        # this to avoid unexpected crash
-        w = self._splitter.widget(1)
-        self._splitter.replaceWidget(1, scrollarea)
-        self._grid_widget = scrollarea
+        self._code_widget.populate(self._data[data_key]["id"],
+            self._data[data_key]["date_from_days"],
+            qty, each, unit, ref)
+
         self._my_statusbar.showMessage("/".join(map(lambda x : self._data[x]["code"], path)))
 
 
@@ -702,9 +696,9 @@ def show_assembly(code_id, winParent):
     QApplication.setOverrideCursor(Qt.WaitCursor)
     w = AssemblyWindow(None)
     w.show()
-    res = dlg.get_result()
-    data = d.get_bom_by_code_id2(code_id, res[1])
-    w.populate(*data, date_from=res[1])
+    (code, date_from_days) = dlg.get_code_and_date_from_days()
+    data = d.get_bom_by_code_id3(code_id, date_from_days)
+    w.populate(*data, caption_date=date_from_days)
     QApplication.restoreOverrideCursor()
 
 def show_latest_assembly(code_id):
@@ -721,13 +715,31 @@ def show_latest_assembly(code_id):
     QApplication.setOverrideCursor(Qt.WaitCursor)
     w = AssemblyWindow(None)
     w.show()
-    dates = d.get_dates_by_code_id2(code_id)
+    dates = d.get_dates_by_code_id3(code_id)
 
-    dt = dates[0][4]
-    if dt == "":
-        dt = db.days_to_iso(db.end_of_the_world)
+    dt = min(db.prototype_date - 1, dates[0][3])
 
-    data = d.get_bom_by_code_id2(code_id, dt)
-    w.populate(*data, date_from=dt)
+    data = d.get_bom_by_code_id3(code_id, dt)
+    w.populate(*data, caption_date=db.prototype_date - 1)
+    QApplication.restoreOverrideCursor()
+
+def show_proto_assembly(code_id):
+    if not code_id:
+        QApplication.beep()
+        return
+
+    d = db.DB()
+    if not d.is_assembly(code_id):
+        QApplication.beep()
+        QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
+        return
+
+    QApplication.setOverrideCursor(Qt.WaitCursor)
+    w = AssemblyWindow(None)
+    w.show()
+    dates = d.get_dates_by_code_id3(code_id)
+    dt = min(db.end_of_the_world, dates[0][3])
+    data = d.get_bom_by_code_id3(code_id, dates[0][3])
+    w.populate(*data, caption_date=db.end_of_the_world)
     QApplication.restoreOverrideCursor()
 
