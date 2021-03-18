@@ -296,7 +296,7 @@ class _BaseServer:
             SELECT descr, value
             FROM item_properties
             WHERE revision_id=?
-            """, (res[15], ))
+            """, (res[13], ))
 
         res = c.fetchall()
         if res:
@@ -351,16 +351,16 @@ class _BaseServer:
 
         data["properties"] = dict()
 
-        #self._sqlex(c, """
-        #    SELECT descr, value
-        #    FROM item_properties
-        #    WHERE item_id=?
-        #    """, (id_code, ))
-        #
-        #res = c.fetchall()
-        #if res:
-        #    for k,v in res:
-        #        data["properties"][k] = v
+        self._sqlex(c, """
+            SELECT descr, value
+            FROM item_properties
+            WHERE revision_id=?
+            """, (res[13], ))
+
+        res = c.fetchall()
+        if res:
+            for k,v in res:
+                data["properties"][k] = v
 
         return data
 
