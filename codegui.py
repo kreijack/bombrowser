@@ -276,7 +276,7 @@ class CodeWidget(QWidget):
         self._copy(self._text_info)
 
     def _open_file(self, nf):
-        QDesktopServices.openUrl(nf)
+        QDesktopServices.openUrl(QUrl.fromLocalFile(nf))
 
     def _change_code(self):
         if not self._code_id:
