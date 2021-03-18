@@ -1287,9 +1287,15 @@ def DB(path=None):
     if not path is None:
         if path.upper().startswith("SQLITE:"):
             _globaDBInstance = DBSQLite(path[7:])
+            connection = "Server: SQLITE/" + path[7:][-30:]
             return _globaDBInstance
         elif path.upper().startswith("SQLSERVER:"):
             _globaDBInstance = DBSQLServer(path[10:])
+            connection = "Server: SQLSERVER/" + path[10:]
+            return _globaDBInstance
+        elif path.upper().startswith("DBPG:"):
+            _globaDBInstance = DBPG(path[5:])
+            connection = "Server: PostgreSQL/" + path[5:]
             return _globaDBInstance
 
         assert (False)
@@ -1298,12 +1304,12 @@ def DB(path=None):
     if dbtype == "sqlite":
         path = cfg.config().get("SQLITE", "path")
         _globaDBInstance = DBSQLite(path)
-        connection="Server: SQLITE:"+path[-30:]
+        connection="Server: SQLITE/"+path[-30:]
         return _globaDBInstance
     elif dbtype == "sqlserver":
         connection_string = cfg.config().get("SQLSERVER", "conn")
         _globaDBInstance = DBSQLServer(connection_string)
-        connection="Server: SQLSERVER"
+        connection="Server: SQLSERVER/"+connection_string
         return _globaDBInstance
     elif dbtype == "postgresql":
         d = {
@@ -1314,7 +1320,7 @@ def DB(path=None):
         }
         d["password"] = customize.database_password(d["password"])
         connection_string = "host={server} dbname={database} user={username} password={password}".format(**d)
-        connection="Server: PostgreSQL:"+d["username"]+"@"+d["server"]+":"+d["database"]
+        connection="Server: PostgreSQL/" + connection_string
         _globaDBInstance = DBPG(connection_string)
         return _globaDBInstance
 
