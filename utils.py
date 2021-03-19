@@ -166,13 +166,16 @@ def build_windows_menu(m, win):
 
 
 def about(w, connection=""):
-    QMessageBox.about(w, "BOMBrowser - about",
-        window_title + "\n"
-        "Copyright 2020,2021 G.Baroncelli\n"
-        "\n"
-        "https://gitlab.com/kreijack/bombrowser\n" +
-        connection
-    )
+    msgBox = QMessageBox(w)
+    msgBox.setWindowTitle("BOMBrowser - about");
+    msgBox.setTextFormat(Qt.RichText)
+    msgBox.setText(window_title + "\n"
+        "Copyright 2020,2021 G.Baroncelli<br>"
+        "<br>"
+        "<a href=https://gitlab.com/kreijack/bombrowser>"
+        "https://gitlab.com/kreijack/bombrowser</a><br><br>" +
+        connection)
+    msgBox.exec_();
 
 def clean_menu(m):
         as_ = list(m.actions())
