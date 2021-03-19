@@ -271,11 +271,13 @@ class CodesWidget(CodeWidget):
         self.addDatesListWidget(self._list)
         self._code_id = None
         self._list.currentIndexChanged.connect(self._list_change_index)
+        self._ignore = True
 
     def populate(self, code_id):
         self._code_id = code_id
 
         d = db.DB()
+        self._ignore = True
         self._list.clear()
         self._dates = d.get_dates_by_code_id3(self._code_id)
         for data2 in self._dates:
@@ -290,11 +292,14 @@ class CodesWidget(CodeWidget):
         self._date_to = db.days_to_txt(self._dates[0][3])
         self._date_to_days = self._dates[0][3]
         self._rid = self._dates[0][4]
+        self._ignore = False
 
         self._list_change_index(0)
 
     def _list_change_index(self, i):
         if self._code_id is None:
+            return
+        if self._ignore:
             return
         self._date_from_days = self._dates[i][2]
         CodeWidget.populate(self, self._code_id, self._date_from_days,
