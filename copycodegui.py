@@ -53,11 +53,19 @@ class CopyCode(QDialog):
         self._code_id = data["id"]
 
         data = self._db.get_dates_by_code_id3(self._code_id)
-        self._last_date = db.days_to_txt(data[0][2])
-        self._last_date_days = data[0][2]
-        self._last_iter = data[0][6]
-        self._last_ver = data[0][5]
-        self._last_revid = data[0][4]
+        print(data)
+
+        i = 0
+        while i < len(data) - 1 and data[i][2] == db.prototype_date:
+            i += 1
+        self._last_date = db.days_to_txt(data[i][2])
+        self._last_date_days = data[i][2]
+        self._last_iter = data[i][6]
+        self._last_ver = data[i][5]
+        self._last_revid = data[i][4]
+
+        self._proto_exists = data[0][2] == db.prototype_date
+        print(self._proto_exists)
 
         self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
         self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
@@ -152,11 +160,13 @@ class CopyCode(QDialog):
     def _check_values(self):
         if self._cb_proto.checkState() == Qt.CheckState.Checked:
             newdate = db.prototype_date
-            if newdate <= self._last_date_days:
-                QMessageBox.critical(self,
-                    "BOMBrowser - error",
-                    "A prototype already exists")
-                return False
+
+            if (self._proto_exists and
+                self._cb_copy_rev.checkState() == Qt.CheckState.Unchecked):
+                    QMessageBox.critical(self,
+                        "BOMBrowser - error",
+                        "A prototype of this already exists")
+                    return False
         else:
             try:
                 newdate = db.iso_to_days(self._l_new_date_from.text())
@@ -167,11 +177,12 @@ class CopyCode(QDialog):
                 return False
 
         if self._cb_copy_rev.checkState() == Qt.CheckState.Unchecked:
-            if newdate <= self._last_date_days:
-                QMessageBox.critical(self,
-                    "BOMBrowser - error",
-                    "The new 'From date' is earlier than the previous ones")
-                return False
+            if (newdate <= self._last_date_days and
+                self._last_date_days != db.prototype_date):
+                    QMessageBox.critical(self,
+                        "BOMBrowser - error",
+                        "The new 'From date' is earlier than the previous ones")
+                    return False
 
         if self._cb_copy_rev.checkState() == Qt.CheckState.Checked:
             d = db.DB()

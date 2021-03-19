@@ -785,6 +785,11 @@ class _BaseServer:
                 new_date_from_days = now_to_days()
             new_date_from = days_to_iso(new_date_from_days)
 
+            if new_date_from_days == prototype_date:
+                new_iter = prototype_iter
+            else:
+                new_iter = 0
+
             self._sqlex(c, """
                 INSERT INTO item_revisions(
                     code_id,
@@ -803,14 +808,16 @@ class _BaseServer:
                     ?,
                     '',
                     ?,
-                    0,
+                    ?,
                     note,
                     ? ,
                     default_unit,
                     gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
                 FROM item_revisions
                 WHERE id = ?
-            """, (new_code_id, new_date_from, new_date_from_days, rev, descr, rid))
+            """, (new_code_id, new_date_from, new_date_from_days,
+                rev, new_iter,
+                descr, rid))
 
             self._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
             new_rid = c.fetchone()[0]
@@ -827,40 +834,69 @@ class _BaseServer:
 
     def revise_code(self, rid, descr, rev, copy_props=True, copy_docs=True,
                     new_date_from_days=None):
+
+        if new_date_from_days is None:
+            new_date_from_days = now_to_days()
+        new_date_from = days_to_iso(new_date_from_days)
+
         c = self._conn.cursor()
         self._begin(c)
         try:
+
             self._sqlex(c, """
-                SELECT r2.id, r2.date_from_days, r2.iter
-                FROM (
-                    SELECT r.code_id, MAX(r.iter) AS iter
+                    SELECT id, date_from_days, iter
                     FROM item_revisions AS r
                     WHERE r.code_id = (
-                        SELECT DISTINCT code_id
-                        FROM item_revisions
-                        WHERE id = ?
-                    )
-                    GROUP BY r.code_id
-                ) AS r
-                LEFT JOIN item_revisions AS r2
-                    ON r.code_id=r2.code_id AND r.iter=r2.iter
+                            SELECT DISTINCT code_id
+                            FROM item_revisions
+                            WHERE id = ?
+                        )
+                    ORDER BY iter DESC
                 """, (rid, ))
 
+            item_revisions = c.fetchall()
 
-            (latest_rid, old_date_from_days, old_iter) = c.fetchone()
+            if len(item_revisions) == 0:
+                raise DBException("Cannot find the old revision")
 
-            if new_date_from_days is None:
-                new_date_from_days = now_to_days()
-            new_date_from = days_to_iso(new_date_from_days)
+            # there are the following cases
+            # 1) revise a code w/o prototype
+            #       - the new iteration is the last one +1
+            #       - check the date against the last one
+            # 2) revise a code w/ prototype
+            #       - the new iteration is the last one +1 < prototype_iter
+            #       - check the date against the last one < prototype one
+            # 3) revise a prototype code (w/o other revision)
+            #       - the new iteration is 0
+            #       - don't check the date
 
-            if new_date_from_days <= old_date_from_days:
-                raise DBException("A revision already occurred this day")
+            print("item_revisions=",item_revisions)
 
+            if item_revisions[0][1] == prototype_date:
+                if new_date_from_days == prototype_date:
+                    raise DBException("Cannot create a 2nd revision")
 
-            if new_date_from_days == prototype_date:
-                new_iter = prototype_iter
+                if len(item_revisions) == 1:
+                    # case 3
+                    new_iter = 0
+                    latest_rid = -1
+                else:
+                    # case #2
+                    new_iter = item_revisions[1][2] + 1
+                    latest_rid = item_revisions[1][0]
+                    if new_date_from_days <= item_revisions[1][1]:
+                        raise DBException("The new revision date is previous to the last revision")
+
             else:
-                new_iter = old_iter + 1
+                # case 1
+                new_iter = item_revisions[0][2] + 1
+                latest_rid = item_revisions[0][0]
+                if new_date_from_days == prototype_date:
+                    new_iter = prototype_iter
+                else:
+                    new_iter = item_revisions[0][2] + 1
+                if new_date_from_days <= item_revisions[0][1]:
+                    raise DBException("The new revision date is previous to the last revision")
 
             self._sqlex(c, """
                 INSERT INTO item_revisions(
@@ -887,19 +923,22 @@ class _BaseServer:
                     gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
                 FROM item_revisions
                 WHERE id = ?
-            """, (new_date_from, new_date_from_days, rev, new_iter, descr, rid))
+            """, (new_date_from, new_date_from_days, rev, new_iter,
+                    descr, rid))
 
             self._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
             new_rid = c.fetchone()[0]
 
-
-            old_date_to_days = new_date_from_days - 1
-            self._sqlex(c, """
-                UPDATE item_revisions
-                SET date_to = ?, date_to_days = ?
-                WHERE id = ?
-            """, (days_to_iso(old_date_to_days),
-                old_date_to_days, latest_rid))
+            print("latest_rid=", latest_rid)
+            if latest_rid >= 0:
+                old_date_to_days = new_date_from_days - 1
+                old_date_to_days = new_date_from_days - 1
+                self._sqlex(c, """
+                    UPDATE item_revisions
+                    SET date_to = ?, date_to_days = ?
+                    WHERE id = ?
+                """, (days_to_iso(old_date_to_days),
+                    old_date_to_days, latest_rid))
 
             self._revise_code_copy_others(c, new_rid, rid, copy_docs, copy_props)
 
