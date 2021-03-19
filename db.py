@@ -870,8 +870,6 @@ class _BaseServer:
             #       - the new iteration is 0
             #       - don't check the date
 
-            print("item_revisions=",item_revisions)
-
             if item_revisions[0][1] == prototype_date:
                 if new_date_from_days == prototype_date:
                     raise DBException("Cannot create a 2nd revision")
@@ -929,7 +927,6 @@ class _BaseServer:
             self._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
             new_rid = c.fetchone()[0]
 
-            print("latest_rid=", latest_rid)
             if latest_rid >= 0:
                 old_date_to_days = new_date_from_days - 1
                 old_date_to_days = new_date_from_days - 1
