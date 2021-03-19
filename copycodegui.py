@@ -53,7 +53,6 @@ class CopyCode(QDialog):
         self._code_id = data["id"]
 
         data = self._db.get_dates_by_code_id3(self._code_id)
-        print(data)
 
         i = 0
         while i < len(data) - 1 and data[i][2] == db.prototype_date:
@@ -65,7 +64,6 @@ class CopyCode(QDialog):
         self._last_revid = data[i][4]
 
         self._proto_exists = data[0][2] == db.prototype_date
-        print(self._proto_exists)
 
         self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
         self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
