@@ -433,7 +433,7 @@ class EditWindow(utils.BBMainWindow):
 
 
         b = QPushButton("Close")
-        b.clicked.connect(self.close)
+        b.clicked.connect(self._close)
         g.addWidget(b, 100, 10)
 
         self._update_btn = QPushButton("Save...")
@@ -446,6 +446,9 @@ class EditWindow(utils.BBMainWindow):
         w.setLayout(g)
         self.setCentralWidget(w)
         self.resize(1024, 768)
+
+    def _close(self):
+        self.close()
 
     def _dates_list_change_index(self, i):
         if self._dates_list_info is None:
@@ -472,7 +475,10 @@ class EditWindow(utils.BBMainWindow):
 
         m = mainMenu.addMenu("Edit")
         a = QAction("Delete item revision...", self)
-        #m.triggered.connect(lambda x: True)
+        a.triggered.connect(self._delete_revision)
+        m.addAction(a)
+        a = QAction("Delete code...", self)
+        a.triggered.connect(self._delete_code)
         m.addAction(a)
         a = QAction("Promote a prototype...", self)
         #m.triggered.connect(lambda x: True)
@@ -486,6 +492,88 @@ class EditWindow(utils.BBMainWindow):
         a = QAction("About ...", self)
         a.triggered.connect(lambda : utils.about(self, db.connection))
         m.addAction(a)
+
+    def _delete_code(self):
+
+        # TBD: check for data to discard
+
+        reply = QMessageBox.question(self, "BOMBrowser",
+                        "Are you sure to delete the code ?")
+
+        if reply != QMessageBox.Yes:
+            return
+
+        d = db.DB()
+        try:
+            ret = d.delete_code(self._code_id)
+
+        except Exception as e:
+            QMessageBox.critical(self, "BOMBrowser",
+                "Error during deletion of code id=%d\n"%(self._code_id) +
+                "Exception is:\n"
+                "-----------------------------\n"
+                "%r"%(e) +
+                "-----------------------------\n")
+            raise
+
+        if ret == "HASPARENTS":
+            QMessageBox.critical(self, "BOMBrowser",
+                "Cannot delete code id=%d: it has parent(s)"%(self._code_id))
+            return
+        elif ret != "":
+            QMessageBox.critical(self, "BOMBrowser",
+                "Unknown error '%s'; cannot delete code id=%d"%(
+                    ret, self._code_id))
+            return
+
+
+        QMessageBox.information(self, "BOMBrowser",
+            "Code id=%d has been deleted"%(self._code_id))
+
+        self.close()
+
+    def _delete_revision(self):
+        # TBD: check for data to discard
+
+        reply = QMessageBox.question(self, "BOMBrowser",
+                        "Are you sure to delete the current code revision?")
+
+        if reply != QMessageBox.Yes:
+            return
+
+        d = db.DB()
+        try:
+            ret = d.delete_code_revision(self._rid)
+        except Exception as e:
+            QMessageBox.critical(self, "BOMBrowser",
+                "Error during deletion of code id=%d\n"%(self._rid) +
+                "Exception is:\n"
+                "-----------------------------\n"
+                "%r"%(e) +
+                "-----------------------------\n")
+            raise
+
+        if ret == "ISALONE":
+            QMessageBox.critical(self, "BOMBrowser",
+                "Cannot delete code revision rid=%d: "%(self._rid) +
+                "it is the last one; delete the code instead")
+            return
+        elif ret == "ONLYPROTOTYPE":
+            QMessageBox.critical(self, "BOMBrowser",
+                "Cannot delete code revision rid=%d: "%(self._rid) +
+                "cannot remain only the prototype.")
+            return
+        elif ret != "":
+            QMessageBox.critical(self, "BOMBrowser",
+                "Unknown error '%s'; cannot delete code id=%d"%(
+                    ret, self._code_id))
+            return
+
+        QMessageBox.information(self, "BOMBrowser",
+            "Code revision rid=%d has been deleted"%(self._rid))
+
+        self._populate_dates_list_info()
+        self._dates_list_change_index(0)
 
     def _exit_app(self):
         ret = QMessageBox.question(self, "BOMBrowser", "Do you want to exit from the application ?")
