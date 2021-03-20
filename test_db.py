@@ -192,7 +192,10 @@ def _test_insert_assembly(c):
 
         "M": ( ("2020-01-25", "",           ("I", "L")), ),
     }
+    
+    return _build_assembly(c, ass)
 
+def _build_assembly(c, ass):
 
     map_code_id = {}
     iter_ = dict()
@@ -544,23 +547,23 @@ def _create_code_revision(c, code, nr=10):
         to_date = db.days_to_iso(to_date_days)
         i -= 1
 
-    return code_id
-
-
-def test_update_dates():
-    d, c = _create_db()
-
-    code = "TEST-CODE"
-    code_id = _create_code_revision(c, code)
-    d._commit(c)
-
     c.execute("""
         SELECT id, date_from, date_from_days, date_to, date_to_days
         FROM item_revisions
         WHERE code_id = ?
         ORDER BY iter DESC
     """, (code_id, ))
-    dates_good = [list(x) for x in c.fetchall()]
+    dates = [list(x) for x in c.fetchall()]
+
+    return code_id, dates
+
+def test_update_dates():
+    d, c = _create_db()
+
+    code = "TEST-CODE"
+    code_id, dates_good = _create_code_revision(c, code)
+    d._commit(c)
+
     assert(len(dates_good))
 
     dates = [ x[:] for x in dates_good]
@@ -583,8 +586,17 @@ def test_update_dates():
     """, (code_id, db.prototype_iter))
     assert(c.fetchone()[0] == 0)
 
+def test_update_dates_insert_prototype_after_a_normal():
+    d, c = _create_db()
+
+    code = "TEST-CODE"
+    code_id, dates = _create_code_revision(c, code)
+    d._commit(c)
+    
+    # insert normal
+    d.update_dates(dates)
+    
     # insert a prototype
-    dates = [ x[:] for x in dates_good]
     
     dates[0][1] = db.days_to_iso(db.prototype_date)
     dates[0][2] = db.prototype_date
@@ -612,6 +624,26 @@ def test_update_dates():
     """, (code_id, db.prototype_iter))
     assert(c.fetchone()[0] == 1)
 
+def test_update_dates_insert_normal_after_prototype():
+    d, c = _create_db()
+
+    code = "TEST-CODE"
+    code_id, dates_good = _create_code_revision(c, code)
+    d._commit(c)
+
+    # insert a prototype
+    dates = [ x[:] for x in dates_good]
+    
+    dates[0][1] = db.days_to_iso(db.prototype_date)
+    dates[0][2] = db.prototype_date
+    dates[0][3] = ""
+    dates[0][4] = db.end_of_the_world
+
+    dates[1][3] = ""
+    dates[1][4] = db.prototype_date - 1
+
+    d.update_dates(dates)
+
     dates = [ x[:] for x in dates_good]
     d.update_dates(dates)
 
@@ -623,23 +655,13 @@ def test_update_dates():
     """, (code_id, db.prototype_iter))
     assert(c.fetchone()[0] == 0)
 
-def test_update_dates_fail():
+def test_update_dates_fail_to_less_from():
     d, c = _create_db()
 
     code = "TEST-CODE"
-    code_id = _create_code_revision(c, code)
+    code_id, dates = _create_code_revision(c, code)
     d._commit(c)
-
-    c.execute("""
-        SELECT id, date_from, date_from_days, date_to, date_to_days
-        FROM item_revisions
-        WHERE code_id = ?
-        ORDER BY iter DESC
-    """, (code_id, ))
-    dates_good = [list(x) for x in c.fetchall()]
-    assert(len(dates_good))
     
-    dates = [ x[:] for x in dates_good]
     # _to < _from
     dates[0][4] = dates[0][2] - 1
     
@@ -649,9 +671,18 @@ def test_update_dates_fail():
     except:
         failed = True
     assert(failed)
+
+
+    # go back to ensure that otherwise every thing is ok
+    dates[0][4] = dates[0][2] 
+    d.update_dates(dates)        
     
-    
-    dates = [ x[:] for x in dates_good]
+def test_update_dates_fail_previous_before_after():
+    d, c = _create_db()
+
+    code = "TEST-CODE"
+    code_id, dates = _create_code_revision(c, code)
+    d._commit(c)
     # swap two rows
     tmp = dates[1][2]
     dates[1][2] = dates[0][2]
@@ -664,8 +695,12 @@ def test_update_dates_fail():
         failed = True
     assert(failed)
     
-    
-    dates = [ x[:] for x in dates_good]
+def test_update_dates_fail_2_equal_rows():
+    d, c = _create_db()
+
+    code = "TEST-CODE"
+    code_id, dates = _create_code_revision(c, code)
+    d._commit(c)
     # two row equals
     dates[1][2] = dates[0][2]
     
@@ -675,10 +710,14 @@ def test_update_dates_fail():
     except:
         failed = True
     assert(failed)
-
     
-    dates = [ x[:] for x in dates_good]
-    # _to(n+1) >= _from(n)
+def test_update_dates_fail_overlapped_date_revisions():
+    d, c = _create_db()
+
+    code = "TEST-CODE"
+    code_id, dates = _create_code_revision(c, code)
+    d._commit(c)
+    # _to(n+1) == _from(n) - 1
     dates[1][4] = dates[0][2]
     
     failed = False
@@ -688,10 +727,19 @@ def test_update_dates_fail():
         failed = True
     assert(failed)
 
+    # go back to ensure that otherwise every thing is ok
+    dates[1][4] = dates[0][2] - 1
+    d.update_dates(dates)
 
-    dates = [ x[:] for x in dates_good]
+def test_update_dates_fail_from_grather_proto():
+    d, c = _create_db()
+
+    code = "TEST-CODE"
+    code_id, dates = _create_code_revision(c, code)
+    d._commit(c)
     # from > prototype date
     dates[0][2] = db.prototype_date + 1
+    dates[1][4] = db.prototype_date
     
     failed = False
     try:
@@ -699,12 +747,22 @@ def test_update_dates_fail():
     except:
         failed = True
     assert(failed)
+    
+    # go back to ensure that otherwise every thing is ok
+    dates[0][2] = db.prototype_date
+    dates[1][4] = db.prototype_date - 1
+    d.update_dates(dates)
 
+def test_update_dates_fail_to_grather_end():
+    d, c = _create_db()
 
-    dates = [ x[:] for x in dates_good]
+    code = "TEST-CODE"
+    code_id, dates = _create_code_revision(c, code)
+    d._commit(c)
+
     # to > end_of_the_worlf
     dates[0][4] = db.end_of_the_world + 1
-    
+
     failed = False
     try:
         d.update_dates(dates)
@@ -712,6 +770,180 @@ def test_update_dates_fail():
         failed = True
     assert(failed)
 
+    # go back to ensure that otherwise every thing is ok
+    dates[0][4] = db.end_of_the_world
+    d.update_dates(dates)
+
+def _test_insert_assembly_for_updates_date(c):
+    """
+    
+            D
+            |
+            A
+           / \
+          B   C
+    
+            E
+            |
+            A
+           / \
+          B   C
+  
+    """
+    ass = {
+        "B": ( ("2020-01-05", "2020-01-14", ()),
+               ("2020-01-15", "2020-01-19", ()),
+               ("2020-01-20", "2020-01-25", ()), ),
+        "C": ( ("2020-01-10", "2020-01-14", ()),
+               ("2020-01-15", "2020-01-19", ()),
+               ("2020-01-20", "",           ()), ),
+        "A": ( ("2020-01-11", "2020-01-14", ("B", "C")),
+               ("2020-01-15", "2020-01-19", ("B", "C")),
+               ("2020-01-20", "2020-01-23", ("B", "C")), ),
+        "E": ( ("2020-01-11", "2020-01-20", ("A",)),
+               ("2020-01-21", "2020-01-22", ("A",)), ),
+        "D": ( ("2020-01-11", "2020-01-14", ("A",)),
+               ("2020-01-15", "2020-01-18", ("A",)), ),
+    }
+    
+    return _build_assembly(c, ass)
+
+def _get_code_id(c, code):
+    c.execute("""
+        SELECT id
+        FROM items
+        WHERE code = ?
+    """, (code,))
+    return c.fetchone()[0]
+
+def test_update_dates_with_assembly():
+    d, c = _create_db()
+    _test_insert_assembly_for_updates_date(c)    
+    d._commit(c)
+
+    code_id = _get_code_id(c, "A")
+    dates = [[x[4], db.days_to_iso(x[2]), x[2], db.days_to_iso(x[3]), x[3]]
+        for x in d.get_dates_by_code_id3(code_id)]
+    
+    dates[1][1] = "2020-01-16"
+    dates[1][2] = db.iso_to_days(dates[1][1])
+    dates[2][3] = "2020-01-15"
+    dates[2][4] = db.iso_to_days(dates[2][3])
+
+    d.update_dates(dates)
+
+    dates = [list(x) for x in d.get_dates_by_code_id3(code_id)]
+   
+    assert(dates[2][3] == db.iso_to_days("2020-01-15"))
+
+def test_update_dates_with_assembly_fail_date_earlier_child():
+    d, c = _create_db()
+    _test_insert_assembly_for_updates_date(c)    
+    d._commit(c)
+
+    code_id = _get_code_id(c, "A")
+    dates = [[x[4], db.days_to_iso(x[2]), x[2], db.days_to_iso(x[3]), x[3]]
+        for x in d.get_dates_by_code_id3(code_id)]
+
+    # A cannot be earlier than C (2020-01-10..end_of_the_world)
+    dates[2][1] = "2020-01-09"
+    dates[2][2] = db.iso_to_days(dates[2][1])
+
+    failed = False
+    try:
+        d.update_dates(dates)
+    except:
+        failed = True
+
+    assert(failed)
+       
+    # check that if we change this date, everything is ok
+    # A cannot be earlier than C (2020-01-10..end_of_the_world)
+    dates[2][1] = "2020-01-10"
+    dates[2][2] = db.iso_to_days(dates[2][1])
+    d.update_dates(dates)
+
+def test_update_dates_with_assembly_fail_date_later_child():
+    d, c = _create_db()
+    _test_insert_assembly_for_updates_date(c)    
+    d._commit(c)
+
+    code_id = _get_code_id(c, "A")
+    dates = [[x[4], db.days_to_iso(x[2]), x[2], db.days_to_iso(x[3]), x[3]]
+        for x in d.get_dates_by_code_id3(code_id)]
+
+    # A cannot be later than B (2020-01-05,..2020-01-25)
+    dates[0][3] = "2020-01-30"
+    dates[0][4] = db.iso_to_days(dates[0][3])
+
+    failed = False
+    try:
+        d.update_dates(dates)
+    except:
+        failed = True
+
+    assert(failed)
+
+    # check that if we change this date, everything is ok
+    # A cannot be later than B (2020-01-05,..2020-01-25)
+    dates[0][3] = "2020-01-25"
+    dates[0][4] = db.iso_to_days(dates[0][3])
+    
+    d.update_dates(dates)
+
+def test_update_dates_with_assembly_fail_date_earlier_parent():
+    d, c = _create_db()
+    _test_insert_assembly_for_updates_date(c)    
+    d._commit(c)
+
+    code_id = _get_code_id(c, "A")
+    dates = [[x[4], db.days_to_iso(x[2]), x[2], db.days_to_iso(x[3]), x[3]]
+        for x in d.get_dates_by_code_id3(code_id)]
+
+    # A cannot be end early than E (2020-01-11..2020-01-22)
+    dates[0][3] = "2020-01-21"
+    dates[0][4] = db.iso_to_days(dates[0][3])
+
+    failed = False
+    try:
+        d.update_dates(dates)
+    except:
+        failed = True
+
+    assert(failed)
+
+    # check that if we change this date, everything is ok
+    # A cannot be end early than E (2020-01-11..2020-01-22)
+    dates[0][3] = "2020-01-22"
+    dates[0][4] = db.iso_to_days(dates[0][3])
+
+    d.update_dates(dates)
+
+def test_update_dates_with_assembly_fail_date_later_parent():
+    d, c = _create_db()
+    _test_insert_assembly_for_updates_date(c)    
+    d._commit(c)
+
+    code_id = _get_code_id(c, "A")
+    dates = [[x[4], db.days_to_iso(x[2]), x[2], db.days_to_iso(x[3]), x[3]]
+        for x in d.get_dates_by_code_id3(code_id)]
+
+    # A cannot be later than D (2020-01-11..2020-01-18)
+    dates[2][1] = "2020-01-12"
+    dates[2][2] = db.iso_to_days(dates[2][1])
+
+    failed = False
+    try:
+        d.update_dates(dates)
+    except:
+        failed = True
+
+    assert(failed)
+    
+    # check that if we change this date, everything is ok
+    # A cannot be later than D (2020-01-11..2020-01-18)
+    dates[2][1] = "2020-01-11"
+    dates[2][2] = db.iso_to_days(dates[2][1])
 
 #------
 
