@@ -957,7 +957,6 @@ def run_test(filters):
         if not name.startswith("test_"):
             continue
 
-
         skip = len(filters) > 0
         for f in filters:
             if f in name:
@@ -975,10 +974,8 @@ def run_test(filters):
         except:
             print("FAIL !!!")
             raise
-            
 
 if __name__ == "__main__":
-    #global _connection_string
     last = 1
     for i in range(1, len(sys.argv[1:])):
         if sys.argv[i] == "--create":
