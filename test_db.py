@@ -511,6 +511,207 @@ def test_get_config():
 
     assert(cfg.config()["test_sect"]["test_key"] == 'test-value')
 
+def _create_code_revision(c, code, nr=10):
+
+    c.execute("""INSERT INTO items(code) VALUES (?)""",( code,))
+    c.execute("""SELECT MAX (id) FROM items""")
+    code_id = c.fetchone()[0]
+
+    dates = ["%04d-06-10"%(2001+i) for i in range(nr+1, 0, -1)]
+
+    i = len(dates)
+    to_date_days = db.end_of_the_world
+    to_date = ""
+    for dt in dates:
+        c.execute("""INSERT INTO item_revisions(
+            date_from, date_from_days,
+            date_to, date_to_days,
+            descr, code_id, ver,
+            iter, default_unit,
+            gval1, gval2) VALUES (
+            ?, ?, ?, ?,
+            ?, ?, ?,
+            ?, ?,
+            ?, ?)""", (
+                dt, db.iso_to_days(dt),
+                to_date, to_date_days,
+                "CODE %s"%(code), code_id, "0",
+                i, "NR",
+                "FOR1COD", "FOR1NAME"
+            ))
+
+        to_date_days = db.iso_to_days(dt)-1
+        to_date = db.days_to_iso(to_date_days)
+        i -= 1
+
+    return code_id
+
+
+def test_update_dates():
+    d, c = _create_db()
+
+    code = "TEST-CODE"
+    code_id = _create_code_revision(c, code)
+    d._commit(c)
+
+    c.execute("""
+        SELECT id, date_from, date_from_days, date_to, date_to_days
+        FROM item_revisions
+        WHERE code_id = ?
+        ORDER BY iter DESC
+    """, (code_id, ))
+    dates_good = [list(x) for x in c.fetchall()]
+    assert(len(dates_good))
+
+    dates = [ x[:] for x in dates_good]
+
+    d.update_dates(dates)
+
+    c.execute("""
+        SELECT COUNT(*)
+        FROM item_revisions
+        WHERE code_id = ?
+          AND date_from_days = ?
+    """, (code_id, db.prototype_date))
+    assert(c.fetchone()[0] == 0)
+
+    c.execute("""
+        SELECT COUNT(*)
+        FROM item_revisions
+        WHERE code_id = ?
+          AND iter= ?
+    """, (code_id, db.prototype_iter))
+    assert(c.fetchone()[0] == 0)
+
+    # insert a prototype
+    dates = [ x[:] for x in dates_good]
+    
+    dates[0][1] = db.days_to_iso(db.prototype_date)
+    dates[0][2] = db.prototype_date
+    dates[0][3] = ""
+    dates[0][4] = db.end_of_the_world
+
+    dates[1][3] = ""
+    dates[1][4] = db.prototype_date - 1
+    
+    d.update_dates(dates)
+
+    c.execute("""
+        SELECT COUNT(*)
+        FROM item_revisions
+        WHERE code_id = ?
+          AND date_from_days = ?
+    """, (code_id, db.prototype_date))
+    assert(c.fetchone()[0] == 1)
+
+    c.execute("""
+        SELECT COUNT(*)
+        FROM item_revisions
+        WHERE code_id = ?
+          AND iter= ?
+    """, (code_id, db.prototype_iter))
+    assert(c.fetchone()[0] == 1)
+
+    dates = [ x[:] for x in dates_good]
+    d.update_dates(dates)
+
+    c.execute("""
+        SELECT COUNT(*)
+        FROM item_revisions
+        WHERE code_id = ?
+          AND iter= ?
+    """, (code_id, db.prototype_iter))
+    assert(c.fetchone()[0] == 0)
+
+def test_update_dates_fail():
+    d, c = _create_db()
+
+    code = "TEST-CODE"
+    code_id = _create_code_revision(c, code)
+    d._commit(c)
+
+    c.execute("""
+        SELECT id, date_from, date_from_days, date_to, date_to_days
+        FROM item_revisions
+        WHERE code_id = ?
+        ORDER BY iter DESC
+    """, (code_id, ))
+    dates_good = [list(x) for x in c.fetchall()]
+    assert(len(dates_good))
+    
+    dates = [ x[:] for x in dates_good]
+    # _to < _from
+    dates[0][4] = dates[0][2] - 1
+    
+    failed = False
+    try:
+        d.update_dates(dates)
+    except:
+        failed = True
+    assert(failed)
+    
+    
+    dates = [ x[:] for x in dates_good]
+    # swap two rows
+    tmp = dates[1][2]
+    dates[1][2] = dates[0][2]
+    dates[0][2] = tmp
+    
+    failed = False
+    try:
+        d.update_dates(dates)
+    except:
+        failed = True
+    assert(failed)
+    
+    
+    dates = [ x[:] for x in dates_good]
+    # two row equals
+    dates[1][2] = dates[0][2]
+    
+    failed = False
+    try:
+        d.update_dates(dates)
+    except:
+        failed = True
+    assert(failed)
+
+    
+    dates = [ x[:] for x in dates_good]
+    # _to(n+1) >= _from(n)
+    dates[1][4] = dates[0][2]
+    
+    failed = False
+    try:
+        d.update_dates(dates)
+    except:
+        failed = True
+    assert(failed)
+
+
+    dates = [ x[:] for x in dates_good]
+    # from > prototype date
+    dates[0][2] = db.prototype_date + 1
+    
+    failed = False
+    try:
+        d.update_dates(dates)
+    except:
+        failed = True
+    assert(failed)
+
+
+    dates = [ x[:] for x in dates_good]
+    # to > end_of_the_worlf
+    dates[0][4] = db.end_of_the_world + 1
+    
+    failed = False
+    try:
+        d.update_dates(dates)
+    except:
+        failed = True
+    assert(failed)
+
 
 #------
 

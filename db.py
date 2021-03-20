@@ -1073,16 +1073,17 @@ class _BaseServer:
 
 
     def update_dates(self, dates):
-        # check that the rid are in order
-        l = [x[0] for x in dates]
-        l1 = l[:]
-        l1.sort(reverse=True)
-        assert(l == l1)
         # check that the date_from are in order
         l = [x[2] for x in dates]
         l1 = l[:]
         l1.sort(reverse=True)
         assert(l == l1)
+        
+        will_be_proto = max(l1) == prototype_date
+        assert(max(l1) <= prototype_date)
+        l = [x[4] for x in dates]
+        assert(max(l) <= end_of_the_world)
+        
         # check that the date_to are in order
         l = [x[4] for x in dates]
         l1 = l[:]
@@ -1090,7 +1091,7 @@ class _BaseServer:
         assert(l == l1)
         # check that date_from(n) > date_to(n+1)
         for i in range(len(dates)-1):
-            assert(dates[i][2] > dates[i+1][4])
+            assert(dates[i][2] == dates[i+1][4] + 1)
         # check that date_from <= date_to
         for row in dates:
             assert(row[2] <= row[4])
@@ -1118,9 +1119,12 @@ class _BaseServer:
             l1.sort(reverse=True)
             assert(l1==l)
 
+            was_proto = max(l) == prototype_iter
+
             l = [x[0] for x in res]
             l1 = [x[0] for x in dates]
             assert(l1 == l)
+
 
             # check that the rid are the same as the one stored in db
             for (rid, date_from, date_from_days, date_to, date_to_days) in dates:
@@ -1131,13 +1135,36 @@ class _BaseServer:
                     WHERE id = ?
                 """, (date_from, date_from_days, date_to, date_to_days, rid))
 
+            #  reset the iter
+            if was_proto:
+                self._sqlex(c, """
+                    SELECT MAX(iter)
+                    FROM item_revisions
+                    WHERE code_id = ?
+                      AND iter < ?
+                """, (code_id, prototype_iter))
+                
+                ret = c.fetchone()
+                if ret is None:
+                    new_iter = 0
+                else:
+                    new_iter = ret[0] + 1
+                
+                self._sqlex(c, """
+                    UPDATE item_revisions
+                    SET iter = ?
+                    WHERE iter = ?
+                      AND code_id = ?
+                """, (new_iter, prototype_iter, code_id))
+
             # update the iter if there is a prototype
-            self._sqlex(c, """
-                UPDATE item_revisions
-                SET iter = ?
-                WHERE date_from_days = ?
-                  AND code_id = ?
-            """, (prototype_iter, prototype_date, code_id))
+            if will_be_proto:
+                self._sqlex(c, """
+                    UPDATE item_revisions
+                    SET iter = ?
+                    WHERE date_from_days = ?
+                      AND code_id = ?
+                """, (prototype_iter, prototype_date, code_id))
              
         except:
             self._rollback(c)
