@@ -98,7 +98,7 @@ class EditDates(QDialog):
         max_date_to_days = None
         for row in range(row_cnt):
             rid = int(self._table.item(row, 0).text())
-            date_from = self._table.item(row, 4).text()
+            date_from = self._table.item(row, 4).text().upper()
             date_to = self._table.item(row, 5).text()
 
             try:
@@ -159,6 +159,11 @@ class EditDates(QDialog):
         if dates[0][3] == "":
             dates[0][4] = db.end_of_the_world
 
+        # case where there is a prototype
+        if len(dates) > 1 and dates[1][3] == "":
+            dates[1][4] = db.prototype_date -1
+
+
         try:
             d.update_dates(dates)
         except db.DBException as e:
@@ -218,9 +223,6 @@ class EditDates(QDialog):
             self._table.setItem(row, 3, i)
 
             i = QTableWidgetItem(db.days_to_txt(date_from_days))
-            if date_from_days == db.prototype_date:
-                i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-                i.setFont(f)
             self._table.setItem(row, 4, i)
 
             i = QTableWidgetItem(db.days_to_txt(date_to_days))
@@ -231,8 +233,8 @@ class EditDates(QDialog):
 
             if date_from_days == db.prototype_date:
                 # the row is prototype: we can't change anything
-                self._table.item(row, 4).setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-                self._table.item(row, 5).setFont(f)
+                #self._table.item(row, 4).setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                #self._table.item(row, 4).setFont(f)
                 self._table.item(row, 5).setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                 self._table.item(row, 5).setFont(f)
 
@@ -248,10 +250,32 @@ class EditDates(QDialog):
         # and check the date to in row 0 cell
         if col != 4 and not (col == 5 and row == 0):
             return
+            
+            
+        if row == 0 and col == 4:
+            if self._table.item(0, 4).text().upper() == "PROTOTYPE":
+            #if col == 5:
+                # phantom change due to the rows below, ignore it
+                #return
 
-        # if the row 0 is prototype, we can't do anything
-        if row == 0 and self._table.item(row, 4).text() == "PROTOTYPE":
-            return
+                self._table.item(0, 5).setText("")
+                self._table.item(0, 5).setBackground(
+                    self._table.item(row, 0).background())
+                self._table.item(0, 5).setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+
+                if self._table.rowCount() > 1:
+                    self._table.item(1, 5).setText("")
+                    self._table.item(1, 5).setBackground(
+                        self._table.item(row, 0).background())
+
+                if row == 0 and col == 4:
+                    self._table.item(row, col).setBackground(
+                        self._table.item(row, 0).background())
+                    return
+            else:
+                self._table.item(0, 5).setFlags(Qt.ItemIsSelectable |
+                    Qt.ItemIsEnabled | Qt.ItemIsEditable)
+
 
         dt = self._table.item(row, col).text()
         err = False
@@ -301,6 +325,8 @@ class EditWindow(utils.BBMainWindow):
         self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
         self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
         self._dates_list_info = None
+        self._children_modified = False
+        self._drawing_modified = False
 
         self._init_gui()
 
@@ -323,6 +349,7 @@ class EditWindow(utils.BBMainWindow):
                 db.days_to_txt(date_from_days),
                 db.days_to_txt(date_to_days)))
 
+        self._dates_list_last_index = 0
 
     def _init_gui(self):
 
@@ -447,7 +474,22 @@ class EditWindow(utils.BBMainWindow):
         self.setCentralWidget(w)
         self.resize(1024, 768)
 
+    def _form_is_changed(self):
+        if self._children_modified:
+            return True
+        if self._drawing_modified:
+            return True
+
+        for qle in self.findChildren(QLineEdit):
+            if qle.isModified():
+                return True
+
     def _close(self):
+        if self._form_is_changed():
+            ret = QMessageBox.question(self, "BOMBrowser",
+                "The form was changed; do you want to close this window without saving  ?")
+            if ret != QMessageBox.Yes:
+                return
         self.close()
 
     def _dates_list_change_index(self, i):
@@ -459,7 +501,18 @@ class EditWindow(utils.BBMainWindow):
         (code, descr, date_from_days, date_to_days,
             rid, ver, iter_) = self._dates_list_info[i]
 
+        if self._form_is_changed():
+            if self._dates_list_last_index == i:
+                return
+
+            ret = QMessageBox.question(self, "BOMBrowser",
+                "The form was changed; do you want to change date before saving data  ?")
+            if ret != QMessageBox.Yes:
+                self._dates_list.setCurrentIndex(self._dates_list_last_index)
+                return
+
         self._populate_table(rid)
+        self._dates_list_last_index = i
 
     def _create_menu(self):
         mainMenu = self.menuBar()
@@ -467,7 +520,7 @@ class EditWindow(utils.BBMainWindow):
         m = mainMenu.addMenu("File")
         a = QAction("Close", self)
         a.setShortcut("Ctrl+Q")
-        a.triggered.connect(self.close)
+        a.triggered.connect(self._close)
         m.addAction(a)
         a = QAction("Exit", self)
         a.triggered.connect(self._exit_app)
@@ -480,9 +533,9 @@ class EditWindow(utils.BBMainWindow):
         a = QAction("Delete code...", self)
         a.triggered.connect(self._delete_code)
         m.addAction(a)
-        a = QAction("Promote a prototype...", self)
+        #a = QAction("Promote a prototype...", self)
         #m.triggered.connect(lambda x: True)
-        m.addAction(a)
+        #m.addAction(a)
 
         self._windowsMenu = mainMenu.addMenu("Windows")
         self._windowsMenu.aboutToShow.connect(self._build_windows_menu)
@@ -494,8 +547,11 @@ class EditWindow(utils.BBMainWindow):
         m.addAction(a)
 
     def _delete_code(self):
-
-        # TBD: check for data to discard
+        if self._form_is_changed():
+            ret = QMessageBox.question(self, "BOMBrowser",
+                "The form was changed; do you want to continue without saving  ?")
+            if ret != QMessageBox.Yes:
+                return
 
         reply = QMessageBox.question(self, "BOMBrowser",
                         "Are you sure to delete the code ?")
@@ -533,7 +589,11 @@ class EditWindow(utils.BBMainWindow):
         self.close()
 
     def _delete_revision(self):
-        # TBD: check for data to discard
+        if self._form_is_changed():
+            ret = QMessageBox.question(self, "BOMBrowser",
+                "The form was changed; do you want to continue without saving  ?")
+            if ret != QMessageBox.Yes:
+                return
 
         reply = QMessageBox.question(self, "BOMBrowser",
                         "Are you sure to delete the current code revision?")
@@ -585,9 +645,18 @@ class EditWindow(utils.BBMainWindow):
         return
 
     def _change_dates(self):
+        if self._form_is_changed():
+            ret = QMessageBox.question(self, "BOMBrowser",
+                "The form was changed; do you want to continue without saving  ?")
+            if ret != QMessageBox.Yes:
+                return
+		
         d = EditDates(int(self._id.text()), self)
         d.exec_()
 
+        self._refresh_date()
+
+    def _refresh_date(self):
         d = db.DB()
         data = d.get_code_from_rid(self._rid)
 
@@ -597,6 +666,14 @@ class EditWindow(utils.BBMainWindow):
         self._from_date_days = data["date_from_days"]
         self._to_date_days = data["date_to_days"]
 
+        dates = d.get_dates_by_code_id3(self._code_id)
+        for i, row in enumerate(dates):
+            code, descr, date_from_days, date_to_days = row[:4]
+            self._dates_list.setItemText(i, "%s .. %s"%(
+                    db.days_to_txt(date_from_days),
+                    db.days_to_txt(date_to_days)))
+        
+        
     def _save_changes_prepare_data(self):
         d = db.DB()
 
@@ -675,7 +752,7 @@ class EditWindow(utils.BBMainWindow):
         if err:
             QMessageBox.critical(self, "BOMBrowser",
                 "Cannot insert data, the error is:\n"+err)
-            return
+            return "ERROR"
 
         (gvals, drawings, children) = data
 
@@ -694,10 +771,13 @@ class EditWindow(utils.BBMainWindow):
             QMessageBox.critical(self, "BOMBrowser",
                     "Error during the data saving\n" +
                     e.args[0])
-            return
+            return "ERROR"
 
         QMessageBox.information(self, "BOMBrowser",
                 "Data saved")
+        self._populate_table(self._rid)
+
+        return "OK"
 
     def _children_populate_row(self, row, child_id, code, descr, qty,
                                 each, unit, ref):
@@ -809,7 +889,11 @@ class EditWindow(utils.BBMainWindow):
         self._drawings_table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeToContents)
 
+        self._children_modified = False
+        self._drawing_modified = False
+
     def _children_cell_changed(self, row, col):
+        self._children_modified = True
         table = self._children_table
         if col == 2:
             d = db.DB()
@@ -855,6 +939,7 @@ class EditWindow(utils.BBMainWindow):
         pass
 
     def _children_insert_before(self, offset=0):
+        self._children_modified = True
         idxs = self._children_table.selectedIndexes()
         if len(idxs) < 1:
             row = 0
@@ -876,9 +961,11 @@ class EditWindow(utils.BBMainWindow):
         self._children_table.setSortingEnabled(True)
 
     def _children_insert_after(self):
+        self._children_modified = True
         self._children_insert_before(+1)
 
     def _children_delete(self):
+        self._children_modified = True
         idxs = self._children_table.selectedIndexes()
         if len(idxs) < 1:
             return
@@ -906,6 +993,7 @@ class EditWindow(utils.BBMainWindow):
 
         row = idxs[0].row()
         self._children_table.item(row, 2).setText(code)
+        self._children_modified = True
 
     def _drawing_menu(self, point):
         contextMenu = QMenu(self)
@@ -932,6 +1020,7 @@ class EditWindow(utils.BBMainWindow):
         idxs = self._drawings_table.selectedIndexes()
         if len(idxs) == 0:
             return
+        self._drawing_modified = True
 
         rows = list(set([idx.row() for idx in idxs]))
         rows.sort(reverse=True)
@@ -943,6 +1032,8 @@ class EditWindow(utils.BBMainWindow):
         (fn, _) = QFileDialog.getOpenFileName(self, "Select a file")
         if fn == "":
             return
+        self._drawing_modified = True
+
         row = self._drawings_table.rowCount()
         self._drawings_table.setRowCount(row+1)
         self._drawings_table.setItem(row, 0, QTableWidgetItem(os.path.basename(fn)))
