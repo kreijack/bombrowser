@@ -10,7 +10,6 @@
 ## GENERAL
 
 - [ ] refresh the properties
-- [ ] todiscuss: add the concept of "prototype" bom/code
 - [ ] advance search (in all fields)
 - [ ] normalize/standardize the unit (now are a free text)
 - [ ] gval: create a listbox menu
@@ -18,9 +17,9 @@
 - [ ] Implement an extern module to customize some function:
   - code validator
   - revise validator
-- [ ] add a README
 - [ ] check for loop when iterating a bom (e.g. exporter)
-- [ ] refactor the codegui in order to minimize the use of db
+- [ ] add import from external source (cad, excel...)
+
 
 ## Database
 
@@ -43,6 +42,11 @@
 - [ ] add test for assembly latest
 
 # DONE
+
+2021/03/20
+- [X] todiscuss: add the concept of "prototype" bom/code
+- [X] add a README
+- [X] refactor the codegui in order to minimize the use of db
 
 2021/03/14
 - [X] handle the case where the bombrowser.ini file is missing
