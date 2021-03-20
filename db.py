@@ -1073,9 +1073,56 @@ class _BaseServer:
 
 
     def update_dates(self, dates):
+        # check that the rid are in order
+        l = [x[0] for x in dates]
+        l1 = l[:]
+        l1.sort(reverse=True)
+        assert(l == l1)
+        # check that the date_from are in order
+        l = [x[2] for x in dates]
+        l1 = l[:]
+        l1.sort(reverse=True)
+        assert(l == l1)
+        # check that the date_to are in order
+        l = [x[4] for x in dates]
+        l1 = l[:]
+        l1.sort(reverse=True)
+        assert(l == l1)
+        # check that date_from(n) > date_to(n+1)
+        for i in range(len(dates)-1):
+            assert(dates[i][2] > dates[i+1][4])
+        # check that date_from <= date_to
+        for row in dates:
+            assert(row[2] <= row[4])
+
         c = self._conn.cursor()
         self._begin(c)
         try:
+
+            self._sqlex(c, """
+                SELECT code_id
+                FROM item_revisions
+                WHERE id = ?
+            """,(dates[0][0],))
+            code_id = c.fetchone()[0]
+
+            self._sqlex(c, """
+                SELECT id, iter
+                FROM item_revisions
+                WHERE code_id = ?
+                ORDER BY date_from DESC
+            """,(code_id,))
+            res = c.fetchall()[:]
+            l = [x[1] for x in res]
+            l1 = l[:]
+            l1.sort(reverse=True)
+            assert(l1==l)
+
+            l = [x[0] for x in res]
+            l1 = [x[0] for x in dates]
+            assert(l1 == l)
+
+            # check that the rid are the same as the one stored in db
             for (rid, date_from, date_from_days, date_to, date_to_days) in dates:
                 self._sqlex(c, """
                     UPDATE item_revisions SET
@@ -1083,8 +1130,17 @@ class _BaseServer:
                         date_to=?, date_to_days=?
                     WHERE id = ?
                 """, (date_from, date_from_days, date_to, date_to_days, rid))
+
+            # update the iter if there is a prototype
+            self._sqlex(c, """
+                UPDATE item_revisions
+                SET iter = ?
+                WHERE date_from_days = ?
+                  AND code_id = ?
+            """, (prototype_iter, prototype_date, code_id))
+             
         except:
-            self._rollback()
+            self._rollback(c)
             raise
 
         self._commit(c)
@@ -1107,6 +1163,185 @@ class _BaseServer:
             ret[key1][key2] = value
 
         return ret
+
+    def delete_code(self, code_id):
+        c = self._conn.cursor()
+        self._begin(c)
+        try:
+            self._sqlex(c,"""
+                SELECT COUNT(*)
+                FROM assemblies
+                WHERE child_id = ?
+            """, (code_id,))
+            cnt = c.fetchone()[0]
+
+            if cnt > 0:
+                self._rollback(c)
+                return "HASPARENTS"
+
+            self._sqlex(c,"""
+                DELETE FROM drawings
+                WHERE revision_id IN
+                (SELECT id
+                 FROM item_revisions
+                 WHERE code_id = ?
+                )
+                """, (code_id,))
+
+            self._sqlex(c,"""
+                DELETE FROM assemblies
+                WHERE revision_id IN
+                (SELECT id
+                 FROM item_revisions
+                 WHERE code_id = ?
+                )
+                """, (code_id,))
+
+            self._sqlex(c,"""
+                DELETE FROM item_properties
+                WHERE revision_id IN
+                (SELECT id
+                 FROM item_revisions
+                 WHERE code_id = ?
+                )
+                """, (code_id,))
+
+            self._sqlex(c,"""
+                DELETE FROM item_revisions
+                WHERE code_id = ?
+                """, (code_id,))
+
+            self._sqlex(c,"""
+                DELETE FROM items
+                WHERE id = ?
+                """, (code_id,))
+
+        except:
+            self._rollback(c)
+            raise
+        finally:
+            self._commit(c)
+
+        return ""
+
+    def delete_code_revision(self, rid):
+        c = self._conn.cursor()
+        self._begin(c)
+        try:
+            self._sqlex(c,"""
+                SELECT COUNT(*)
+                FROM item_revisions
+                WHERE code_id = (
+                    SELECT code_id
+                    FROM item_revisions
+                    WHERE id = ?
+                )
+            """, (rid,))
+            cnt = c.fetchone()[0]
+
+            if cnt < 2:
+                self._rollback(c)
+                return "ISALONE"
+
+            self._sqlex(c,"""
+                SELECT code_id, iter
+                FROM item_revisions
+                WHERE id = ?
+            """, (rid,))
+            code_id, iter_ = c.fetchone()
+
+            self._sqlex(c,"""
+                SELECT COUNT(*)
+                FROM item_revisions
+                WHERE code_id = ?
+                  AND iter < ?
+            """, (code_id, iter_))
+
+            cnt = c.fetchone()[0]
+
+            # adjust the date of the adiajenct item_revision
+            if cnt > 0:
+                self._sqlex(c,"""
+                    SELECT MAX(iter)
+                    FROM item_revisions
+                    WHERE code_id = ?
+                      AND iter < ?
+                """, (code_id, iter_))
+                prev_iter = c.fetchone()[0]
+
+                self._sqlex(c,"""
+                    SELECT date_to, date_to_days
+                    FROM item_revisions
+                    WHERE id = ?
+                """, (rid,))
+                date_to, date_to_days = c.fetchone()
+
+                self._sqlex(c,"""
+                    UPDATE item_revisions
+                    SET date_to = ?, date_to_days = ?
+                    WHERE code_id = ?
+                      AND iter = ?
+                """, (date_to, date_to_days, code_id, prev_iter))
+            else:
+                self._sqlex(c,"""
+                    SELECT MIN(iter)
+                    FROM item_revisions
+                    WHERE code_id = ?
+                      AND iter > ?
+                """, (code_id, iter_))
+                next_iter = c.fetchone()[0]
+
+                if next_iter == prototype_iter:
+                    self._rollback(c)
+                    return "ONLYPROTOTYPE"
+
+                self._sqlex(c,"""
+                    SELECT date_from, date_from_days
+                    FROM item_revisions
+                    WHERE id = ?
+                """, (rid,))
+                date_from, date_from_days = c.fetchone()
+
+                self._sqlex(c,"""
+                    UPDATE item_revisions
+                    SET date_from = ?, date_from_days = ?
+                    WHERE code_id = ?
+                      AND iter = ?
+                """, (date_from, date_from_days, code_id, next_iter))
+
+            # drop all the children
+
+            self._sqlex(c,"""
+                DELETE FROM drawings
+                WHERE revision_id = ?
+                """, (rid,))
+
+            self._sqlex(c,"""
+                DELETE FROM assemblies
+                WHERE revision_id IN
+                (SELECT id
+                 FROM item_revisions
+                 WHERE code_id = ?
+                )
+                """, (rid,))
+
+            self._sqlex(c,"""
+                DELETE FROM item_properties
+                WHERE revision_id = ?
+                """, (rid,))
+
+            self._sqlex(c,"""
+                DELETE FROM item_revisions
+                WHERE id = ?
+                """, (rid,))
+
+        except:
+            self._rollback(c)
+            raise
+        finally:
+            self._commit(c)
+
+        return ""
 
 
 import sqlite3
