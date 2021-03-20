@@ -250,8 +250,7 @@ class EditDates(QDialog):
         # and check the date to in row 0 cell
         if col != 4 and not (col == 5 and row == 0):
             return
-            
-            
+
         if row == 0 and col == 4:
             if self._table.item(0, 4).text().upper() == "PROTOTYPE":
             #if col == 5:
@@ -650,7 +649,7 @@ class EditWindow(utils.BBMainWindow):
                 "The form was changed; do you want to continue without saving  ?")
             if ret != QMessageBox.Yes:
                 return
-		
+
         d = EditDates(int(self._id.text()), self)
         d.exec_()
 
@@ -672,8 +671,7 @@ class EditWindow(utils.BBMainWindow):
             self._dates_list.setItemText(i, "%s .. %s"%(
                     db.days_to_txt(date_from_days),
                     db.days_to_txt(date_to_days)))
-        
-        
+
     def _save_changes_prepare_data(self):
         d = db.DB()
 
