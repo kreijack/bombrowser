@@ -234,7 +234,7 @@ def _build_assembly(c, ass):
                 ?, ?,
 
                 ?, ?)""", (
-                    "Items '%s'"%(i), code_id, "1",
+                    "Items '%s'"%(code), code_id, "1",
                     iter_[code], "NR",
 
                     db.iso_to_days(date_from), date_from,
@@ -957,6 +957,7 @@ def run_test(filters):
         if not name.startswith("test_"):
             continue
 
+
         skip = len(filters) > 0
         for f in filters:
             if f in name:
@@ -968,12 +969,17 @@ def run_test(filters):
 
         print(name, end="...")
         sys.stdout.flush()
-        obj()
-        print("OK")
-
+        try:
+            obj()
+            print("OK")
+        except:
+            print("FAIL !!!")
+            raise
+            
 
 if __name__ == "__main__":
     #global _connection_string
+    last = 1
     for i in range(1, len(sys.argv[1:])):
         if sys.argv[i] == "--create":
             d = getdb.DB()
@@ -981,6 +987,9 @@ if __name__ == "__main__":
             sys.exit()
         elif sys.argv[i] == "--use-ini-config":
             _use_memory_sqlite=False
-        elif sys.argv[i] == "--test":
-            run_test(sys.argv[i+1:])
+        else:
+            last = i
+            break
+
+    run_test(sys.argv[last:])
 
