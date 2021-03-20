@@ -477,6 +477,9 @@ class _BaseServer:
 
     def get_parent_dates_range_by_code_id(self, id_code):
         c = self._conn.cursor()
+        return self._get_parent_dates_range_by_code_id(c, id_code)
+
+    def _get_parent_dates_range_by_code_id(self, c, id_code):
         self._sqlex(c, """
                 SELECT r.code_id AS pid,
                        MIN(r.date_from_days) AS dfrom,
@@ -492,6 +495,9 @@ class _BaseServer:
 
     def get_children_dates_range_by_rid(self, rid):
         c = self._conn.cursor()
+        return self._get_children_dates_range_by_rid(c, rid)
+
+    def _get_children_dates_range_by_rid(self, c, rid):
         self._sqlex(c, """
                 SELECT a.child_id AS c_id,
                        MIN(r.date_from_days) AS dfrom,
@@ -1125,15 +1131,36 @@ class _BaseServer:
             l1 = [x[0] for x in dates]
             assert(l1 == l)
 
+            min_date_from_days = None
+            max_date_to_days = None
+            for (rid, _1, date_from_days, _2, date_to_days) in dates:
 
-            # check that the rid are the same as the one stored in db
+                if min_date_from_days is None or min_date_from_days > date_from_days:
+                    min_date_from_days = date_from_days
+                if max_date_to_days is None or max_date_to_days < date_to_days:
+                     max_date_to_days = date_to_days
+
+                for (cid, cdate_from_days, cdate_to_days) in self._get_children_dates_range_by_rid(c, rid):
+                    assert(cdate_from_days <= date_from_days)
+                    assert(cdate_to_days >= date_to_days)
+
+            # check that the date range has a wider life than
+            # any parents
+            for (pid, pdate_from_days, pdate_to_days) in self._get_parent_dates_range_by_code_id(c, code_id):
+                assert(pdate_from_days >= min_date_from_days)
+                assert(pdate_to_days <= max_date_to_days)
+
+            # ok insert the data
             for (rid, date_from, date_from_days, date_to, date_to_days) in dates:
                 self._sqlex(c, """
                     UPDATE item_revisions SET
                         date_from=?, date_from_days=?,
                         date_to=?, date_to_days=?
                     WHERE id = ?
-                """, (date_from, date_from_days, date_to, date_to_days, rid))
+                """, (date_from,
+                    date_from_days,
+                    date_to,
+                    date_to_days, rid))
 
             #  reset the iter
             if was_proto:
