@@ -19,7 +19,7 @@
   - revise validator
 - [ ] check for loop when iterating a bom (e.g. exporter)
 - [ ] add import from external source (cad, excel...)
-
+- [ ] for each command in code list window and in assembly window check that the code exists and it is not an artifact of a deleted one
 
 ## Database
 
