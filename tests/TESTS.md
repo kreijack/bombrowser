@@ -30,7 +30,7 @@ Test description: Insert the code '820037' in the 'Code' field and press **ENTER
 
 Expected results: The code 820037 is showed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.2 - search a code (2)
 
@@ -38,7 +38,7 @@ Test description: Insert the code '820038' in the 'Code' field and press the but
 
 Expected results: The code 820038 is showed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.3 - search a code by description
 
@@ -46,7 +46,7 @@ Test description: Insert the code 'BOARD 14' in the 'Description' field and pres
 
 Expected results: The code 610014 - "BOARD 14" is showed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.4 - search a code by description with a jolly character
 
@@ -54,7 +54,7 @@ Test description: Insert the code '%BOARD%13' in the 'Description' field and pre
 
 Expected results: The code 610013 - "BOARD 13" is showed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.5 - search a code with a jolly character
 
@@ -62,7 +62,7 @@ Test description: Insert the code '%6%' in the 'Code' field and press the button
 
 Expected results: The codes that contains '6' are showed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.6 - search a code and a description with a jolly character
 
@@ -70,7 +70,7 @@ Test description: Insert the code '%6%' in the 'Code' field, insert %BOARD% in t
 
 Expected results: The codes that contains '6' and the description which contains BOARD are showed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.7 - assembly
 
@@ -78,7 +78,7 @@ Test description: Insert the code '820037' in the 'Code' field,  and press the b
 
 Expected results: The "BOMBrowser: select date" dialog is showed; this dialog contains a list of 820037 codes.
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.11 - where used
 
@@ -86,7 +86,7 @@ Test description: Insert the code '810036' in the 'Code' field,  and press the b
 
 Expected results: The "BOMBrowser - Where used" window is showed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.12 - where used (2)
 
@@ -94,7 +94,7 @@ Test description: Insert the code '10037' in the 'Code' field,  and press the bu
 
 Expected results: The "BOMBrowser" error dialog is showed; this dialog says "The item is not in an assembly".
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.13 - valid where used
 
@@ -106,7 +106,7 @@ Test description:
 
 Expected results: The "BOMBrowser - Valid where used" window is showed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.14 - valid where used (2)
 
@@ -118,7 +118,7 @@ Test description:
 
 Expected results: The "BOMBrowser" error dialog is showed; this dialog says "The item is not in an assembly".
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.15 - revise/copy code
 
@@ -130,7 +130,7 @@ Test description:
 
 Expected results: The "BOMBrowser: select date" dialog is showed; this contains a list of the code 810037.
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.16 - edit code
 
@@ -142,7 +142,7 @@ Test description:
 
 Expected results: The "BOMBrowser - Edit code" window showed; this contains the code 810036 properties.
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.17 - diff from
 
@@ -154,7 +154,7 @@ Test description:
 
 Expected results: The "BOMBrowser" error dialog is showed; this dialog says "The item is not in an assembly".
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.18 - diff from (2x)
 
@@ -166,7 +166,7 @@ Test description:
 
 Expected results: The "BOMBrowser: select date" dialog is showed; this dialog contains a list of 820036 codes.
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.19 - diff to
 
@@ -178,7 +178,7 @@ Test description:
 
 Expected results: The "BOMBrowser" error dialog is showed; this dialog says "The item is not in an assembly".
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.20 - diff to (2x)
 
@@ -198,7 +198,7 @@ Test description: In the menu select the Help and About subcommand
 
 Expected results: The "about" dialog is showed. The dialog contains the current version and the copyright code.
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.22 - menu->window
 
@@ -221,7 +221,7 @@ Test description:
 
 Expected results: in the menu are showed the four windows: BOMBrowser - Where used, BOM Browser - valid where used, BOMBrowser assembly, BOMBrowser - edit
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.23 - menu->file->close
 Test description:
@@ -231,7 +231,7 @@ Test description:
 
 Expected results: The "BOMBrowser - Codes" list is closed. "BOMBrowser - Where used" is opened.
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.24 -Ctrl-Q  menu->file->close
 Test description:
@@ -242,7 +242,7 @@ Test description:
 
 Expected results: The "BOMBrowser - Codes list" is closed. "BOMBrowser - Where used" is opened.
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.25 - menu->file->exit
 Test description:
@@ -252,7 +252,7 @@ Test description:
 
 Expected results: a dialog BOMBrowser asking about the possibility to exit is showed.
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.26 - menu->file->exit (2)
 Test description:
@@ -263,7 +263,7 @@ Test description:
 
 Expected results: Two windows are opened
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.27 - menu->file->exit (3)
 Test description:
@@ -274,7 +274,7 @@ Test description:
 
 Expected results: The application is ended. Now window is sowed
 
-Passed: [X]
+Passed: [ ]
 
 
 ### Test 1.31 - Menu->edit->copy
@@ -284,7 +284,7 @@ Test description:
 
 Expected results: Paste the clipboard in an editr and check that there is the same table showed in the BOMBrowser - Codes list. Check that the number of row are the same +1 of the "BOMBrowser - Codes list" widow (there is the header)
 
-Passed: [X]
+Passed: [ ]
 
 
 
@@ -295,7 +295,7 @@ Test description:
 
 Expected result: the information of the selected code is showed in the right panel
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 1.34 - Code gui (2)
 Test description:
@@ -305,7 +305,7 @@ Test description:
 
 Expected result: the information of the selected codes are showed in the right panel
 
-Passed: [X]
+Passed: [ ]
 
 
 ## 2 - 'Code gui' panel
@@ -318,7 +318,7 @@ Test description:
 
 Expected result: on the left panel there are the information of the selected code
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 2.2 - multiple revision
 Test description:
@@ -329,7 +329,7 @@ Test description:
 
 Expected result: The information on the panel are changed accordly
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 2.3 - multiple revision (2)
 Test description:
@@ -337,7 +337,7 @@ Test description:
 
 Expected result: The right most button, contains all the dates (3)
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 2.4 - documents
 Test description:
@@ -347,7 +347,7 @@ Test description:
 
 Expected result: In the bottom part are showed two buttons with two documens
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 2.5 - documents (2x)
 Test description:
@@ -358,7 +358,7 @@ Test description:
 
 Expected result: Clicking one button document, the related document will be opened
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 2.6 - Copy info..
 Test description:
@@ -368,6 +368,75 @@ Test description:
 - Press copy info
 
 Expected result: Pasting the clipboard content in a editor, the relevant information are showed
+
+Passed: [ ]
+
+### Test 2.7 - Check tool tip
+Test description:
+- In the "BOMBrowser - codes list" window insert code 820000
+- move the mouse pointer over the Code - gui, drawing button
+
+Expected result:
+- a tooltip appears showing file name and full path
+
+Passed: [X]
+
+### Test 2.8 - RMB menu of drawing button
+Test description:
+- In the "BOMBrowser - codes list" window insert code 820000
+- move the mouse pointer over the Code, press the RMB
+- select "Open dir"
+
+Expected result:
+- the directory containing the file is opened
+
+Passed: [X]
+
+### Test 2.9 - RMB menu of drawing button
+Test description:
+- In the "BOMBrowser - codes list" window insert code 820000
+- move the mouse pointer over the Code, press the RMB
+- select "Copy filename"
+- paste it in an editor
+
+Expected result:
+- the filename is pasted
+
+Passed: [X]
+
+### Test 2.10 - RMB menu of drawing button
+Test description:
+- In the "BOMBrowser - codes list" window insert code 820000
+- move the mouse pointer over the Code, press the RMB
+- select "Copy dirname"
+- paste it in an editor
+
+Expected result:
+- the dirname is pasted
+
+Passed: [X]
+
+### Test 2.11 - RMB menu of drawing button
+Test description:
+- In the "BOMBrowser - codes list" window insert code 820000
+- move the mouse pointer over the Code, press the RMB
+- select "Copy full path"
+- paste it in an editor
+
+Expected result:
+- the full path (filename+dirname) is pasted
+
+Passed: [X]
+
+### Test 2.12 - RMB menu of drawing button (windows only)
+Test description:
+- In the "BOMBrowser - codes list" window insert code 820000
+- move the mouse pointer over the Code, press the RMB
+- select "Copy file"
+- paste it in a folder
+
+Expected result:
+- the file is copied
 
 Passed: [X]
 
@@ -383,7 +452,7 @@ Test description:
 
 Expected result: Nothing happens
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.2 - select date (2)
 Test description:
@@ -395,7 +464,7 @@ Test description:
 
 Expected result: The dialog disappear
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.3 - select date (3)
 Test description:
@@ -408,7 +477,7 @@ Test description:
 
 Expected result: The "BOMBrowser - Assembly" window appears. Check that the date in the window title is the same that you selected
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.4 - show assembly
 Test description:
@@ -418,7 +487,7 @@ Test description:
 
 Expected results: The "BOMBrowser" error dialog is showed; this dialog says "The item is not an assembly".
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.6 - show assembly (2)
 Test description:
@@ -433,7 +502,7 @@ Test description:
 
 Expected result: A new "Select date" window is showed.
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.8 - where used (2)
 - insert code "100000" in "BOMBrowser - Code list"
@@ -446,7 +515,7 @@ Passed: [X]
 
 Expected result: a where used window appears
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.10 - valid where used (2)
 - insert code "100000" in "BOMBrowser - Code list"
@@ -468,7 +537,7 @@ Test description: In the menu select the Help and About subcommand
 
 Expected results: The "about" dialog is showed. The dialog contains the current version and the copyright code.
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.12 - menu->window
 
@@ -482,7 +551,7 @@ Two windows are opened. Select the "Windows menu" in the "BOMBrowser - Assembly"
 
 Expected results: in the menu are showed the two windows: "BOMBrowser - Assembly", "BOM Browser - Codes list".
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.13 - menu->file->close
 Test description:
@@ -494,7 +563,7 @@ Test description:
 
 Expected results: The "BOMBrowser - Assembly" list is closed. "BOMBrowser - Codes list" is opened.
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.14 -Ctrl-Q  menu->file->close
 Test description:
@@ -506,7 +575,7 @@ Test description:
 
 Expected results: The "BOMBrowser - Assembly" is closed. "BOMBrowser - Codes list" is opened.
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.15 - menu->file->exit
 Test description:
@@ -518,7 +587,7 @@ Test description:
 
 Expected results: a dialog BOMBrowser asking about the possibility to exit is showed.
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.16 - menu->file->exit (2)
 Test description:
@@ -531,7 +600,7 @@ Test description:
 
 Expected results: Two windows are opened
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.17 - menu->file->exit (3)
 Test description:
@@ -544,7 +613,7 @@ Test description:
 
 Expected results: The application is ended. No window is showed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.18 - menu->file->exit
 Test description:
@@ -569,7 +638,7 @@ Test description:
 
 Expected results: Two windows are opened
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.20 - menu->file->exit (3)
 Test description:
@@ -582,7 +651,7 @@ Test description:
 
 Expected results: The application is ended. No window is showed
 
-Passed: [X]
+Passed: [ ]
 
 
 ### Test 3.21 - menu->file->export as json
@@ -596,7 +665,7 @@ Test description:
 
 Expected results: The file is in a JSON format
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.22 - menu->file->export as CVS
 Test description:
@@ -609,7 +678,7 @@ Test description:
 
 Expected results: The file is in a CVS (tab separated fields) format
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.23 - menu->view->show up level 1
 Test description:
@@ -621,7 +690,7 @@ Test description:
 
 Expected results: The bom is collapsed to showing only the first level (top code and its children)
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.24 - menu->view->show up level 2
 Test description:
@@ -633,7 +702,7 @@ Test description:
 
 Expected results: The bom is collapsed to showing only the two levels (top code and its children, and their children)
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.25 - menu->view->show all levels
 Test description:
@@ -645,7 +714,7 @@ Test description:
 
 Expected results: The bom is showing all levels
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.26 - menu->view->show up level 1 (ctrl-1)
 Test description:
@@ -657,7 +726,7 @@ Test description:
 
 Expected results: The bom is collapsed to showing only the first level (top code and its children)
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.27 - menu->view->show up level 2 (ctrl-2)
 Test description:
@@ -669,7 +738,7 @@ Test description:
 
 Expected results: The bom is collapsed to showing only the two levels (top code and its children, and their children)
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.28 - menu->view->show all levels (CTRL-A)
 Test description:
@@ -681,7 +750,7 @@ Test description:
 
 Expected results: The bom is showing all levels
 
-Passed: [X]
+Passed: [ ]
 
 ### Test Set 3.29 - find
 
@@ -697,14 +766,14 @@ Test description: press CTRL-F
 
 Expected results: The find dialog is showed
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 3.29.2 - find
 Test description: Select Search->Find
 
 Expected results: The find dialog is showed
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 3.29.3 - cancel
 Test description:
@@ -714,7 +783,7 @@ Test description:
 
 Expected results: The find dialog is closed
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 3.29.4 - find a code
 Test description:
@@ -725,7 +794,7 @@ Test description:
 
 Expected results: A different instance of the code 810003 is showed each time
 
-Passed: [X]
+Passed: [ ]
 
 
 #### Test 3.29.5 - find a code
@@ -738,7 +807,7 @@ Test description:
 
 Expected results: A different instance of the code 810003 is showed each time
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 3.29.6 - find a code
 Test description:
@@ -750,7 +819,7 @@ Test description:
 
 Expected results: After thelast action a dialog "Data not found" is showed
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 3.29.7 - find a code
 
@@ -762,7 +831,7 @@ Test description:
 
 Expected results: After thelast action a dialog "Data not found" is showed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.30 - show latest assembly
 
@@ -777,7 +846,7 @@ Expected results:
 - The window "Assembly" is showed
 - The date on the title is replaced by "LATEST"
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 3.31 - show latest assembly
 
@@ -792,6 +861,70 @@ Expected results:
 - The window "Assembly" is showed
 - The date on the title is replaced by the "Date to" value
 
+Passed: [ ]
+
+### Test 3.32.1 - Menu file -> copy files
+
+Test description:
+- open as "latest assembly" in Assembly window the code 820000
+- Select File, then "Copy files"
+
+Expected results:
+- A "Save to" dialog appear
+
+Passed: [X]
+
+### Test 3.32.2 - Menu file -> copy files
+
+Test description:
+- open as "latest assembly" in Assembly window the code 820000
+- Select File, then "Copy files"
+- A "Save to" dialog appear, select Cancel
+
+Expected results:
+- Nothing
+
+Passed: [X]
+
+### Test 3.32.2 - Menu file -> copy files
+
+Test description:
+- open as "latest assembly" in Assembly window the code 820000
+- Select File, then "Copy files"
+- A "Save to" dialog appear, select a directory
+- Pressa save/open/select
+
+Expected results:
+- In the selected folder, the assemblies files are copied
+
+Passed: [X]
+
+### Test 3.33 - Show prototype assembly
+
+Preparatpry step:
+- look at the code 610004 in the codes list window
+- Check in the code gui right panel, that the code has two date and that it is not a prototype
+
+#### Test 3.33.1 - Show prototype assembly
+Test description:
+- look at the code 610004 in the codes list window
+- From the RMB menu, select "Show prototype assembly"
+
+Expected results:
+- the assembly window is showed
+- looking at the dates of the "code gui" right panel, for some code the "prototype" date from is showed
+
+Passed: [X]
+
+#### Test 3.33.2 - Show prototype assembly
+Test description:
+- look at the code 610004 in the codes list window
+- From the RMB menu, select "Show latest assembly"
+
+Expected results:
+- the assembly window is showed
+- looking at the dates of the "code gui" right panel, for any code the "prototype" date from is showed: i.e. all code are not prototype
+
 Passed: [X]
 
 ## 4 - BOMBrowser - Valid where used
@@ -802,7 +935,7 @@ Test description: in the "Codes list" window search for the code 820017. Then se
 
 Expected result: the "valid where used" window is showed
 
-Passed: [X]
+Passed: [ ]
 
 ## 5 - BOMBrowser - Where used
 
@@ -812,7 +945,7 @@ Test description: in the "Codes list" window search for the code 820017. Then se
 
 Expected result: the where used window is showed
 
-Passed: [X]
+Passed: [ ]
 
 ## 6 - BOMBrowser - Select date
 
@@ -832,7 +965,7 @@ Test description
 
 Expected results: A "BOM Browser select date dialog" appears
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 8.2 - date dialog
 - insert code 820040 in the "BOMBrowser codes list" window
@@ -842,7 +975,7 @@ Passed: [X]
 
 Expected results: The dialog disappears
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 8.3 - date dialog
 Test description
@@ -853,7 +986,7 @@ Test description
 
 Expected results: The Revise/copy windows appears
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 8.4 - date dialog
 Test description
@@ -864,7 +997,7 @@ Test description
 
 Expected results: The Revise/copy windows appears
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 8.5 - Revise/copy code window
 Test description
@@ -876,7 +1009,7 @@ Test description
 
 Expected results: the "Iter" are the same as the one selected in the "Select date" window
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 8.6 - Revise/copy code window
 Test description
@@ -888,7 +1021,7 @@ Test description
 
 Expected results: the "Iter" are the same as the one selected in the "Select date" window
 
-Passed: [X]
+Passed: [ ]
 
 ### Test set 8.6 - Revise/copy code window
 
@@ -904,7 +1037,7 @@ Test description: press Cancel button
 
 Expected results: an exit confirmation dialog will appears
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 8.6.2 - Cancel (2)
 Test description:
@@ -913,7 +1046,7 @@ Test description:
 
 Expected results: the "Revise/copy windows" is closed
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 8.6.3 - Cancel (3)
 Test description:
@@ -922,21 +1055,21 @@ Test description:
 
 Expected results: the dialog is closed; the "Revise/copy windows" is opened
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 8.6.4 - *Revise*/copy code window
 Check the editability of the following fields: New/Code, New/Iter, New/Description, New/Rev, New/Date from
 
 Expected results: only New/Description, New/date from and New/rev are editable
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 8.6.5 - Revise/copy code window
 Test description: check the field New/Iter
 
 Expected results: The field New/Iter is Old/Iter + 1
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 8.6.6 - Revise/copy code window
 Test description:
@@ -945,7 +1078,7 @@ Test description:
 
 Expected results: the field New/Code, New/Description, New/Date from and New/Rev are editable
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 8.6.7 - Revise/copy code window
 Test description:
@@ -954,7 +1087,7 @@ Test description:
 
 Expected results: The field New/Iter is 0
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 8.6.8 - Copy error
 Test description:
@@ -977,7 +1110,7 @@ Test description:
 
 Expected results: de dialog disappear; the "BOMBrowser - copy /revise code" windows is opened.
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 8.6.11 - Confirmation dialog / success
 Test description:
@@ -989,7 +1122,7 @@ Test description:
 
 Expected results: A successfull dialog appears
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 8.6.12 - Confirmation dialog / success (2)
 Test description:
@@ -1002,7 +1135,7 @@ Expected results:
 - The editor of the new code appears.
 - There are attached document and a children list
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 8.6.14 - Confirmation dialog / success (3)
 Test description:
@@ -1017,7 +1150,7 @@ Expected results:
 - There are not attached document.
 - There are children list.
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 8.6.15 - Revise a code / date error
 Test description:
@@ -1028,7 +1161,7 @@ Expected results:
 - An error dialog appears saying that the date format is incorrect
 - pressing OK, the Copy / Revise window still exists
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 8.6.16 - Revise a code / date error
 Test description:
@@ -1040,7 +1173,7 @@ Expected results:
 - An error dialog appears saying that the date is earlier than the old one
 - pressing OK, the Copy / Revise window still exists
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 8.7 - revise a code
 Test description:
@@ -1059,7 +1192,7 @@ Expected results:
 - The "Description" in the editor window is equal to the one of the previous dialog (with 'bis_' as prefix)
 - The "Rev" in the editor window is equal to the one of the previous dialog (with 'bis_' as prefix)
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 8.8 - copy a code
 Test description:
@@ -1080,8 +1213,51 @@ Expected results:
 - The "Description" in the editor window is equal to the one of the previous dialog
 - The "Rev" in the editor window is equal to the one of the previous dialog
 
-Passed: [X]
+Passed: [ ]
 
+### Test 8.9 - copy a code (in proto mode)
+Test description:
+- revise the code "820041" from the code list window
+- check the "Copy" checkbox
+- set the "new/code" field to a new one (i.e. it must no exist)
+- check the checkbox "Prototype"
+- press "Copy/Revise button"
+- A confirmation dialog appears; press yes
+
+Expected results:
+- The editor of the code appears.
+- The date in date selector reports only prototype
+
+Passed: [X] FAIL
+
+### Test 8.10 - revise a code (in proto mode)
+Test description:
+- revise the code "820041" from the code list window
+- if needed change the date in order to avoid conflicts
+- check the checkbox "Prototype"
+- press "Copy/Revise button"
+- A confirmation dialog appears; press yes
+
+Expected results:
+- The editor of the code appears.
+- The date in date selector reports  prototype
+
+Passed: [X] FAIL
+
+### Test 8.10 - revise a code (in proto mode)
+Test description:
+- revise the code "820004" from the code list window (the code has already a prototype revision)
+- if needed change the date in order to avoid conflicts
+- check the checkbox "Prototype"
+- press "Copy/Revise button"
+- A confirmation dialog appears; press yes
+
+Expected results:
+- The editor of the code appears.
+- The date in date selector reports  prototype
+- The previous date is the one just entered
+
+Passed: [X] FAIL
 
 ## 9 - BomBrowser - Edit code
 
@@ -1102,8 +1278,7 @@ Test description:
 
 Expected result: the "rev" field is like the one changed
 
-Passed: [X]
-
+Passed: [ ]
 
 ### Test 9.2 - Edit code / Default unit field
 
@@ -1116,7 +1291,7 @@ Test description:
 
 Expected result: the "Default unit" field is like the one changed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.3 - Edit code / Description field
 
@@ -1129,7 +1304,7 @@ Test description:
 
 Expected result: the "Description" field is like the one changed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.4 - Edit code / Generic properties field
 
@@ -1138,7 +1313,7 @@ Test description:
 
 Expected result: the "genric property" field is like the one changed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.5 - Edit code / Drawing list - add drawing
 
@@ -1152,7 +1327,7 @@ Test description:
 
 Expected result: the added drawing is still present
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.6 - Edit code / Drawing list - del drawing
 
@@ -1166,7 +1341,7 @@ Test description:
 
 Expected result: the removed drawing is not present
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.7 - Edit code / Drawing list - view drawing
 
@@ -1176,7 +1351,7 @@ Test description:
 
 Expected result: the selected drawing is showed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.8 - Edit code / Children panel - del a child
 
@@ -1190,7 +1365,7 @@ Test description:
 
 Expected result: the removed item is not present
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.9 - Edit code / Children panel - add a child
 
@@ -1206,7 +1381,7 @@ Test description:
 
 Expected result: the added item is present
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.10 - Edit code / Children panel - add a child
 
@@ -1222,7 +1397,7 @@ Test description:
 
 Expected result: the added item is present
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.11 - Edit code / Children panel - edit a field - non existant code
 
@@ -1231,7 +1406,7 @@ Test description:
 
 Expected result: the cell changed is yellow
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.12 - Edit code / Children panel - edit a field  - non existant code
 
@@ -1241,7 +1416,7 @@ Test description:
 
 Expected result: an error dialog is showed, saying that there is an error in the code
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.13 - Edit code / Children panel - edit a field - duplicate code
 
@@ -1251,7 +1426,7 @@ Test description:
 
 Expected result: an error dialog is showed, saying that there is a duplicate code
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.14 - Edit code / Children panel - edit a field - wrong qty
 
@@ -1260,7 +1435,7 @@ Test description:
 
 Expected result: the cell become yellow
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.15 - Edit code / Children panel - edit a field - wrong qty
 
@@ -1270,7 +1445,7 @@ Test description:
 
 Expected result: an error dialog appears saying that the value is incorrect
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.16 - Edit code / Children panel - edit a field - wrong each
 
@@ -1279,7 +1454,7 @@ Test description:
 
 Expected result: the cell become yellow
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.17 - Edit code / Children panel - edit a field - wrong each
 
@@ -1289,7 +1464,7 @@ Test description:
 
 Expected result: an error dialog appears saying that the value is incorrect
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.18 - Edit code / Children panel - sorting
 
@@ -1300,7 +1475,7 @@ Test description:
 
 Expected result: the seq values are reordered on the basis of the last sort
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.19 - Edit code / Children panel - sorting
 
@@ -1311,7 +1486,7 @@ Test description:
 
 Expected result: the seq values are reordered on the basis of the last sort
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.20 - Edit code / Children panel - sorting
 
@@ -1322,7 +1497,7 @@ Test description:
 
 Expected result: the seq values are reordered on the basis of the last sort
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.21 - Edit code / File -> close
 
@@ -1331,7 +1506,7 @@ Test description:
 
 Expected result: the edit window is closed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.22 - Edit code / File -> exit
 
@@ -1340,7 +1515,7 @@ Test description:
 
 Expected result: a dialog is opened asking if you want to exit from application
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.23 - Edit code / File -> exit
 
@@ -1350,7 +1525,7 @@ Test description:
 
 Expected result: the dialog is closed, the edit windows is showed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.24 - Edit code / File -> exit
 
@@ -1360,7 +1535,7 @@ Test description:
 
 Expected result: the application is closed, no window is opened
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.25 - Edit code / CTRL-Q
 
@@ -1369,7 +1544,7 @@ Test description:
 
 Expected result: the edit window is closed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.27 - Edit code / Windows
 
@@ -1378,7 +1553,7 @@ Test description:
 
 Expected result: the opened window are showed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.28 - Edit code / Help->about
 
@@ -1387,7 +1562,7 @@ Test description:
 
 Expected result: the about dialog is showed
 
-Passed: [X]
+Passed: [ ]
 
 
 ### Test 9.29 - Edit code / Children panel - search code
@@ -1412,7 +1587,7 @@ Test description:
 
 Expected result: the dialog is closed and the new code replaces the old one
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.31 - Edit code / Children panel - search code
 
@@ -1424,7 +1599,101 @@ Test description:
 
 Expected result: the dialog is closed
 
+Passed: [ ]
+
+### Test 9.32 - Edit code - delete revision
+
+Test description:
+- From menu -> edit, select delete revision
+
+Expected result: a confirmation dialog is showed
+
 Passed: [X]
+
+### Test 9.33 - Edit code - delete revision
+
+Test description:
+- From menu -> edit, select delete revision
+- a confirmation dialog is showed, press no
+
+Expected result: not happened
+
+Passed: [X]
+
+### Test 9.34 - Edit code - delete revision
+
+Test description:
+- From menu -> edit, select delete revision
+- a confirmation dialog is showed, press yes
+
+Expected result:
+- a comfirmation dialog is showed, saying that the revision is deleted. Press ok.
+- the previous selected revision is removed
+
+Passed: [X]
+
+### Test 9.35 - Edit code - delete revision
+
+Test description:
+- From menu -> edit, select delete revision
+- repeat the step above untile only one revision is present
+- From menu -> edit, select delete revision (again)
+
+Expected result: an error dialog box is showed saying that it is not possible to delete the last revision
+
+Passed: [X]
+
+### Test 9.36 - Edit code - delete revision
+
+Test description:
+- Take a code from the code list gui, copy it (to avoid problem about the parent dates)
+- take this copy, and revise it 3 times (changing the from date to avoid conflicts)
+- Edit this code
+- Enter in the edit dates window, and insert a valid "end to" date in the first row. Then save the results
+- From the edit window, delete the first revision
+- Delete the last revision
+
+Expected result: after any delete, the initial "from date" and the final "to date" are the same
+
+Passed: [X]
+
+### Test 9.37 - Edit code - delete code
+
+Test description:
+- Take a code from the code list gui, copy it (to avoid problem about the parent dates)
+- Edit this code
+- From the menu->edit select "delete code"
+
+Expected result: a confirmation dialog appears
+
+Passed: [X]
+
+### Test 9.38 - Edit code - delete code
+
+Test description:
+- Take a code from the code list gui, copy it (to avoid problem about the parent dates)
+- Edit this code
+- From the menu->edit select "delete code"
+- a confirmation dialog appears, press no
+
+Expected result: nothing happened
+
+Passed: [X]
+
+### Test 9.39 - Edit code - delete code
+
+Test description:
+- Take a code from the code list gui, copy it (to avoid problem about the parent dates)
+- Edit this code
+- From the menu->edit select "delete code"
+- a confirmation dialog appears, press yes
+
+Expected result:
+- a confirmation dialog appears, press ok
+- the edit dialog is not showed anymore
+
+Passed: [X]
+
 
 
 ## 10 - BomBrowser - Edit date
@@ -1443,7 +1712,7 @@ Test description: press the cancel button
 
 Expected result: the edit dates dialog is closed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.2
 
@@ -1451,7 +1720,7 @@ Test description: press the save button
 
 Expected result: a confirmation dialog is showed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.3
 
@@ -1461,7 +1730,7 @@ Test description:
 
 Expected result: the edit dates dialog is closed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.4
 
@@ -1473,7 +1742,7 @@ Test description:
 
 Expected result: the new date is showed in the last row
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.5
 
@@ -1482,7 +1751,7 @@ Test description:
 
 Expected result: the date in the row below and column "To date" is changed accordling (a day before)
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.6
 
@@ -1491,7 +1760,7 @@ Test description:
 
 Expected result: the cell become yellow
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.7
 
@@ -1501,7 +1770,7 @@ Test description:
 
 Expected result: an error dialog is showed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.8
 
@@ -1512,7 +1781,7 @@ Test description:
 
 Expected result: the valid old date appear
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.9
 
@@ -1521,7 +1790,7 @@ Test description:
 
 Expected result: the cell become yellow
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.10
 
@@ -1530,7 +1799,7 @@ Test description:
 
 Expected result: the cell become yellow
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.11
 
@@ -1540,7 +1809,7 @@ Test description: check that all fields are read only with the exception of
 
 Expected result: only the cells listed above are read write
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.12
 
@@ -1550,7 +1819,7 @@ Test description:
 
 Expected result: the cell become yellow
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.13
 
@@ -1561,7 +1830,7 @@ Test description:
 
 Expected result: an error dialog appear
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.14
 
@@ -1571,7 +1840,7 @@ Test description:
 
 Expected result: the cell become yellow
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.15
 
@@ -1583,7 +1852,7 @@ Test description:
 
 Expected result: the new date appears
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.16 - conflict date
 
@@ -1603,7 +1872,7 @@ Test description:
 
 Expected result: an error dialog appears saying that the date range is wider than the children one
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.16.2 - parent too late
 
@@ -1615,7 +1884,7 @@ Test description:
 
 Expected result: an error dialog appears saying that the date range is wider than the children one
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.16.3 - children too late
 
@@ -1627,7 +1896,7 @@ Test description:
 
 Expected result: an error dialog appears saying that the date range is shorter than the parent one
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.16.4 - children too early
 
@@ -1643,7 +1912,7 @@ Test description:
 
 Expected result: an error dialog appears saying that the date range is shorter than the parent one
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 10.16.5 - children too early
 
@@ -1659,7 +1928,7 @@ Test description:
 
 Expected result: an error dialog appears saying that the date range is shorter than the parent one
 
-Passed: [X]
+Passed: [ ]
 
 
 ## 11 - Generic test
@@ -1670,7 +1939,7 @@ Test description: rename bombrowser.ini as bombrowser.ini.no
 
 Expected result: at start up time, an error dialog is showed saying that the confuguration cannot be load: bombrowser.ini file may be missing
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 11.2
 
@@ -1678,7 +1947,7 @@ Test description: shutdown the sql server
 
 Expected result: at start up time, an error dialog is showed saying that it is imposible to access to the server
 
-Passed: [X]
+Passed: [ ]
 
 ## 11 - Config test
 
