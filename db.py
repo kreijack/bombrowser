@@ -944,7 +944,7 @@ class _BaseServer:
         new_rid = c.fetchone()[0]
 
         #self._revise_code_copy_others(c, new_rid, rid, copy_docs, copy_props)
-        
+
         self._sqlex(c, """
             INSERT INTO assemblies (
                 unit,
@@ -993,7 +993,7 @@ class _BaseServer:
                 FROM item_properties
                 WHERE revision_id = ?
             """, (new_rid, old_rid))
-                
+
         return new_rid
 
     def get_children_by_rid(self, rid):
@@ -1062,7 +1062,6 @@ class _BaseServer:
                     """, [(rid, code_id, qty, each, ref, unit)
                         for (code_id, qty, each, unit, ref) in children])
 
-
         except:
             self._rollback(c)
             raise
@@ -1075,12 +1074,12 @@ class _BaseServer:
         l1 = l[:]
         l1.sort(reverse=True)
         assert(l == l1)
-        
+
         will_be_proto = max(l1) == prototype_date
         assert(max(l1) <= prototype_date)
         l = [x[4] for x in dates]
         assert(max(l) <= end_of_the_world)
-        
+
         # check that the date_to are in order
         l = [x[4] for x in dates]
         l1 = l[:]
@@ -1161,13 +1160,13 @@ class _BaseServer:
                     WHERE code_id = ?
                       AND iter < ?
                 """, (code_id, prototype_iter))
-                
+
                 ret = c.fetchone()
                 if ret is None:
                     new_iter = 0
                 else:
                     new_iter = ret[0] + 1
-                
+
                 self._sqlex(c, """
                     UPDATE item_revisions
                     SET iter = ?
@@ -1183,7 +1182,7 @@ class _BaseServer:
                     WHERE date_from_days = ?
                       AND code_id = ?
                 """, (prototype_iter, prototype_date, code_id))
-             
+
         except:
             self._rollback(c)
             raise
