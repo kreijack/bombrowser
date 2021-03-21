@@ -520,7 +520,7 @@ def _create_code_revision(c, code, nr=10):
     c.execute("""SELECT MAX (id) FROM items""")
     code_id = c.fetchone()[0]
 
-    dates = ["%04d-06-10"%(2001+i) for i in range(nr+1, 0, -1)]
+    dates = ["%04d-06-10"%(2001+i) for i in range(nr, 0, -1)]
 
     i = len(dates)
     to_date_days = db.end_of_the_world
@@ -773,8 +773,7 @@ def test_update_dates_fail_to_grather_end():
     # go back to ensure that otherwise every thing is ok
     dates[0][4] = db.end_of_the_world
     d.update_dates(dates)
-    
-    
+
 def test_update_dates_change_to_prototype():
     d, c = _create_db()
 
@@ -1010,7 +1009,6 @@ def test_update_dates_with_assembly_fail_date_later_parent():
     dates[2][1] = "2020-01-11"
     dates[2][2] = db.iso_to_days(dates[2][1])
 
-
 def test_delete_code():
     d, c = _create_db()
     _test_insert_assembly_for_updates_date(c)    
@@ -1041,6 +1039,127 @@ def test_delete_code_fail_has_parents():
     
     assert(ret == "HASPARENTS")
     
+def _test_delete_revision_check_dates(c):
+    c.execute("""
+        SELECT date_from_days, date_to_days
+        FROM item_revisions
+        ORDER BY iter DESC
+    """)
+    dates = c.fetchall()
+    for row in dates:
+        assert(row[0] <= row[1])
+    for i in range(len(dates) - 1):
+        assert(dates[i][0] > dates[i+1][1])
+
+def test_delete_revision_remove_first():
+    d, c = _create_db()
+    code_id, dates = _create_code_revision(c, "TEST-CODE", 3)
+    d._commit(c)
+
+    c.execute("SELECT COUNT(*) FROM item_revisions")
+    cnt = c.fetchone()[0]
+    assert(cnt == 3)
+
+    c.execute("SELECT MIN(date_from_days) FROM item_revisions")
+    date_from_min = c.fetchone()[0]
+    c.execute("SELECT MAX(date_to_days) FROM item_revisions")
+    date_to_max = c.fetchone()[0]
+    
+    ret = d.delete_code_revision(dates[0][0])
+    assert(ret == "")
+    c.execute("SELECT COUNT(*) FROM item_revisions")
+    cnt = c.fetchone()[0]
+    assert(cnt == 2)
+
+    _test_delete_revision_check_dates(c)
+    c.execute("SELECT MIN(date_from_days) FROM item_revisions")
+    assert(date_from_min == c.fetchone()[0])
+    c.execute("SELECT MAX(date_to_days) FROM item_revisions")
+    assert(date_to_max == c.fetchone()[0])
+    
+def test_delete_revision_remove_last():
+    d, c = _create_db()
+    code_id, dates = _create_code_revision(c, "TEST-CODE", 3)
+    d._commit(c)
+
+    c.execute("SELECT COUNT(*) FROM item_revisions")
+    cnt = c.fetchone()[0]
+    assert(cnt == 3)
+
+    c.execute("SELECT MIN(date_from_days) FROM item_revisions")
+    date_from_min = c.fetchone()[0]
+    c.execute("SELECT MAX(date_to_days) FROM item_revisions")
+    date_to_max = c.fetchone()[0]
+    
+    ret = d.delete_code_revision(dates[2][0])
+    assert(ret == "")
+    c.execute("SELECT COUNT(*) FROM item_revisions")
+    cnt = c.fetchone()[0]
+    assert(cnt == 2)
+
+    _test_delete_revision_check_dates(c)
+    c.execute("SELECT MIN(date_from_days) FROM item_revisions")
+    assert(date_from_min == c.fetchone()[0])
+    c.execute("SELECT MAX(date_to_days) FROM item_revisions")
+    assert(date_to_max == c.fetchone()[0])
+
+def test_delete_revision_remove_middle():
+    d, c = _create_db()
+    code_id, dates = _create_code_revision(c, "TEST-CODE", 3)
+    d._commit(c)
+    
+    c.execute("SELECT COUNT(*) FROM item_revisions")
+    cnt = c.fetchone()[0]
+    assert(cnt == 3)
+
+    c.execute("SELECT MIN(date_from_days) FROM item_revisions")
+    date_from_min = c.fetchone()[0]
+    c.execute("SELECT MAX(date_to_days) FROM item_revisions")
+    date_to_max = c.fetchone()[0]
+    
+    ret = d.delete_code_revision(dates[1][0])
+    assert(ret == "")
+    c.execute("SELECT COUNT(*) FROM item_revisions")
+    cnt = c.fetchone()[0]
+    assert(cnt == 2)
+
+    _test_delete_revision_check_dates(c)
+    c.execute("SELECT MIN(date_from_days) FROM item_revisions")
+    assert(date_from_min == c.fetchone()[0])
+    c.execute("SELECT MAX(date_to_days) FROM item_revisions")
+    assert(date_to_max == c.fetchone()[0])
+
+def test_delete_revision_fail_remove_one():
+    d, c = _create_db()
+    code_id, dates = _create_code_revision(c, "TEST-CODE", 1)
+    d._commit(c)
+    
+    c.execute("SELECT COUNT(*) FROM item_revisions")
+    cnt = c.fetchone()[0]
+    assert(cnt == 1)
+    
+    ret = d.delete_code_revision(dates[0][0])
+    assert(ret == "ISALONE")
+    c.execute("SELECT COUNT(*) FROM item_revisions")
+    cnt = c.fetchone()[0]
+    assert(cnt == 1)
+
+def test_delete_revision_fail_remove_one_with_proto():
+    d, c = _create_db()
+    code_id, dates = _create_code_revision(c, "TEST-CODE", 2)
+    d._commit(c)
+
+    dates[0][2] = db.prototype_date
+    dates[1][4] = dates[0][2] - 1
+
+    d.update_dates(dates)
+
+    ret = d.delete_code_revision(dates[1][0])
+    
+    assert(ret == "ONLYPROTOTYPE")
+    c.execute("SELECT COUNT(*) FROM item_revisions")
+    cnt = c.fetchone()[0]
+    assert(cnt == 2)
 
 
 #------
