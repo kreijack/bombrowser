@@ -1362,11 +1362,7 @@ class _BaseServer:
 
             self._sqlex(c,"""
                 DELETE FROM assemblies
-                WHERE revision_id IN
-                (SELECT id
-                 FROM item_revisions
-                 WHERE code_id = ?
-                )
+                WHERE revision_id = ?
                 """, (rid,))
 
             self._sqlex(c,"""
