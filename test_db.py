@@ -1161,7 +1161,93 @@ def test_delete_revision_fail_remove_one_with_proto():
     cnt = c.fetchone()[0]
     assert(cnt == 2)
 
+def _create_simple_assy_with_drawings(c):
+    ass = {
+        "B": ( ("2020-01-11", "",  ()), ),
+        "C": ( ("2020-01-11", "",  ()), ),
+        "A": ( ("2020-01-11", "",  ("B", "C")), ),
+    }
+    _build_assembly(c, ass)
+    m = dict()
+    for code in ['A', 'B', 'C']:
+        _id = _get_code_id(c, code)
+        c.execute("""
+            SELECT id
+            FROM item_revisions
+            WHERE code_id = ?
+        """,(_id,))
+        _rid = c.fetchone()[0]
+        m[code] = _rid
+        for i in range(2):
+            c.execute("""
+                INSERT INTO drawings(filename, fullpath, revision_id)
+                VALUES (?, ?, ?)
+            """, ("name-%s-%d"%(code, i), "name2-%s-%d"%(code, i), _rid))
+            
+    return m
 
+def test_copy_code_simple():
+    d, c = _create_db()
+    rids = _create_simple_assy_with_drawings(c)
+    d._commit(c)
+
+    new_rid = d.copy_code("NEW-A", rids["A"], "New-A", 0, 
+        new_date_from_days=db.iso_to_days("2021-01-01"))
+        
+    c.execute("SELECT COUNT(*) FROM items WHERE code=?",("NEW-A",))
+    assert(c.fetchone()[0])
+    
+def test_copy_code_fail_exists_already():
+    d, c = _create_db()
+    rids = _create_simple_assy_with_drawings(c)
+    d._commit(c)
+    
+    faied = False
+    try:
+        new_rid = d.copy_code("C", rids["A"], "New-A", 0, 
+            new_date_from_days=db.iso_to_days("2021-01-01"))
+    except db.DBException:
+        failed = True
+    assert(failed)
+        
+def test_copy_code_fail_too_late():
+    d, c = _create_db()
+    rids = _create_simple_assy_with_drawings(c)
+    
+    crid = rids["C"]
+    c.execute("""
+        UPDATE item_revisions
+        SET date_to_days = ?
+        WHERE id = ?
+    """,(db.iso_to_days("2021-01-01"), crid))
+    d._commit(c)
+
+    faied = False
+    try:
+        new_rid = d.copy_code("C", rids["A"], "New-A", 0, 
+            new_date_from_days=db.iso_to_days("2021-01-01"),
+            new_date_to_days=db.iso_to_days("2023-01-01")
+        )
+    except db.DBException:
+        failed = True
+    assert(failed)
+        
+def test_copy_code_fail_too_early():
+    d, c = _create_db()
+    rids = _create_simple_assy_with_drawings(c)
+
+    d._commit(c)
+
+    faied = False
+    try:
+        new_rid = d.copy_code("C", rids["A"], "New-A", 0, 
+            new_date_from_days=db.iso_to_days("2001-01-01")
+        )
+    except db.DBException:
+        failed = True
+    assert(failed)
+    
+    
 #------
 
 def run_test(filters):
