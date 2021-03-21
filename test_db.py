@@ -57,6 +57,8 @@ def _create_db():
         d = db.DBSQLite(":memory:")
         db._globaDBInstance = d
     else:
+        import cfg
+        cfg.init()
         d = db.DB() #_connection_string)
     d.create_db()
     cursor = d._conn.cursor()
@@ -72,6 +74,10 @@ def _create_db():
             return self._cursor.fetchone()
         def fetchall(self):
             return self._cursor.fetchall()
+        def commit(self, c):
+            return self._db._commit(c)
+        def rollback(self, c):
+            return self._db._rollback(c)
 
     mc = MyCursor(cursor, d)
     return (d, mc)

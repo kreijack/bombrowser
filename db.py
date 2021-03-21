@@ -1393,6 +1393,10 @@ class DBSQLServer(_BaseServer):
 
     def _begin(self, c):
         pass
+    def _commit(self, c):
+        self._conn.commit()
+    def _rollback(self, c):
+        self._conn.rollback()
 
     def _sqlex(self, c, query, *args, **kwargs):
         try:
