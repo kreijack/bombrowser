@@ -1077,7 +1077,6 @@ class _BaseServer:
 
         self._commit(c)
 
-
     def update_dates(self, dates):
         # check that the date_from are in order
         l = [x[2] for x in dates]
