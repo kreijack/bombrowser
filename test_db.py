@@ -1039,12 +1039,16 @@ def test_delete_code_fail_has_parents():
     
     assert(ret == "HASPARENTS")
     
-def _test_delete_revision_check_dates(c):
+def _check_code_dates(c, code):
+    
+    code_id = _get_code_id(c, code)
+    
     c.execute("""
         SELECT date_from_days, date_to_days
         FROM item_revisions
+        WHERE code_id = ?
         ORDER BY iter DESC
-    """)
+    """, (code_id,))
     dates = c.fetchall()
     for row in dates:
         assert(row[0] <= row[1])
@@ -1071,7 +1075,7 @@ def test_delete_revision_remove_first():
     cnt = c.fetchone()[0]
     assert(cnt == 2)
 
-    _test_delete_revision_check_dates(c)
+    _check_code_dates(c, "TEST-CODE")
     c.execute("SELECT MIN(date_from_days) FROM item_revisions")
     assert(date_from_min == c.fetchone()[0])
     c.execute("SELECT MAX(date_to_days) FROM item_revisions")
@@ -1097,7 +1101,7 @@ def test_delete_revision_remove_last():
     cnt = c.fetchone()[0]
     assert(cnt == 2)
 
-    _test_delete_revision_check_dates(c)
+    _check_code_dates(c, "TEST-CODE")
     c.execute("SELECT MIN(date_from_days) FROM item_revisions")
     assert(date_from_min == c.fetchone()[0])
     c.execute("SELECT MAX(date_to_days) FROM item_revisions")
@@ -1123,7 +1127,7 @@ def test_delete_revision_remove_middle():
     cnt = c.fetchone()[0]
     assert(cnt == 2)
 
-    _test_delete_revision_check_dates(c)
+    _check_code_dates(c, "TEST-CODE")
     c.execute("SELECT MIN(date_from_days) FROM item_revisions")
     assert(date_from_min == c.fetchone()[0])
     c.execute("SELECT MAX(date_to_days) FROM item_revisions")
@@ -1195,14 +1199,22 @@ def test_copy_code_simple():
         new_date_from_days=db.iso_to_days("2021-01-01"))
         
     c.execute("SELECT COUNT(*) FROM items WHERE code=?",("NEW-A",))
-    assert(c.fetchone()[0])
-    
+    assert(c.fetchone()[0] == 1)
+
+    # check assemblies
+    c.execute("SELECT COUNT(*) FROM assemblies WHERE revision_id=?",(new_rid,))
+    assert(c.fetchone()[0] == 2)
+
+    # check drawings
+    c.execute("SELECT COUNT(*) FROM drawings WHERE revision_id=?",(new_rid,))
+    assert(c.fetchone()[0] == 2)
+        
 def test_copy_code_fail_exists_already():
     d, c = _create_db()
     rids = _create_simple_assy_with_drawings(c)
     d._commit(c)
     
-    faied = False
+    failed = False
     try:
         new_rid = d.copy_code("C", rids["A"], "New-A", 0, 
             new_date_from_days=db.iso_to_days("2021-01-01"))
@@ -1222,7 +1234,7 @@ def test_copy_code_fail_too_late():
     """,(db.iso_to_days("2021-01-01"), crid))
     d._commit(c)
 
-    faied = False
+    failed = False
     try:
         new_rid = d.copy_code("C", rids["A"], "New-A", 0, 
             new_date_from_days=db.iso_to_days("2021-01-01"),
@@ -1238,7 +1250,7 @@ def test_copy_code_fail_too_early():
 
     d._commit(c)
 
-    faied = False
+    failed = False
     try:
         new_rid = d.copy_code("C", rids["A"], "New-A", 0, 
             new_date_from_days=db.iso_to_days("2001-01-01")
@@ -1247,7 +1259,104 @@ def test_copy_code_fail_too_early():
         failed = True
     assert(failed)
     
+def test_revise_code_simple():
+    d, c = _create_db()
+    rids = _create_simple_assy_with_drawings(c)
+    d._commit(c)
     
+    new_rid = d.revise_code(rids["A"], "New-A", 0, 
+        new_date_from_days=db.iso_to_days("2021-01-01"))
+    
+     # check assemblies
+    c.execute("SELECT COUNT(*) FROM assemblies WHERE revision_id=?",(new_rid,))
+    assert(c.fetchone()[0] == 2)
+
+    # check drawings
+    c.execute("SELECT COUNT(*) FROM drawings WHERE revision_id=?",(new_rid,))
+    assert(c.fetchone()[0] == 2)
+    
+    _check_code_dates(c, "A")  
+
+def test_revise_code_fail_too_early():
+    d, c = _create_db()
+    rids = _create_simple_assy_with_drawings(c)
+
+    d._commit(c)
+
+    failed = False
+    try:
+        new_rid = d.revise_code(rids["A"], "New-A", 0, 
+            new_date_from_days=db.iso_to_days("2019-01-01"))
+    except db.DBException:
+        failed = True
+    assert(failed)
+
+def test_revise_code_fail_connot_find_old_rev():
+    d, c = _create_db()
+    rids = _create_simple_assy_with_drawings(c)
+
+    d._commit(c)
+
+    failed = False
+    try:
+        new_rid = d.revise_code(999999999, "New-A", 0, 
+            new_date_from_days=db.iso_to_days("2019-01-01"))
+    except db.DBException:
+        failed = True
+    assert(failed)
+
+
+def test_revise_code_fail_connot_make_2nd_proto():
+    d, c = _create_db()
+    code = "TEST-CODE"
+    code_id, dates = _create_code_revision(c, code)
+    d._commit(c)
+    
+    dates[0][2] = db.prototype_date
+    dates[1][4] = dates[0][2] - 1
+    d.update_dates(dates)
+
+    failed = False
+    try:
+        new_rid = d.revise_code(dates[0][0], "New-A", 0, 
+            new_date_from_days=db.prototype_date)
+    except db.DBException:
+        failed = True
+    assert(failed)
+
+def test_revise_code_fail_too_early_with_proto():
+    d, c = _create_db()
+    code = "TEST-CODE"
+    code_id, dates = _create_code_revision(c, code)
+    d._commit(c)
+    
+    dates[0][2] = db.prototype_date
+    dates[1][4] = dates[0][2] - 1
+    d.update_dates(dates)
+
+    failed = False
+    try:
+        new_rid = d.revise_code(dates[0][0], "New-A", 0, 
+            new_date_from_days=db.iso_to_days("1990-01-01"))
+    except db.DBException:
+        failed = True
+    assert(failed)
+
+def test_revise_code_with_only_proto():
+    d, c = _create_db()
+    code = "TEST-CODE"
+    code_id, dates = _create_code_revision(c, code, 1)
+    d._commit(c)
+    
+    dates[0][2] = db.prototype_date
+    d.update_dates(dates)
+
+
+    new_rid = d.revise_code(dates[0][0], "New-A", 0, 
+        new_date_from_days=db.iso_to_days("1990-01-01"))
+
+    _check_code_dates(c, code)
+
 #------
 
 def run_test(filters):
