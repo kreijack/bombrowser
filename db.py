@@ -772,24 +772,38 @@ class _BaseServer:
         return dates
 
     def copy_code(self, new_code, rid, descr, rev, copy_props=True,
-                  copy_docs=True, new_date_from_days=None):
+                  copy_docs=True, new_date_from_days=None,
+                  new_date_to_days=end_of_the_world):
+
+        if new_date_from_days is None:
+            new_date_from_days = now_to_days()
+
         c = self._conn.cursor()
         self._begin(c)
         try:
 
-            try:
-                self._sqlex(c, """
-                        INSERT INTO items(code) VALUES (?)
-                    """, (new_code, ))
-            except:
+            self._sqlex(c, """
+                SELECT COUNT(*)
+                FROM items
+                WHERE code = ?
+            """,(new_code,))
+            if c.fetchone()[0] != 0:
                 raise DBException("The code already exists")
+
+            dates = self._get_children_dates_range_by_rid(c, rid)
+
+            for (cid, cdate_from_days, cdate_to_days) in dates:
+                if cdate_from_days > new_date_from_days:
+                    raise DBException("Children %d is later than new code"%(cid))
+                if cdate_to_days < new_date_to_days:
+                    raise DBException("Children %d is earlier than new code"%(cid))
+
+            self._sqlex(c, """
+                INSERT INTO items(code) VALUES (?)
+            """, (new_code, ))
 
             self._sqlex(c, """SELECT MAX(id) FROM items""")
             new_code_id = c.fetchone()[0]
-
-            if new_date_from_days is None:
-                new_date_from_days = now_to_days()
-            new_date_from = days_to_iso(new_date_from_days)
 
             if new_date_from_days == prototype_date:
                 new_iter = prototype_iter
@@ -799,9 +813,8 @@ class _BaseServer:
             self._sqlex(c, """
                 INSERT INTO item_revisions(
                     code_id,
-                    date_from,
-                    date_from_days,
-                    date_to,
+                    date_from, date_from_days,
+                    date_to, date_to_days,
                     ver,
                     iter,
                     note,
@@ -810,9 +823,8 @@ class _BaseServer:
                     gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
                 ) SELECT
                     ?,
-                    ?,
-                    ?,
-                    '',
+                    ?, ?,
+                    ?, ?,
                     ?,
                     ?,
                     note,
@@ -821,7 +833,9 @@ class _BaseServer:
                     gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
                 FROM item_revisions
                 WHERE id = ?
-            """, (new_code_id, new_date_from, new_date_from_days,
+            """, (new_code_id,
+                    days_to_iso(new_date_from_days), new_date_from_days,
+                    days_to_iso(new_date_to_days), new_date_to_days,
                 rev, new_iter,
                 descr, rid))
 
