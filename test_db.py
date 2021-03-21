@@ -1010,6 +1010,39 @@ def test_update_dates_with_assembly_fail_date_later_parent():
     dates[2][1] = "2020-01-11"
     dates[2][2] = db.iso_to_days(dates[2][1])
 
+
+def test_delete_code():
+    d, c = _create_db()
+    _test_insert_assembly_for_updates_date(c)    
+    d._commit(c)
+
+    code_id = _get_code_id(c, "D")
+    
+    ret = d.delete_code(code_id)
+    
+    assert(ret == "")
+    
+    c.execute("""
+        SELECT COUNT(*)
+        FROM items
+        WHERE code = ?
+    """, ("D", ))
+    
+    assert(c.fetchone()[0] == 0)
+
+def test_delete_code_fail_has_parents():
+    d, c = _create_db()
+    _test_insert_assembly_for_updates_date(c)    
+    d._commit(c)
+
+    code_id = _get_code_id(c, "A")
+    
+    ret = d.delete_code(code_id)
+    
+    assert(ret == "HASPARENTS")
+    
+
+
 #------
 
 def run_test(filters):
