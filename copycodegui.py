@@ -225,6 +225,8 @@ class CopyCode(QDialog):
                     self._cb_copy_props.checkState() == Qt.CheckState.Checked,
                     self._cb_copy_docs.checkState() == Qt.CheckState.Checked,
                     new_date_from_days=newdate)
+                self._new_code = code
+                self._new_rid = new_rid
             else:
                 new_rid = d.revise_code(self._rid,
                     descr,
@@ -233,7 +235,7 @@ class CopyCode(QDialog):
                     self._cb_copy_docs.checkState() == Qt.CheckState.Checked,
                     new_date_from_days=newdate)
 
-            self._new_code = self._l_new_code.text()
+            self._new_code = code
             self._new_rid = new_rid
         except db.DBException as e:
             QMessageBox.critical(self,
@@ -342,7 +344,7 @@ def revise_copy_code(code_id, parent):
         if not w.exec_():
             return None
 
-        if w.getNewRId() is None:
+        if w.getNewCode() is None:
             return None
 
         if not w.shouldStartEditor():
@@ -350,7 +352,7 @@ def revise_copy_code(code_id, parent):
                 "Success: you created a new code/revision")
             return None
 
-        w2 = editcode.EditWindow(code_id)
-        w2.show()
-
-        return w2
+        codes = d.get_codes_by_code(w.getNewCode())
+        if len(codes):
+            w2 = editcode.EditWindow(codes[0][0])
+            w2.show()
