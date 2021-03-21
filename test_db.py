@@ -773,6 +773,71 @@ def test_update_dates_fail_to_grather_end():
     # go back to ensure that otherwise every thing is ok
     dates[0][4] = db.end_of_the_world
     d.update_dates(dates)
+    
+    
+def test_update_dates_change_to_prototype():
+    d, c = _create_db()
+
+    code = "TEST-CODE"
+    code_id, dates = _create_code_revision(c, code)
+    d._commit(c)
+
+    c.execute("""
+        SELECT COUNT(*)
+        FROM item_revisions
+        WHERE iter = ?
+    """, (db.prototype_iter, ))
+    cnt = c.fetchone()[0] 
+    assert(cnt == 0)
+
+    # transform the first entry in a prototype
+    dates[0][2] = db.prototype_date
+    dates[1][4] = dates[0][2] - 1
+
+    d.update_dates(dates)
+
+    c.execute("""
+        SELECT COUNT(*)
+        FROM item_revisions
+        WHERE iter = ?
+    """, (db.prototype_iter, ))
+    cnt = c.fetchone()[0] 
+    assert(cnt == 1)
+
+def test_update_dates_change_from_prototype():
+    d, c = _create_db()
+
+    code = "TEST-CODE"
+    code_id, dates = _create_code_revision(c, code)
+    d._commit(c)
+
+    # transform the first entry in a prototype
+    dates[0][2] = db.prototype_date
+    dates[1][4] = dates[0][2] - 1
+
+    d.update_dates(dates)
+
+    c.execute("""
+        SELECT COUNT(*)
+        FROM item_revisions
+        WHERE iter = ?
+    """, (db.prototype_iter, ))
+    cnt = c.fetchone()[0] 
+    assert(cnt == 1)
+
+    # transform the first entry in a prototype
+    dates[0][2] = db.iso_to_days("2040-01-01")
+    dates[1][4] = dates[0][2] - 1
+
+    d.update_dates(dates)
+
+    c.execute("""
+        SELECT COUNT(*)
+        FROM item_revisions
+        WHERE iter = ?
+    """, (db.prototype_iter, ))
+    cnt = c.fetchone()[0] 
+    assert(cnt == 0)
 
 def _test_insert_assembly_for_updates_date(c):
     """
