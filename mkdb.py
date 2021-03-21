@@ -534,7 +534,7 @@ def insert_spare_parts(c):
                     '//')
             )
 
-def revise_code(c, old_rid):
+def revise_code(c, old_rid, new_date=None):
 
         global date0
 
@@ -565,8 +565,17 @@ def revise_code(c, old_rid):
         else:
             rev = chr(ord(rev)+1)
 
-        new_date_from_days = db.iso_to_days(date0)
+        if new_date is None:
+            new_date_from_days = db.iso_to_days(date0)
+        else:
+            new_date_from_days = new_date
         new_date_from = db.days_to_iso(new_date_from_days)
+
+        if new_date_from_days == db.prototype_date:
+            new_iter = db.prototype_iter
+        else:
+            new_iter = old_iter + 1
+
         c.execute("""
                 INSERT INTO item_revisions(
                     code_id,
@@ -592,7 +601,7 @@ def revise_code(c, old_rid):
                     gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
                 FROM item_revisions
                 WHERE id = ?
-            """, (new_date_from, new_date_from_days, rev, old_iter + 1, old_rid))
+            """, (new_date_from, new_date_from_days, rev, new_iter, old_rid))
 
         old_date_to_days = new_date_from_days-1
         old_date_to = db.days_to_iso(old_date_to_days)
@@ -608,9 +617,9 @@ def revise_code(c, old_rid):
         return (new_rid, rev)
 
 
-def revise_assembly(c, old_rid):
+def revise_assembly(c, old_rid, new_date = None):
 
-    (new_rid, rev) = revise_code(c, old_rid)
+    (new_rid, rev) = revise_code(c, old_rid, new_date)
 
     c.execute("""
         INSERT INTO assemblies(
@@ -636,11 +645,11 @@ def make_changes(c):
     min_id = get_min_by_code(c, '6%')
     max_id = get_max_by_code(c, '82%')
 
+    print("Make few changes")
+
     for cnt in range(200):
 
         date0 = db.increase_date(date0, 10)
-
-
 
         code_id = rnd.get() % (max_id - min_id + 1) + min_id
 
@@ -659,7 +668,7 @@ def make_changes(c):
                      WHERE id=?""", (code_id,))
         (code,) = c.fetchone()
 
-        print("%s/%s) Updating code '%s', rid=%d"%(cnt, 200, code, rev_id))
+        #print("%s/%s) Updating code '%s', rid=%d"%(cnt, 200, code, rev_id))
 
         if code.startswith("81"):
             # no assembly
@@ -720,6 +729,100 @@ def make_changes(c):
         #parents = update_assemblies_for_new_code(c, the_id, new_id)
         #print("parents=",len(parents))
         #rec_update_assemblies(c, parents)
+
+def make_prototype(c):
+    global date0
+
+    min_id = get_min_by_code(c, '5%')
+    max_id = get_max_by_code(c, '82%')
+
+    code_ids = set()
+    for cnt in range(200):
+        code_id = rnd.get() % (max_id - min_id + 1) + min_id
+        code_ids.add(code_id)
+
+    print("Make few prototypes")
+
+    for code_id in code_ids:
+
+
+        # fetch the latest code revision
+        c.execute("""SELECT MAX(iter)
+                     FROM item_revisions
+                     WHERE code_id=?""", (code_id,))
+        (iter_,) = c.fetchone()
+        c.execute("""SELECT id
+                     FROM item_revisions
+                     WHERE code_id=?
+                       AND iter=?""", (code_id, iter_))
+        (rev_id,) = c.fetchone()
+        c.execute("""SELECT code
+                     FROM items
+                     WHERE id=?""", (code_id,))
+        (code,) = c.fetchone()
+
+        if code.startswith("81"):
+            # no assembly
+            new_id, new_rev = revise_code(c, rev_id, db.prototype_date)
+            fn1 = "documents/drawings/%s_(drw)_rev%s.txt"%(code, new_rev)
+            open(fn1, "w").write("Type: mechanical drawing\nCode:%s\n"%(
+                code, ))
+            c.execute("""INSERT INTO drawings(
+                    code, revision_id, filename, fullpath
+                ) VALUES ( ?, ?, ?, ? )
+                    """, (code, new_id, os.path.basename(fn1), os.path.abspath(fn1))
+            )
+
+        elif code.startswith("82"):
+                # assembly
+                new_id, new_rev = revise_assembly(c, rev_id, db.prototype_date)
+                fn1 = "documents/drawings/%s_(drw)_rev%s.txt"%(code, new_rev)
+                open(fn1, "w").write("Type: mechanical drawing\nCode:%s\n"%(
+                    code, ))
+                c.execute("""INSERT INTO drawings(
+                        code, revision_id, filename, fullpath
+                    ) VALUES ( ?, ?, ?, ? )
+                        """, (code, new_id, os.path.basename(fn1), os.path.abspath(fn1))
+                )
+                fn2 = "documents/assembling-procedures/%s_(ass)_rev%s.txt"%(code, new_rev)
+                open(fn2, "w").write("Type: assembling procedure\nCode:%s\n"%(
+                    code, ))
+                c.execute("""INSERT INTO drawings(
+                        code, revision_id, filename, fullpath
+                    ) VALUES ( ?, ?, ?, ? )
+                        """, (code, new_id, os.path.basename(fn2), os.path.abspath(fn2))
+                )
+
+        elif code.startswith("6"):
+                new_id, new_rev = revise_assembly(c, rev_id, db.prototype_date)
+                fn1 = "documents/boards/%s_(el)_rev%s.txt"%(code, new_rev)
+                open(fn1, "w").write("Type: board drawing\nCode: %s\n"%(
+                    code,))
+                c.execute("""INSERT INTO drawings(
+                        code, revision_id, filename, fullpath
+                    ) VALUES ( ?, ?, ?, ? )
+                        """, (code, new_id, os.path.basename(fn1), os.path.abspath(fn1))
+                )
+
+        elif code[0] in "57":
+            new_id, new_rev = revise_code(c, rev_id, db.prototype_date)
+        elif code.startswith("1"):
+            print("WARNING: code ", code, " is ignore")
+            continue
+            # topcode
+            # update the packaging procedure
+            # update the assembly
+        else:
+            # ??
+            print("Code=", code)
+            assert(False)
+
+
+        #parents = update_assemblies_for_new_code(c, the_id, new_id)
+        #print("parents=",len(parents))
+        #rec_update_assemblies(c, parents)
+
+
 
 def xrmdir(path):
         if os.path.isdir(path):
@@ -820,6 +923,7 @@ def create_db():
 
     try:
         make_changes(c)
+        make_prototype(c)
     finally:
         conn.commit()
 
