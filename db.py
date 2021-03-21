@@ -810,40 +810,9 @@ class _BaseServer:
             else:
                 new_iter = 0
 
-            self._sqlex(c, """
-                INSERT INTO item_revisions(
-                    code_id,
-                    date_from, date_from_days,
-                    date_to, date_to_days,
-                    ver,
-                    iter,
-                    note,
-                    descr,
-                    default_unit,
-                    gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
-                ) SELECT
-                    ?,
-                    ?, ?,
-                    ?, ?,
-                    ?,
-                    ?,
-                    note,
-                    ? ,
-                    default_unit,
-                    gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
-                FROM item_revisions
-                WHERE id = ?
-            """, (new_code_id,
-                    days_to_iso(new_date_from_days), new_date_from_days,
-                    days_to_iso(new_date_to_days), new_date_to_days,
-                rev, new_iter,
-                descr, rid))
-
-            self._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
-            new_rid = c.fetchone()[0]
-
-            self._revise_code_copy_others(c, new_rid, rid, copy_docs, copy_props)
-
+            new_rid = self._copy_revision(c, new_code_id,
+                new_date_from_days, new_date_to_days,
+                rev, new_iter, descr, rid, copy_docs, copy_props)
         except:
             self._rollback(c)
             raise
@@ -857,14 +826,14 @@ class _BaseServer:
 
         if new_date_from_days is None:
             new_date_from_days = now_to_days()
-        new_date_from = days_to_iso(new_date_from_days)
+        new_date_to_days = end_of_the_world
 
         c = self._conn.cursor()
         self._begin(c)
         try:
 
             self._sqlex(c, """
-                    SELECT id, date_from_days, iter
+                    SELECT id, date_from_days, iter, code_id
                     FROM item_revisions AS r
                     WHERE r.code_id = (
                             SELECT DISTINCT code_id
@@ -878,6 +847,8 @@ class _BaseServer:
 
             if len(item_revisions) == 0:
                 raise DBException("Cannot find the old revision")
+
+            code_id = item_revisions[0][3]
 
             # there are the following cases
             # 1) revise a code w/o prototype
@@ -894,6 +865,7 @@ class _BaseServer:
                 if new_date_from_days == prototype_date:
                     raise DBException("Cannot create a 2nd revision")
 
+                new_date_to_days = prototype_date -1
                 if len(item_revisions) == 1:
                     # case 3
                     new_iter = 0
@@ -916,39 +888,11 @@ class _BaseServer:
                 if new_date_from_days <= item_revisions[0][1]:
                     raise DBException("The new revision date is previous to the last revision")
 
-            self._sqlex(c, """
-                INSERT INTO item_revisions(
-                    code_id,
-                    date_from,
-                    date_from_days,
-                    date_to,
-                    ver,
-                    iter,
-                    note,
-                    descr,
-                    default_unit,
-                    gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
-                ) SELECT
-                    code_id,
-                    ?,
-                    ?,
-                    '',
-                    ?,
-                    ?,
-                    note,
-                    ? ,
-                    default_unit,
-                    gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
-                FROM item_revisions
-                WHERE id = ?
-            """, (new_date_from, new_date_from_days, rev, new_iter,
-                    descr, rid))
-
-            self._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
-            new_rid = c.fetchone()[0]
+            new_rid = self._copy_revision(c, code_id,
+                new_date_from_days, new_date_to_days,
+                rev, new_iter, descr, rid, copy_docs, copy_props)
 
             if latest_rid >= 0:
-                old_date_to_days = new_date_from_days - 1
                 old_date_to_days = new_date_from_days - 1
                 self._sqlex(c, """
                     UPDATE item_revisions
@@ -956,8 +900,6 @@ class _BaseServer:
                     WHERE id = ?
                 """, (days_to_iso(old_date_to_days),
                     old_date_to_days, latest_rid))
-
-            self._revise_code_copy_others(c, new_rid, rid, copy_docs, copy_props)
 
         except:
             self._rollback(c)
@@ -967,56 +909,92 @@ class _BaseServer:
 
         return new_rid
 
-    def _revise_code_copy_others(self, c, new_rid, old_rid, copy_docs, copy_props):
+    def _copy_revision(self, c, new_code_id, new_date_from_days, new_date_to_days,
+                rev, new_iter, descr, old_rid, copy_docs, copy_props):
+        self._sqlex(c, """
+            INSERT INTO item_revisions(
+                code_id,
+                date_from, date_from_days,
+                date_to, date_to_days,
+                ver,
+                iter,
+                note,
+                descr,
+                default_unit,
+                gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
+            ) SELECT
+                ?,
+                ?, ?,
+                ?, ?,
+                ?,
+                ?,
+                note,
+                ? ,
+                default_unit,
+                gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
+            FROM item_revisions
+            WHERE id = ?
+        """, (new_code_id,
+                days_to_iso(new_date_from_days), new_date_from_days,
+                days_to_iso(new_date_to_days), new_date_to_days,
+            rev, new_iter,
+            descr, old_rid))
 
+        self._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
+        new_rid = c.fetchone()[0]
+
+        #self._revise_code_copy_others(c, new_rid, rid, copy_docs, copy_props)
+        
+        self._sqlex(c, """
+            INSERT INTO assemblies (
+                unit,
+                child_id,
+                revision_id,
+                qty,
+                each,
+                ref
+            ) SELECT
+                unit,
+                child_id,
+                ?,
+                qty,
+                each,
+                ref
+            FROM assemblies
+            WHERE revision_id = ?
+        """, (new_rid, old_rid))
+
+        if copy_docs:
             self._sqlex(c, """
-                INSERT INTO assemblies (
-                    unit,
-                    child_id,
+                INSERT INTO drawings (
+                    code,
                     revision_id,
-                    qty,
-                    each,
-                    ref
+                    filename,
+                    fullpath
                 ) SELECT
-                    unit,
-                    child_id,
+                    code,
                     ?,
-                    qty,
-                    each,
-                    ref
-                FROM assemblies
+                    filename,
+                    fullpath
+                FROM drawings
                 WHERE revision_id = ?
             """, (new_rid, old_rid))
 
-            if copy_docs:
-                self._sqlex(c, """
-                    INSERT INTO drawings (
-                        code,
-                        revision_id,
-                        filename,
-                        fullpath
-                    ) SELECT
-                        code,
-                        ?,
-                        filename,
-                        fullpath
-                    FROM drawings
-                    WHERE revision_id = ?
-                """, (new_rid, old_rid))
-
-            if copy_props:
-                self._sqlex(c, """
-                    INSERT INTO item_properties (
-                        descr,
-                        value,
-                        revision_id
-                    ) SELECT
-                        descr,
-                        value,
-                        ?
-                    FROM item_properties
-                    WHERE revision_id = ?
-                """, (new_rid, old_rid))
+        if copy_props:
+            self._sqlex(c, """
+                INSERT INTO item_properties (
+                    descr,
+                    value,
+                    revision_id
+                ) SELECT
+                    descr,
+                    value,
+                    ?
+                FROM item_properties
+                WHERE revision_id = ?
+            """, (new_rid, old_rid))
+                
+        return new_rid
 
     def get_children_by_rid(self, rid):
         c = self._conn.cursor()
