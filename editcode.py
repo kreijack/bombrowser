@@ -55,6 +55,7 @@ class SelectCode(QDialog):
         self.setLayout(grid)
 
         self.setWindowTitle(utils.window_title + " - Search code")
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
     def getCodeId(self):
         return self._search_widget.getCodeId()
@@ -87,6 +88,7 @@ class EditDates(QDialog):
         g.addWidget(b, 30, 2)
 
         self.setLayout(g)
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
     def _save(self):
 
@@ -644,12 +646,6 @@ class EditWindow(utils.BBMainWindow):
         return
 
     def _change_dates(self):
-        if self._form_is_changed():
-            ret = QMessageBox.question(self, "BOMBrowser",
-                "The form was changed; do you want to continue without saving  ?")
-            if ret != QMessageBox.Yes:
-                return
-
         d = EditDates(int(self._id.text()), self)
         d.exec_()
 
