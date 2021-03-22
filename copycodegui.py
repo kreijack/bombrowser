@@ -66,8 +66,8 @@ class CopyCode(QDialog):
         self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
         self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
 
-
         self._init_gui()
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
     def _init_gui(self):
         grid = QGridLayout()
