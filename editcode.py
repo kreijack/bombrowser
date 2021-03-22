@@ -168,10 +168,10 @@ class EditDates(QDialog):
 
         try:
             d.update_dates(dates)
-        except db.DBException as e:
+        except Exception as e:
             QMessageBox.critical(self, "BOMBrowser",
                     "Error during the data saving\n" +
-                    e.args[0])
+                    str(e))
             return
 
         QMessageBox.information(self, "BOMBrowser",
