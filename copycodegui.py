@@ -36,6 +36,7 @@ class CopyCode(QDialog):
         self._results = None
         self._new_code = None
         self._new_rid = None
+        self._start_editor = None
 
         self._db = db.DB()
         data = self._db.get_code_from_rid(self._rid)
@@ -192,6 +193,8 @@ class CopyCode(QDialog):
         return True
 
     def _do(self):
+        self._start_editor = self._cb_start_edit.checkState() == Qt.CheckState.Checked
+
         if not self._check_values():
             return
 
@@ -261,6 +264,7 @@ class CopyCode(QDialog):
     def _close(self):
         reply = QMessageBox.question(self, "Exit dialog", "Close dialog",
                                 QMessageBox.Yes, QMessageBox.No);
+        self._start_editor = self._cb_start_edit.checkState() == Qt.CheckState.Checked
         if reply == QMessageBox.Yes:
             self.reject()
 
@@ -319,7 +323,7 @@ class CopyCode(QDialog):
             self._l_new_iter.setText("%d"%(self._last_iter+1))
 
     def shouldStartEditor(self):
-        return self._cb_start_edit.checkState() == Qt.CheckState.Checked
+        return self._start_editor
 
 
 def revise_copy_code(code_id, parent):
