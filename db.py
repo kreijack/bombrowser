@@ -1162,7 +1162,7 @@ class _BaseServer:
                 """, (code_id, prototype_iter))
 
                 ret = c.fetchone()
-                if ret is None:
+                if ret is None or ret[0] is None:
                     new_iter = 0
                 else:
                     new_iter = ret[0] + 1
