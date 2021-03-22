@@ -2088,6 +2088,59 @@ Expected result: an error dialog appears saying that the date range is shorter t
 
 Passed: [ ]
 
+### Test 10.17 - prototype date
+
+Test description:
+- enter in the edit dialog of code with several revisions without prototype
+- enter in the "edit dates" dialog
+- change the first (from the top) "From date" to "prototype"
+
+Expected result:
+- no error (yellow cell) is showed
+- **ALL** the cell in the "To date" column are R/O
+- the date "End to" of the 1st and 2nd line are blanked
+
+Test description #2:
+- after the above test, press save and ok until you reach the "Edit dialog"
+- check that the "From/to date" "Revision selector" lists all the dates
+
+Expected result #2:
+- the "From/to date" "Revision selector" lists all the dates and prototype
+
+Test description #3:
+- after the steps above
+- press the "..." button and go in the "edit dates" dialog
+- change the "From date" in the first row from "PROTOTYPE" to a date grather than the 2nd line
+
+Expected result #3:
+- no error (yellow cell) is showed
+- the "End to" cell in the second line show a valid date
+- the "End to" cell in the 1st line is editable
+
+Test description #4:
+- after the steps above
+- press save and go in the edit window
+- check that the "From/to date" "Revision selector" lists all the dates
+
+Expected result #4:
+- the "From/to date" "Revision selector" lists all the dates w/o prototype
+
+Passed: [X]
+
+### Test 10.17 - prototype date
+
+Test description:
+- enter in the edit dialog of code with several revisions
+- select a 2nd revision in the "From/to date" selector
+- press the "..." button and go in the edit dialog
+- change the 2nd row "From date" with a reasonable value
+- press "Save", then "OK"
+
+Expected result:
+- the "From/to date" is changed accordling to the steps above
+- the date showed in the title bar is changed accordling to the steps above
+
+Passed: [X]
 
 ## 11 - Generic test
 
@@ -2107,7 +2160,7 @@ Expected result: at start up time, an error dialog is showed saying that it is i
 
 Passed: [ ]
 
-## 11 - Config test
+### Test 11.3 - Config test
 
 TBD: test the configuration:
 - force_*_uppercase
