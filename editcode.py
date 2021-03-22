@@ -27,7 +27,7 @@ from PySide2.QtWidgets import QHBoxLayout, QPushButton, QDialog
 from PySide2.QtWidgets import QHeaderView, QMenu, QGroupBox, QTableWidget
 from PySide2.QtGui import QColor, QDesktopServices
 
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, QUrl
 
 import db, asmgui, codegui, diffgui, utils, listcodegui, jdutil, cfg
 
@@ -1012,7 +1012,7 @@ class EditWindow(utils.BBMainWindow):
         for idx in idxs:
             r = idx.row()
             path = self._drawings_table.item(r, 1).text()
-            QDesktopServices.openUrl(path)
+            QDesktopServices.openUrl(QUrl.fromLocalFile(path))
 
     def _delete_drawing(self):
         idxs = self._drawings_table.selectedIndexes()
