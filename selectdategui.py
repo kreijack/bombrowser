@@ -38,6 +38,7 @@ class SelectDate(QDialog):
 
         self._init_gui()
         self.show()
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
         self._populate_table()
@@ -87,7 +88,7 @@ class SelectDate(QDialog):
             data = d.get_bom_dates_by_code_id(self._code_id)
             assert(len(data))
             data.sort() # from lower to higher
-            pprint.pprint(data)
+
             for date_from_days in data:
                 if date_from_days in m:
                     last = m[date_from_days]
@@ -96,7 +97,7 @@ class SelectDate(QDialog):
 
             data2.sort(reverse=True, key=lambda x: x[5]) # from higher to lower
             data = data2
-            pprint.pprint(data)
+
 
         assert(len(data))
         self._data = data
