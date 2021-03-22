@@ -108,7 +108,7 @@ class CodeWidget(QWidget):
         row += 1
         grid.addWidget(XLabel("RID"), row, 0)
         grid.addWidget(XLabel(str(self._data["rid"])), row , 1)
-        txt += "RID: %s\n"%(self._data["id"])
+        txt += "RID: %s\n"%(self._data["rid"])
 
         row += 1
         grid.addWidget(XLabel("ID"), row, 0)
