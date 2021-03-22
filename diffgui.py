@@ -19,13 +19,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import sys
 
-from PySide2.QtWidgets import QMainWindow, QScrollArea, QStatusBar
-from PySide2.QtWidgets import QMenu, QTableView, QTextEdit
-from PySide2.QtWidgets import QSplitter, QTreeView, QLabel, QLineEdit
+from PySide2.QtWidgets import QStatusBar
+from PySide2.QtWidgets import QTextEdit
+from PySide2.QtWidgets import QLabel, QLineEdit
 from PySide2.QtWidgets import QGridLayout, QWidget, QApplication, QPushButton
-from PySide2.QtWidgets import QMessageBox, QAction, QDialog, QHeaderView
-from PySide2.QtGui import QStandardItemModel, QStandardItem
-from PySide2.QtCore import Qt, QItemSelectionModel, QAbstractTableModel
+from PySide2.QtWidgets import QMessageBox, QAction, QDialog
+from PySide2.QtCore import Qt
 import pprint, traceback
 
 import db, utils, selectdategui
