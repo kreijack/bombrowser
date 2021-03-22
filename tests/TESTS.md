@@ -1694,6 +1694,164 @@ Expected result:
 
 Passed: [X]
 
+### Test 9.40 - Edit code - change revision
+
+Test description:
+- Take a code from the code list gui with multiple revision
+- Edit this code
+- Acting to the "From/to date" QComboBox, change the revision of the code
+- in parallel make one change in a field for each revision (insert the from date to help the test) and press Save
+- repeat the step above for each revision
+- Acting to the "From/to date" QComboBox, change the revision of the code
+
+Expected result:
+- The dialog show for each revision the change performed in the step above
+
+Passed: [X]
+
+### Test 9.41 - Edit code - change revision without saving
+
+Test description:
+- Take a code from the code list gui with multiple revision
+- Edit this code
+- make one change in a field - Acting to the "From/to date" QComboBox, change the revision of the code
+
+Expected result:
+- An error dialog is showed  saying that the change are not saved
+
+Passed: [X]
+
+### Test 9.42 - Edit code - change revision without saving
+
+Test description:
+- Take a code from the code list gui with multiple revision
+- Edit this code
+- make one change in a field - Acting to the "From/to date" QComboBox, change the revision of the code
+- An error dialog is showed  saying that the change are not saved, press no
+
+Expected result:
+- the revision is not changed
+
+Passed: [X]
+
+### Test 9.42 - Edit code - change revision without saving
+
+Test description:
+- Take a code from the code list gui with multiple revision
+- Edit this code
+- make one change in a field
+- Acting to the "From/to date" QComboBox, change the revision of the code
+- An error dialog is showed  saying that the change are not saved, press yes
+
+Expected result:
+- go back to the previous revision
+- check that the change was not saved
+
+Passed: [X]
+
+### Test 9.43 - Edit code - change revision without saving
+
+Test description:
+- Take a code from the code list gui with multiple revision
+- Edit this code
+- make one change in a field
+- press Close
+
+Expected result #1:
+- An error dialog is showed saying that the change are not saved
+
+Test description #2:
+- Press no
+
+Expected result #2:
+- The previous window is showed. the change is not lost
+
+Test description #3:
+- repeat the test until the dialog is showed
+- Press yes
+
+Expected result #3:
+- The edit window is closed
+
+Passed: [X]
+
+### Test 9.43 - Edit code - change revision without saving
+
+Test description:
+- Take a code from the code list gui with multiple revision
+- Edit this code
+- remove an item in the children section
+- press close button
+
+Expected result:
+- An error dialog is showed  saying that the change are not saved
+
+Passed: [X]
+
+### Test 9.44 - Edit code - change revision without saving
+
+Test description:
+- Take a code from the code list gui with multiple revision
+- Edit this code
+- insert (before) item in the children section
+- press close button
+
+Expected result:
+- An error dialog is showed  saying that the change are not saved
+
+Passed: [X]
+
+### Test 9.45 - Edit code - change revision without saving
+
+Test description:
+- Take a code from the code list gui with multiple revision
+- Edit this code
+- insert (after) item in the children section
+- press close button
+
+Expected result:
+- An error dialog is showed  saying that the change are not saved
+
+Passed: [X]
+
+### Test 9.46 - Edit code - change revision without saving
+
+Test description:
+- Take a code from the code list gui with multiple revision
+- Edit this code
+- do a "search code" over an item in the children section
+- press close button
+
+Expected result:
+- An error dialog is showed  saying that the change are not saved
+
+Passed: [X]
+
+### Test 9.47 - Edit code - change revision without saving
+
+Test description:
+- Take a code from the code list gui with multiple revision
+- Edit this code
+- do an "add drawing" in the drawings section
+- press close button
+
+Expected result:
+- An error dialog is showed  saying that the change are not saved
+
+Passed: [X]
+
+### Test 9.48 - Edit code - change revision without saving
+
+Test description:
+- Take a code from the code list gui with multiple revision
+- Edit this code
+- do an "delete drawing" in the drawings section
+- press close button
+
+Expected result:
+- An error dialog is showed  saying that the change are not saved
+
+Passed: [X]
 
 
 ## 10 - BomBrowser - Edit date
