@@ -30,7 +30,7 @@ Test description: Insert the code '820037' in the 'Code' field and press **ENTER
 
 Expected results: The code 820037 is showed
 
-Passed: [ ]
+Passed: [x]
 
 ### Test 1.2 - search a code (2)
 
@@ -38,7 +38,7 @@ Test description: Insert the code '820038' in the 'Code' field and press the but
 
 Expected results: The code 820038 is showed
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.3 - search a code by description
 
@@ -46,7 +46,7 @@ Test description: Insert the code 'BOARD 14' in the 'Description' field and pres
 
 Expected results: The code 610014 - "BOARD 14" is showed
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.4 - search a code by description with a jolly character
 
@@ -54,47 +54,66 @@ Test description: Insert the code '%BOARD%13' in the 'Description' field and pre
 
 Expected results: The code 610013 - "BOARD 13" is showed
 
-Passed: [ ]
+Passed: [x]
 
 ### Test 1.5 - search a code with a jolly character
 
-Test description: Insert the code '%6%' in the 'Code' field and press the button 'Search'
+Test description:
+- Insert the code '%6%' in the 'Code' field
+- press the button 'Search'
 
 Expected results: The codes that contains '6' are showed
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.6 - search a code and a description with a jolly character
 
-Test description: Insert the code '%6%' in the 'Code' field, insert %BOARD% in the description filed and press the button 'Search'
+Test description:
+- Insert the code '%6%' in the 'Code' field
+- insert %BOARD% in the description filed
+- press the button 'Search'
 
 Expected results: The codes that contains '6' and the description which contains BOARD are showed
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.7 - assembly
 
-Test description: Insert the code '820037' in the 'Code' field,  and press the button 'Search'; press the right mouse button on the first entry and select the "Show assembly by date" command.
+Test description:
+- Insert the code '820037' in the 'Code' field
+- press the button 'Search'
+- press the right mouse button on the first entry
+- select the "Show assembly by date" command.
 
-Expected results: The "BOMBrowser: select date" dialog is showed; this dialog contains a list of 820037 codes.
+Expected results:
+- The "BOMBrowser: select date" dialog is showed
+- this dialog contains a list of 820037 codes.
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.11 - where used
 
-Test description: Insert the code '810036' in the 'Code' field,  and press the button 'Search'; press the right mouse button on the first entry and select the "Show where used" command.
+Test description:
+- Insert the code '810036' in the 'Code' field,
+- press the button 'Search'
+- press the right mouse button on the first entry
+- select the "Where used" command.
 
 Expected results: The "BOMBrowser - Where used" window is showed
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.12 - where used (2)
 
-Test description: Insert the code '10037' in the 'Code' field,  and press the button 'Search'; press the right mouse button on the first entry and select the "Show where used" command.
+Test description:
+- Insert the code '100037' in the 'Code' field
+- press the button 'Search'
+- press the right mouse button on the first entry
+- select the "Where used" command.
 
 Expected results: The "BOMBrowser" error dialog is showed; this dialog says "The item is not in an assembly".
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.13 - valid where used
 
@@ -106,7 +125,7 @@ Test description:
 
 Expected results: The "BOMBrowser - Valid where used" window is showed
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.14 - valid where used (2)
 
@@ -118,7 +137,7 @@ Test description:
 
 Expected results: The "BOMBrowser" error dialog is showed; this dialog says "The item is not in an assembly".
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.15 - revise/copy code
 
@@ -130,7 +149,7 @@ Test description:
 
 Expected results: The "BOMBrowser: select date" dialog is showed; this contains a list of the code 810037.
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.16 - edit code
 
@@ -142,7 +161,7 @@ Test description:
 
 Expected results: The "BOMBrowser - Edit code" window showed; this contains the code 810036 properties.
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.17 - diff from
 
@@ -154,7 +173,7 @@ Test description:
 
 Expected results: The "BOMBrowser" error dialog is showed; this dialog says "The item is not in an assembly".
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.18 - diff from (2x)
 
@@ -166,7 +185,7 @@ Test description:
 
 Expected results: The "BOMBrowser: select date" dialog is showed; this dialog contains a list of 820036 codes.
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.19 - diff to
 
@@ -178,7 +197,7 @@ Test description:
 
 Expected results: The "BOMBrowser" error dialog is showed; this dialog says "The item is not in an assembly".
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.20 - diff to (2x)
 
@@ -190,7 +209,7 @@ Test description:
 
 Expected results: The "BOMBrowser: select date" dialog is showed; this dialog contains a list of 820036 codes.
 
-Passed: X ]
+Passed: [X]
 
 ### Test 1.21 - menu->help->about
 
@@ -198,14 +217,14 @@ Test description: In the menu select the Help and About subcommand
 
 Expected results: The "about" dialog is showed. The dialog contains the current version and the copyright code.
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.22 - menu->window
 
 Test description:
 - insert code 820037
 - press the right mouse button on the first entry
-- select the "Show assembly" command
+- select the "Show assembly by date" command
 - select the first date and doubleckick on it
 - go back to the "BOMBrowser - code list"
 - press the right mouse button on the first entry
@@ -217,21 +236,21 @@ Test description:
 - press the right mouse button on the first entry
 - select the "Edit code" command.
 
-- Four windows are opened. Select the "Windows menu" in the "BOMBrowser - Codes list" window:
+- Five windows are opened. Select the "Windows menu" in the "BOMBrowser - Codes list" window:
 
 Expected results: in the menu are showed the four windows: BOMBrowser - Where used, BOM Browser - valid where used, BOMBrowser assembly, BOMBrowser - edit
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.23 - menu->file->close
 Test description:
 - insert code 820037
 - press the right mouse button on the first entry and select the "Where used" command.
-- Two windows are opened. Select the "File->Quit" in the "BOMBrowser - Codes list" window:
+- Two windows are opened. Select the "File->close" in the "BOMBrowser - Codes list" window:
 
 Expected results: The "BOMBrowser - Codes" list is closed. "BOMBrowser - Where used" is opened.
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.24 -Ctrl-Q  menu->file->close
 Test description:
@@ -242,7 +261,7 @@ Test description:
 
 Expected results: The "BOMBrowser - Codes list" is closed. "BOMBrowser - Where used" is opened.
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 1.25 - menu->file->exit
 Test description:
@@ -252,41 +271,30 @@ Test description:
 
 Expected results: a dialog BOMBrowser asking about the possibility to exit is showed.
 
-Passed: [ ]
+Test description #2:
+- After the steps above,  Press No
 
-### Test 1.26 - menu->file->exit (2)
-Test description:
-- insert code 820037
-- press the right mouse button on the first entry and select the "Where used" command.
-- Two windows are opened. Select the "File->Exit" in the "BOMBrowser - Codes list" window
-- A dialog BOMBrowser asking about the possibility to exit is showed. Press No
+Expected results #2: The codes list window is still opened
 
-Expected results: Two windows are opened
+Test description #3:
+- Repeat the step above until the dialog is showed, then press yes
 
-Passed: [ ]
+Expected results #3: The application is ended. Now window is sowed
 
-### Test 1.27 - menu->file->exit (3)
-Test description:
-- insert code 820037
-- press the right mouse button on the first entry and select the "Where used" command.
-- Two windows are opened. Select the "File->Exit" in the "BOMBrowser - Codes list" window:
-- A dialog BOMBrowser asking about the possibility to exit is showed. Press Yes
-
-Expected results: The application is ended. Now window is sowed
-
-Passed: [ ]
+Passed: [X]
 
 
 ### Test 1.31 - Menu->edit->copy
 Test description:
 - insert code %6% and press ENTER;
 - select menu->edit->copy
+- Paste the clipboard in an editor
 
-Expected results: Paste the clipboard in an editr and check that there is the same table showed in the BOMBrowser - Codes list. Check that the number of row are the same +1 of the "BOMBrowser - Codes list" widow (there is the header)
+Expected results:
+- check that there is the same table showed in the BOMBrowser - Codes list.
+- Check that the number of row are the same +1 of the "BOMBrowser - Codes list" widow (there is the header)
 
-Passed: [ ]
-
-
+Passed: [X]
 
 ### Test 1.33 - Code gui
 Test description:
@@ -295,17 +303,12 @@ Test description:
 
 Expected result: the information of the selected code is showed in the right panel
 
-Passed: [ ]
+Test description #2:
+- after the steps above, select the 2nd entry.
 
-### Test 1.34 - Code gui (2)
-Test description:
-- insert code 8200% and press ENTER
-- Select the first entry
-- then select the 2nd entry.
+Expected resul #2t: the information of the 2nd selected codes are showed in the right panel
 
-Expected result: the information of the selected codes are showed in the right panel
-
-Passed: [ ]
+Passed: [X]
 
 
 ## 2 - 'Code gui' panel
@@ -318,7 +321,7 @@ Test description:
 
 Expected result: on the left panel there are the information of the selected code
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 2.2 - multiple revision
 Test description:
@@ -329,7 +332,7 @@ Test description:
 
 Expected result: The information on the panel are changed accordly
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 2.3 - multiple revision (2)
 Test description:
@@ -337,7 +340,7 @@ Test description:
 
 Expected result: The right most button, contains all the dates (3)
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 2.4 - documents
 Test description:
@@ -347,7 +350,7 @@ Test description:
 
 Expected result: In the bottom part are showed two buttons with two documens
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 2.5 - documents (2x)
 Test description:
@@ -356,9 +359,9 @@ Test description:
 - Select the 2nd entry (820001)
 - Select a document button
 
-Expected result: Clicking one button document, the related document will be opened
+Expected result: Clicking one button document, the related document is opened
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 2.6 - Copy info..
 Test description:
@@ -369,7 +372,7 @@ Test description:
 
 Expected result: Pasting the clipboard content in a editor, the relevant information are showed
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 2.7 - Check tool tip
 Test description:
@@ -452,32 +455,22 @@ Test description:
 
 Expected result: Nothing happens
 
-Passed: [ ]
+Test description #2:
+- after the step above, press the cancel button
 
-### Test 3.2 - select date (2)
-Test description:
-- insert code "820037" in "BOMBrowser - Code list"
-- press the right mouse button on the first entry
-- select the "Show assembly by date" command.
-- "The BOMBrowser: Select Date" dialog is showed.d.
-- Press the Cancel button
+Expected result #2:
+- the dialog dsappear and the "codes list" window is showed
 
-Expected result: The dialog disappear
-
-Passed: [ ]
-
-### Test 3.3 - select date (3)
-Test description:
-- insert code "820037" in "BOMBrowser - Code list"
-- press the right mouse button on the first entry
-- select the "Show assembly by date" command.
-- "The BOMBrowser: Select Date" dialog is showed.
+Test description #3:
+- repeat the steps above until the "show assembly by date" dialog appears
 - Select the first item
 - press the "Select" button.
 
-Expected result: The "BOMBrowser - Assembly" window appears. Check that the date in the window title is the same that you selected
+Expected result #3:
+- The "BOMBrowser - Assembly" window appears
+- Check that the date in the window title is the same that you selected
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 3.4 - show assembly
 Test description:
@@ -487,7 +480,7 @@ Test description:
 
 Expected results: The "BOMBrowser" error dialog is showed; this dialog says "The item is not an assembly".
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 3.6 - show assembly (2)
 Test description:
