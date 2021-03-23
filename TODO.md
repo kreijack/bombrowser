@@ -6,6 +6,7 @@
 - [ ] add refresh in asm
 - [ ] show every where rid
 - [ ] in edit code add open assy
+- [ ] "select date dialog" -> swap the buttons "select" and "cancel"
 
 ## GENERAL
 
