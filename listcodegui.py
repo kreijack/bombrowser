@@ -35,6 +35,7 @@ class CodesWidget(QWidget):
     #tableCustomContextMenuRequested = Signal(QPoint)
     rightMenu = Signal(QPoint)
     doubleClicked = Signal()
+    emitResult = Signal(int)
 
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
@@ -120,6 +121,7 @@ class CodesWidget(QWidget):
 
         if not ret or len(ret) == 0:
             QApplication.beep()
+            self.emitResult.emit(0)
             return
 
         self._copy_info = "\t".join(["id", "Code", "Rev", "Iteration", "Description"])
@@ -146,6 +148,7 @@ class CodesWidget(QWidget):
         if len(ret) > 0:
             self._table.selectRow(0)
         self._table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.emitResult.emit(len(ret))
 
     def _table_clicked(self, to, from_):
 
@@ -240,6 +243,14 @@ class CodesWindow(utils.BBMainWindowNotClose):
         self.setCentralWidget(self._codes_widget)
 
         self._codes_widget.rightMenu.connect(self._tree_context_menu)
+
+        self._codes_widget.emitResult.connect(self._show_results)
+
+    def _show_results(self, n):
+        if n > 0:
+            self._my_statusbar.showMessage("Last search result %s"%(str(n)))
+        else:
+            self._my_statusbar.showMessage("Last search have 0 results !!!")
 
     def _tree_context_menu(self, point):
         contextMenu = QMenu(self)
