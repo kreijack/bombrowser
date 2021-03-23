@@ -720,7 +720,7 @@ def show_latest_assembly(code_id):
     dt = min(db.prototype_date - 1, dates[0][3])
 
     data = d.get_bom_by_code_id3(code_id, dt)
-    w.populate(*data, caption_date=db.prototype_date - 1)
+    w.populate(*data, caption_date=dt)
     QApplication.restoreOverrideCursor()
 
 def show_proto_assembly(code_id):
