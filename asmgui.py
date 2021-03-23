@@ -214,7 +214,6 @@ class AssemblyWindow(utils.BBMainWindow):
         exitAction.setShortcut("Ctrl+X")
         exitAction.triggered.connect(self._exit_app)
         copyAction = QAction("Copy", self)
-        copyAction.setShortcut("Ctrl+C")
         copyAction.triggered.connect(self._copy_info_action)
 
         copy_as = []
