@@ -37,8 +37,14 @@ def main(args):
     try:
         d = db.DB()
         data = d.get_config()
-    except:
-        QMessageBox.critical(None, "BOMBrowser", "Cannot connect to database\nAbort")
+    except Exception as e:
+        QMessageBox.critical(None, "BOMBrowser",
+            "Cannot connect to database\nAbort\n" +
+            "Exception:\n" +
+            "-"*30 + "\n" +
+            str(e) + "\n" +
+            "-"*30
+        )
         raise
 
     cfg.update_cfg(data)
