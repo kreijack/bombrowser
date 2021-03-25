@@ -57,12 +57,12 @@ class SelectDate(QDialog):
         grid.addWidget(self._table, 10, 0, 1, 2)
 
         b = QPushButton("Select")
-        grid.addWidget(b, 20, 0)
+        grid.addWidget(b, 20, 1)
         b.clicked.connect(self.accept)
 
         b = QPushButton("Cancel")
         b.clicked.connect(self.reject)
-        grid.addWidget(b, 20, 1)
+        grid.addWidget(b, 20, 0)
 
         self.setLayout(grid)
 
