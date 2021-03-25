@@ -1437,6 +1437,74 @@ class _BaseServer:
 
         return ""
 
+    def search_revisions(self, **kwargs):
+        query = """
+            SELECT i.id, r.id, i.code, r.descr, r.ver, r.iter,
+                r.date_from_days, r.date_to_days,
+                r.gval1, r.gval2, r.gval3, r.gval4, r.gval5, r.gval6,
+                r.gval7, r.gval8,
+                r.gval9, r.gval10, r.gval11, r.gval12, r.gval13,
+                r.gval14, r.gval15,
+                r.gval16, r.gval17, r.gval18, r.gval19, r.gval20
+            FROM item_revisions AS r
+            LEFT JOIN items AS i
+              ON r.code_id = i.id
+        """
+
+        where = []
+
+        args = []
+        arg_names = ["id", "rid", "code", "rev", "iter_", "descr",
+                     "date_from_days", "date_to_days"]
+        arg_names += ["gval%d"%(i+1) for i in range(gvals_count)]
+
+        for k in kwargs:
+            assert(k in arg_names)
+            arg = str(kwargs[k])
+            assert(len(arg) > 0)
+            if arg[0] in "=><!":
+                assert(len(arg) > 1)
+
+            table = "r"
+            if k in ["code", "id"]:
+                table = "i"
+            elif k == "rid":
+                k = "id"
+            elif k == "rev":
+                k = "ver"
+            elif k == "iter_":
+                k = "iter"
+
+            if "%" in arg:
+                where.append("              %s.%s LIKE ?\n"%(table, k))
+            elif arg[0] in '<=>':
+                where.append("              %s.%s %s ?\n"%(table, k, arg[0]))
+                arg = arg[1:]
+            elif arg[0] == "!":
+                where.append("              %s.%s <> ?\n"%(table, k))
+                arg = arg[1:]
+            else:
+                where.append("              %s.%s = ?\n"%(table, k))
+
+            if k in ["id", "iter"]:
+                args.append(int(arg))
+            else:
+                args.append(arg)
+
+        if len(where):
+            query += "            WHERE\n"
+            query += "            AND\n".join(where)
+
+        query += "            ORDER BY i.code ASC, r.iter ASC\n"
+
+        #print("query=", query)
+        #print("args=", args)
+        c = self._conn.cursor()
+
+        self._sqlex(c, query, args)
+
+        return c.fetchall()
+
 
 import sqlite3
 import traceback

@@ -125,7 +125,7 @@ def test_get_code_by_rid():
 
     data = d.get_code_from_rid(1)
     assert(data["code"] == "code123")
-    assert(data["descr"] == "descr456")
+    #assert(data["descr"] == "descr456")
 
 
 def test_get_code_by_descr():
@@ -1395,6 +1395,140 @@ def test_update_by_rid():
     assert(data["unit"] == "2-n-unit")
     for i in range(db.gvals_count):
         assert(gvals[i] == data["gval%d"%(i+1)])
+
+def _create_data_for_search_revisions(c, d):
+    code1 = "TEST-CODE-1"
+    code2 = "TEST-CODE-2"
+    code_id1, dates1 = _create_code_revision(c, code1, 4)
+    code_id2, dates2 = _create_code_revision(c, code2, 5)
+    d._commit(c)
+    # prepare a data set
+    data = dict()
+    cnt = 0
+    for row in dates1+dates2:
+        rid = row[0]
+        gvals = ["gval %d for rid=%d"%(i+1, rid) for i in range(db.gvals_count)]
+        gvals[4] = "gval %04d"%(cnt)
+        cnt += 1
+
+        data[rid] = dict()
+        data[rid] = {
+            "rid": rid,
+            "descr": "descr-rid=%d"%(rid),
+            "rev": "ver rid=%d"%(rid),
+            "unit": "un=%d"%(rid),
+        }
+
+        for i in range(db.gvals_count):
+            data[rid]["gval%d"%(i+1)] = gvals[i]
+
+        d.update_by_rid(rid, data[rid]["descr"], data[rid]["rev"],
+                data[rid]["unit"], *gvals)
+
+    return data
+
+def test_search_revisions_empty():
+    d, c = _create_db()
+    _create_data_for_search_revisions(c, d)
+
+    ret = d.search_revisions()
+    assert(len(ret) == 9)
+
+def test_search_revisions_by_rid():
+    d, c = _create_db()
+    data = _create_data_for_search_revisions(c, d)
+
+    for rid in data.keys():
+
+        ret = d.search_revisions(rid=rid)
+        assert(len(ret) == 1)
+
+        assert(ret[0][1] == rid)
+
+    rids = list(data.keys())
+    rids.sort()
+    i = int(len(rids)/2)
+    rid0 = rids[i]
+
+    ret = d.search_revisions(rid=">%d"%(rid0))
+    assert(len(ret) == len(rids) -1 -i)
+
+    for row in ret:
+        assert(row[1] > rid0)
+
+def test_search_revisions_greather():
+    d, c = _create_db()
+    data = _create_data_for_search_revisions(c, d)
+
+    ret = d.search_revisions(gval5=">gval 0004")
+
+    for row in ret:
+        assert(row[12] > "gval 0004")
+
+def test_search_revisions_lesser():
+    d, c = _create_db()
+    data = _create_data_for_search_revisions(c, d)
+
+    ret = d.search_revisions(gval5="<gval 0004")
+
+    for row in ret:
+        assert(row[12] < "gval 0004")
+
+def test_search_revisions_ne():
+    d, c = _create_db()
+    data = _create_data_for_search_revisions(c, d)
+
+    ret = d.search_revisions(gval5="!gval 0004")
+
+    for row in ret:
+        assert(row[12] != "gval 0004")
+
+def test_search_revisions_eq():
+    d, c = _create_db()
+    data = _create_data_for_search_revisions(c, d)
+
+    ret = d.search_revisions(gval5="gval 0004")
+
+    assert(len(ret) == 1)
+    for row in ret:
+        assert(row[12] == "gval 0004")
+
+    ret = d.search_revisions(gval5="=gval 0004")
+
+    assert(len(ret) == 1)
+    for row in ret:
+        assert(row[12] == "gval 0004")
+
+def test_search_revisions_not_found():
+    d, c = _create_db()
+    data = _create_data_for_search_revisions(c, d)
+
+    ret = d.search_revisions(gval5="INVALID_VALUE")
+
+    assert(len(ret) == 0)
+
+def test_search_revisions_all_values():
+    d, c = _create_db()
+    data = _create_data_for_search_revisions(c, d)
+    arg_names = ["rid", "rev", "descr"]
+    arg_names += ["gval%d"%(i+1) for i in range(db.gvals_count)]
+
+    rids = list(data.keys())
+
+    for i, arg in enumerate(arg_names):
+        rdata = data[rids[i % len(rids)]]
+        dd = { arg: rdata[arg] }
+        ret = d.search_revisions(**dd)
+
+        assert(len(ret) == 1)
+
+    ret = d.search_revisions(code="TEST-CODE-1")
+    assert(len(ret) > 2)
+
+    ret = d.search_revisions(iter_=1)
+    assert(len(ret) == 2)
+
+    # TBD dates
 
 #------
 
