@@ -1363,6 +1363,39 @@ def test_revise_code_with_only_proto():
 
     _check_code_dates(c, code)
 
+def test_update_by_rid():
+
+    d, c = _create_db()
+    code = "TEST-CODE"
+    code_id, dates = _create_code_revision(c, code, 1)
+    d._commit(c)
+
+    rid = dates[0][0]
+
+    gvals = ["new gval %d"%(i) for i in range(db.gvals_count)]
+
+    d.update_by_rid(rid, "new descr", "new ver", "new-unit",
+            *gvals)
+
+    data = d.get_code_from_rid(rid)
+    assert(data["descr"] == "new descr")
+    assert(data["ver"] == "new ver")
+    assert(data["unit"] == "new-unit")
+    for i in range(db.gvals_count):
+        assert(gvals[i] == data["gval%d"%(i+1)])
+
+    gvals = ["2-new gval %d"%(i) for i in range(db.gvals_count)]
+
+    d.update_by_rid(rid, "2-new descr", "2-new ver", "2-n-unit",
+            *gvals)
+
+    data = d.get_code_from_rid(rid)
+    assert(data["descr"] == "2-new descr")
+    assert(data["ver"] == "2-new ver")
+    assert(data["unit"] == "2-n-unit")
+    for i in range(db.gvals_count):
+        assert(gvals[i] == data["gval%d"%(i+1)])
+
 #------
 
 def run_test(filters):
