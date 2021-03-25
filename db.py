@@ -1659,6 +1659,47 @@ class DBPG(_BaseServer):
 
         return [x[0] for x in c.fetchall()]
 
+    def get_bom_dates_by_code_id(self, code_id):
+        sdates = set()
+        done = set()
+        todo = [code_id]
+
+        c = self._conn.cursor()
+
+        self._sqlex(c, """
+            SELECT MIN(date_from_days)
+            FROM item_revisions
+            WHERE code_id = ?
+            """, (code_id,))
+
+        date_from_min = c.fetchone()[0]
+
+        self._sqlex(c, """
+
+            SELECT DISTINCT r.date_from_days
+            FROM item_revisions AS r
+            WHERE r.code_id IN (
+
+                WITH RECURSIVE child_of(child_id) AS (
+                    SELECT  ?
+                    UNION
+                    SELECT a.child_id
+                    FROM child_of AS co
+                    LEFT JOIN item_revisions AS r
+                       ON r.code_id = co.child_id
+                    LEFT JOIN assemblies AS a
+                       ON a.revision_id = r.id
+                )
+                SELECT  child_id
+                FROM child_of
+            )  AND date_from_days >= ?
+
+        """,(code_id, date_from_min))
+
+        dates = [x[0] for x in c.fetchall()]
+
+        return dates
+
 
 _globaDBInstance = None
 def DB(path=None):
