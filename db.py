@@ -75,7 +75,7 @@ _db_path = "database.sqlite"
 end_of_the_world = 999999   # around 5000 ac
 prototype_date = 999900
 prototype_iter = 999999
-gvals_count = 8
+gvals_count = 20
 connection="Server: <UNDEF>"
 
 class DBException(RuntimeError):
@@ -170,6 +170,18 @@ class _BaseServer:
                 gval6           VARCHAR(255) DEFAULT '',
                 gval7           VARCHAR(255) DEFAULT '',
                 gval8           VARCHAR(255) DEFAULT '',
+                gval9           VARCHAR(255) DEFAULT '',
+                gval10          VARCHAR(255) DEFAULT '',
+                gval11          VARCHAR(255) DEFAULT '',
+                gval12          VARCHAR(255) DEFAULT '',
+                gval13          VARCHAR(255) DEFAULT '',
+                gval14          VARCHAR(255) DEFAULT '',
+                gval15          VARCHAR(255) DEFAULT '',
+                gval16          VARCHAR(255) DEFAULT '',
+                gval17          VARCHAR(255) DEFAULT '',
+                gval18          VARCHAR(255) DEFAULT '',
+                gval19          VARCHAR(255) DEFAULT '',
+                gval20          VARCHAR(255) DEFAULT '',
 
                 FOREIGN KEY (code_id) REFERENCES items(id)
             );
@@ -255,7 +267,9 @@ class _BaseServer:
             SELECT i.code, r.descr, r.ver, r.iter, r.default_unit,
                 r.gval1, r.gval2, r.gval3, r.gval4, r.gval5, r.gval6,
                 r.date_from_days, r.date_to_days, r.id,
-                r.gval7, r.gval8
+                r.gval7, r.gval8, r.gval9, r.gval10, r.gval11, r.gval12,
+                r.gval13, r.gval14, r.gval15, r.gval16, r.gval17, r.gval18,
+                r.gval19, r.gval20
             FROM item_revisions AS r
             LEFT JOIN items AS i
                  ON r.code_id = i.id
@@ -281,6 +295,19 @@ class _BaseServer:
         data["gval6"] = res[10]
         data["gval7"] = res[14]
         data["gval8"] = res[15]
+
+        data["gval9"] = res[16]
+        data["gval10"] = res[17]
+        data["gval11"] = res[18]
+        data["gval12"] = res[19]
+        data["gval13"] = res[20]
+        data["gval14"] = res[21]
+        data["gval15"] = res[22]
+        data["gval16"] = res[23]
+        data["gval17"] = res[24]
+        data["gval18"] = res[25]
+        data["gval19"] = res[26]
+        data["gval20"] = res[27]
 
         data["date_from"] = days_to_txt(res[11])
         data["date_from_days"] = res[11]
@@ -313,8 +340,10 @@ class _BaseServer:
         self._sqlex(c, """
             SELECT i.code, r.descr, r.ver, r.iter, r.default_unit,
                 r.gval1, r.gval2, r.gval3, r.gval4, r.gval5, r.gval6,
-                r.date_from_days, r.date_to_days,
-                i.id, r.gval7, r.gval8
+                r.date_from_days, r.date_to_days, i.id,
+                r.gval7, r.gval8, r.gval9, r.gval10, r.gval11, r.gval12,
+                r.gval13, r.gval14, r.gval15, r.gval16, r.gval17, r.gval18,
+                r.gval19, r.gval20
             FROM item_revisions AS r
             LEFT JOIN items AS i
                  ON r.code_id = i.id
@@ -339,6 +368,19 @@ class _BaseServer:
         data["gval6"] = res[10]
         data["gval7"] = res[14]
         data["gval8"] = res[15]
+
+        data["gval9"] = res[16]
+        data["gval10"] = res[17]
+        data["gval11"] = res[18]
+        data["gval12"] = res[19]
+        data["gval13"] = res[20]
+        data["gval14"] = res[21]
+        data["gval15"] = res[22]
+        data["gval16"] = res[23]
+        data["gval17"] = res[24]
+        data["gval18"] = res[25]
+        data["gval19"] = res[26]
+        data["gval20"] = res[27]
 
         data["date_from"] = days_to_txt(res[11])
         data["date_from_days"] = res[11]
@@ -748,25 +790,27 @@ class _BaseServer:
                     SELECT r.date_from_days
                     FROM item_revisions AS r
                     WHERE r.code_id = ?
-                """, (cid,))
+                      AND date_from_days >= ?
+                """, (cid, date_from_min))
 
             for (date_from_days,) in c.fetchall():
-                if date_from_days < date_from_min:
-                    continue
                 if not date_from_days in sdates:
                     sdates.add(date_from_days)
 
             self._sqlex(c, """
-                    SELECT DISTINCT a.child_id
-                    FROM assemblies AS a
-                    LEFT JOIN item_revisions AS r
-                      ON a.revision_id = r.id
-                    WHERE r.code_id = ?
+                    SELECT DISTINCT child_id
+                    FROM assemblies
+                    WHERE revision_id IN (
+                        SELECT id
+                        FROM item_revisions
+                        WHERE code_id = ?
+                    )
                 """, (cid,))
 
             l = set([x[0] for x in c.fetchall()])
             l = l.difference(done)
             todo += list(l)
+
         dates = list(sdates)
         dates.sort(reverse=True)
         return dates
@@ -921,7 +965,9 @@ class _BaseServer:
                 note,
                 descr,
                 default_unit,
-                gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
+                gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8,
+                gval9, gval10, gval11, gval12, gval13, gval14, gval15,
+                gval16, gval17, gval18, gval19, gval20
             ) SELECT
                 ?,
                 ?, ?,
@@ -931,7 +977,9 @@ class _BaseServer:
                 note,
                 ? ,
                 default_unit,
-                gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
+                gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8,
+                gval9, gval10, gval11, gval12, gval13, gval14, gval15,
+                gval16, gval17, gval18, gval19, gval20
             FROM item_revisions
             WHERE id = ?
         """, (new_code_id,
@@ -1020,6 +1068,8 @@ class _BaseServer:
 
     def update_by_rid(self, rid, descr, ver, default_unit,
             gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8,
+            gval9, gval10, gval11, gval12, gval13, gval14, gval15,
+            gval16, gval17, gval18, gval19, gval20,
             drawings=[], children=[]):
 
         c = self._conn.cursor()
@@ -1029,11 +1079,15 @@ class _BaseServer:
                 UPDATE item_revisions SET
                     descr=?, ver=?, default_unit=?,
                     gval1=?, gval2=?, gval3=?, gval4=?, gval5=?,
-                    gval6=?, gval7=?, gval8=?
+                    gval6=?, gval7=?, gval8=?, gval9=?, gval10=?,
+                    gval11=?, gval12=?, gval13=?, gval14=?, gval15=?,
+                    gval16=?, gval17=?, gval18=?, gval19=?, gval20=?
                 WHERE id=?
                 """,(descr, ver, default_unit,
                      gval1, gval2, gval3, gval4, gval5,
-                     gval6, gval7, gval8,
+                     gval6, gval7, gval8, gval9, gval10,
+                     gval11, gval12, gval13, gval14, gval15,
+                     gval16, gval17, gval18, gval19, gval20,
                      rid))
 
             self._sqlex(c, """
