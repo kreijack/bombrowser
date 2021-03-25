@@ -31,7 +31,7 @@ from PySide2.QtCore import Qt, Signal, QPoint
 import db, asmgui, codegui, diffgui, utils, editcode
 import copycodegui, selectdategui, cfg
 
-class CodesWidget(QWidget):
+class CodesListWidget(QWidget):
     #tableCustomContextMenuRequested = Signal(QPoint)
     rightMenu = Signal(QPoint)
     doubleClicked = Signal()
@@ -238,7 +238,7 @@ class CodesWindow(utils.BBMainWindowNotClose):
         # create toolbar
         self._create_statusbar()
 
-        self._codes_widget = CodesWidget(self)
+        self._codes_widget = CodesListWidget(self)
 
         self.setCentralWidget(self._codes_widget)
 
