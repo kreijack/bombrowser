@@ -342,6 +342,9 @@ def revise_copy_code(code_id, parent):
         data = d.get_code(code_id, date_from_days)
         rid = data["rid"]
 
+        revise_copy_code_by_rid(rid)
+
+def revise_copy_code_by_rid(rid):
         w = CopyCode(rid, None)
         if not w.exec_():
             return None
