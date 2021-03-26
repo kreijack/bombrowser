@@ -332,10 +332,10 @@ class _BaseServer:
 
         return data
 
-    def get_code_from_rid(self, rid):
-        return self._get_code_from_rid(self._conn.cursor(), rid)
+    def get_code_by_rid(self, rid):
+        return self._get_code_by_rid(self._conn.cursor(), rid)
 
-    def _get_code_from_rid(self, c, rid):
+    def _get_code_by_rid(self, c, rid):
 
         self._sqlex(c, """
             SELECT i.code, r.descr, r.ver, r.iter, r.default_unit,
@@ -592,7 +592,7 @@ class _BaseServer:
             rid = todo.pop()
 
             done.append(rid)
-            d2 = self._get_code_from_rid(c, rid)
+            d2 = self._get_code_by_rid(c, rid)
             d = d2["properties"]
             d2.pop("properties")
             d.update(d2)

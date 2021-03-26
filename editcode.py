@@ -660,7 +660,7 @@ class EditWindow(utils.BBMainWindow):
 
     def _refresh_date(self):
         d = db.DB()
-        data = d.get_code_from_rid(self._rid)
+        data = d.get_code_by_rid(self._rid)
 
         self.setWindowTitle(utils.window_title + " - Edit code: %s @ %s"%(
             data["code"], data["date_from"]))
@@ -810,7 +810,7 @@ class EditWindow(utils.BBMainWindow):
         self._rid = rid
         d = db.DB()
 
-        data = d.get_code_from_rid(self._rid)
+        data = d.get_code_by_rid(self._rid)
 
         self.setWindowTitle(utils.window_title + " - Edit code: %s @ %s"%(
             data["code"], data["date_from"]))

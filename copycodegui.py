@@ -39,7 +39,7 @@ class CopyCode(QDialog):
         self._start_editor = None
 
         self._db = db.DB()
-        data = self._db.get_code_from_rid(self._rid)
+        data = self._db.get_code_by_rid(self._rid)
 
         self._old_code = data["code"]
         self._old_descr = data["descr"]

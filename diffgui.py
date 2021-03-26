@@ -427,7 +427,7 @@ def set_to(code_id, parent):
 def set_to_by_rid(rid):
 
     d = db.DB()
-    data = d.get_code_from_rid(rid)
+    data = d.get_code_by_rid(rid)
     code_id = data["id"]
     date_from_days = data["date_from_days"]
     date_from = db.days_to_txt(data["date_from_days"])
@@ -447,7 +447,7 @@ def set_to_by_rid(rid):
 def set_from_by_rid(rid):
 
     d = db.DB()
-    data = d.get_code_from_rid(rid)
+    data = d.get_code_by_rid(rid)
     code_id = data["id"]
     date_from_days = data["date_from_days"]
     date_from = db.days_to_txt(data["date_from_days"])

@@ -123,7 +123,7 @@ def test_get_code_by_rid():
 
     _test_insert_items(c)
 
-    data = d.get_code_from_rid(1)
+    data = d.get_code_by_rid(1)
     assert(data["code"] == "code123")
     #assert(data["descr"] == "descr456")
 
@@ -1377,7 +1377,7 @@ def test_update_by_rid():
     d.update_by_rid(rid, "new descr", "new ver", "new-unit",
             *gvals)
 
-    data = d.get_code_from_rid(rid)
+    data = d.get_code_by_rid(rid)
     assert(data["descr"] == "new descr")
     assert(data["ver"] == "new ver")
     assert(data["unit"] == "new-unit")
@@ -1389,7 +1389,7 @@ def test_update_by_rid():
     d.update_by_rid(rid, "2-new descr", "2-new ver", "2-n-unit",
             *gvals)
 
-    data = d.get_code_from_rid(rid)
+    data = d.get_code_by_rid(rid)
     assert(data["descr"] == "2-new descr")
     assert(data["ver"] == "2-new ver")
     assert(data["unit"] == "2-n-unit")
