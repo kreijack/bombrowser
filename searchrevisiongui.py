@@ -23,7 +23,7 @@ from PySide2.QtWidgets import QScrollArea, QStatusBar
 from PySide2.QtWidgets import QSplitter, QTableView, QLabel
 from PySide2.QtWidgets import QWidget, QApplication, QGridLayout
 from PySide2.QtWidgets import QMessageBox, QAction, QLineEdit
-from PySide2.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton
+from PySide2.QtWidgets import QVBoxLayout, QPushButton
 from PySide2.QtWidgets import QHeaderView, QMenu, QTableWidget, QTableWidgetItem
 
 from PySide2.QtCore import Qt, Signal, QPoint
@@ -97,22 +97,7 @@ class RevisionListWidget(QWidget):
                 c -= 1
 
             row += 1
-        """
-        for c in [5, 3, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]:
-            if i >= len(self._field_names):
-                break
-            hr = QHBoxLayout()
-            vb.addLayout(hr)
-            while c > 0 and i < len(self._field_names):
-                key, descr = self._field_names[i]
-                hr.addWidget(QLabel(descr))
-                w = QLineEdit()
-                self._line_edit_widgets[key] = w
-                hr.addWidget(w)
 
-                i += 1
-                c -= 1
-        """
         # TBD: add validator for id, rid, date_X_days
 
         #hr = QHBoxLayout()
@@ -252,12 +237,18 @@ class RevisionListWidget(QWidget):
     def getCode(self):
         return self._code
 
+    def getRid(self):
+        return self._rid
+
+    def getDateFromDays(self):
+        return self._date_from_days
+
     def getTableText(self):
         return self._copy_info
 
-
-cfg.init()
-app = QApplication(sys.argv)
-w = RevisionListWidget()
-w.show()
-sys.exit(app.exec_())
+if __name__ == "__main__":
+    cfg.init()
+    app = QApplication(sys.argv)
+    w = RevisionListWidget()
+    w.show()
+    sys.exit(app.exec_())
