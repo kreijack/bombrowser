@@ -317,7 +317,7 @@ class EditDates(QDialog):
             self._table.item(row+1, col+1).setText(to_date)
 
 class EditWindow(utils.BBMainWindow):
-    def __init__(self, code_id, parent=None):
+    def __init__(self, code_id, dt=None, parent=None):
         utils.BBMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._code_id = code_id
@@ -333,7 +333,14 @@ class EditWindow(utils.BBMainWindow):
 
         self._populate_dates_list_info()
         self._dates_list_change_index(0)
-        #self._populate_table()
+        if not dt is None:
+            i = 0
+            for row in self._dates_list_info:
+                if row[2] == dt:
+                    self._dates_list.setCurrentIndex(i)
+                    break
+                i += 1
+
 
     def _populate_dates_list_info(self):
         d = db.DB()
@@ -1034,8 +1041,8 @@ class EditWindow(utils.BBMainWindow):
         self._drawings_table.setItem(row, 1, QTableWidgetItem(fn))
 
 
-def edit_code_by_code_id(code_id):
-    w = EditWindow(code_id)
+def edit_code_by_code_id(code_id, dt=None):
+    w = EditWindow(code_id, dt)
     w.show()
     return w
 
