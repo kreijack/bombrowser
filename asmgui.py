@@ -742,3 +742,20 @@ def show_proto_assembly(code_id):
     w.populate(*data, caption_date=db.end_of_the_world)
     QApplication.restoreOverrideCursor()
 
+def show_assembly_by_date(code_id, dt):
+    if not code_id:
+        QApplication.beep()
+        return
+
+    d = db.DB()
+    if not d.is_assembly(code_id):
+        QApplication.beep()
+        QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
+        return
+
+    QApplication.setOverrideCursor(Qt.WaitCursor)
+    w = AssemblyWindow(None)
+    w.show()
+    data = d.get_bom_by_code_id3(code_id, dt)
+    w.populate(*data, caption_date=dt)
+    QApplication.restoreOverrideCursor()
