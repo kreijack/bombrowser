@@ -143,31 +143,36 @@ class RevisionListWidget(QWidget):
 
     def _search(self):
 
-        dd = dict()
-        for k in self._line_edit_widgets.keys():
-            v = str(self._line_edit_widgets[k].text())
-            if len(v) == 0:
-                continue
-            if v in "=!<>" and len(v) < 2:
-                continue
+        try:
+            dd = dict()
+            for k in self._line_edit_widgets.keys():
+                v = str(self._line_edit_widgets[k].text())
+                if len(v) == 0:
+                    continue
+                if v in "=!<>" and len(v) < 2:
+                    continue
 
-            # TBD: add check for id, rid, date_X_days
+                # TBD: add check for id, rid, date_X_days
 
-            if k == "date_from_days" or k == "date_to_days":
-                if k in "<>=!":
-                    k = k[0] + db.iso_to_days(k[1:])
-                else:
-                    k = db.iso_to_days(k)
-            elif self._descr_force_uppercase == "1" and k == "descr":
-                    v = v.upper()
-            elif self._code_force_uppercase == "1" and k == "code":
-                    v = v.upper()
+                if k == "date_from_days" or k == "date_to_days":
+                    if k in "<>=!":
+                        k = k[0] + db.iso_to_days(k[1:])
+                    else:
+                        k = db.iso_to_days(k)
+                elif self._descr_force_uppercase == "1" and k == "descr":
+                        v = v.upper()
+                elif self._code_force_uppercase == "1" and k == "code":
+                        v = v.upper()
 
-            dd[k] = v
+                dd[k] = v
 
-        d = db.DB()
+            d = db.DB()
 
-        ret = d.search_revisions(**dd)
+            ret = d.search_revisions(**dd)
+        except:
+            QApplication.beep()
+            QMessageBox.critical(None, "BOMBrowser", "Incorrect parameter for search")
+            return
 
 
         if not ret or len(ret) == 0:
