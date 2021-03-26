@@ -19,9 +19,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import sys, configparser
 
-from PySide2.QtWidgets import QScrollArea, QStatusBar
+from PySide2.QtWidgets import QScrollArea, QStatusBar, QActionGroup
 from PySide2.QtWidgets import QSplitter, QTableView, QLabel
-from PySide2.QtWidgets import QWidget, QApplication
+from PySide2.QtWidgets import QWidget, QApplication, QStackedWidget
 from PySide2.QtWidgets import QMessageBox, QAction, QLineEdit
 from PySide2.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton
 from PySide2.QtWidgets import QHeaderView, QMenu, QTableWidget, QTableWidgetItem
@@ -29,7 +29,7 @@ from PySide2.QtWidgets import QHeaderView, QMenu, QTableWidget, QTableWidgetItem
 from PySide2.QtCore import Qt, Signal, QPoint
 
 import db, asmgui, codegui, diffgui, utils, editcode
-import copycodegui, selectdategui, cfg
+import copycodegui, selectdategui, cfg, searchrevisiongui
 
 class CodesListWidget(QWidget):
     #tableCustomContextMenuRequested = Signal(QPoint)
@@ -194,30 +194,45 @@ class CodesWindow(utils.BBMainWindowNotClose):
     def _create_menu(self):
         mainMenu = self.menuBar()
 
-        fileMenu = mainMenu.addMenu("File")
+        m = mainMenu.addMenu("File")
+        a = QAction("Close", self)
+        a.setShortcut("Ctrl+Q")
+        a.triggered.connect(self.close)
+        m.addAction(a)
+        a = QAction("Exit", self)
+        a.triggered.connect(self._exit_app)
+        m.addAction(a)
 
-        closeAction = QAction("Close", self)
-        closeAction.setShortcut("Ctrl+Q")
-        closeAction.triggered.connect(self.close)
-        exitAction = QAction("Exit", self)
-        exitAction.triggered.connect(self._exit_app)
-        fileMenu.addAction(closeAction)
-        fileMenu.addAction(exitAction)
+        m = mainMenu.addMenu("Edit")
+        a = QAction("Copy table values", self)
+        a.triggered.connect(self._copy_info_action)
+        m.addAction(a)
 
-        editMenu = mainMenu.addMenu("Edit")
-        copyAction = QAction("Copy table values", self)
-        copyAction.triggered.connect(self._copy_info_action)
-        editMenu.addAction(copyAction)
+        m = mainMenu.addMenu("Search mode")
+        ag = QActionGroup(self)
+        ag.setExclusive(True)
+
+        a = QAction("Simple", self)
+        a.setCheckable(True)
+        a.triggered.connect(lambda : self._stacked_widget.setCurrentIndex(0))
+        ag.addAction(a)
+        a.setChecked(True)
+        m.addAction(a)
+
+        a = QAction("Advanced", self)
+        a.setCheckable(True)
+        m.addAction(a)
+        a.triggered.connect(lambda : self._stacked_widget.setCurrentIndex(1))
+        ag.addAction(a)
 
         self._windowsMenu = mainMenu.addMenu("Windows")
         self._windowsMenu.aboutToShow.connect(self._build_windows_menu)
-
         self._build_windows_menu()
 
-        helpMenu = mainMenu.addMenu("Help")
+        m = mainMenu.addMenu("Help")
         a = QAction("About ...", self)
         a.triggered.connect(lambda : utils.about(self, db.connection))
-        helpMenu.addAction(a)
+        m.addAction(a)
 
     def _build_windows_menu(self):
         utils.build_windows_menu(self._windowsMenu, self)
@@ -234,17 +249,24 @@ class CodesWindow(utils.BBMainWindowNotClose):
         cb.setText(self._codes_widget.getTableText(), mode=cb.Clipboard)
 
     def _init_gui(self):
-        self._create_menu()
-        # create toolbar
+
         self._create_statusbar()
 
         self._codes_widget = CodesListWidget(self)
+        self._revisions_widget = searchrevisiongui.RevisionListWidget(self)
+        self._stacked_widget = QStackedWidget()
+        self._stacked_widget.addWidget(self._codes_widget)
+        self._stacked_widget.addWidget(self._revisions_widget)
 
-        self.setCentralWidget(self._codes_widget)
+        self.setCentralWidget(self._stacked_widget)
 
-        self._codes_widget.rightMenu.connect(self._tree_context_menu)
+        self._codes_widget.rightMenu.connect(self._codes_widget_context_menu)
+        self._revisions_widget.rightMenu.connect(self._revisions_widget_context_menu)
 
         self._codes_widget.emitResult.connect(self._show_results)
+        self._revisions_widget.emitResult.connect(self._show_results)
+        self._create_menu()
+        # create toolbar
 
     def _show_results(self, n):
         if n > 0:
@@ -252,7 +274,7 @@ class CodesWindow(utils.BBMainWindowNotClose):
         else:
             self._my_statusbar.showMessage("Last search have 0 results !!!")
 
-    def _tree_context_menu(self, point):
+    def _codes_widget_context_menu(self, point):
         contextMenu = QMenu(self)
 
         contextMenu.addAction("Show latest assembly").triggered.connect(self._show_latest_assembly)
@@ -269,6 +291,34 @@ class CodesWindow(utils.BBMainWindowNotClose):
 
         contextMenu.exec_(point)
 
+    def _revisions_widget_context_menu(self, point):
+        contextMenu = QMenu(self)
+
+        contextMenu.addAction("Show this assembly").triggered.connect(
+            self._show_assembly_rid)
+        contextMenu.addAction("Show latest assembly").triggered.connect(
+            self._show_latest_assembly)
+        contextMenu.addAction("Where used").triggered.connect(
+            self._show_where_used)
+        contextMenu.addAction("Valid where used").triggered.connect(
+            self._show_valid_where_used)
+        contextMenu.addAction("Show assembly by date").triggered.connect(
+            self._show_assembly)
+        contextMenu.addAction("Show prototype assembly").triggered.connect(
+            self._show_proto_assembly)
+        contextMenu.addSeparator()
+        contextMenu.addAction("Copy/revise code ...").triggered.connect(
+            self._revise_code_rid)
+        contextMenu.addAction("Edit code ...").triggered.connect(
+            self._edit_code_rid)
+        contextMenu.addSeparator()
+        contextMenu.addAction("Diff from").triggered.connect(
+            self._set_diff_from_rid)
+        contextMenu.addAction("Diff to").triggered.connect(
+            self._set_diff_to_rid)
+
+        contextMenu.exec_(point)
+
     def _set_diff_from(self):
         if not self._codes_widget.getCodeId():
             QApplication.beep()
@@ -282,22 +332,25 @@ class CodesWindow(utils.BBMainWindowNotClose):
         diffgui.set_to(self._codes_widget.getCodeId(), self)
 
     def _show_latest_assembly(self):
-        if not self._codes_widget.getCodeId():
+        cid = self._stacked_widget.currentWidget().getCodeId()
+        if not cid:
             QApplication.beep()
             return
-        asmgui.show_latest_assembly(self._codes_widget.getCodeId())
+        asmgui.show_latest_assembly(cid)
 
     def _show_assembly(self):
-        if not self._codes_widget.getCodeId():
+        cid = self._stacked_widget.currentWidget().getCodeId()
+        if not cid:
             QApplication.beep()
             return
-        asmgui.show_assembly(self._codes_widget.getCodeId(), self)
+        asmgui.show_assembly(cid, self)
 
     def _show_proto_assembly(self):
-        if not self._codes_widget.getCodeId():
+        cid = self._stacked_widget.currentWidget().getCodeId()
+        if not cid:
             QApplication.beep()
             return
-        asmgui.show_proto_assembly(self._codes_widget.getCodeId())
+        asmgui.show_proto_assembly(cid)
 
     def _revise_code(self):
         if not self._codes_widget.getCodeId():
@@ -312,14 +365,53 @@ class CodesWindow(utils.BBMainWindowNotClose):
         editcode.edit_code_by_code_id(self._codes_widget.getCodeId())
 
     def _show_where_used(self):
-        if not self._codes_widget.getCodeId():
+        cid = self._stacked_widget.currentWidget().getCodeId()
+        if not cid:
             QApplication.beep()
             return
-        asmgui.where_used(self._codes_widget.getCodeId(), self)
+        asmgui.where_used(cid, self)
 
     def _show_valid_where_used(self):
-        if not self._codes_widget.getCodeId():
+        cid = self._stacked_widget.currentWidget().getCodeId()
+        if not cid:
             QApplication.beep()
             return
-        asmgui.valid_where_used(self._codes_widget.getCodeId(), self)
+        asmgui.valid_where_used(cid, self)
+
+    def _show_assembly_rid(self):
+        cid = self._revisions_widget.getCodeId()
+        if not cid:
+            QApplication.beep()
+            return
+
+        dt = self._revisions_widget.getDateFromDays()
+
+        asmgui.show_assembly_by_date(cid, dt)
+
+    def _set_diff_from_rid(self):
+        if not self._revisions_widget.getCodeId():
+            QApplication.beep()
+            return
+        diffgui.set_from_by_rid(self._revisions_widget.getRid())
+
+    def _set_diff_to_rid(self):
+        if not self._revisions_widget.getCodeId():
+            QApplication.beep()
+            return
+        diffgui.set_to_by_rid(self._revisions_widget.getRid())
+
+    def _revise_code_rid(self):
+        if not self._revisions_widget.getCodeId():
+            QApplication.beep()
+            return
+        copycodegui.revise_copy_code_by_rid(self._revisions_widget.getRid())
+
+    def _edit_code_rid(self):
+        cid = self._revisions_widget.getCodeId()
+        if not cid:
+            QApplication.beep()
+            return
+
+        dt = self._revisions_widget.getDateFromDays()
+        editcode.edit_code_by_code_id(cid, dt)
 
