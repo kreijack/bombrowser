@@ -424,3 +424,43 @@ def set_to(code_id, parent):
     _diffDialog.show()
     _diffDialog.set_to(str(code_id), code, date_from, date_from_days)
 
+def set_to_by_rid(rid):
+
+    d = db.DB()
+    data = d.get_code_from_rid(rid)
+    code_id = data["id"]
+    date_from_days = data["date_from_days"]
+    date_from = db.days_to_txt(data["date_from_days"])
+    code = data["code"]
+
+    if not d.is_assembly(code_id):
+        QApplication.beep()
+        QMessageBox.critical(parent, "BOMBrowser", "The item is not an assembly")
+        return
+
+    global _diffDialog
+    if _diffDialog is None:
+        _diffDialog = DiffDialog()
+    _diffDialog.show()
+    _diffDialog.set_to(str(code_id), code, date_from, date_from_days)
+
+def set_from_by_rid(rid):
+
+    d = db.DB()
+    data = d.get_code_from_rid(rid)
+    code_id = data["id"]
+    date_from_days = data["date_from_days"]
+    date_from = db.days_to_txt(data["date_from_days"])
+    code = data["code"]
+
+    if not d.is_assembly(code_id):
+        QApplication.beep()
+        QMessageBox.critical(parent, "BOMBrowser", "The item is not an assembly")
+        return
+
+    global _diffDialog
+    if _diffDialog is None:
+        _diffDialog = DiffDialog()
+    _diffDialog.show()
+    _diffDialog.set_from(str(code_id), code, date_from, date_from_days)
+
