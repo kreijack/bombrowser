@@ -40,7 +40,7 @@ class Exporter:
             "Seq", "Level", "Code", "Code",
             "Description", "Unit",
             "Quantity", "Each", "Date from", "Date to"]
-        self._add_headers = cfg.config().get("BOMBROWSER", "gvalnames").split(",")
+        self._add_headers = cfg.get_gvalnames()
         self._headers += self._add_headers
         self._db = db.DB()
 

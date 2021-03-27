@@ -65,7 +65,7 @@ class CodeWidget(QWidget):
             ("Unit", "unit"),
         ]
 
-        gvalnames = cfg.config().get("BOMBROWSER", "gvalnames").split(",")
+        gvalnames = cfg.get_gvalnames()
         i = 0
         for i in range(len(gvalnames)):
             self._main_data.append((gvalnames[i], "gval%d"%(i+1)))

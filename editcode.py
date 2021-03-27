@@ -420,14 +420,52 @@ class EditWindow(utils.BBMainWindow):
         qgb.setLayout(qgbg)
 
         self._gvals = []
-        gvalnames = cfg.config().get("BOMBROWSER", "gvalnames").split(",")
+        gvalnames = cfg.get_gvalnames()
         i = 0
         row = 0
-        for i in range(len(gvalnames)):
-            name = gvalnames[i]
+        for name in gvalnames:
+            t = cfg.get_gvalnames_type(name)
             le = QLineEdit()
             qgbg.addWidget(QLabel(name), row / 2, 10 + (row % 2) * 2)
-            qgbg.addWidget(le, row / 2, 11 + (row % 2) * 2)
+            if t == "file":
+                w = QHBoxLayout()
+                w.addWidget(le)
+                b = QPushButton("...")
+                w.addWidget(b)
+                class Do:
+                    def __init__(self, le, parent):
+                        self._le = le
+                        self._parent = parent
+                    def __call__(self):
+                        (fn, _) = QFileDialog.getOpenFileName(self._parent,
+                            "Select a file")
+                        if fn != "":
+                            self._le.setText(fn)
+                b.clicked.connect(Do(le, self))
+                qgbg.addLayout(w, row / 2, 11 + (row % 2) * 2)
+            elif t.startswith("list:"):
+                w = QHBoxLayout()
+                w.addWidget(le)
+                b = QComboBox()
+                values =t[5:].split(";")
+                b.addItem("...")
+                for i in values:
+                    b.addItem(i)
+                class Do:
+                    def __init__(self, le, l):
+                        self._le = le
+                        self._list = l[:]
+                    def __call__(self, i):
+                        if i < 1 or i >= len(self._list):
+                            return
+                        self._le.setText(self._list[i])
+                b.currentIndexChanged.connect(Do(le, values))
+                w.addWidget(b)
+                qgbg.addLayout(w, row / 2, 11 + (row % 2) * 2)
+            else:
+                qgbg.addWidget(le, row / 2, 11 + (row % 2) * 2)
+
+
             self._gvals.append((name, le))
             row += 1
 

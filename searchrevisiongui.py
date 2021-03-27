@@ -47,8 +47,7 @@ class RevisionListWidget(QWidget):
         self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
         self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
         self._data = dict()
-        self._gvals_caption = [x.strip() for x in
-            cfg.config().get("BOMBROWSER", "gvalnames").split(",")]
+        self._gvals_caption = cfg.get_gvalnames()
         self._field_names = [
             ("code", "Code"), ("descr", "Description", 6),
             ("id", "id"), ("rid", "rid"),

@@ -29,6 +29,41 @@ def init():
 def config():
     return _cfg
 
+def get_gvalnames():
+    l = config().get("BOMBROWSER", "gvalnames").split(",")
+    ret = []
+    for n in l:
+        i = n.find("[")
+        if i < 0:
+            ret.append(n.strip())
+        else:
+            assert(len(n[:i].strip()))
+            ret.append(n[:i].strip())
+
+    return ret
+
+
+def get_gvalnames_type(name):
+    l = config().get("BOMBROWSER", "gvalnames").split(",")
+    ret = []
+    for n in l:
+        i = n.find("[")
+        if i < 0:
+            k = n
+        else:
+            k = n[:i]
+
+        if k != name:
+            continue
+
+        if i < 0:
+            return ""
+
+        j = n.find("]")
+        return n[i+1:j]
+
+    return ""
+
 def update_cfg(data):
     for key1 in data:
         row1 = data[key1]
