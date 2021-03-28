@@ -1532,11 +1532,11 @@ def test_search_revisions_all_values():
 
 #------
 
-def run_test(filters):
+def run_test(filters, modules):
     import inspect
     from inspect import getmembers, isfunction
 
-    for (name, obj) in inspect.getmembers(sys.modules[__name__]):
+    for (name, obj) in inspect.getmembers(modules):
         if not inspect.isfunction(obj):
             continue
         if not name.startswith("test_"):
@@ -1573,5 +1573,5 @@ if __name__ == "__main__":
             last = i
             break
 
-    run_test(sys.argv[last:])
+    run_test(sys.argv[last:], sys.modules[__name__])
 
