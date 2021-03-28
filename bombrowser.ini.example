@@ -30,6 +30,7 @@ username = bombrowser
 password = bombrowser1
 
 
+# this appears in the menu as "copy" or as "export as csv"
 [template_simple]
 # available columns type
 # seq -> sequential number AFTER the sorting
@@ -43,16 +44,30 @@ password = bombrowser1
 # ref -> ref
 # paren -> parent_code
 # drawings -> drawings path
-# gval0, glval1 -> generic fields
+# gval1, glval20 -> generic fields
 # rev -> code revision
 # iter -> code iteration
 # date_from -> from date
 # date_to -> date_to
 name=Simple table
-#sortby=-1
 columns=seq,level,code,indented_code,descr,qty,each,unit,ref,rev,iter,date_from,date_to
 captions=Seq,Level,Code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date
-#unique
+
+# Options:
+
+# Sort the output one the base of the column (-1 = no sort)
+#sortby=-1
+
+# Remove duplicated row (e.g if an assy is reported more than once)
+#unique=1
+
+# Separator style: TAB|EXECL
+#     TAB     -> the fields are separated by tab
+#     EXCEL   -> the fields are separated by ';', and each field is protect
+#                by '"'
+mode=TAB
+
+
 
 [template_all]
 name=Full table

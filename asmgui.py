@@ -186,8 +186,6 @@ class AssemblyWindow(utils.BBMainWindow):
 
         self._windowsMenu.aboutToShow.connect(self._build_windows_menu)
 
-        export_bom = QAction("Export bom as CSV file...", self)
-        export_bom.triggered.connect(self._export_bom)
         export_assy = QAction("Export bom as JSON file format...", self)
         export_assy.triggered.connect(self._export_assemblies_list)
 
@@ -199,9 +197,13 @@ class AssemblyWindow(utils.BBMainWindow):
                 self._f(self._arg)
 
         export_as = []
-        for tmpl in exporter.get_template_list():
-            m = QAction("Export bom as CSV template '%s'"%(tmpl), self)
-            m.triggered.connect(Caller(self._export_as_template, tmpl))
+        for name, descr in exporter.get_template_list():
+            if name == "template_simple":
+                m = QAction("Export bom as CSV file...", self)
+                m.triggered.connect(Caller(self._export_as_template, name))
+            else:
+                m = QAction("Export bom as CSV template '%s'"%(descr), self)
+                m.triggered.connect(Caller(self._export_as_template, name))
             export_as.append(m)
 
         copyFiles = QAction("Copy files ...", self)
@@ -217,9 +219,13 @@ class AssemblyWindow(utils.BBMainWindow):
         copyAction.triggered.connect(self._copy_info_action)
 
         copy_as = []
-        for tmpl in exporter.get_template_list():
-            m = QAction("Copy bom as template '%s'"%(tmpl), self)
-            m.triggered.connect(Caller(self._copy_as_template, tmpl))
+        for name, descr in exporter.get_template_list():
+            if name == "template_simple":
+                m = QAction("Copy", self)
+                m.triggered.connect(Caller(self._copy_as_template, name))
+            else:
+                m = QAction("Copy bom as template '%s'"%(descr), self)
+                m.triggered.connect(Caller(self._copy_as_template, name))
             copy_as.append(m)
 
         findAction = QAction("Find", self)
@@ -240,7 +246,6 @@ class AssemblyWindow(utils.BBMainWindow):
 
         viewMenu.addAction(a)
 
-        fileMenu.addAction(export_bom)
         fileMenu.addAction(export_assy)
         for m in export_as:
             fileMenu.addAction(m)
@@ -249,8 +254,6 @@ class AssemblyWindow(utils.BBMainWindow):
         fileMenu.addSeparator()
         fileMenu.addAction(closeAction)
         fileMenu.addAction(exitAction)
-        editMenu.addAction(copyAction)
-        editMenu.addSeparator()
         for m in copy_as:
             editMenu.addAction(m)
         searchMenu.addAction(findAction)
@@ -338,7 +341,7 @@ class AssemblyWindow(utils.BBMainWindow):
         if nf[0] == '':
             return
         e = exporter.Exporter(self._top , self._data)
-        data = e.export_as_csv_table_by_template(template)
+        data = e.export_as_table_by_template(template)
         open(nf[0], "w").write(data)
 
     def _copy_as_template(self, template):

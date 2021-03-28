@@ -29,7 +29,7 @@ def get_template_list():
     ret = []
     template_list = cfg.config().get("BOMBROWSER", "templates_list").split(",")
     for template_section in template_list:
-        ret.append(cfg.config().get(template_section, "name"))
+        ret.append((template_section, cfg.config().get(template_section, "name")))
     return ret
 
 class Exporter:
@@ -43,41 +43,6 @@ class Exporter:
         self._add_headers = cfg.get_gvalnames()
         self._headers += self._add_headers
         self._db = db.DB()
-
-    def export_as_bom(self, nf):
-        f = open(nf, "w")
-        self._export_as_bom(f)
-        f.close()
-
-    def _export_as_bom(self, f):
-        self._path = []
-        self._seq = 0
-
-        f.write("\t".join(self._headers)+"\n")
-        self._export_as_bom_it(f, self._rootnode, 0, 0, "N/A", "N/A", "N/A")
-
-    def export_bom_as_string(self):
-        f = io.StringIO()
-        self._export_as_bom(f)
-        return f.getvalue()
-
-    def _export_as_bom_it(self, f, node, level, seq, qty, each, unit):
-        item = self._data[node]
-        items = [ item["gval%d"%(i+1)] for i in range(len(self._add_headers))]
-
-        f.write("\t".join(map(str, [
-            str(self._seq), str(level), item["code"], '"'+"... "*level + item["code"]+'"',
-            item["descr"], unit,
-            str(qty), str(each),
-            *items,
-        ])))
-        f.write("\n")
-        self._seq += 1
-        for child_id in item["deps"]:
-            child = item["deps"][child_id]
-            self._export_as_bom_it(f, child_id, level + 1, seq, child["qty"],
-                                child["each"], child["unit"])
-            seq += 1
 
     def export_as_json(self, nf):
         f = open(nf, "w")
@@ -165,19 +130,10 @@ class Exporter:
 
 
     def _export_as_table_by_template(self, template_name):
-        template_list = cfg.config().get("BOMBROWSER", "templates_list").split(",")
-        for template_section in template_list:
-            if cfg.config().get(template_section, "name") == template_name:
-                break
-        else:
-            # TBD show an error
-            assert(False)
-
-        sortby=int(cfg.config()[template_section].get("sortby", -1))
-        columns=cfg.config()[template_section].get("columns").split(",")
-        captions=cfg.config()[template_section].get("captions").split(",")
-        unique=int(cfg.config()[template_section].get("unique", 0))
-        captions=cfg.config()[template_section].get("captions").split(",")
+        columns=cfg.config()[template_name].get("columns").split(",")
+        captions=cfg.config()[template_name].get("captions").split(",")
+        sortby=int(cfg.config()[template_name].get("sortby", -1))
+        unique=int(cfg.config()[template_name].get("unique", 0))
         table = []
 
         self._seq = 0
@@ -189,30 +145,30 @@ class Exporter:
 
         return table, captions
 
-    def export_as_table_by_template(self, template_name):
-        table, captions = self._export_as_table_by_template(template_name)
+    def export_as_table_by_template(self, template_section):
+        table, captions = self._export_as_table_by_template(template_section)
+
+        mode=cfg.config()[template_section].get("mode", "EXCEL").upper()
+        assert(mode in ["EXCEL", "TAB"])
 
         f = io.StringIO()
-        f.write("\t".join(captions)+"\n")
-        for line in table:
-            f.write("\t".join(line)+"\n")
+        if mode == "TAB":
+            def removecrnl(s):
+                return s.replace("\r", "").replace("\n", "")
+
+            f.write("\t".join(map(removecrnl, captions))+"\n")
+            for line in table:
+                f.write("\t".join(map(removecrnl, line))+"\n")
+
+        elif mode == "EXCEL":
+            f.write("\ufeff")  # utf-8 bom marker
+            def excelize(s):
+                s = s.replace("\r", "").replace("\n", "")
+                return '"' + s.replace('"', '""') + '"'
+
+            f.write(";".join(map(excelize, captions))+"\n")
+            for line in table:
+                f.write(";".join(map(excelize, line))+"\n")
 
         return f.getvalue()
 
-
-    def export_as_csv_table_by_template(self, template_name):
-        table, captions = self._export_as_table_by_template(template_name)
-
-        f = io.StringIO()
-
-        def csvstring(s):
-            s = s.replace('"', '""')
-            s = s.replace('\n', '')
-            s = s.replace('\r', '')
-            return '"' + s + '"'
-
-        f.write(", ".join([csvstring(x) for x in captions])+"\n")
-        for line in table:
-            f.write(", ".join([csvstring(x) for x in line])+"\n")
-
-        return f.getvalue()
