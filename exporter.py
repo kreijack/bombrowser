@@ -29,6 +29,8 @@ def get_template_list():
     ret = []
     template_list = cfg.config().get("BOMBROWSER", "templates_list").split(",")
     for template_section in template_list:
+        if not cfg.config().has_section(template_section):
+            continue
         ret.append((template_section, cfg.config().get(template_section, "name")))
     return ret
 
