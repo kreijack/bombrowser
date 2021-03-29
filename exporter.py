@@ -31,6 +31,8 @@ def get_template_list():
     for template_section in template_list:
         if not cfg.config().has_section(template_section):
             continue
+        if not "name" in cfg.config()[template_section]:
+            continue
         ret.append((template_section, cfg.config().get(template_section, "name")))
     return ret
 
