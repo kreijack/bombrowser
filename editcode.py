@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sys, configparser, os
+import sys, configparser, os, pprint, traceback
 
 from PySide2.QtWidgets import QComboBox
 from PySide2.QtWidgets import QSplitter, QTableView, QLabel, QTableWidgetItem
@@ -30,6 +30,8 @@ from PySide2.QtGui import QColor, QDesktopServices
 from PySide2.QtCore import Qt, QUrl
 
 import db, asmgui, codegui, diffgui, utils, listcodegui, jdutil, cfg
+import importer
+from utils import catch_exception
 
 class SelectCode(QDialog):
     def __init__(self, parent):
@@ -316,6 +318,75 @@ class EditDates(QDialog):
             to_date = db.days_to_iso(to_date)
             self._table.item(row+1, col+1).setText(to_date)
 
+class SelectFromList(QDialog):
+    def __init__(self, parent, title, header, data):
+        QDialog.__init__(self, parent)
+
+        self.setWindowTitle(title)
+
+        self._return_index = None
+
+        grid = QGridLayout()
+        self._table = QTableWidget()
+
+        self._table.clear()
+        self._table.horizontalHeader().setStretchLastSection(True)
+        self._table.setSortingEnabled(True)
+        self._table.setSelectionBehavior(QTableView.SelectRows);
+        self._table.setAlternatingRowColors(True)
+        self._table.setSelectionMode(self._table.SingleSelection)
+
+        if isinstance(header, list):
+            ncol = len(header)
+            #header = ["id"] + header
+        else:
+            ncol = 1
+            header = [header]
+            data = [[x] for x in data]
+        self._table.setColumnCount(ncol)
+        self._table.setRowCount(len(data))
+        self._table.setHorizontalHeaderLabels(header)
+        for nrow, line in enumerate(data):
+            #line = ["%4d"%(nrow)] + line
+            for c, v in enumerate(line):
+                i = QTableWidgetItem(v)
+                i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                if c == 0:
+                    i.setData(Qt.UserRole, nrow)
+                self._table.setItem(nrow, c, i)
+
+        self._table.doubleClicked.connect(self.accept)
+        self._table.itemSelectionChanged.connect(self._change_selection)
+
+        self._table.selectRow(0)
+        grid.addWidget(self._table, 0, 0, 1, 2)
+
+        b = QPushButton("Close")
+        b.clicked.connect(self._close)
+        grid.addWidget(b, 10, 0)
+        b = QPushButton("Select")
+        b.clicked.connect(self.accept)
+        grid.addWidget(b, 10, 1)
+
+        self.setLayout(grid)
+        self.setAttribute(Qt.WA_DeleteOnClose)
+
+    def _change_selection(self):
+        idxs = self._table.selectedIndexes()
+        if len(idxs) < 1:
+            row = 0
+        else:
+            row = idxs[0].row()
+
+        self._return_index = int(self._table.item(row, 0).data(Qt.UserRole))
+
+    def _close(self):
+        self._return_index = None
+        self.reject()
+
+    def getIndex(self):
+        return self._return_index
+
 class EditWindow(utils.BBMainWindow):
     def __init__(self, code_id, dt=None, parent=None):
         utils.BBMainWindow.__init__(self, parent)
@@ -583,6 +654,15 @@ class EditWindow(utils.BBMainWindow):
         #m.triggered.connect(lambda x: True)
         #m.addAction(a)
 
+        il = importer.get_importer_list()
+        if len(il):
+            m = mainMenu.addMenu("Import")
+            for (name, descr, callable_) in il:
+                a = QAction("Import as '%s'..."%(descr), self)
+                a.triggered.connect(utils.Callable(
+                    self._import_from, name, callable_))
+                m.addAction(a)
+
         self._windowsMenu = mainMenu.addMenu("Windows")
         self._windowsMenu.aboutToShow.connect(self._build_windows_menu)
         self._build_windows_menu()
@@ -591,6 +671,74 @@ class EditWindow(utils.BBMainWindow):
         a = QAction("About ...", self)
         a.triggered.connect(lambda : utils.about(self, db.connection))
         m.addAction(a)
+
+    @catch_exception
+    def _import_from(self, name, callable_):
+
+        bom = callable_()
+
+        if bom is None:
+            QMessageBox.critical(self, "BOMBrowser",
+                "Cannot import data")
+            return
+
+        if 0 in bom:
+            root = 0
+        else:
+            data = list([[k, bom[k]["descr"]] for k in bom])
+            w = SelectFromList(self, "Select a code for import",
+                ["CODE", "DESCR"], data)
+            w.exec_()
+
+            ret = w.getIndex()
+            if ret is None:
+                return
+
+            root = data[ret][0]
+
+        pprint.pprint(bom[root])
+
+        children = [(bom[root]["deps"][k]["code"],
+                bom[root]["deps"][k]["qty"], bom[root]["deps"][k]["each"],
+                bom[root]["deps"][k]["unit"],
+                bom[root]["deps"][k]["ref"]) for k in bom[root]["deps"]]
+
+        self._children_table.setSortingEnabled(False)
+
+        nrow = len(children)
+        delta = nrow - self._children_table.rowCount()
+
+        if delta > 0:
+            while delta > 0:
+                self._children_table.insertRow(0)
+                delta -= 1
+        elif delta < 0:
+            while delta < 0:
+                self._children_table.removeRow(0)
+                delta += 1
+        assert(nrow - self._children_table.rowCount() == 0)
+
+        for (row, (code, qty, each, unit, ref)) in enumerate(children):
+
+            self._children_populate_row(row, "-", code, "-", qty,
+                                each, unit, ref)
+
+        self._children_table.setSortingEnabled(True)
+
+        if root != 0:
+            if "descr" in bom[root]:
+                self._descr.setText(bom[root]["descr"])
+            if "unit" in bom[root]:
+                self._unit.setText(bom[root]["unit"])
+
+            for i in range(db.gvals_count):
+                gvn = "gval%d"%(i+1)
+                if not gvn in bom[root]:
+                    continue
+                v = bom[root][gvn]
+                if v is None:
+                    continue
+                self._gvals[i][1].setText(v)
 
     def _delete_code(self):
         if self._form_is_changed():
@@ -832,50 +980,29 @@ class EditWindow(utils.BBMainWindow):
         i.setFont(f)
         self._children_table.setItem(row, 1, i)
 
-        self._children_table.setItem(row, 2, QTableWidgetItem(code))
 
         i = QTableWidgetItem(descr)
         i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
         i.setFont(f)
         self._children_table.setItem(row, 3, i)
 
+
+
+
         self._children_table.setItem(row, 4, QTableWidgetItem(str(qty)))
         self._children_table.setItem(row, 5, QTableWidgetItem(str(each)))
         self._children_table.setItem(row, 6, QTableWidgetItem(unit))
         self._children_table.setItem(row, 7, QTableWidgetItem(ref))
 
-    def _populate_table(self, rid):
-        self._rid = rid
-        d = db.DB()
+        # after 1,3  and 6 because if we change 'code', 1,3 or 6  may be changed
+        self._children_table.setItem(row, 2, QTableWidgetItem(code))
 
-        data = d.get_code_by_rid(self._rid)
-
-        self.setWindowTitle(utils.window_title + " - Edit code: %s @ %s"%(
-            data["code"], data["date_from"]))
-
-        self._rid_w.setText(str(self._rid))
-        self._id.setText(str(data["id"]))
-        self._code.setText(data["code"])
-        self._descr.setText(data["descr"])
-        self._ver.setText(data["ver"])
-        self._orig_revision = data["ver"]
-        self._iter.setText(str(data["iter"]))
-        self._unit.setText(data["unit"])
-        self._from_date_days = data["date_from_days"]
-        self._to_date_days = data["date_to_days"]
-
-        # add the properties
-        for i in range(len(self._gvals)):
-            self._gvals[i][1].setText(data["gval%d"%(i+1)])
-
-        # children
-
+    def _populate_children(self, children):
         try:
             self._children_table.cellChanged.disconnect()
         except:
             pass
 
-        children = list(d.get_children_by_rid(self._rid))
         self._children_table.clear()
         self._children_table.horizontalHeader().setStretchLastSection(True)
         self._children_table.setSortingEnabled(True)
@@ -903,6 +1030,35 @@ class EditWindow(utils.BBMainWindow):
         self._children_table.cellChanged.connect(self._children_cell_changed)
         self._children_table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeToContents)
+
+    def _populate_table(self, rid):
+        self._rid = rid
+        d = db.DB()
+
+        data = d.get_code_by_rid(self._rid)
+
+        self.setWindowTitle(utils.window_title + " - Edit code: %s @ %s"%(
+            data["code"], data["date_from"]))
+
+        self._rid_w.setText(str(self._rid))
+        self._id.setText(str(data["id"]))
+        self._code.setText(data["code"])
+        self._descr.setText(data["descr"])
+        self._ver.setText(data["ver"])
+        self._orig_revision = data["ver"]
+        self._iter.setText(str(data["iter"]))
+        self._unit.setText(data["unit"])
+        self._from_date_days = data["date_from_days"]
+        self._to_date_days = data["date_to_days"]
+
+        # add the properties
+        for i in range(len(self._gvals)):
+            self._gvals[i][1].setText(data["gval%d"%(i+1)])
+
+        # children
+
+        children = list(d.get_children_by_rid(self._rid))
+        self._populate_children(children)
         # drawings
 
         drawings = list(d.get_drawings_by_code_id(self._rid))
@@ -1098,5 +1254,21 @@ def test_edit_dates():
     w = EditDates(6264, None) # top assembly
     w.exec_()
 
+def test_select_list():
+    app = QApplication(sys.argv)
+    w = SelectFromList(None, "Prova", "Elenco1",
+        ["a", "b", "c", "prova-d"])
+    w.exec_()
+
+    print(w.getIndex())
+
+def test_select_list2():
+    app = QApplication(sys.argv)
+    w = SelectFromList(None, "Prova", ["Elenco1", "colb"],
+        [["a", "b"], ["z", "prova-d"]])
+    w.exec_()
+
+    print(w.getIndex())
+
 if __name__ == "__main__":
-    test_edit()
+    test_select_list2()
