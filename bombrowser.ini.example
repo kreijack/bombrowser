@@ -10,7 +10,7 @@ description_force_uppercase=1
 code_force_uppercase=1
 
 templates_list=template_simple,template_all,template_dummy
-
+importer_list=import_simple
 
 # the name of gvalN (n=1..8) fields separated by comma
 # it is allowed to have less than 8 fields
@@ -83,5 +83,19 @@ columns=seq,parent,code,descr,qty,each,unit,ref,rev,iter,date_from,date_to
 captions=Seq,Parent code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date
 #unique
 
+[import_simple]
+name=Simple importer
 
+# parent_child or json
+type=parent_child
+
+#map the columns in the file to the internal fields
+map=code=CodeNr,ref=DesignatorText,qty=QuantityNr
+# kind of separator (SEMICOLON, TAB, COMMA, COLON)
+separator=SEMICOLON
+# options: default_unit, skip_first_lines, ignore_duplicate, ignore quote,
+#          ignore_bom (as UTF8 marker),
+options=default_unit=NR,skip_first_lines=1
+#Skip the first lines before parsing
+#skip_first_lines=<nn>
 
