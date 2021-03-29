@@ -31,6 +31,7 @@ import pprint, shutil
 
 import db, codegui, diffgui, copycodegui
 import exporter, utils, selectdategui, editcode
+from utils import catch_exception
 
 
 class FindDialog(QDialog):
@@ -215,8 +216,6 @@ class AssemblyWindow(utils.BBMainWindow):
         exitAction = QAction("Exit", self)
         exitAction.setShortcut("Ctrl+X")
         exitAction.triggered.connect(self._exit_app)
-        copyAction = QAction("Copy", self)
-        copyAction.triggered.connect(self._copy_info_action)
 
         copy_as = []
         for name, descr in exporter.get_template_list():
@@ -310,21 +309,7 @@ class AssemblyWindow(utils.BBMainWindow):
     def _build_windows_menu(self):
         utils.build_windows_menu(self._windowsMenu, self)
 
-    def _copy_info_action(self):
-        e = exporter.Exporter(self._top , self._data)
-        cb = QApplication.clipboard()
-        cb.clear(mode=cb.Clipboard )
-        cb.setText(e.export_bom_as_string(), mode=cb.Clipboard)
-
-    def _export_bom(self):
-        nf = QFileDialog.getSaveFileName(self, "BOMBrowser - export bom",
-                                    filter="CSV file (*.csv);; All files (*.*)",
-                                    selectedFilter="*.csv")
-        if nf[0] == '':
-            return
-        e = exporter.Exporter(self._top , self._data)
-        e.export_as_bom(nf[0])
-
+    @catch_exception
     def _export_assemblies_list(self):
         nf = QFileDialog.getSaveFileName(self, "BOMBrowser - export bom",
                                     filter="Json file format (*.json);; All files (*.*)",
@@ -334,6 +319,7 @@ class AssemblyWindow(utils.BBMainWindow):
         e = exporter.Exporter(self._top , self._data)
         e.export_as_json(nf[0])
 
+    @catch_exception
     def _export_as_template(self, template):
         nf = QFileDialog.getSaveFileName(self, "BOMBrowser - export bom",
                                     filter="CSV file (*.csv);; All files (*.*)",
@@ -344,6 +330,7 @@ class AssemblyWindow(utils.BBMainWindow):
         data = e.export_as_table_by_template(template)
         open(nf[0], "w").write(data)
 
+    @catch_exception
     def _copy_as_template(self, template):
         e = exporter.Exporter(self._top , self._data)
         cb = QApplication.clipboard()
