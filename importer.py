@@ -254,6 +254,8 @@ def get_importer_list():
         return None
     ret = []
     for importer_name in l:
+        if not cfg.config().has_section(importer_name):
+            continue
         name = cfg.config()[importer_name].get("name", None)
         type_ = cfg.config()[importer_name].get("type", None)
         map_ = cfg.config()[importer_name].get("map", None)
