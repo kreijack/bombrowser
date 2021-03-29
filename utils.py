@@ -17,6 +17,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
+import sys, traceback
+
 from PySide2.QtWidgets import QAction
 from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QMessageBox, QMainWindow
@@ -162,8 +164,6 @@ def build_windows_menu(m, win):
 
         separator = True
 
-
-
 def about(w, connection=""):
     msgBox = QMessageBox(w)
     msgBox.setWindowTitle("BOMBrowser - about");
@@ -180,3 +180,28 @@ def clean_menu(m):
         as_ = list(m.actions())
         for a in as_:
             m.removeAction(a)
+
+class Callable:
+    def __init__(self, f, *args, **kwargs):
+        self._f = f
+        self._args = args
+        self._kwargs = kwargs
+    def __call__(self):
+        return self._f(*self._args, **self._kwargs)
+
+def catch_exception(f):
+    def wrapper(*args, **kwargs):
+        try:
+            f(*args, **kwargs)
+        except:
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            QMessageBox.critical(None, "BOMBrowser",
+                "During call of function '%r' an exception occurred:"%(f) +
+                "-"*30 + "\n" +
+                '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb)) +
+                "-"*30 + "\n")
+
+            print('\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb)))
+            raise
+
+    return wrapper
