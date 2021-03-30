@@ -20,6 +20,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import traceback
 import sys
 import pprint
+import csv
+import openpyxl
+import xlrd
 
 from PySide2.QtWidgets import QMessageBox, QFileDialog
 
@@ -35,75 +38,66 @@ def import_csv_parent_child(keyword_map, options):
     if fn == "":
         return None
 
-    bom = _import_csv_parent_child(open(fn), keyword_map, options)
+    data = _read_table(fn)
+
+    bom = _import_csv_parent_child2(data, keyword_map, options)
     return bom
 
-def _split_line(line, sep, ignore_quote):
+def _read_table_xls(nf):
+    book = xlrd.open_workbook(nf)
+    sh = book.sheet_by_index(0)
+    ret = []
+    for row in range(sh.nrows):
+        ret.append([sh.cell_value(row, col) for col in range(sh.ncols)])
 
-    while len(line) and line[-1] in "\r\n":
-        line = line[:-1]
+    return ret
 
-    if len(line) == 0:
-        return []
+def _read_table_xlsx(nf):
+    book = openpyxl.load_workbook(nf)
+    sh = book.active
+    ret = []
+    for row in range(sh.max_row-1):
+        ret.append([str(sh.cell(row+1, col+1).value)
+            for col in range(sh.max_column)])
 
-    if ignore_quote:
-        return line.split(sep)
+    return ret
 
-    #fields = line.split('"'+sep+'"')
+def _read_table_csv(nf):
 
-    #if line[0] != '"' or line[-1] != '"' or len(fields) < 2:
-    #    return line.split(sep)
-
-    quote = False
-    fields = []
-    last_field = ""
-    i = 0
-    found_sep = False
-    while i < len(line):
-        if line[i] == '"' and last_field == "" :
-            quote = True
-            last_field = line[i]
-            i += 1
-            continue
-
-        if line[i] == '"' and quote and i < (len(line) - 1) and line[i+1]  == '"':
-            last_field += line[i]
-            i += 2
-            continue
-
-        if line[i] == sep and quote:
-            last_field += line[i]
-            i += 1
-            continue
-
-        if line[i] == '"' and quote:
-            last_field += line[i]
-            quote = False
-            i += 1
-            continue
-
-        if line[i] == sep: # quote is False
-            fields.append(last_field)
-            last_field = ""
-            found_sep = True
-            i += 1
-            continue
-
-        last_field += line[i]
-        i += 1
-    if found_sep:
-        fields.append(last_field)
-
-    fields2 = []
-    for field in fields:
-        if len(field) and field[0] == '"' and field[-1] == '"':
-            fields2.append(field[1:-1])
+    with open(nf, newline='') as csvfile:
+        c = csvfile.read(1)
+        if c == '\ufeff':
+            enc = 'utf-8-sig'
         else:
-            fields2.append(field)
+            enc = None
 
-    return fields2
+    if enc is None:
+        csvfile = open(nf, newline='')
+    else:
+        csvfile = open(nf, newline='', encoding=enc)
 
-def _import_csv_parent_child(f, keyword_map, options):
+    dialect = csv.Sniffer().sniff(csvfile.read(1024*16))
+    csvfile.seek(0)
+    reader = csv.reader(csvfile, dialect)
+    reader = list(reader)
+
+    if reader[0][0][0] == '\ufeff':
+        reader[0][0] = reader[0][0][1:]
+
+    return reader
+
+def _read_table(nf):
+    if nf.lower().endswith(".csv"):
+        return _read_table_csv(nf)
+    elif nf.lower().endswith(".xlsx"):
+        return _read_table_xlsx(nf)
+    elif nf.lower().endswith(".xls"):
+        return _read_table_xls(nf)
+    else:
+        raise Exception("Format of file '%s' unknown; supperted file: .csv or .xls[x]"%(
+            nf))
+
+def _import_csv_parent_child2(data, keyword_map, options):
 
     separator=";"
     default_unit = "NR"
@@ -136,16 +130,8 @@ def _import_csv_parent_child(f, keyword_map, options):
     elif separator=="TAB":
         separator="\t"
 
-    while skip_first_lines > 0:
-        headers = f.readline()
-        skip_first_lines -= 1
+    headers = data[skip_first_lines]
 
-    headers = f.readline()
-
-    # ignore the \ufeff code
-    if ignore_bom:
-        headers = headers.replace("\ufeff", "")
-    headers = _split_line(headers, separator, ignore_quote)
     if len(headers) < 1:
         raise Exception("Too few column")
 
@@ -179,14 +165,11 @@ def _import_csv_parent_child(f, keyword_map, options):
     if colmap["code"] is None or colmap["qty"] is None:
         raise Exception("Some mandatory columns are missing")
 
-    linenr = 0
+    linenr = skip_first_lines
     bom = dict()
 
-    for line in f.readlines():
-        if ignore_bom:
-            line = line.replace("\ufeff", "")
+    for fields in data[skip_first_lines+1:]:
         linenr += 1
-        fields = _split_line(line, separator, ignore_quote)
 
         if len(fields) != len(headers):
             raise Exception("Error at line %d: the number of column is different from the header one"%(linenr))
@@ -199,8 +182,11 @@ def _import_csv_parent_child(f, keyword_map, options):
         }
 
         def xfloat(x):
-            x = x.replace(",", ".")
+            if isinstance(x, str):
+                x = str(x).replace(",", ".")
             return float(x)
+
+
 
         for v in colmap:
             if colmap[v] is None:
@@ -288,39 +274,17 @@ def get_importer_list():
 
     return ret
 
-
-def test_split_line():
-    ret = _split_line('"abc","def","ghi""ef"', ",", False)
-    assert(ret == ["abc", "def", "ghi\"ef"])
-
-    ret = _split_line('abc,def,ghi"ef', ",", False)
-    assert(ret == ["abc", "def", "ghi\"ef"])
-
-    ret = _split_line('abc,"def",ghi"ef', ",", False)
-    assert(ret == ["abc", "def", "ghi\"ef"])
-
-    ret = _split_line('"abc","def","ghi""ef"', ",", True)
-    assert(ret == ['"abc"', '"def"', '"ghi""ef"'])
-
-    ret = _split_line('abc,"def",ghi"ef', ",", True)
-    assert(ret == ["abc", '"def"', "ghi\"ef"])
-
-    ret = _split_line('"abc","def","ghi""ef"', ",", False)
-    assert(ret == ["abc", "def", "ghi\"ef"])
-
-    ret = _split_line('abc\tdef\tghi"ef', "\t", False)
-    assert(ret == ["abc", "def", "ghi\"ef"])
-
-def test_import_csv_parent_child():
+def test_import_csv_parent_child2():
     import io
-    f = io.StringIO(""""parent_code";"parent_descr";"code";"descr";"qty";"each";"unit";"gval1"
-"Z";"0-descr";"1";"1-descr";"1";"2";"nr";"gval-1"
-"Z";"0-descr";"2";"2-descr";"2";"3";"nr";"gval-2"
-"4";"4-descr";"3";"3-descr";"8";"9";"nr";"gval-7"
-"Z";"0-descr";"4";"4-descr";"1.5";"3";"gr";"gval-4"
-""")
+    data = """parent_code;parent_descr;code;descr;qty;each;unit;gval1
+Z;0-descr;1;1-descr;1;2;nr;gval-1
+Z;0-descr;2;2-descr;2;3;nr;gval-2
+4;4-descr;3;3-descr;8;9;nr;gval-7
+Z;0-descr;4;4-descr;1.5;3;gr;gval-4"""
 
-    bom = _import_csv_parent_child(f,[], {})
+    data = [x.split(";") for x in data.split("\n")]
+
+    bom = _import_csv_parent_child2(data,[], {})
 
     assert("Z" in bom)
     assert("1" in bom)
@@ -342,170 +306,102 @@ def test_import_csv_parent_child():
 
     assert("4" in bom["Z"]["deps"])
 
-def test_import_csv_parent_child_error_on_duplicate_row():
+def test_import_csv_parent_child2_error_on_duplicate_row():
     import io
-    s = """"parent_code";"parent_descr";"code";"descr";"qty";"each";"unit";"gval1"
-"0";"0-descr";"1";"1-descr";"1";"2";"nr";"gval-1"
-"0";"0-descr";"2";"2-descr";"2";"3";"nr";"gval-2"
-"4";"4-descr";"3";"3-descr";"8";"9";"nr";"gval-7"
-"0";"0-descr";"4";"4-descr";"1.5";"3";"gr";"gval-4"
-"""
+    s = """parent_code;parent_descr;code;descr;qty;each;unit;gval1
+0;0-descr;1;1-descr;1;2;nr;gval-1
+0;0-descr;2;2-descr;2;3;nr;gval-2
+4;4-descr;3;3-descr;8;9;nr;gval-7
+0;0-descr;4;4-descr;1.5;3;gr;gval-4"""
 
-    f = io.StringIO(s)
-    bom = _import_csv_parent_child(f,[], {})
+    data = [x.split(";") for x in s.split("\n")]
+    bom = _import_csv_parent_child2(data,[], {})
 
     # ok the file is ok
 
     # add a duplicate
-    s1 = s + '"0";"0-descr";"4";"4-descr";"1.5";"3";"gr";"gval-4"'
+    s1 = s + '\n0;0-descr;4;4-descr;1.5;3;gr;gval-4'
+    data = [x.split(";") for x in s1.split("\n")]
     failed = True
     try:
         f = io.StringIO(s1)
-        bom = _import_csv_parent_child(f,[], {})
+        bom = _import_csv_parent_child2(data,[], {})
     except:
         failed = False
 
     assert(not failed)
 
-    s1 = s + '"0";"0-descr";"4";"4-descr";"1.5";"3";"gr";"gval-4"'
-    f = io.StringIO(s1)
-    bom = _import_csv_parent_child(f,[], {"ignore_duplicate":"1"})
+    s1 = s + '\n0;0-descr;4;4-descr;1.5;3;gr;gval-4'
+    data = [x.split(";") for x in s1.split("\n")]
+    bom = _import_csv_parent_child2(data,[], {"ignore_duplicate":"1"})
 
-def test_import_csv_parent_child_error_on_less_columns():
+def test_import_csv_parent_child2_error_on_less_columns():
     import io
-    s = """"parent_code";"parent_descr";"code";"descr";"qty";"each";"unit";"gval1"
-"0";"0-descr";"1";"1-descr";"1";"2";"nr";"gval-1"
-"0";"0-descr";"2";"2-descr";"2";"3";"nr";"gval-2"
-"4";"4-descr";"3";"3-descr";"8";"9";"nr";"gval-7"
-"0";"0-descr";"4";"4-descr";"1.5";"3";"gr";"gval-4"
-"""
+    s = """parent_code;parent_descr;code;descr;qty;each;unit;gval1
+0;0-descr;1;1-descr;1;2;nr;gval-1
+0;0-descr;2;2-descr;2;3;nr;gval-2
+4;4-descr;3;3-descr;8;9;nr;gval-7
+0;0-descr;4;4-descr;1.5;3;gr;gval-4"""
 
-    f = io.StringIO(s)
-    bom = _import_csv_parent_child(f,[], {})
+    data = [x.split(";") for x in s.split("\n")]
+    bom = _import_csv_parent_child2(data,[], {})
 
     # ok the file is ok
 
     # add a row with less columns
-    s1 = s + '"0";"0-descr";"7";"4-descr";"1.5";"3";"gr"'
+    s1 = s + '\n0;0-descr;7;4-descr;1.5;3;gr'
     failed = True
     try:
-        f = io.StringIO(s1)
-        bom = _import_csv_parent_child(f,[], {})
+        data = [x.split(";") for x in s1.split("\n")]
+        bom = _import_csv_parent_child2(data, [], {})
     except:
         failed = False
 
     assert(not failed)
 
     s2 = s1 + ';"gval-4"'
-    f = io.StringIO(s2)
-    bom = _import_csv_parent_child(f,[], {})
+    data = [x.split(";") for x in s2.split("\n")]
+    bom = _import_csv_parent_child2(data, [], {})
 
-def test_import_csv_parent_child_error_on_more_columns():
+def test_import_csv_parent_child2_error_on_more_columns():
     import io
-    s = """"parent_code";"parent_descr";"code";"descr";"qty";"each";"unit";"gval1"
-"0";"0-descr";"1";"1-descr";"1";"2";"nr";"gval-1"
-"0";"0-descr";"2";"2-descr";"2";"3";"nr";"gval-2"
-"4";"4-descr";"3";"3-descr";"8";"9";"nr";"gval-7"
-"0";"0-descr";"4";"4-descr";"1.5";"3";"gr";"gval-4"
-"""
+    s = """parent_code;parent_descr;code;descr;qty;each;unit;gval1
+0;0-descr;1;1-descr;1;2;nr;gval-1
+0;0-descr;2;2-descr;2;3;nr;gval-2
+4;4-descr;3;3-descr;8;9;nr;gval-7
+0;0-descr;4;4-descr;1.5;3;gr;gval-4"""
 
-    f = io.StringIO(s)
-    bom = _import_csv_parent_child(f,[], {})
+    data = [x.split(";") for x in s.split("\n")]
+    bom = _import_csv_parent_child2(data,[], {})
 
     # ok the file is ok
 
     # add a row with the same column columns
-    s1 = s + '"0";"0-descr";"7";"4-descr";"1.5";"3";"gr";"gval-4"'
+    s1 = s + '\n0;0-descr;7;4-descr;1.5;3;gr;gval-4'
 
-    f = io.StringIO(s1)
-    bom = _import_csv_parent_child(f,[], {})
+    data = [x.split(";") for x in s1.split("\n")]
+    bom = _import_csv_parent_child2(data, [], {})
 
-    s2 = s1 + ';"gval-4"'
+    s2 = s1 + ';gval-4'
     failed = True
     try:
-        f = io.StringIO(s2)
-        bom = _import_csv_parent_child(f,[], {})
+        data = [x.split(";") for x in s2.split("\n")]
+        bom = _import_csv_parent_child2(data,[], {})
     except:
         failed = False
 
     assert(not failed)
 
-def test_import_csv_parent_child_comma_separator():
+def test_import_csv_parent_child2_wo_parent_columns():
     import io
-    f = io.StringIO(""""parent_code","parent_descr","code","descr","qty","each","unit","gval1"
-"0","0-descr","1","1-descr","1","2","nr","gval-1"
-"0","0-descr","2","2-descr","2","3","nr","gval-2"
-"4","4-descr","3","3-descr","8","9","nr","gval-7"
-"0","0-descr","4","4-descr","1.5","3","gr","gval-4"
-""")
+    s = """code\tdescr\tqty\teach\tunit\tgval1
+1\t1-descr\t1\t2\tnr\tgval-1
+2\t2-descr\t2\t3\tnr\tgval-2
+3\t3-descr\t8\t9\tnr\tgval-7
+4\t4-descr\t1.5\t3\tgr\tgval-4"""
 
-    bom = _import_csv_parent_child(f,[], {"separator":"COMMA"})
-
-    assert("0" in bom)
-    assert("1" in bom)
-
-    assert(bom["0"]["descr"] == "0-descr")
-    assert(bom["1"]["descr"] == "1-descr")
-    assert(bom["1"]["gval1"] == "gval-1")
-
-def test_import_csv_parent_child_tab_separator():
-    import io
-    f = io.StringIO(""""parent_code"\t"parent_descr"\t"code"\t"descr"\t"qty"\t"each"\t"unit"\t"gval1"
-"0"\t"0-descr"\t"1"\t"1-descr"\t"1"\t"2"\t"nr"\t"gval-1"
-"0"\t"0-descr"\t"2"\t"2-descr"\t"2"\t"3"\t"nr"\t"gval-2"
-"4"\t"4-descr"\t"3"\t"3-descr"\t"8"\t"9"\t"nr"\t"gval-7"
-"0"\t"0-descr"\t"4"\t"4-descr"\t"1.5"\t"3"\t"gr"\t"gval-4"
-""")
-
-    bom = _import_csv_parent_child(f,[], {"separator":"TAB"})
-
-    assert("0" in bom)
-    assert("1" in bom)
-
-    assert(bom["0"]["descr"] == "0-descr")
-    assert(bom["1"]["descr"] == "1-descr")
-    assert(bom["1"]["gval1"] == "gval-1")
-
-def test_import_csv_parent_child_utf8_bom():
-    import io
-    s = """"parent_code"\t"parent_descr"\t"code"\t"descr"\t"qty"\t"each"\t"unit"\t"gval1"
-"0"\t"0-descr"\t"1"\t"1-descr"\t"1"\t"2"\t"nr"\t"gval-1"
-"0"\t"0-descr"\t"2"\t"2-descr"\t"2"\t"3"\t"nr"\t"gval-2"
-"4"\t"4-descr"\t"3"\t"3-descr"\t"8"\t"9"\t"nr"\t"gval-7"
-"0"\t"0-descr"\t"4"\t"4-descr"\t"1.5"\t"3"\t"gr"\t"gval-4"
-"""
-
-    f = io.StringIO(s)
-    bom = _import_csv_parent_child(f,[], {"separator":"TAB"})
-
-    assert("0" in bom)
-    assert("1" in bom)
-    assert(not 0 in bom)
-
-    s1 = "\ufeff" + s
-    f = io.StringIO(s1)
-    bom = _import_csv_parent_child(f,[], {"separator":"TAB", "ignore_bom":"0"})
-
-    assert(0 in bom)
-    assert(not "0" in bom)
-
-    f = io.StringIO(s1)
-    bom = _import_csv_parent_child(f,[], {"separator":"TAB", "ignore_bom":"1"})
-
-    assert("0" in bom)
-    assert("1" in bom)
-
-def test_import_csv_parent_child_wo_parent_columns():
-    import io
-    s = """"code"\t"descr"\t"qty"\t"each"\t"unit"\t"gval1"
-"1"\t"1-descr"\t"1"\t"2"\t"nr"\t"gval-1"
-"2"\t"2-descr"\t"2"\t"3"\t"nr"\t"gval-2"
-"3"\t"3-descr"\t"8"\t"9"\t"nr"\t"gval-7"
-"4"\t"4-descr"\t"1.5"\t"3"\t"gr"\t"gval-4"
-"""
-
-    f = io.StringIO(s)
-    bom = _import_csv_parent_child(f,[], {"separator":"TAB"})
+    data = [x.split("\t") for x in s.split("\n")]
+    bom = _import_csv_parent_child2(data,[], {})
 
     assert(0 in bom)
     assert("1" in bom)
