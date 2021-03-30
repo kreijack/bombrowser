@@ -246,7 +246,8 @@ class CodesWindow(utils.BBMainWindowNotClose):
     def _copy_info_action(self):
         cb = QApplication.clipboard()
         cb.clear(mode=cb.Clipboard )
-        cb.setText(self._codes_widget.getTableText(), mode=cb.Clipboard)
+        cb.setText(self._stacked_widget.currentWidget().getTableText(),
+            mode=cb.Clipboard)
 
     def _init_gui(self):
 
