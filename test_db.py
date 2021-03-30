@@ -1363,7 +1363,7 @@ def test_revise_code_with_only_proto():
 
     _check_code_dates(c, code)
 
-def test_update_by_rid():
+def test_update_by_rid2():
 
     d, c = _create_db()
     code = "TEST-CODE"
@@ -1374,8 +1374,8 @@ def test_update_by_rid():
 
     gvals = ["new gval %d"%(i) for i in range(db.gvals_count)]
 
-    d.update_by_rid(rid, "new descr", "new ver", "new-unit",
-            *gvals)
+    d.update_by_rid2(rid, "new descr", "new ver", "new-unit",
+            gvals)
 
     data = d.get_code_by_rid(rid)
     assert(data["descr"] == "new descr")
@@ -1386,8 +1386,8 @@ def test_update_by_rid():
 
     gvals = ["2-new gval %d"%(i) for i in range(db.gvals_count)]
 
-    d.update_by_rid(rid, "2-new descr", "2-new ver", "2-n-unit",
-            *gvals)
+    d.update_by_rid2(rid, "2-new descr", "2-new ver", "2-n-unit",
+            gvals)
 
     data = d.get_code_by_rid(rid)
     assert(data["descr"] == "2-new descr")
@@ -1422,8 +1422,8 @@ def _create_data_for_search_revisions(c, d):
         for i in range(db.gvals_count):
             data[rid]["gval%d"%(i+1)] = gvals[i]
 
-        d.update_by_rid(rid, data[rid]["descr"], data[rid]["rev"],
-                data[rid]["unit"], *gvals)
+        d.update_by_rid2(rid, data[rid]["descr"], data[rid]["rev"],
+                data[rid]["unit"], gvals)
 
     return data
 

@@ -950,9 +950,9 @@ class EditWindow(utils.BBMainWindow):
         d = db.DB()
 
         try:
-            d.update_by_rid(self._rid, descr
+            d.update_by_rid2(self._rid, descr
                 , self._ver.text(), self._unit.text(),
-                *gvals, drawings, children
+                gvals, drawings, children
             )
         except db.DBException as e:
             QMessageBox.critical(self, "BOMBrowser",

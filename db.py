@@ -263,13 +263,13 @@ class _BaseServer:
 
     def _get_code(self, c, id_code, date_from_days):
 
+
+        gval_query = ", ".join(["r.gval%d"%(i+1) for i in range(gvals_count)])
+
         self._sqlex(c, """
             SELECT i.code, r.descr, r.ver, r.iter, r.default_unit,
-                r.gval1, r.gval2, r.gval3, r.gval4, r.gval5, r.gval6,
-                r.date_from_days, r.date_to_days, r.id,
-                r.gval7, r.gval8, r.gval9, r.gval10, r.gval11, r.gval12,
-                r.gval13, r.gval14, r.gval15, r.gval16, r.gval17, r.gval18,
-                r.gval19, r.gval20
+                   r.date_from_days, r.date_to_days, r.id,
+                   """ + gval_query + """
             FROM item_revisions AS r
             LEFT JOIN items AS i
                  ON r.code_id = i.id
@@ -287,34 +287,16 @@ class _BaseServer:
         data["iter"] = res[3]
         data["unit"] = res[4]
 
-        data["gval1"] = res[5]
-        data["gval2"] = res[6]
-        data["gval4"] = res[8]
-        data["gval3"] = res[7]
-        data["gval5"] = res[9]
-        data["gval6"] = res[10]
-        data["gval7"] = res[14]
-        data["gval8"] = res[15]
+        data["date_from"] = days_to_txt(res[5])
+        data["date_from_days"] = res[5]
+        data["date_to"] = days_to_txt(res[6])
+        data["date_to_days"] = res[6]
 
-        data["gval9"] = res[16]
-        data["gval10"] = res[17]
-        data["gval11"] = res[18]
-        data["gval12"] = res[19]
-        data["gval13"] = res[20]
-        data["gval14"] = res[21]
-        data["gval15"] = res[22]
-        data["gval16"] = res[23]
-        data["gval17"] = res[24]
-        data["gval18"] = res[25]
-        data["gval19"] = res[26]
-        data["gval20"] = res[27]
+        data["rid"] = res[7]
 
-        data["date_from"] = days_to_txt(res[11])
-        data["date_from_days"] = res[11]
-        data["date_to"] = days_to_txt(res[12])
-        data["date_to_days"] = res[12]
+        for i in range(gvals_count):
+            data["gval%d"%(i+1)] = res[8+i]
 
-        data["rid"] = res[13]
         data["id"] = id_code
 
         data["properties"] = dict()
@@ -323,7 +305,7 @@ class _BaseServer:
             SELECT descr, value
             FROM item_properties
             WHERE revision_id=?
-            """, (res[13], ))
+            """, (data["rid"], ))
 
         res = c.fetchall()
         if res:
@@ -337,13 +319,12 @@ class _BaseServer:
 
     def _get_code_by_rid(self, c, rid):
 
+        gval_query = ", ".join(["r.gval%d"%(i+1) for i in range(gvals_count)])
+
         self._sqlex(c, """
             SELECT i.code, r.descr, r.ver, r.iter, r.default_unit,
-                r.gval1, r.gval2, r.gval3, r.gval4, r.gval5, r.gval6,
                 r.date_from_days, r.date_to_days, i.id,
-                r.gval7, r.gval8, r.gval9, r.gval10, r.gval11, r.gval12,
-                r.gval13, r.gval14, r.gval15, r.gval16, r.gval17, r.gval18,
-                r.gval19, r.gval20
+                """ + gval_query + """
             FROM item_revisions AS r
             LEFT JOIN items AS i
                  ON r.code_id = i.id
@@ -360,34 +341,16 @@ class _BaseServer:
         data["iter"] = res[3]
         data["unit"] = res[4]
 
-        data["gval1"] = res[5]
-        data["gval2"] = res[6]
-        data["gval3"] = res[7]
-        data["gval4"] = res[8]
-        data["gval5"] = res[9]
-        data["gval6"] = res[10]
-        data["gval7"] = res[14]
-        data["gval8"] = res[15]
+        data["date_from"] = days_to_txt(res[5])
+        data["date_from_days"] = res[5]
+        data["date_to"] = days_to_txt(res[6])
+        data["date_to_days"] = res[6]
 
-        data["gval9"] = res[16]
-        data["gval10"] = res[17]
-        data["gval11"] = res[18]
-        data["gval12"] = res[19]
-        data["gval13"] = res[20]
-        data["gval14"] = res[21]
-        data["gval15"] = res[22]
-        data["gval16"] = res[23]
-        data["gval17"] = res[24]
-        data["gval18"] = res[25]
-        data["gval19"] = res[26]
-        data["gval20"] = res[27]
+        data["id"] = res[7]
 
-        data["date_from"] = days_to_txt(res[11])
-        data["date_from_days"] = res[11]
-        data["date_to"] = days_to_txt(res[12])
-        data["date_to_days"] = res[12]
+        for i in range(gvals_count):
+            data["gval%d"%(i+1)] = res[8+i]
 
-        data["id"] = res[13]
         data["rid"] = rid
 
 
@@ -397,7 +360,7 @@ class _BaseServer:
             SELECT descr, value
             FROM item_properties
             WHERE revision_id=?
-            """, (res[13], ))
+            """, (rid, ))
 
         res = c.fetchall()
         if res:
@@ -955,6 +918,9 @@ class _BaseServer:
 
     def _copy_revision(self, c, new_code_id, new_date_from_days, new_date_to_days,
                 rev, new_iter, descr, old_rid, copy_docs, copy_props):
+
+        gval_query = ", ".join(["gval%d"%(i+1) for i in range(gvals_count)])
+
         self._sqlex(c, """
             INSERT INTO item_revisions(
                 code_id,
@@ -965,9 +931,7 @@ class _BaseServer:
                 note,
                 descr,
                 default_unit,
-                gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8,
-                gval9, gval10, gval11, gval12, gval13, gval14, gval15,
-                gval16, gval17, gval18, gval19, gval20
+                """ + gval_query + """
             ) SELECT
                 ?,
                 ?, ?,
@@ -977,9 +941,7 @@ class _BaseServer:
                 note,
                 ? ,
                 default_unit,
-                gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8,
-                gval9, gval10, gval11, gval12, gval13, gval14, gval15,
-                gval16, gval17, gval18, gval19, gval20
+                """ + gval_query + """
             FROM item_revisions
             WHERE id = ?
         """, (new_code_id,
@@ -1066,29 +1028,20 @@ class _BaseServer:
 
         return c.fetchall()
 
-    def update_by_rid(self, rid, descr, ver, default_unit,
-            gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8,
-            gval9, gval10, gval11, gval12, gval13, gval14, gval15,
-            gval16, gval17, gval18, gval19, gval20,
-            drawings=[], children=[]):
+    def update_by_rid2(self, rid, descr, ver, default_unit,
+            gvals, drawings=[], children=[]):
 
         c = self._conn.cursor()
         self._begin(c)
         try:
+            gval_query = ", ".join(["gval%d = ?"%(i+1) for i in range(gvals_count)])
             self._sqlex(c, """
                 UPDATE item_revisions SET
                     descr=?, ver=?, default_unit=?,
-                    gval1=?, gval2=?, gval3=?, gval4=?, gval5=?,
-                    gval6=?, gval7=?, gval8=?, gval9=?, gval10=?,
-                    gval11=?, gval12=?, gval13=?, gval14=?, gval15=?,
-                    gval16=?, gval17=?, gval18=?, gval19=?, gval20=?
+                    """ + gval_query + """
                 WHERE id=?
                 """,(descr, ver, default_unit,
-                     gval1, gval2, gval3, gval4, gval5,
-                     gval6, gval7, gval8, gval9, gval10,
-                     gval11, gval12, gval13, gval14, gval15,
-                     gval16, gval17, gval18, gval19, gval20,
-                     rid))
+                     *gvals, rid))
 
             self._sqlex(c, """
                 DELETE FROM drawings
@@ -1438,14 +1391,12 @@ class _BaseServer:
         return ""
 
     def search_revisions(self, **kwargs):
+        gval_query = ", ".join(["r.gval%d"%(i+1) for i in range(gvals_count)])
+
         query = """
             SELECT i.id, r.id, i.code, r.descr, r.ver, r.iter,
                 r.date_from_days, r.date_to_days,
-                r.gval1, r.gval2, r.gval3, r.gval4, r.gval5, r.gval6,
-                r.gval7, r.gval8,
-                r.gval9, r.gval10, r.gval11, r.gval12, r.gval13,
-                r.gval14, r.gval15,
-                r.gval16, r.gval17, r.gval18, r.gval19, r.gval20
+                """ + gval_query + """
             FROM item_revisions AS r
             LEFT JOIN items AS i
               ON r.code_id = i.id
