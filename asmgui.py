@@ -179,90 +179,77 @@ class AssemblyWindow(utils.BBMainWindow):
 
     def _create_menu(self):
         mainMenu = self.menuBar()
-        fileMenu = mainMenu.addMenu("File")
-        editMenu = mainMenu.addMenu("Edit")
-        viewMenu = mainMenu.addMenu("View")
-        searchMenu = mainMenu.addMenu("Search")
-        self._windowsMenu = mainMenu.addMenu("Windows")
 
-        self._windowsMenu.aboutToShow.connect(self._build_windows_menu)
+        m = mainMenu.addMenu("File")
 
-        export_assy = QAction("Export bom as JSON file format...", self)
-        export_assy.triggered.connect(self._export_assemblies_list)
+        a = QAction("Refresh", self)
+        a.setShortcut("F5")
+        a.triggered.connect(self.bom_reload)
+        m.addAction(a)
+        m.addSeparator()
 
-        class Caller:
-            def __init__(self, f, arg):
-                self._f = f
-                self._arg = arg
-            def __call__(self):
-                self._f(self._arg)
-
-        export_as = []
+        a = QAction("Export bom as JSON file format...", self)
+        a.triggered.connect(self._export_assemblies_list)
+        m.addAction(a)
         for name, descr in exporter.get_template_list():
             if name == "template_simple":
-                m = QAction("Export bom as CSV file...", self)
-                m.triggered.connect(Caller(self._export_as_template, name))
+                a = QAction("Export bom as CSV file...", self)
+                a.triggered.connect(utils.Callable(self._export_as_template, name))
             else:
-                m = QAction("Export bom as CSV template '%s'"%(descr), self)
-                m.triggered.connect(Caller(self._export_as_template, name))
-            export_as.append(m)
+                a = QAction("Export bom as CSV template '%s'"%(descr), self)
+                a.triggered.connect(utils.Callable(self._export_as_template, name))
+            m.addAction(a)
 
-        copyFiles = QAction("Copy files ...", self)
-        copyFiles.triggered.connect(self._copy_all_bom_files)
+        m.addSeparator()
+        a = QAction("Copy files ...", self)
+        a.triggered.connect(self._copy_all_bom_files)
+        m.addAction(a)
+        m.addSeparator()
+        a = QAction("Close", self)
+        a.setShortcut("Ctrl+Q")
+        a.triggered.connect(self.close)
+        m.addAction(a)
+        a = QAction("Exit", self)
+        a.setShortcut("Ctrl+X")
+        a.triggered.connect(self._exit_app)
+        m.addAction(a)
 
-        closeAction = QAction("Close", self)
-        closeAction.setShortcut("Ctrl+Q")
-        closeAction.triggered.connect(self.close)
-        exitAction = QAction("Exit", self)
-        exitAction.setShortcut("Ctrl+X")
-        exitAction.triggered.connect(self._exit_app)
-
-        copy_as = []
+        m = mainMenu.addMenu("Edit")
         for name, descr in exporter.get_template_list():
             if name == "template_simple":
-                m = QAction("Copy", self)
-                m.triggered.connect(Caller(self._copy_as_template, name))
+                a = QAction("Copy", self)
+                a.triggered.connect(utils.Callable(self._export_as_template, name))
             else:
-                m = QAction("Copy bom as template '%s'"%(descr), self)
-                m.triggered.connect(Caller(self._copy_as_template, name))
-            copy_as.append(m)
+                a = QAction("Copy bom as template '%s'"%(descr), self)
+                a.triggered.connect(utils.Callable(self._export_as_template, name))
+            m.addAction(a)
 
-        findAction = QAction("Find", self)
-        findAction.setShortcut("Ctrl+F")
-        findAction.triggered.connect(self._start_find)
-
+        m = mainMenu.addMenu("View")
         for i in range(9):
             a = QAction("Show up to level %d"%(i+1), self)
             a.setShortcut("Ctrl+%d"%(i+1))
-
-            a.triggered.connect(Caller(self._show_up_to, i+1))
-
-            viewMenu.addAction(a)
+            a.triggered.connect(utils.Callable(self._show_up_to, i+1))
+            m.addAction(a)
 
         a = QAction("Show all levels", self)
         a.setShortcut("Ctrl+A")
-        a.triggered.connect(Caller(self._show_up_to, -1))
+        a.triggered.connect(utils.Callable(self._show_up_to, -1))
+        m.addAction(a)
 
-        viewMenu.addAction(a)
+        m = mainMenu.addMenu("Search")
+        a = QAction("Find", self)
+        a.setShortcut("Ctrl+F")
+        a.triggered.connect(self._start_find)
+        m.addAction(a)
 
-        fileMenu.addAction(export_assy)
-        for m in export_as:
-            fileMenu.addAction(m)
-        fileMenu.addSeparator()
-        fileMenu.addAction(copyFiles)
-        fileMenu.addSeparator()
-        fileMenu.addAction(closeAction)
-        fileMenu.addAction(exitAction)
-        for m in copy_as:
-            editMenu.addAction(m)
-        searchMenu.addAction(findAction)
-
+        self._windowsMenu = mainMenu.addMenu("Windows")
+        self._windowsMenu.aboutToShow.connect(self._build_windows_menu)
         self._build_windows_menu()
 
-        helpMenu = mainMenu.addMenu("Help")
+        m = mainMenu.addMenu("Help")
         a = QAction("About ...", self)
         a.triggered.connect(lambda : utils.about(self, db.connection))
-        helpMenu.addAction(a)
+        m.addAction(a)
 
     def _copy_all_bom_files(self):
         dest = QFileDialog.getExistingDirectory(self, "Save to...",
@@ -413,7 +400,7 @@ class AssemblyWindow(utils.BBMainWindow):
         contextMenu.addAction("Where used").triggered.connect(self._show_where_used)
         contextMenu.addAction("Valid where used").triggered.connect(self._show_valid_where_used)
         contextMenu.addAction("Show assembly by date").triggered.connect(self._show_assembly)
-        contextMenu.addAction("Show latest assembly").triggered.connect(self._show_proto_assembly)
+        contextMenu.addAction("Show prototype assembly").triggered.connect(self._show_proto_assembly)
         contextMenu.addSeparator()
         contextMenu.addAction("Copy/revise code ...").triggered.connect(self._revise_code)
         contextMenu.addAction("Edit code ...").triggered.connect(self._edit_code)
@@ -630,6 +617,10 @@ class AssemblyWindow(utils.BBMainWindow):
 
         self._my_statusbar.showMessage("/".join(map(lambda x : self._data[x]["code"], path)))
 
+    @staticmethod
+    def bom_reload(w):
+        pass
+
 
 class WhereUsedWindow(AssemblyWindow):
     def __init__(self, parent):
@@ -647,25 +638,28 @@ def where_used(code_id, winParent, valid=False):
         QApplication.beep()
         return
 
-    d = db.DB()
-    QApplication.setOverrideCursor(Qt.WaitCursor)
-
-    (top, data) = d.get_where_used_from_id_code(code_id, valid)
-
-    if len(data) == 1:
-        QApplication.restoreOverrideCursor()
-        QApplication.beep()
-        QMessageBox.critical(winParent, "BOMBrowser", "The item is not in an assembly")
-        return
-
     if valid:
         w = ValidWhereUsedWindow(None)
     else:
         w = WhereUsedWindow(None)
 
     w.show()
-    w.populate(top, data)
-    QApplication.restoreOverrideCursor()
+
+    def bom_reload(w):
+        d = db.DB()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        (top, data) = d.get_where_used_from_id_code(code_id, valid)
+
+        if len(data) == 1:
+            QApplication.restoreOverrideCursor()
+            QApplication.beep()
+            QMessageBox.critical(winParent, "BOMBrowser", "The item is not in an assembly")
+            return
+        w.populate(top, data)
+        QApplication.restoreOverrideCursor()
+
+    w.bom_reload = bom_reload
+    w.bom_reload(w)
 
 def valid_where_used(code_id, winParent):
     return where_used(code_id, winParent, valid=True)
@@ -686,14 +680,20 @@ def show_assembly(code_id, winParent):
     if not ret:
         QApplication.restoreOverrideCursor()
         return
+    (code, date_from_days) = dlg.get_code_and_date_from_days()
 
-    QApplication.setOverrideCursor(Qt.WaitCursor)
     w = AssemblyWindow(None)
     w.show()
-    (code, date_from_days) = dlg.get_code_and_date_from_days()
-    data = d.get_bom_by_code_id3(code_id, date_from_days)
-    w.populate(*data, caption_date=date_from_days)
-    QApplication.restoreOverrideCursor()
+
+    def bom_reload():
+        d = db.DB()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+
+        data = d.get_bom_by_code_id3(code_id, date_from_days)
+        w.populate(*data, caption_date=date_from_days)
+        QApplication.restoreOverrideCursor()
+    w.bom_reload = bom_reload
+    w.bom_reload()
 
 def show_latest_assembly(code_id):
     if not code_id:
@@ -706,16 +706,21 @@ def show_latest_assembly(code_id):
         QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
         return
 
-    QApplication.setOverrideCursor(Qt.WaitCursor)
     w = AssemblyWindow(None)
     w.show()
-    dates = d.get_dates_by_code_id3(code_id)
 
-    dt = min(db.prototype_date - 1, dates[0][3])
+    def bom_reload():
+        d = db.DB()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        dates = d.get_dates_by_code_id3(code_id)
 
-    data = d.get_bom_by_code_id3(code_id, dt)
-    w.populate(*data, caption_date=dt)
-    QApplication.restoreOverrideCursor()
+        dt = min(db.prototype_date - 1, dates[0][3])
+
+        data = d.get_bom_by_code_id3(code_id, dt)
+        w.populate(*data, caption_date=dt)
+        QApplication.restoreOverrideCursor()
+    w.bom_reload = bom_reload
+    w.bom_reload()
 
 def show_proto_assembly(code_id):
     if not code_id:
@@ -728,14 +733,18 @@ def show_proto_assembly(code_id):
         QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
         return
 
-    QApplication.setOverrideCursor(Qt.WaitCursor)
     w = AssemblyWindow(None)
     w.show()
-    dates = d.get_dates_by_code_id3(code_id)
-    dt = min(db.end_of_the_world, dates[0][3])
-    data = d.get_bom_by_code_id3(code_id, dates[0][3])
-    w.populate(*data, caption_date=db.end_of_the_world)
-    QApplication.restoreOverrideCursor()
+
+    def bom_reload():
+        d = db.DB()
+        dates = d.get_dates_by_code_id3(code_id)
+        dt = min(db.end_of_the_world, dates[0][3])
+        data = d.get_bom_by_code_id3(code_id, dates[0][3])
+        w.populate(*data, caption_date=db.end_of_the_world)
+        QApplication.restoreOverrideCursor()
+    w.bom_reload = bom_reload
+    w.bom_reload()
 
 def show_assembly_by_date(code_id, dt):
     if not code_id:
@@ -748,9 +757,13 @@ def show_assembly_by_date(code_id, dt):
         QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
         return
 
-    QApplication.setOverrideCursor(Qt.WaitCursor)
     w = AssemblyWindow(None)
     w.show()
-    data = d.get_bom_by_code_id3(code_id, dt)
-    w.populate(*data, caption_date=dt)
-    QApplication.restoreOverrideCursor()
+    def bom_reload():
+        d = db.DB()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        data = d.get_bom_by_code_id3(code_id, dt)
+        w.populate(*data, caption_date=dt)
+        QApplication.restoreOverrideCursor()
+    w.bom_reload = bom_reload
+    w.bom_reload()
