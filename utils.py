@@ -26,7 +26,7 @@ from PySide2.QtWidgets import QMessageBox, QMainWindow
 _bbmainwindows_list = []
 _bbmainwindows_list_cnt = 0
 
-version = "v0.4.2b1"
+version = "v0.4.2b2"
 window_title = "BOMBrowser " + version
 
 class BBMainWindow(QMainWindow):
