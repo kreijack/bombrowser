@@ -34,7 +34,9 @@ _default_unit = "NR"
 
 def import_csv_parent_child(keyword_map, options):
 
-    (fn, _) = QFileDialog.getOpenFileName(None, "Select a file")
+    (fn, _) = QFileDialog.getOpenFileName(None, "Select a file to import",
+        None,
+        "CSV files (*.csv);;Excel file (*.xls,*.xlsx);;All files (*.*)")
     if fn == "":
         return None
 
