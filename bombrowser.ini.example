@@ -102,7 +102,7 @@ options=default_unit=NR,skip_first_lines=1
 
 
 [importer_all]
-name=Importter all
+name=Importer all
 type=parent_child
 # Seq	Level	Parent code	Parent descritpion	-	Code	Code2	Description	Q.ty	Each	Unit	Reference	Rev	Iter	From date	To date	Supplier#1 PN	Supplier#1 name	Manufacturer#1 PN	Manufacturer#1 name	Manufacturer#2 PN	Manufacturer#2 name
 map=parent_code=Parent code,parent_descr=Parent descritpion,code=Code,descr=Description,qty=Q.ty,each=Each,unit=Unit,ref=Reference,gval1=Supplier#1 PN,gval2=Supplier#1 name,gval3=Manufacturer#1 PN,gval4=Manufacturer#1 name,gval5=Manufacturer#2 PN,gval6=Manufacturer#2 name
