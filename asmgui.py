@@ -321,21 +321,26 @@ class AssemblyWindow(utils.BBMainWindow):
 
     @catch_exception
     def _export_as_template(self, template):
-        nf = QFileDialog.getSaveFileName(self, "BOMBrowser - export bom",
-                                    filter="CSV file (*.csv);; All files (*.*)",
-                                    selectedFilter="*.csv")
-        if nf[0] == '':
+        nf, _ = QFileDialog.getSaveFileName(self, "BOMBrowser - export bom",
+                                    filter="CSV file (*.csv);; Excel file (*.xls, *.xlsx)",
+                                    selectedFilter="*.xls")
+        if nf == '':
             return
+        if (not nf.lower().endswith(".xls") and
+            not nf.lower().endswith(".csv") and
+            not nf.lower().endswith(".xlsx")):
+                QMessageBox.critical(self, "BOMBrowser", "Unsupported file format")
+                return
         e = exporter.Exporter(self._top , self._data)
-        data = e.export_as_table_by_template(template)
-        open(nf[0], "w", encoding='utf-8-sig').write(data)
+        e.export_as_file_by_template2(nf, template)
+
 
     @catch_exception
     def _copy_as_template(self, template):
         e = exporter.Exporter(self._top , self._data)
         cb = QApplication.clipboard()
         cb.clear(mode=cb.Clipboard )
-        data = e.export_as_table_by_template(template)
+        data = e.export_as_table_by_template2(template)
         cb.setText(data, mode=cb.Clipboard)
 
     def _show_up_to(self, lev):

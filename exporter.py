@@ -22,6 +22,10 @@ import os
 import json
 import io
 
+import csv
+import xlwt
+import openpyxl
+
 import db
 import cfg
 
@@ -149,30 +153,52 @@ class Exporter:
 
         return table, captions
 
-    def export_as_table_by_template(self, template_section):
+    def export_as_table_by_template2(self, template_section):
         table, captions = self._export_as_table_by_template(template_section)
 
-        mode=cfg.config()[template_section].get("mode", "EXCEL").upper()
-        assert(mode in ["EXCEL", "TAB"])
-
         f = io.StringIO()
-        if mode == "TAB":
-            def removecrnl(s):
-                return s.replace("\r", "").replace("\n", "")
-
-            f.write("\t".join(map(removecrnl, captions))+"\n")
-            for line in table:
-                f.write("\t".join(map(removecrnl, line))+"\n")
-
-        elif mode == "EXCEL":
-            f.write("\ufeff")  # utf-8 bom marker
-            def excelize(s):
-                s = s.replace("\r", "").replace("\n", "")
-                return '"' + s.replace('"', '""') + '"'
-
-            f.write(";".join(map(excelize, captions))+"\n")
-            for line in table:
-                f.write(";".join(map(excelize, line))+"\n")
-
+        writer = csv.writer(f, delimiter="\t",  quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(captions)
+        for line in table:
+            writer.writerow(line)
         return f.getvalue()
 
+    def export_as_file_by_template2(self, nf, template_section):
+        table, captions = self._export_as_table_by_template(template_section)
+
+        mode = "UNKNOWN"
+        if nf.lower().endswith(".xls"):
+            mode = "XLS"
+        elif nf.lower().endswith(".csv"):
+            mode = "CSV"
+        elif nf.lower().endswith(".xlsx"):
+            mode = "XLSX"
+
+        assert(mode in ["XLS", "CSV", "XLSX"])
+
+        if mode == "CSV":
+            f = open(nf, "w", encoding='utf-8-sig')
+
+            writer = csv.writer(f, delimiter=";",  quoting=csv.QUOTE_ALL)
+            writer.writerow(captions)
+            for line in table:
+                writer.writerow(line)
+        elif mode == "XLS":
+            wb = xlwt.Workbook()
+            ws = wb.add_sheet('BOMBrowser0')
+            for c,t in enumerate(captions):
+                ws.write(0, c, t)
+            for r, line in enumerate(table):
+                for c,t in enumerate(line):
+                    ws.write(r+1, c, t)
+            wb.save(nf)
+        elif mode == "XLSX":
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = 'BOMBrowser0'
+            for c,t in enumerate(captions):
+                ws.cell(row=0+1, column=c+1, value=t)
+            for r, line in enumerate(table):
+                for c,t in enumerate(line):
+                    ws.cell(row=r + 2, column=c + 1, value=t)
+            wb.save(nf)
