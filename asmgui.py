@@ -328,7 +328,7 @@ class AssemblyWindow(utils.BBMainWindow):
             return
         e = exporter.Exporter(self._top , self._data)
         data = e.export_as_table_by_template(template)
-        open(nf[0], "w").write(data)
+        open(nf[0], "w", encoding='utf-8-sig').write(data)
 
     @catch_exception
     def _copy_as_template(self, template):
