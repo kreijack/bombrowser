@@ -3,7 +3,6 @@
 ## UI
 
 - [ ] add move children rows in the edit dialogs
-- [ ] add refresh in asm
 - [ ] show every where rid
 - [ ] in edit code add open assy
 
@@ -42,6 +41,9 @@
 - [ ] add test for assembly latest
 
 # DONE
+
+2021/03/21
+- [ ] add refresh in asm
 
 2021/03/29:
 - [X] remake the db tests
