@@ -23,7 +23,7 @@ from PySide2.QtWidgets import QComboBox
 from PySide2.QtWidgets import QSplitter, QTableView, QLabel, QTableWidgetItem
 from PySide2.QtWidgets import QGridLayout, QWidget, QApplication, QFileDialog
 from PySide2.QtWidgets import QMessageBox, QAction, QLineEdit, QSplitter
-from PySide2.QtWidgets import QHBoxLayout, QPushButton, QDialog
+from PySide2.QtWidgets import QHBoxLayout, QPushButton, QDialog, QTabWidget
 from PySide2.QtWidgets import QHeaderView, QMenu, QGroupBox, QTableWidget
 from PySide2.QtGui import QColor, QDesktopServices
 
@@ -318,6 +318,7 @@ class EditDates(QDialog):
             to_date = db.days_to_iso(to_date)
             self._table.item(row+1, col+1).setText(to_date)
 
+
 class SelectFromList(QDialog):
     def __init__(self, parent, title, header, data):
         QDialog.__init__(self, parent)
@@ -386,6 +387,7 @@ class SelectFromList(QDialog):
 
     def getIndex(self):
         return self._return_index
+
 
 class EditWindow(utils.BBMainWindow):
     def __init__(self, code_id, dt=None, parent=None):
@@ -543,38 +545,24 @@ class EditWindow(utils.BBMainWindow):
 
         # TODO: add the properties
 
-        splitter = QSplitter()
-        splitter.setOrientation(Qt.Horizontal)
-        g.addWidget(splitter, 30, 10, 1, 4)
+        qtab = QTabWidget()
+        self._qtab = qtab
+        g.addWidget(qtab, 30, 10, 1, 4)
         g.setRowStretch(30, 100)
+
         # children
-
-        qgb = QGroupBox("Children")
-        splitter.addWidget(qgb)
-
-        qgbg = QGridLayout()
-        qgb.setLayout(qgbg)
-
         self._children_table = QTableWidget()
-        qgbg.addWidget(self._children_table, 1, 10, 1, 2)
+        qtab.addTab(self._children_table, "Children")
         self._children_table.setContextMenuPolicy(Qt.CustomContextMenu)
         self._children_table.customContextMenuRequested.connect(
             self._children_menu)
 
         # drawing
-
-        qgb = QGroupBox("Drawings list")
-        splitter.addWidget(qgb)
-
-        qgbg = QGridLayout()
-        qgb.setLayout(qgbg)
-
         self._drawings_table = QTableWidget()
-        qgbg.addWidget(self._drawings_table, 1, 10, 1, 2)
+        qtab.addTab(self._drawings_table, "Drawings")
         self._drawings_table.setContextMenuPolicy(Qt.CustomContextMenu)
         self._drawings_table.customContextMenuRequested.connect(
             self._drawing_menu)
-
 
         b = QPushButton("Close")
         b.clicked.connect(self._close)
@@ -1086,6 +1074,8 @@ class EditWindow(utils.BBMainWindow):
 
         self._children_modified = False
         self._drawing_modified = False
+        self._qtab.setTabText(0, "Children (%d)"%(self._children_table.rowCount()))
+        self._qtab.setTabText(1, "Drawings list (%d)"%(self._drawings_table.rowCount()))
 
     def _children_cell_changed(self, row, col):
         self._children_modified = True
@@ -1155,6 +1145,8 @@ class EditWindow(utils.BBMainWindow):
         self._children_table.sortByColumn(0,Qt.AscendingOrder)
         self._children_table.setSortingEnabled(True)
 
+        self._qtab.setTabText(0, "Children (%d)"%(self._children_table.rowCount()))
+
     def _children_insert_after(self):
         self._children_modified = True
         self._children_insert_before(+1)
@@ -1173,6 +1165,7 @@ class EditWindow(utils.BBMainWindow):
             self._children_table.item(row, 0).setText("%03d"%(row+1))
         self._children_table.sortByColumn(0,Qt.AscendingOrder)
         self._children_table.setSortingEnabled(True)
+        self._qtab.setTabText(0, "Children (%d)"%(self._children_table.rowCount()))
 
     def _children_search_code(self):
         idxs = self._children_table.selectedIndexes()
@@ -1223,6 +1216,8 @@ class EditWindow(utils.BBMainWindow):
         for row in rows:
             self._drawings_table.removeRow(row)
 
+        self._qtab.setTabText(1, "Drawings list (%d)"%(self._drawings_table.rowCount()))
+
     def _add_drawing(self):
         (fn, _) = QFileDialog.getOpenFileName(self, "Select a file")
         if fn == "":
@@ -1233,7 +1228,7 @@ class EditWindow(utils.BBMainWindow):
         self._drawings_table.setRowCount(row+1)
         self._drawings_table.setItem(row, 0, QTableWidgetItem(os.path.basename(fn)))
         self._drawings_table.setItem(row, 1, QTableWidgetItem(fn))
-
+        self._qtab.setTabText(1, "Drawings list (%d)"%(self._drawings_table.rowCount()))
 
 def edit_code_by_code_id(code_id, dt=None):
     w = EditWindow(code_id, dt)
