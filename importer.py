@@ -71,7 +71,7 @@ def _read_table_csv(nf):
         if c == '\ufeff':
             enc = 'utf-8-sig'
         else:
-            enc = None
+            enc = 'utf-8'
 
     if enc is None:
         csvfile = open(nf, newline='')
