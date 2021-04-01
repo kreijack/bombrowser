@@ -2,7 +2,6 @@
 
 ## UI
 
-- [ ] add move children rows in the edit dialogs
 - [ ] show every where rid
 - [ ] in edit code add open assy
 
@@ -14,7 +13,7 @@
 - [ ] Implement an extern module to customize some function:
   - code validator
   - revise validator
-- [ ] check for loop when iterating a bom (e.g. exporter)
+- [ ] check for loop when iterating a bom (exported did, other ?)
 - [ ] add import from external source (cad, excel...) [partially]
 - [ ] for each command in code list window and in assembly window check that the code exists and it is not an artifact of a deleted one
 - [ ] add an exception handler for each database update [partially]
@@ -42,8 +41,12 @@
 
 # DONE
 
+2021/04/01
+- [X] add move children rows in the edit dialogs
+- [X] check for loop when iterating a bom (e.g. exporter)
+
 2021/03/21
-- [ ] add refresh in asm
+- [X] add refresh in asm
 
 2021/03/29:
 - [X] remake the db tests

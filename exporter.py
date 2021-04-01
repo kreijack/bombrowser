@@ -88,6 +88,13 @@ class Exporter:
                 return
             self._did.add(key)
 
+        if key in self._path:
+            table.append(["loop" for x in columns])
+            self._seq += 1
+            return
+
+        self._path = self._path[:level] + [key]
+
         row = []
         item = self._data[key]
         for col in columns:
@@ -146,7 +153,10 @@ class Exporter:
 
         self._seq = 0
         self._did = set()
+        self._path = []
+
         self._export_as_table_by_template_it(unique, table, columns, self._rootnode)
+
 
         if sortby >= 0:
             table.sort(key=lambda x : x[sortby])
