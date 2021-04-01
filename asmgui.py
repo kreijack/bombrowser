@@ -166,6 +166,7 @@ class AssemblyWindow(utils.BBMainWindow):
         self._asm = asm
         self._valid_where_used = valid_where_used
         self._data = dict()
+        self._bom_reload = None
 
         self._init_gui()
         self.resize(1024, 600)
@@ -617,10 +618,12 @@ class AssemblyWindow(utils.BBMainWindow):
 
         self._my_statusbar.showMessage("/".join(map(lambda x : self._data[x]["code"], path)))
 
-    @staticmethod
-    def bom_reload(w):
-        pass
+    def bom_reload(self):
+        if self._bom_reload:
+            self._bom_reload()
 
+    def set_bom_reload(self, f):
+        self._bom_reload = f
 
 class WhereUsedWindow(AssemblyWindow):
     def __init__(self, parent):
@@ -645,7 +648,7 @@ def where_used(code_id, winParent, valid=False):
 
     w.show()
 
-    def bom_reload(w):
+    def bom_reload():
         d = db.DB()
         QApplication.setOverrideCursor(Qt.WaitCursor)
         (top, data) = d.get_where_used_from_id_code(code_id, valid)
@@ -658,8 +661,8 @@ def where_used(code_id, winParent, valid=False):
         w.populate(top, data)
         QApplication.restoreOverrideCursor()
 
-    w.bom_reload = bom_reload
-    w.bom_reload(w)
+    w.set_bom_reload(bom_reload)
+    w.bom_reload()
 
 def valid_where_used(code_id, winParent):
     return where_used(code_id, winParent, valid=True)
@@ -692,7 +695,7 @@ def show_assembly(code_id, winParent):
         data = d.get_bom_by_code_id3(code_id, date_from_days)
         w.populate(*data, caption_date=date_from_days)
         QApplication.restoreOverrideCursor()
-    w.bom_reload = bom_reload
+    w.set_bom_reload(bom_reload)
     w.bom_reload()
 
 def show_latest_assembly(code_id):
@@ -719,7 +722,7 @@ def show_latest_assembly(code_id):
         data = d.get_bom_by_code_id3(code_id, dt)
         w.populate(*data, caption_date=dt)
         QApplication.restoreOverrideCursor()
-    w.bom_reload = bom_reload
+    w.set_bom_reload(bom_reload)
     w.bom_reload()
 
 def show_proto_assembly(code_id):
@@ -743,7 +746,7 @@ def show_proto_assembly(code_id):
         data = d.get_bom_by_code_id3(code_id, dates[0][3])
         w.populate(*data, caption_date=db.end_of_the_world)
         QApplication.restoreOverrideCursor()
-    w.bom_reload = bom_reload
+    w.set_bom_reload(bom_reload)
     w.bom_reload()
 
 def show_assembly_by_date(code_id, dt):
@@ -765,5 +768,5 @@ def show_assembly_by_date(code_id, dt):
         data = d.get_bom_by_code_id3(code_id, dt)
         w.populate(*data, caption_date=dt)
         QApplication.restoreOverrideCursor()
-    w.bom_reload = bom_reload
+    w.set_bom_reload(bom_reload)
     w.bom_reload()
