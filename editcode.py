@@ -30,7 +30,7 @@ from PySide2.QtGui import QColor, QDesktopServices
 from PySide2.QtCore import Qt, QUrl
 
 import db, asmgui, codegui, diffgui, utils, listcodegui, jdutil, cfg
-import importer
+import importer, copycodegui
 from utils import catch_exception
 
 class SelectCode(QDialog):
@@ -1130,17 +1130,63 @@ class EditWindow(utils.BBMainWindow):
 
     def _children_menu(self, point):
         contextMenu = QMenu(self)
-        insertAfter = contextMenu.addAction("Insert row after")
-        insertAfter.triggered.connect(self._children_insert_after)
-        insertBefore = contextMenu.addAction("Insert row before")
-        insertBefore.triggered.connect(self._children_insert_before)
-        delete = contextMenu.addAction("Delete row")
-        delete.triggered.connect(self._children_delete)
-        searchCode = contextMenu.addAction("Search code ...")
-        searchCode.triggered.connect(self._children_search_code)
+        m = contextMenu.addAction("Insert row before")
+        m.triggered.connect(self._children_insert_before)
+        m = contextMenu.addAction("Insert row after")
+        m.triggered.connect(self._children_insert_after)
+        m = contextMenu.addAction("Delete row")
+        m.triggered.connect(self._children_delete)
+        contextMenu.addSeparator()
+        m = contextMenu.addAction("Search code ...")
+        m.triggered.connect(self._children_search_code)
+        contextMenu.addSeparator()
+        m = contextMenu.addAction("Show latest assembly ...")
+        m.triggered.connect(lambda : self._children_do("latest_assembly"))
+        m = contextMenu.addAction("Where used...")
+        m.triggered.connect(lambda : self._children_do("where_used"))
+        m = contextMenu.addAction("Valid where used...")
+        m.triggered.connect(lambda : self._children_do("valid_where_used"))
+        m = contextMenu.addAction("Show assembly by date...")
+        m.triggered.connect(lambda : self._children_do("by_date_assembly"))
+        m = contextMenu.addAction("Show current assembly...")
+        m.triggered.connect(lambda : self._children_do("current_assembly"))
+        m = contextMenu.addAction("Show prototype assembly ...")
+        m.triggered.connect(lambda : self._children_do("prototype_assembly"))
+        contextMenu.addSeparator()
+        m = contextMenu.addAction("Copy / revise code ...")
+        m.triggered.connect(lambda : self._children_do("copy_revise"))
+        m = contextMenu.addAction("Edit code ...")
+        m.triggered.connect(lambda : self._children_do("edit"))
 
         contextMenu.exec_(self._children_table.viewport().mapToGlobal(point))
         pass
+
+    def _children_do(self, cmd):
+
+        idxs = self._children_table.selectedIndexes()
+        if len(idxs) < 1:
+            return
+        row = idxs[0].row()
+
+        code_id = int(self._children_table.item(row, 1).text())
+        code = self._children_table.item(row, 2).text()
+
+        if cmd == "edit":
+            edit_code_by_code_id(code_id)
+        elif cmd == "latest_assembly":
+            asmgui.show_latest_assembly(code_id)
+        elif cmd == "by_date_assembly":
+            asmgui.show_assembly(code_id, self)
+        elif cmd == "current_assembly":
+            asmgui.show_assembly_by_date(code_id, self._from_date_days)
+        elif cmd == "prototype_assembly":
+            asmgui.show_proto_assembly(code_id)
+        elif cmd == "where_used":
+            asmgui.where_used(code_id, None)
+        elif cmd == "valid_where_used":
+            asmgui.valid_where_used(code_id, None)
+        elif cmd == "copy_revise":
+            copycodegui.revise_copy_code(code_id, self)
 
     def _children_move_row(self, where):
 
