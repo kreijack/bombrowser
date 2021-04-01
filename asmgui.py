@@ -218,10 +218,10 @@ class AssemblyWindow(utils.BBMainWindow):
         for name, descr in exporter.get_template_list():
             if name == "template_simple":
                 a = QAction("Copy", self)
-                a.triggered.connect(utils.Callable(self._export_as_template, name))
+                a.triggered.connect(utils.Callable(self._copy_as_template, name))
             else:
                 a = QAction("Copy bom as template '%s'"%(descr), self)
-                a.triggered.connect(utils.Callable(self._export_as_template, name))
+                a.triggered.connect(utils.Callable(self._copy_as_template, name))
             m.addAction(a)
 
         m = mainMenu.addMenu("View")
