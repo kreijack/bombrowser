@@ -241,25 +241,6 @@ class CodeWidget(QWidget):
     def _open_file(self, nf):
         QDesktopServices.openUrl(QUrl.fromLocalFile(nf))
 
-    def _change_code(self):
-        if not self._code_id:
-            QApplication.beep()
-            return
-
-        #self._my_statusbar.showMessage("Not implemented", 3000)
-
-    def _where_used(self):
-        if not self._code_id:
-            QApplication.beep()
-            return
-        asmgui.where_used(self._code_id)
-
-    def _show_assembly(self):
-        if not self._code_id:
-            QApplication.beep()
-            return
-        asmgui.show_assembly(self._code_id, self._winParent)
-
 
 class CodesWidget(CodeWidget):
 
