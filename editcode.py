@@ -1182,9 +1182,9 @@ class EditWindow(utils.BBMainWindow):
         elif cmd == "prototype_assembly":
             asmgui.show_proto_assembly(code_id)
         elif cmd == "where_used":
-            asmgui.where_used(code_id, None)
+            asmgui.where_used(code_id)
         elif cmd == "valid_where_used":
-            asmgui.valid_where_used(code_id, None)
+            asmgui.valid_where_used(code_id)
         elif cmd == "copy_revise":
             copycodegui.revise_copy_code(code_id, self)
 

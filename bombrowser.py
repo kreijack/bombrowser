@@ -57,11 +57,11 @@ def main(args):
         if args[i] == "--whereused":
             import asmgui
             i += 1
-            asmgui.where_used(int(args[i]), None)
+            asmgui.where_used(int(args[i]))
         elif args[i] == "--validwhereused":
             import asmgui
             i += 1
-            asmgui.valid_where_used(int(args[i]), None)
+            asmgui.valid_where_used(int(args[i]))
         elif args[i] == "--showassembly":
             import asmgui
             i += 1

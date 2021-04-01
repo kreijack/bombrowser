@@ -370,14 +370,14 @@ class CodesWindow(utils.BBMainWindowNotClose):
         if not cid:
             QApplication.beep()
             return
-        asmgui.where_used(cid, self)
+        asmgui.where_used(cid)
 
     def _show_valid_where_used(self):
         cid = self._stacked_widget.currentWidget().getCodeId()
         if not cid:
             QApplication.beep()
             return
-        asmgui.valid_where_used(cid, self)
+        asmgui.valid_where_used(cid)
 
     def _show_assembly_rid(self):
         cid = self._revisions_widget.getCodeId()

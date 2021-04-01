@@ -473,7 +473,7 @@ class AssemblyWindow(utils.BBMainWindow):
             return
         id_ = self._data[path[-1]]["id"]
 
-        where_used(id_, self.parent())
+        where_used(id_)
 
     def _show_valid_where_used(self):
         path = self._get_path()
@@ -481,7 +481,7 @@ class AssemblyWindow(utils.BBMainWindow):
             return
         id_ = self._data[path[-1]]["id"]
 
-        valid_where_used(id_, self.parent())
+        valid_where_used(id_)
 
     def populate(self, top, data, caption_date=None):
         top_code = data[top]["code"]
@@ -636,7 +636,7 @@ class ValidWhereUsedWindow(AssemblyWindow):
             valid_where_used = True)
 
 
-def where_used(code_id, winParent, valid=False):
+def where_used(code_id, valid=False):
     if not code_id:
         QApplication.beep()
         return
@@ -656,7 +656,7 @@ def where_used(code_id, winParent, valid=False):
         if len(data) == 1:
             QApplication.restoreOverrideCursor()
             QApplication.beep()
-            QMessageBox.critical(winParent, "BOMBrowser", "The item is not in an assembly")
+            QMessageBox.critical(None, "BOMBrowser", "The item is not in an assembly")
             return
         w.populate(top, data)
         QApplication.restoreOverrideCursor()
@@ -664,8 +664,8 @@ def where_used(code_id, winParent, valid=False):
     w.set_bom_reload(bom_reload)
     w.bom_reload()
 
-def valid_where_used(code_id, winParent):
-    return where_used(code_id, winParent, valid=True)
+def valid_where_used(code_id):
+    return where_used(code_id, valid=True)
 
 def show_assembly(code_id, winParent):
     if not code_id:
@@ -675,7 +675,7 @@ def show_assembly(code_id, winParent):
     d = db.DB()
     if not d.is_assembly(code_id):
         QApplication.beep()
-        QMessageBox.critical(winParent, "BOMBrowser", "The item is not an assembly")
+        QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
         return
 
     dlg = selectdategui.SelectDate(code_id, winParent)

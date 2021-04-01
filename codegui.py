@@ -252,7 +252,7 @@ class CodeWidget(QWidget):
         if not self._code_id:
             QApplication.beep()
             return
-        asmgui.where_used(self._code_id, self._winParent)
+        asmgui.where_used(self._code_id)
 
     def _show_assembly(self):
         if not self._code_id:
