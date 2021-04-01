@@ -552,10 +552,29 @@ class EditWindow(utils.BBMainWindow):
 
         # children
         self._children_table = QTableWidget()
-        qtab.addTab(self._children_table, "Children")
         self._children_table.setContextMenuPolicy(Qt.CustomContextMenu)
         self._children_table.customContextMenuRequested.connect(
             self._children_menu)
+
+        w = QWidget()
+        l = QGridLayout()
+        w.setLayout(l)
+        b = QPushButton("Top")
+        b.clicked.connect(lambda : self._children_move_row("top"))
+        l.addWidget(b, 10, 10)
+        b = QPushButton("Up")
+        b.clicked.connect(lambda : self._children_move_row("up"))
+        l.addWidget(b, 11, 10)
+        b = QPushButton("Down")
+        b.clicked.connect(lambda : self._children_move_row("down"))
+        l.addWidget(b, 12, 10)
+        b = QPushButton("Bottom")
+        b.clicked.connect(lambda : self._children_move_row("bottom"))
+        l.addWidget(b, 13, 10)
+        l.addWidget(self._children_table, 10, 20, 5, 1)
+        l.setRowStretch(14, 100)
+        qtab.addTab(w, "Children")
+
 
         # drawing
         self._drawings_table = QTableWidget()
@@ -1122,6 +1141,52 @@ class EditWindow(utils.BBMainWindow):
 
         contextMenu.exec_(self._children_table.viewport().mapToGlobal(point))
         pass
+
+    def _children_move_row(self, where):
+
+        idxs = self._children_table.selectedIndexes()
+        if len(idxs) < 1:
+            return
+        self._children_modified = True
+
+        nrow = self._children_table.rowCount()
+
+        row = idxs[0].row()
+
+        if where == "top":
+            target_row = 0
+        elif where == "bottom":
+            target_row = nrow - 1
+        elif where == "up":
+            target_row = row - 1
+        elif where == "down":
+            target_row = row + 1
+
+        if row == target_row or target_row < 0 or target_row >= nrow:
+            return
+
+        self._children_table.setSortingEnabled(False)
+
+        try:
+            self._children_table.cellChanged.disconnect()
+        except:
+            pass
+
+        for c in range(1, self._children_table.columnCount()):
+            tmp = self._children_table.item(row, c).text()
+            self._children_table.item(row, c).setText(
+                self._children_table.item(target_row, c).text())
+            self._children_table.item(target_row, c).setText(tmp)
+
+        for row in range(self._children_table.rowCount()):
+            self._children_table.item(row, 0).setText("%03d"%(row+1))
+
+        self._children_table.sortByColumn(0,Qt.AscendingOrder)
+
+        self._children_table.setSortingEnabled(True)
+
+        self._children_table.selectRow(target_row)
+        self._children_table.cellChanged.connect(self._children_cell_changed)
 
     def _children_insert_before(self, offset=0):
         self._children_modified = True
