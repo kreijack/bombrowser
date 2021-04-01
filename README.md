@@ -50,14 +50,14 @@ db=sqlite
 Then check that the section **SQLITE** is configured accordling to your needing
 
 ```
-[SQLITE] 
-path=database.sqlite 
+[SQLITE]
+path=database.sqlite
 ```
 
 Finally execute the mkdb.py script
 
 ```
-$ python3 mkdb.py 
+$ python3 mkdb.py
 Insert resistor 510xxx
 Insert capacitor 520xxx
 Insert uprocessor 530xxx
@@ -90,5 +90,11 @@ You can see some screenshot in the **screenshots** folder.
 ## LICENSE
 
 The program is licensed under the GPL V2 (or later).
+
+## DEPENDENCIES
+- PySide2
+- openpyxl
+- xlrd, xlwt
+
 
 
