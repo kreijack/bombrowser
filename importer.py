@@ -36,7 +36,7 @@ def import_csv_parent_child(keyword_map, options):
 
     (fn, _) = QFileDialog.getOpenFileName(None, "Select a file to import",
         None,
-        "CSV files (*.csv);;Excel file (*.xls,*.xlsx);;All files (*.*)")
+        "CSV files (*.csv);;Excel file (*.xls *.xlsx);;All files (*.*)")
     if fn == "":
         return None
 

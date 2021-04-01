@@ -309,7 +309,7 @@ class AssemblyWindow(utils.BBMainWindow):
     @catch_exception
     def _export_as_template(self, template):
         nf, _ = QFileDialog.getSaveFileName(self, "BOMBrowser - export bom",
-                                    filter="CSV file (*.csv);; Excel file (*.xls, *.xlsx)",
+                                    filter="CSV file (*.csv);; Excel file (*.xls *.xlsx)",
                                     selectedFilter="*.xls")
         if nf == '':
             return
