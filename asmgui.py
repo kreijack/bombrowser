@@ -194,10 +194,10 @@ class AssemblyWindow(utils.BBMainWindow):
         m.addAction(a)
         for name, descr in exporter.get_template_list():
             if name == "template_simple":
-                a = QAction("Export bom as CSV file...", self)
+                a = QAction("Export bom ...", self)
                 a.triggered.connect(utils.Callable(self._export_as_template, name))
             else:
-                a = QAction("Export bom as CSV template '%s'"%(descr), self)
+                a = QAction("Export bom (%s)"%(descr), self)
                 a.triggered.connect(utils.Callable(self._export_as_template, name))
             m.addAction(a)
 
@@ -221,7 +221,7 @@ class AssemblyWindow(utils.BBMainWindow):
                 a = QAction("Copy", self)
                 a.triggered.connect(utils.Callable(self._copy_as_template, name))
             else:
-                a = QAction("Copy bom as template '%s'"%(descr), self)
+                a = QAction("Copy bom (%s)"%(descr), self)
                 a.triggered.connect(utils.Callable(self._copy_as_template, name))
             m.addAction(a)
 
