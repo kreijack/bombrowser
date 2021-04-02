@@ -357,6 +357,7 @@ def revise_copy_code_by_rid(rid):
                 "Success: you created a new code/revision")
             return None
 
+        d = db.DB()
         codes = d.get_codes_by_code(w.getNewCode())
         if len(codes):
             w2 = editcode.EditWindow(codes[0][0])
