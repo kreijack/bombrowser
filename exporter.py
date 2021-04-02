@@ -187,7 +187,7 @@ class Exporter:
         assert(mode in ["XLS", "CSV", "XLSX"])
 
         if mode == "CSV":
-            f = open(nf, "w", encoding='utf-8-sig')
+            f = open(nf, "w", encoding='utf-8-sig', newline='')
 
             writer = csv.writer(f, delimiter=";",  quoting=csv.QUOTE_ALL)
             writer.writerow(captions)
