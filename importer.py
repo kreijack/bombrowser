@@ -21,7 +21,6 @@ import traceback
 import sys
 import pprint
 import csv
-import openpyxl
 import xlrd
 
 from PySide2.QtWidgets import QMessageBox, QFileDialog
@@ -54,16 +53,6 @@ def _read_table_xls(nf):
 
     return ret
 
-def _read_table_xlsx(nf):
-    book = openpyxl.load_workbook(nf)
-    sh = book.active
-    ret = []
-    for row in range(sh.max_row-1):
-        ret.append([str(sh.cell(row+1, col+1).value)
-            for col in range(sh.max_column)])
-
-    return ret
-
 def _read_table_csv(nf):
 
     with open(nf, newline='') as csvfile:
@@ -91,12 +80,10 @@ def _read_table_csv(nf):
 def _read_table(nf):
     if nf.lower().endswith(".csv"):
         return _read_table_csv(nf)
-    elif nf.lower().endswith(".xlsx"):
-        return _read_table_xlsx(nf)
-    elif nf.lower().endswith(".xls"):
+    elif nf.lower().endswith(".xls") or nf.lower().endswith(".xlsx"):
         return _read_table_xls(nf)
     else:
-        raise Exception("Format of file '%s' unknown; supperted file: .csv or .xls[x]"%(
+        raise Exception("Format of file '%s' unknown; supperted file: .csv or .xls"%(
             nf))
 
 def _import_csv_parent_child2(data, keyword_map, options):
@@ -120,8 +107,6 @@ def _import_csv_parent_child2(data, keyword_map, options):
         ignore_bom = int(options["ignore_bom"]) > 0
     if "skip_first_lines" in options:
         skip_first_lines = int(options["skip_first_lines"])
-
-
 
     if separator=="COMMA":
         separator=","
@@ -188,8 +173,6 @@ def _import_csv_parent_child2(data, keyword_map, options):
                 x = str(x).replace(",", ".")
             return float(x)
 
-
-
         for v in colmap:
             if colmap[v] is None:
                 continue
@@ -227,8 +210,6 @@ def _import_csv_parent_child2(data, keyword_map, options):
             if colmap[v] is None:
                 continue
             bom[code_values["code"]][v] = code_values[v]
-
-
 
     return bom
 

@@ -24,7 +24,6 @@ import io
 
 import csv
 import xlwt
-import openpyxl
 
 import db
 import cfg
@@ -181,10 +180,8 @@ class Exporter:
             mode = "XLS"
         elif nf.lower().endswith(".csv"):
             mode = "CSV"
-        elif nf.lower().endswith(".xlsx"):
-            mode = "XLSX"
 
-        assert(mode in ["XLS", "CSV", "XLSX"])
+        assert(mode in ["XLS", "CSV"])
 
         if mode == "CSV":
             f = open(nf, "w", encoding='utf-8-sig', newline='')
@@ -201,14 +198,4 @@ class Exporter:
             for r, line in enumerate(table):
                 for c,t in enumerate(line):
                     ws.write(r+1, c, t)
-            wb.save(nf)
-        elif mode == "XLSX":
-            wb = openpyxl.Workbook()
-            ws = wb.active
-            ws.title = 'BOMBrowser0'
-            for c,t in enumerate(captions):
-                ws.cell(row=0+1, column=c+1, value=t)
-            for r, line in enumerate(table):
-                for c,t in enumerate(line):
-                    ws.cell(row=r + 2, column=c + 1, value=t)
             wb.save(nf)

@@ -700,8 +700,6 @@ class EditWindow(utils.BBMainWindow):
 
             root = data[ret][0]
 
-        pprint.pprint(bom[root])
-
         children = [(bom[root]["deps"][k]["code"],
                 bom[root]["deps"][k]["qty"], bom[root]["deps"][k]["each"],
                 bom[root]["deps"][k]["unit"],

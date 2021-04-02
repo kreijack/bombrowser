@@ -308,13 +308,12 @@ class AssemblyWindow(utils.BBMainWindow):
 
     def _export_as_template(self, template):
         nf, _ = QFileDialog.getSaveFileName(self, "BOMBrowser - export bom",
-                                    filter="CSV file (*.csv);; Excel file (*.xls *.xlsx)",
+                                    filter="CSV file (*.csv);; Excel file (*.xls)",
                                     selectedFilter="*.xls")
         if nf == '':
             return
         if (not nf.lower().endswith(".xls") and
-            not nf.lower().endswith(".csv") and
-            not nf.lower().endswith(".xlsx")):
+            not nf.lower().endswith(".csv")):
                 QMessageBox.critical(self, "BOMBrowser", "Unsupported file format")
                 return
         e = exporter.Exporter(self._top , self._data)
