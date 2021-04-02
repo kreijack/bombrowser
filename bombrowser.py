@@ -17,15 +17,26 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sys
+import sys, traceback
 
 from PySide2.QtWidgets import QApplication
 from PySide2.QtWidgets import QMessageBox
 
 import db, listcodegui, cfg
 
+def show_exception(exc_type, exc_value, exc_traceback):
+
+    exc_info = (exc_type, exc_value, exc_traceback)
+    excs = '\n'.join([''.join(traceback.format_tb(exc_traceback)),
+                                 '{0}: {1}'.format(exc_type.__name__, exc_value)])
+    msg = "Uncaught exception:\n {0}".format(excs)
+
+    QMessageBox.critical(None, "BOMBrowser - goy exception", msg)
+
 def main(args):
     app = QApplication(sys.argv)
+
+    sys.excepthook = show_exception
 
     try:
         cfg.init()
@@ -74,7 +85,8 @@ def main(args):
             import editcode
             i += 1
             editcode.edit_code_by_code_id(int(args[i]))
-
+        elif args[i] == "--test-exception":
+            _ = 1/0
         else:
             print("Ignore command '%s'"%(args[i]))
 
