@@ -297,7 +297,6 @@ class AssemblyWindow(utils.BBMainWindow):
     def _build_windows_menu(self):
         utils.build_windows_menu(self._windowsMenu, self)
 
-    @catch_exception
     def _export_assemblies_list(self):
         nf = QFileDialog.getSaveFileName(self, "BOMBrowser - export bom",
                                     filter="Json file format (*.json);; All files (*.*)",
@@ -307,7 +306,6 @@ class AssemblyWindow(utils.BBMainWindow):
         e = exporter.Exporter(self._top , self._data)
         e.export_as_json(nf[0])
 
-    @catch_exception
     def _export_as_template(self, template):
         nf, _ = QFileDialog.getSaveFileName(self, "BOMBrowser - export bom",
                                     filter="CSV file (*.csv);; Excel file (*.xls *.xlsx)",
@@ -322,8 +320,6 @@ class AssemblyWindow(utils.BBMainWindow):
         e = exporter.Exporter(self._top , self._data)
         e.export_as_file_by_template2(nf, template)
 
-
-    @catch_exception
     def _copy_as_template(self, template):
         e = exporter.Exporter(self._top , self._data)
         cb = QApplication.clipboard()

@@ -151,8 +151,7 @@ class DiffWindow(utils.BBMainWindow):
         try:
             self._do_diff()
         except:
-            traceback.print_exc()
-            QMessageBox.critical(self, "BOMBrowser", "Cannot perform the diff: check the date!")
+            utils.show_exception(msg="Cannot perform the diff: check the date!")
         finally:
             QApplication.restoreOverrideCursor()
 

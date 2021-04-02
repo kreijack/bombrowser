@@ -18,7 +18,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
 def database_password(pwd):
-	return pwd
+    return pwd
+
+def get_edit_window_importer_list():
+    """
+        it should return a list of a pair (menuname, function)
+    """
+    return []
+
+# ----
 
 import imp
 try:
@@ -28,6 +36,10 @@ except ImportError:
     found = False
 
 if found:
-	import customize_ext
-	if hasattr(customize_ext, 'database_password'):
-		database_password = customize_ext.database_password
+    import customize_ext
+
+    if hasattr(customize_ext, 'database_password'):
+        database_password = customize_ext.database_password
+
+    if hasattr(customize_ext, 'get_edit_window_importer_list'):
+        get_edit_window_importer_list = customize_ext.get_edit_window_importer_list

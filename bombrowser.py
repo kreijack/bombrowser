@@ -17,46 +17,30 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sys, traceback
+import sys
 
 from PySide2.QtWidgets import QApplication
 from PySide2.QtWidgets import QMessageBox
 
-import db, listcodegui, cfg
-
-def show_exception(exc_type, exc_value, exc_traceback):
-
-    exc_info = (exc_type, exc_value, exc_traceback)
-    excs = '\n'.join([''.join(traceback.format_tb(exc_traceback)),
-                                 '{0}: {1}'.format(exc_type.__name__, exc_value)])
-    msg = "Uncaught exception:\n {0}".format(excs)
-
-    QMessageBox.critical(None, "BOMBrowser - goy exception", msg)
+import db, listcodegui, cfg, utils
 
 def main(args):
     app = QApplication(sys.argv)
 
-    sys.excepthook = show_exception
+    sys.excepthook = utils._show_exception
 
     try:
         cfg.init()
     except:
-        QMessageBox.critical(None, "BOMBrowser", "Cannot load configuration: may be bombroser.ini missing ?\nAbort")
-        raise
-
+        utils.show_exception(msg="Cannot load configuration: may be bombroser.ini missing ?\nAbort")
+        return
 
     try:
         d = db.DB()
         data = d.get_config()
-    except Exception as e:
-        QMessageBox.critical(None, "BOMBrowser",
-            "Cannot connect to database\nAbort\n" +
-            "Exception:\n" +
-            "-"*30 + "\n" +
-            str(e) + "\n" +
-            "-"*30
-        )
-        raise
+    except:
+        utils.show_exception(msg="Cannot connect to database\nAbort\n")
+        return
 
     cfg.update_cfg(data)
 

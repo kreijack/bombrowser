@@ -115,8 +115,7 @@ class EditDates(QDialog):
                 else:
                     date_to_days = db.end_of_the_world
             except:
-                QMessageBox.critical(self, "BOMBrowser",
-                    "Error in date format row %d"%(row+1))
+                utils.show_exception(msg="Error in date format row %d"%(row+1))
                 return
 
             if min_date_from_days is None or min_date_from_days > date_from_days:
@@ -170,9 +169,8 @@ class EditDates(QDialog):
 
         try:
             d.update_dates(dates)
-        except Exception as e:
-            QMessageBox.critical(self, "BOMBrowser",
-                    "Error during the data saving\n" +
+        except:
+            utils.show_exception(msg="Error during the data saving\n" +
                     str(e))
             return
 
@@ -679,7 +677,6 @@ class EditWindow(utils.BBMainWindow):
         a.triggered.connect(lambda : utils.about(self, db.connection))
         m.addAction(a)
 
-    @catch_exception
     def _import_from(self, name, callable_):
 
         bom = callable_()
@@ -764,14 +761,9 @@ class EditWindow(utils.BBMainWindow):
         try:
             ret = d.delete_code(self._code_id)
 
-        except Exception as e:
-            QMessageBox.critical(self, "BOMBrowser",
-                "Error during deletion of code id=%d\n"%(self._code_id) +
-                "Exception is:\n"
-                "-----------------------------\n"
-                "%r"%(e) +
-                "-----------------------------\n")
-            raise
+        except:
+            utils.show_exception(msg="Error during deletion of code id=%d\n"%(self._code_id))
+            return
 
         if ret == "HASPARENTS":
             QMessageBox.critical(self, "BOMBrowser",
@@ -805,14 +797,9 @@ class EditWindow(utils.BBMainWindow):
         d = db.DB()
         try:
             ret = d.delete_code_revision(self._rid)
-        except Exception as e:
-            QMessageBox.critical(self, "BOMBrowser",
-                "Error during deletion of code id=%d\n"%(self._rid) +
-                "Exception is:\n"
-                "-----------------------------\n"
-                "%r"%(e) +
-                "-----------------------------\n")
-            raise
+        except:
+            utils.show_exception(msg="Error during deletion of code revision rid=%d\n"%(self._rid))
+            return
 
         if ret == "ISALONE":
             QMessageBox.critical(self, "BOMBrowser",
@@ -961,10 +948,8 @@ class EditWindow(utils.BBMainWindow):
                 , self._ver.text(), self._unit.text(),
                 gvals, drawings, children
             )
-        except db.DBException as e:
-            QMessageBox.critical(self, "BOMBrowser",
-                    "Error during the data saving\n" +
-                    e.args[0])
+        except:
+            utils.show_exception(msg="Error during the data saving\n")
             return "ERROR"
 
         QMessageBox.information(self, "BOMBrowser",

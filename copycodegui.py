@@ -245,12 +245,9 @@ class CopyCode(QDialog):
                 "The error is: " + "\n" + "-" * 20 + "\n" + e.args[0] +
                 "\n" + "-" * 20)
             return
-        except Exception as e:
-            QMessageBox.critical(self,
-                "BOMBrowser - error",
-                "Cannot copy/revise the code " + self._l_old_code.text() + "\n" +
-                "The exception is: " + "\n" + "-" * 20 + "\n" + e.args[0] +
-                "\n" + "-" * 20)
+        except:
+            utils.show_exception(msg="Cannot copy/revise the code " +
+                self._l_old_code.text())
             return
 
         self.accept()

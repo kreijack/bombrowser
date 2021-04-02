@@ -23,10 +23,31 @@ from PySide2.QtWidgets import QAction
 from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QMessageBox, QMainWindow
 
+version = "v0.4.2b3"
+
+def __show_exception(exc_type, exc_value, exc_traceback,
+        title, msg):
+
+    exc_info = (exc_type, exc_value, exc_traceback)
+    excs = '\n'.join([''.join(traceback.format_tb(exc_traceback)),
+                                 '{0}: {1}'.format(exc_type.__name__, exc_value)])
+    msg = msg + "\n" + "-" * 30 + "\n" + excs + "\n" + "-" * 30 + "\n"
+
+    QMessageBox.critical(None, title, msg)
+
+def _show_exception(exc_type, exc_value, exc_traceback):
+    __show_exception(exc_type, exc_value, exc_traceback,
+        "BOMBrowser - %s"%(version),
+        "Catch 'uncautch' exception:")
+
+def show_exception(title = "BOMBrowser - %s"%(version),
+                   msg = "BOMBrowser - got exception"):
+    __show_exception(*sys.exc_info(), title, msg)
+
 _bbmainwindows_list = []
 _bbmainwindows_list_cnt = 0
 
-version = "v0.4.2b3"
+
 window_title = "BOMBrowser " + version
 
 class BBMainWindow(QMainWindow):
