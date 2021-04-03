@@ -28,8 +28,8 @@ from PySide2.QtWidgets import QHeaderView, QMenu, QTableWidget, QTableWidgetItem
 
 from PySide2.QtCore import Qt, Signal, QPoint
 
-import db, asmgui, codegui, diffgui, utils, editcode
-import copycodegui, selectdategui, cfg, searchrevisiongui
+import db, asmgui, utils, copycodegui,editcode,codegui, diffgui
+import selectdategui, cfg, searchrevisiongui
 
 class CodesListWidget(QWidget):
     #tableCustomContextMenuRequested = Signal(QPoint)
@@ -270,143 +270,30 @@ class CodesWindow(utils.BBMainWindowNotClose):
             self._my_statusbar.showMessage("Last search have 0 results !!!")
 
     def _codes_widget_context_menu(self, point):
+        if not self._codes_widget.getCodeId():
+            QApplication.beep()
+            return
         contextMenu = QMenu(self)
 
-        contextMenu.addAction("Show latest assembly").triggered.connect(self._show_latest_assembly)
-        contextMenu.addAction("Where used").triggered.connect(self._show_where_used)
-        contextMenu.addAction("Valid where used").triggered.connect(self._show_valid_where_used)
-        contextMenu.addAction("Show assembly by date").triggered.connect(self._show_assembly)
-        contextMenu.addAction("Show prototype assembly").triggered.connect(self._show_proto_assembly)
-        contextMenu.addSeparator()
-        contextMenu.addAction("Copy/revise code ...").triggered.connect(self._revise_code)
-        contextMenu.addAction("Edit code ...").triggered.connect(self._edit_code)
-        contextMenu.addSeparator()
-        contextMenu.addAction("Diff from").triggered.connect(self._set_diff_from)
-        contextMenu.addAction("Diff to").triggered.connect(self._set_diff_to)
+        asmgui.generate_codes_context_menu(
+            code_id = self._codes_widget.getCodeId(),
+            menu = contextMenu,
+            parent = self)
 
         contextMenu.exec_(point)
 
     def _revisions_widget_context_menu(self, point):
+
+        if not self._revisions_widget.getCodeId():
+            QApplication.beep()
+            return
+
         contextMenu = QMenu(self)
 
-        contextMenu.addAction("Show this assembly").triggered.connect(
-            self._show_assembly_rid)
-        contextMenu.addAction("Show latest assembly").triggered.connect(
-            self._show_latest_assembly)
-        contextMenu.addAction("Where used").triggered.connect(
-            self._show_where_used)
-        contextMenu.addAction("Valid where used").triggered.connect(
-            self._show_valid_where_used)
-        contextMenu.addAction("Show assembly by date").triggered.connect(
-            self._show_assembly)
-        contextMenu.addAction("Show prototype assembly").triggered.connect(
-            self._show_proto_assembly)
-        contextMenu.addSeparator()
-        contextMenu.addAction("Copy/revise code ...").triggered.connect(
-            self._revise_code_rid)
-        contextMenu.addAction("Edit code ...").triggered.connect(
-            self._edit_code_rid)
-        contextMenu.addSeparator()
-        contextMenu.addAction("Diff from").triggered.connect(
-            self._set_diff_from_rid)
-        contextMenu.addAction("Diff to").triggered.connect(
-            self._set_diff_to_rid)
+        asmgui.generate_codes_context_menu(
+            code_id = self._codes_widget.getCodeId(),
+            rid = self._revisions_widget.getRid(),
+            menu = contextMenu,
+            parent = self)
 
         contextMenu.exec_(point)
-
-    def _set_diff_from(self):
-        if not self._codes_widget.getCodeId():
-            QApplication.beep()
-            return
-        diffgui.set_from(self._codes_widget.getCodeId(), self)
-
-    def _set_diff_to(self):
-        if not self._codes_widget.getCodeId():
-            QApplication.beep()
-            return
-        diffgui.set_to(self._codes_widget.getCodeId(), self)
-
-    def _show_latest_assembly(self):
-        cid = self._stacked_widget.currentWidget().getCodeId()
-        if not cid:
-            QApplication.beep()
-            return
-        asmgui.show_latest_assembly(cid)
-
-    def _show_assembly(self):
-        cid = self._stacked_widget.currentWidget().getCodeId()
-        if not cid:
-            QApplication.beep()
-            return
-        asmgui.show_assembly(cid, self)
-
-    def _show_proto_assembly(self):
-        cid = self._stacked_widget.currentWidget().getCodeId()
-        if not cid:
-            QApplication.beep()
-            return
-        asmgui.show_proto_assembly(cid)
-
-    def _revise_code(self):
-        if not self._codes_widget.getCodeId():
-            QApplication.beep()
-            return
-        copycodegui.revise_copy_code(self._codes_widget.getCodeId(), self)
-
-    def _edit_code(self):
-        if not self._codes_widget.getCodeId():
-            QApplication.beep()
-            return
-        editcode.edit_code_by_code_id(self._codes_widget.getCodeId())
-
-    def _show_where_used(self):
-        cid = self._stacked_widget.currentWidget().getCodeId()
-        if not cid:
-            QApplication.beep()
-            return
-        asmgui.where_used(cid)
-
-    def _show_valid_where_used(self):
-        cid = self._stacked_widget.currentWidget().getCodeId()
-        if not cid:
-            QApplication.beep()
-            return
-        asmgui.valid_where_used(cid)
-
-    def _show_assembly_rid(self):
-        cid = self._revisions_widget.getCodeId()
-        if not cid:
-            QApplication.beep()
-            return
-
-        dt = self._revisions_widget.getDateFromDays()
-
-        asmgui.show_assembly_by_date(cid, dt)
-
-    def _set_diff_from_rid(self):
-        if not self._revisions_widget.getCodeId():
-            QApplication.beep()
-            return
-        diffgui.set_from_by_rid(self._revisions_widget.getRid())
-
-    def _set_diff_to_rid(self):
-        if not self._revisions_widget.getCodeId():
-            QApplication.beep()
-            return
-        diffgui.set_to_by_rid(self._revisions_widget.getRid())
-
-    def _revise_code_rid(self):
-        if not self._revisions_widget.getCodeId():
-            QApplication.beep()
-            return
-        copycodegui.revise_copy_code_by_rid(self._revisions_widget.getRid())
-
-    def _edit_code_rid(self):
-        cid = self._revisions_widget.getCodeId()
-        if not cid:
-            QApplication.beep()
-            return
-
-        dt = self._revisions_widget.getDateFromDays()
-        editcode.edit_code_by_code_id(cid, dt)
-
