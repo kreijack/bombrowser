@@ -243,9 +243,7 @@ class AssemblyWindow(utils.BBMainWindow):
         a.triggered.connect(self._start_find)
         m.addAction(a)
 
-        self._windowsMenu = mainMenu.addMenu("Windows")
-        self._windowsMenu.aboutToShow.connect(self._build_windows_menu)
-        self._build_windows_menu()
+        self.build_windows_menu(mainMenu)
 
         m = mainMenu.addMenu("Help")
         a = QAction("About ...", self)
@@ -293,9 +291,6 @@ class AssemblyWindow(utils.BBMainWindow):
         progress.setValue(len(fnl))
 
         QApplication.restoreOverrideCursor()
-
-    def _build_windows_menu(self):
-        utils.build_windows_menu(self._windowsMenu, self)
 
     def _export_assemblies_list(self):
         nf = QFileDialog.getSaveFileName(self, "BOMBrowser - export bom",

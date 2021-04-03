@@ -668,14 +668,7 @@ class EditWindow(utils.BBMainWindow):
                     self._import_from, name, callable_))
                 m.addAction(a)
 
-        self._windowsMenu = mainMenu.addMenu("Windows")
-        self._windowsMenu.aboutToShow.connect(self._build_windows_menu)
-        self._build_windows_menu()
-
-        m = mainMenu.addMenu("Help")
-        a = QAction("About ...", self)
-        a.triggered.connect(lambda : utils.about(self, db.connection))
-        m.addAction(a)
+        self.build_windows_menu(mainMenu)
 
     def _import_from(self, name, callable_):
 
@@ -825,10 +818,6 @@ class EditWindow(utils.BBMainWindow):
         ret = QMessageBox.question(self, "BOMBrowser", "Do you want to exit from the application ?")
         if ret == QMessageBox.Yes:
             sys.exit(0)
-
-    def _build_windows_menu(self):
-        utils.build_windows_menu(self._windowsMenu, self)
-        return
 
     def _change_dates(self):
         d = EditDates(int(self._id.text()), self)

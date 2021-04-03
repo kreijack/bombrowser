@@ -225,18 +225,12 @@ class CodesWindow(utils.BBMainWindowNotClose):
         a.triggered.connect(lambda : self._stacked_widget.setCurrentIndex(1))
         ag.addAction(a)
 
-        self._windowsMenu = mainMenu.addMenu("Windows")
-        self._windowsMenu.aboutToShow.connect(self._build_windows_menu)
-        self._build_windows_menu()
+        self.build_windows_menu(mainMenu)
 
         m = mainMenu.addMenu("Help")
         a = QAction("About ...", self)
         a.triggered.connect(lambda : utils.about(self, db.connection))
         m.addAction(a)
-
-    def _build_windows_menu(self):
-        utils.build_windows_menu(self._windowsMenu, self)
-        return
 
     def _exit_app(self):
         ret = QMessageBox.question(self, "BOMBrowser", "Do you want to exit from the application ?")

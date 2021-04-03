@@ -84,7 +84,7 @@ class BBMainWindow(QMainWindow):
 
         QMainWindow.closeEvent(self, event)
 
-    def get_windows_list(self):
+    def _get_windows_list(self):
         global _bbmainwindows_list_cnt
         global _bbmainwindows_list
 
@@ -110,6 +110,79 @@ class BBMainWindow(QMainWindow):
 
         return (codewindows, bomwindows, diffwindows, editwindows)
 
+    def build_windows_menu(self, main_menu, title="Windows", win=None):
+        if win is None:
+            win = self
+
+        self._windowsMenu = main_menu.addMenu(title)
+        self._build_windows_menu(self._windowsMenu, win)
+        self._windowsMenu.aboutToShow.connect(
+            lambda : self._build_windows_menu(self._windowsMenu, win))
+
+    def _build_windows_menu(self, m, win):
+
+        global _bbmainwindows_list_cnt
+        global _bbmainwindows_list
+
+        for a in list(self._windowsMenu.actions()):
+            self._windowsMenu.removeAction(a)
+
+        c, b, d, e = win._get_windows_list()
+
+        class ShowWindow():
+            def __init__(self, id_):
+                self._id = id_
+            def __call__(self):
+                for (id_, w, t) in _bbmainwindows_list:
+                    if id_ == self._id:
+                        w.raise_()
+                        w.setWindowState(Qt.WindowActive)
+                        w.showNormal()
+                        w.activateWindow()
+                        w.show()
+                        break
+
+        separator = False
+
+        for (t, w) in c:
+            a = QAction(t, win)
+            # add the CTRL-L short cut only for the first window
+            if not separator:
+                a.setShortcut("Ctrl+L")
+            a.triggered.connect(ShowWindow(w))
+            self._windowsMenu.addAction(a)
+
+            separator = True
+
+        if len(b):
+            if separator:
+                self._windowsMenu.addSeparator()
+            for t,w in b:
+                a = QAction(t, win)
+                a.triggered.connect(ShowWindow(w))
+                self._windowsMenu.addAction(a)
+
+            separator = True
+
+        if len(d):
+            if separator:
+                self._windowsMenu.addSeparator()
+            for t,w in d:
+                a = QAction(t, win)
+                a.triggered.connect(ShowWindow(w))
+                self._windowsMenu.addAction(a)
+
+            separator = True
+
+        if len(e):
+            if separator:
+                self._windowsMenu.addSeparator()
+            for t,w in e:
+                a = QAction(t, win)
+                a.triggered.connect(ShowWindow(w))
+                self._windowsMenu.addAction(a)
+
+            separator = True
 
 class BBMainWindowNotClose(BBMainWindow):
     def __init__(self, parent=None):
@@ -122,69 +195,6 @@ class BBMainWindowNotClose(BBMainWindow):
             QMainWindow.closeEvent(self, event)
 
 
-def build_windows_menu(m, win):
-    global _bbmainwindows_list_cnt
-    global _bbmainwindows_list
-
-    clean_menu(m)
-
-    c, b, d, e = win.get_windows_list()
-
-    class ShowWindow():
-        def __init__(self, id_):
-            self._id = id_
-        def __call__(self):
-            for (id_, w, t) in _bbmainwindows_list:
-                if id_ == self._id:
-                    w.raise_()
-                    w.setWindowState(Qt.WindowActive)
-                    w.showNormal()
-                    w.activateWindow()
-                    w.show()
-                    break
-
-    separator = False
-
-    for (t, w) in c:
-        a = QAction(t, win)
-        # add the CTRL-L short cut only for the first window
-        if not separator:
-            a.setShortcut("Ctrl+L")
-        a.triggered.connect(ShowWindow(w))
-        m.addAction(a)
-
-        separator = True
-
-    if len(b):
-        if separator:
-            m.addSeparator()
-        for t,w in b:
-            a = QAction(t, win)
-            a.triggered.connect(ShowWindow(w))
-            m.addAction(a)
-
-        separator = True
-
-    if len(d):
-        if separator:
-            m.addSeparator()
-        for t,w in d:
-            a = QAction(t, win)
-            a.triggered.connect(ShowWindow(w))
-            m.addAction(a)
-
-        separator = True
-
-    if len(e):
-        if separator:
-            m.addSeparator()
-        for t,w in e:
-            a = QAction(t, win)
-            a.triggered.connect(ShowWindow(w))
-            m.addAction(a)
-
-        separator = True
-
 def about(w, connection=""):
     msgBox = QMessageBox(w)
     msgBox.setWindowTitle("BOMBrowser - about");
@@ -196,11 +206,6 @@ def about(w, connection=""):
         "https://gitlab.com/kreijack/bombrowser</a><br><br>" +
         connection)
     msgBox.exec_();
-
-def clean_menu(m):
-        as_ = list(m.actions())
-        for a in as_:
-            m.removeAction(a)
 
 class Callable:
     def __init__(self, f, *args, **kwargs):
