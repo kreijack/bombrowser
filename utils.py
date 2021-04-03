@@ -114,18 +114,18 @@ class BBMainWindow(QMainWindow):
         if win is None:
             win = self
 
-        self._windowsMenu = main_menu.addMenu(title)
-        self._build_windows_menu(self._windowsMenu, win)
-        self._windowsMenu.aboutToShow.connect(
-            lambda : self._build_windows_menu(self._windowsMenu, win))
+        wm = main_menu.addMenu(title)
+        self._build_windows_menu(wm, win)
+        wm.aboutToShow.connect(
+            lambda : self._build_windows_menu(wm, win))
 
     def _build_windows_menu(self, m, win):
 
         global _bbmainwindows_list_cnt
         global _bbmainwindows_list
 
-        for a in list(self._windowsMenu.actions()):
-            self._windowsMenu.removeAction(a)
+        for a in list(m.actions()):
+            m.removeAction(a)
 
         c, b, d, e = win._get_windows_list()
 
@@ -150,37 +150,37 @@ class BBMainWindow(QMainWindow):
             if not separator:
                 a.setShortcut("Ctrl+L")
             a.triggered.connect(ShowWindow(w))
-            self._windowsMenu.addAction(a)
+            m.addAction(a)
 
             separator = True
 
         if len(b):
             if separator:
-                self._windowsMenu.addSeparator()
+                m.addSeparator()
             for t,w in b:
                 a = QAction(t, win)
                 a.triggered.connect(ShowWindow(w))
-                self._windowsMenu.addAction(a)
+                m.addAction(a)
 
             separator = True
 
         if len(d):
             if separator:
-                self._windowsMenu.addSeparator()
+                m.addSeparator()
             for t,w in d:
                 a = QAction(t, win)
                 a.triggered.connect(ShowWindow(w))
-                self._windowsMenu.addAction(a)
+                m.addAction(a)
 
             separator = True
 
         if len(e):
             if separator:
-                self._windowsMenu.addSeparator()
+                m.addSeparator()
             for t,w in e:
                 a = QAction(t, win)
                 a.triggered.connect(ShowWindow(w))
-                self._windowsMenu.addAction(a)
+                m.addAction(a)
 
             separator = True
 

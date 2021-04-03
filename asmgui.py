@@ -243,7 +243,7 @@ class AssemblyWindow(utils.BBMainWindow):
         a.triggered.connect(self._start_find)
         m.addAction(a)
 
-        self.build_windows_menu(mainMenu)
+        self._windowsMenu = self.build_windows_menu(mainMenu)
 
         m = mainMenu.addMenu("Help")
         a = QAction("About ...", self)

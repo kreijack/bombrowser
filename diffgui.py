@@ -127,7 +127,7 @@ class DiffWindow(utils.BBMainWindow):
         fileMenu.addAction(closeAction)
         fileMenu.addAction(exitAction)
 
-        self.build_windows_menu(mainMenu)
+        self._windowsMenu = self.build_windows_menu(mainMenu)
 
         helpMenu = mainMenu.addMenu("Help")
         a = QAction("About ...", self)

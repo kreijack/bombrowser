@@ -668,7 +668,7 @@ class EditWindow(utils.BBMainWindow):
                     self._import_from, name, callable_))
                 m.addAction(a)
 
-        self.build_windows_menu(mainMenu)
+        self._windowsMenu = self.build_windows_menu(mainMenu)
 
     def _import_from(self, name, callable_):
 

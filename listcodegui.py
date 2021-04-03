@@ -225,7 +225,7 @@ class CodesWindow(utils.BBMainWindowNotClose):
         a.triggered.connect(lambda : self._stacked_widget.setCurrentIndex(1))
         ag.addAction(a)
 
-        self.build_windows_menu(mainMenu)
+        self._windowsMenu = self.build_windows_menu(mainMenu)
 
         m = mainMenu.addMenu("Help")
         a = QAction("About ...", self)
