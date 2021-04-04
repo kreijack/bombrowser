@@ -555,6 +555,13 @@ def where_used(code_id, valid=False):
         QApplication.beep()
         return
 
+    d = db.DB()
+
+    if not d.is_child(code_id):
+        QApplication.beep()
+        QMessageBox.critical(None, "BOMBrowser", "The item is not in an assembly")
+        return
+
     if valid:
         w = ValidWhereUsedWindow(None)
     else:
@@ -567,11 +574,6 @@ def where_used(code_id, valid=False):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         (top, data) = d.get_where_used_from_id_code(code_id, valid)
 
-        if len(data) == 1:
-            QApplication.restoreOverrideCursor()
-            QApplication.beep()
-            QMessageBox.critical(None, "BOMBrowser", "The item is not in an assembly")
-            return
         w.populate(top, data)
         QApplication.restoreOverrideCursor()
 
