@@ -170,9 +170,8 @@ class RevisionListWidget(QWidget):
             ret = d.search_revisions(**dd)
         except:
             QApplication.beep()
-            QMessageBox.critical(None, "BOMBrowser", "Incorrect parameter for search")
+            utils.show_exception(msg="Incorrect parameter for search")
             return
-
 
         if not ret or len(ret) == 0:
             QApplication.beep()
