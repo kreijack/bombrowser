@@ -427,7 +427,7 @@ def set_to_by_rid(rid):
 
     if not d.is_assembly(code_id):
         QApplication.beep()
-        QMessageBox.critical(parent, "BOMBrowser", "The item is not an assembly")
+        QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
         return
 
     global _diffDialog
@@ -447,7 +447,7 @@ def set_from_by_rid(rid):
 
     if not d.is_assembly(code_id):
         QApplication.beep()
-        QMessageBox.critical(parent, "BOMBrowser", "The item is not an assembly")
+        QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
         return
 
     global _diffDialog
