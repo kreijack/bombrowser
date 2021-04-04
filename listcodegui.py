@@ -267,7 +267,7 @@ class CodesWindow(utils.BBMainWindowNotClose):
         if n > 0:
             self._my_statusbar.showMessage("Last search result %s"%(str(n)))
         else:
-            self._my_statusbar.showMessage("Last search have 0 results !!!")
+            self._my_statusbar.showMessage("Last search returned 0 result !!!")
 
     def _codes_widget_context_menu(self, point):
         if not self._codes_widget.getCodeId():
