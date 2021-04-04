@@ -342,6 +342,15 @@ def test_get_children_dates_range_by_rid():
     assert(row[1] == db.iso_to_days("2020-01-25"))
     assert(row[2] == db.end_of_the_world)
 
+def test_is_child():
+    d, c = _create_db()
+
+    _test_insert_assembly(c)
+
+    assert(d.is_child(d.get_codes_by_code("A")[0][0]))
+    assert(d.is_child(d.get_codes_by_code("L")[0][0]))
+    assert(not d.is_child(d.get_codes_by_code("O")[0][0]))
+
 def test_is_assembly():
     d, c = _create_db()
 

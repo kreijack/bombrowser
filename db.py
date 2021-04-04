@@ -527,6 +527,15 @@ class _BaseServer:
 
         return c.fetchone()[0] > 0
 
+    def is_child(self, id_code):
+        c = self._conn.cursor()
+        self._sqlex(c, """SELECT COUNT(*)
+                     FROM assemblies AS a
+                     WHERE  child_id = ?
+                  """, (id_code, ))
+
+        return c.fetchone()[0] > 0
+
     def get_bom_by_code_id3(self, code_id0, date_from_days_ref):
 
         data = dict()
