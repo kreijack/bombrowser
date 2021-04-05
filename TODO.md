@@ -3,7 +3,6 @@
 ## UI
 
 - [ ] show every where rid
-- [ ] in edit code add open assy
 
 ## GENERAL
 
@@ -38,8 +37,12 @@
 
 - [ ] add test for template
 - [ ] add test for assembly latest
+- [ ] in search revision, add validator from id, rid, date
 
 # DONE
+
+2021/04/02
+- [X] in edit code add open assy
 
 2021/04/01
 - [X] add move children rows in the edit dialogs
