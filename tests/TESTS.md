@@ -30,7 +30,7 @@ Test description: Insert the code '820037' in the 'Code' field and press **ENTER
 
 Expected results: The code 820037 is showed
 
-Passed: [x]
+Passed: [X]
 
 ### Test 1.2 - search a code (2)
 
@@ -54,7 +54,7 @@ Test description: Insert the code '%BOARD%13' in the 'Description' field and pre
 
 Expected results: The code 610013 - "BOARD 13" is showed
 
-Passed: [x]
+Passed: [X]
 
 ### Test 1.5 - search a code with a jolly character
 
@@ -89,6 +89,22 @@ Expected results:
 - The "BOMBrowser: select date" dialog is showed
 - this dialog contains a list of 820037 codes.
 
+Test description #2:
+- repeat the steps in the first test
+- select the "Show latest assembly" command.
+
+Expected results #2:
+- The "BOMBrowser: assembly window" dialog is showed
+- the bom showed is related to the latest revision (i.e all the items have a not defined "Date to" date)
+
+Test description #3:
+- repeat the steps in the first test
+- select the "Show prototype assembly" command.
+
+Expected results #2:
+- The "BOMBrowser: assembly window" dialog is showed
+- the bom showed is related to the latest revision (i.e all the items have a not defined "Date to" date) with the excpetion of few items which have as "date from" the prototype one
+
 Passed: [X]
 
 ### Test 1.11 - where used
@@ -121,7 +137,7 @@ Test description:
 - Insert the code '810036' in the 'Code' field
 - press the button 'Search'
 - press the right mouse button on the first entry
-- select the "Show where used" command.
+- select the "Valid where used" command.
 
 Expected results: The "BOMBrowser - Valid where used" window is showed
 
@@ -133,7 +149,7 @@ Test description:
 - Insert the code '100037' in the 'Code' field
 - and press the button 'Search'
 - press the right mouse button on the first entry
-- select the "Show where used" command.
+- select the "Valid where used" command.
 
 Expected results: The "BOMBrowser" error dialog is showed; this dialog says "The item is not in an assembly".
 
@@ -215,7 +231,10 @@ Passed: [X]
 
 Test description: In the menu select the Help and About subcommand
 
-Expected results: The "about" dialog is showed. The dialog contains the current version and the copyright code.
+Expected results:
+- The "about" dialog is showed. The dialog contains:
+    - the current version and the copyright code.
+    - a text that showed the used connection
 
 Passed: [X]
 
@@ -248,7 +267,21 @@ Test description:
 - press the right mouse button on the first entry and select the "Where used" command.
 - Two windows are opened. Select the "File->close" in the "BOMBrowser - Codes list" window:
 
-Expected results: The "BOMBrowser - Codes" list is closed. "BOMBrowser - Where used" is opened.
+Expected results:
+- The "BOMBrowser - Codes" list is closed. "BOMBrowser - Where used" is opened.
+
+Test description #2:
+- after the steps above, in the previous opened "where used window", press CTRL-L
+
+Expected results #2:
+- The "BOMBrowser - Codes" appears
+
+Test description #3:
+- after the steps above, re-close "BOMBrowser - Codes list" window.
+- in the previous opened "where used window", select from teh windows menu the "BOMBrowser - Codes list"
+
+Expected results #3:
+- The "BOMBrowser - Codes" appears
 
 Passed: [X]
 
@@ -279,7 +312,7 @@ Expected results #2: The codes list window is still opened
 Test description #3:
 - Repeat the step above until the dialog is showed, then press yes
 
-Expected results #3: The application is ended. Now window is sowed
+Expected results #3: The application is ended. No window is sowed
 
 Passed: [X]
 
@@ -291,7 +324,7 @@ Test description:
 - Paste the clipboard in an editor
 
 Expected results:
-- check that there is the same table showed in the BOMBrowser - Codes list.
+- check that there is the same table showed in the BOMBrowser - Codes list (fields TAB separated).
 - Check that the number of row are the same +1 of the "BOMBrowser - Codes list" widow (there is the header)
 
 Passed: [X]
@@ -307,6 +340,320 @@ Test description #2:
 - after the steps above, select the 2nd entry.
 
 Expected resul #2t: the information of the 2nd selected codes are showed in the right panel
+
+Passed: [X]
+
+### Test 1.34 - Status bar
+Test description:
+- insert code 8200% and press ENTER
+
+Expected result: in the status bar appears the number of the results
+
+Passed: [X]
+
+### Test 1.35 - Status bar
+Test description:
+- insert code CODE_INVALID and press ENTER
+
+Expected result: in the status bar appears the number of the results (0)
+
+Passed: [X]
+
+### Test 1.36 - Revision search
+Test description:
+- select from the menu "Search mode->advanced"
+- insert code 8200% and press "Search"
+
+Expected result: in the status bar appears the number of the results
+
+Passed: [X]
+
+### Test 1.37 - Revision search
+Test description:
+- select from the menu "Search mode->advanced"
+- insert code CODE_INVALID and press "Search"
+
+Expected result: in the status bar appears the number of the results (0)
+
+Passed: [X]
+
+### Test 1.38 - Revision search
+Test description:
+- select from the menu "Search mode->advanced"
+- insert code CODE_INVALID and press "Search"
+
+Expected result: in the status bar appears the number of the results (0)
+
+Passed: [X]
+
+### Test 1.39 - Revision search
+Test description:
+- select from the menu "Search mode->advanced"
+- insert code 820017 and press "Search"
+
+Expected result:
+- in the status bar appears the number of the results (0)
+- in the rusults table, appears the different revisions of the searched code
+
+Passed: [X]
+
+### Test 1.40 - Revision search
+Test description:
+- select from the menu "Search mode->advanced"
+- insert code 8200% and press "Search"
+
+Expected result:
+- in the rusults table, appears the codes which start from 8200..
+
+Passed: [X]
+
+### Test 1.41 - Revision search
+Test description:
+- select from the menu "Search mode->advanced"
+- insert code >820000 and press "Search"
+
+Expected result:
+- in the rusults table, appears the codes greather than 820000
+
+Passed: [X]
+
+### Test 1.42 - Revision search
+Test description:
+- select from the menu "Search mode->advanced"
+- insert date-from 2003-06-04 and press "Search"
+
+Expected result:
+- in the rusults table, appears the codes which have as date from 2003-06-04
+
+Passed: [X]
+
+### Test 1.43 - Revision search
+Test description:
+- select from the menu "Search mode->advanced"
+- insert date-from '>2003-06-04' and press "Search"
+
+Expected result:
+- in the rusults table, appears the codes which have as date from greather than 2003-06-04 (prototype too)
+
+Passed: [X]
+
+### Test 1.44 - Revision search
+Test description:
+- select from the menu "Search mode->advanced"
+- insert code >820000 and press ENTER
+
+Expected result:
+- in the rusults table, appears the codes greather than 820000
+
+Passed: [X]
+
+### Test 1.45 - Revision search
+Test description:
+- select from the menu "Search mode->advanced"
+- insert code >820000 and press ENTER
+- select a code
+
+Expected result:
+- depending the code selected, the right panel "code gui" change their values accordling
+
+Test description #2:
+- Selected a different code
+
+Expected result #2:
+- depending the code selected, the right panel "code gui" change their values accordling
+
+Test description #3:
+- Repeat the test #2 several times
+
+Expected result #3:
+- the Expected results#2 apply
+
+Passed: [X]
+
+### Test 1.46 - Revision search - RMB menu
+Test description:
+- select from the menu "Search mode->advanced"
+- insert code >820000 and press ENTER
+- select a code
+- press the RMB, and select "show latest assembly"
+
+Expected result:
+- The assembling window is showed. the data reflect the latest code
+
+Test description #2:
+- repeat the steps above until the RMB press
+- press the RMB, and select "where used"
+
+Expected result #2:
+- The where used window is showed
+
+Test description #3:
+- repeat the steps above until the RMB press
+- press the RMB, and select "valid where used"
+
+Expected result #3:
+- The valid where used window is showed
+
+Test description #4:
+- repeat the steps above until the RMB press
+- press the RMB, and select "show assembly by date"
+
+Expected result #4:
+- The "select date" dialog is opened (press cancel and return the previous window)
+
+Test description #4:
+- repeat the steps above until the RMB press
+- press the RMB, and select "show assembly by date"
+
+Expected result #4:
+- The "select date" dialog is opened (press cancel and return the previous window)
+
+Test description #5:
+- repeat the steps above until the RMB press
+- press the RMB, and select "show this assembly"
+
+Expected result #5:
+- The "assembly window" is showed; the assembly is the one dated with the date from of the selected code
+
+Test description #6:
+- repeat the steps above until the RMB press
+- press the RMB, and select "show prototype assembly"
+
+Expected result #6:
+- The "prototype assembly window" is showed
+
+Test description #7:
+- repeat the steps above until the RMB press
+- press the RMB, and select "copy revise a code"
+
+Expected result #7:
+- The "select date" dialog is opened (press cancel and return the previous window)
+
+Test description #8:
+- repeat the steps above until the RMB press
+- press the RMB, and select "edit code"
+
+Expected result #8:
+- The "edit code" window is showed
+
+Test description #9:
+- repeat the steps above until the RMB press
+- press the RMB, and select "diff from"
+- press the RMB, and select "diff to"
+
+Expected result #9:
+- The diff window is showed
+
+Passed: [X]
+
+### Test 1.47 - Revision search - RMB menu error
+Test description:
+- select from the menu "Search mode->advanced"
+- insert code >810000 and press ENTER
+- select a code
+- press the RMB, and select "show latest assembly"
+
+Expected result:
+- An error dialog is showed saying that the item is not an assembly
+
+Test description #2:
+- repeat the steps above until the RMB press
+- press the RMB, and select "show assembly by date"
+
+Expected result #2:
+- An error dialog is showed saying that the item is not an assembly
+
+Test description #3:
+- repeat the steps above until the RMB press
+- press the RMB, and select "show this assembly"
+
+Expected result #3:
+- An error dialog is showed saying that the item is not an assembly
+
+Test description #4:
+- repeat the steps above until the RMB press
+- press the RMB, and select "show prototype assembly"
+
+Expected result #4:
+- An error dialog is showed saying that the item is not an assembly
+
+Test description #5:
+- repeat the steps above until the RMB press
+- press the RMB, and select "diff from"
+
+Expected result #5:
+- An error dialog is showed saying that the item is not an assembly
+
+Test description #6:
+- repeat the steps above until the RMB press
+- press the RMB, and select "diff from"
+
+Expected result #6:
+- An error dialog is showed saying that the item is not an assembly
+
+Passed: [X]
+
+### Test 1.48 - Revision search - RMB menu error
+Test description:
+- select from the menu "Search mode->advanced"
+- insert code >1000 and press ENTER
+- select a code
+- press the RMB, and select "where used"
+
+Expected result:
+- An error dialog is showed saying that the item is not in an assembly
+
+Test description #2:
+- repeat the steps above until the RMB press
+- press the RMB, and select "valid where used"
+
+Expected result #2:
+- An error dialog is showed saying that the item is not in an assembly
+
+Passed: [X]
+
+
+### Test 1.49 - Revision search - search <
+Test description:
+- select from the menu "Search mode->advanced"
+- insert code <5000 and press ENTER
+- select a code
+
+Expected result:
+- All codes less than 5000 are showed
+
+Passed: [X]
+
+### Test 1.50 - Revision search - search !
+Test description:
+- select from the menu "Search mode->advanced"
+- insert code !820001 and press ENTER
+- select a code
+
+Expected result:
+- All codes less different from 820001 are showed
+
+Passed: [X]
+
+### Test 1.50 - Revision search - search =
+Test description:
+- select from the menu "Search mode->advanced"
+- insert code =820001 and press ENTER
+- select a code
+
+Expected result:
+- Only the code 820001 is showed
+
+Passed: [X]
+
+### Test 1.50 - Revision search - search =
+Test description:
+- select from the menu "Search mode->advanced"
+- insert code =820001 and press ENTER
+- select a code
+
+Expected result:
+- Only the code 820001 is showed
 
 Passed: [X]
 
@@ -338,7 +685,7 @@ Passed: [X]
 Test description:
 - In the "BOMBrowser - codes list" window insert code 8200% and press ENTER; Select the 2nd entry (820001)
 
-Expected result: The right most button, contains all the dates (3)
+Expected result: The right combo box button, contains all the dates (3)
 
 Passed: [X]
 
@@ -357,7 +704,7 @@ Test description:
 - In the "BOMBrowser - codes list" window insert code 8200%
 - press ENTER
 - Select the 2nd entry (820001)
-- Select a document button
+- Press a document button
 
 Expected result: Clicking one button document, the related document is opened
 
@@ -368,7 +715,7 @@ Test description:
 - In the "BOMBrowser - codes list" window insert code 8200%
 - press ENTER
 - Select the 2nd entry (820001)
-- Press copy info
+- Press copy info button
 
 Expected result: Pasting the clipboard content in a editor, the relevant information are showed
 
@@ -502,8 +849,7 @@ Passed: [X]
 - press the right mouse button on the first entry
 - select the "Show assembly by date" command.
 - "The BOMBrowser: Select Date" dialog is showed.
-- Select the first item, and press the "Select button". The Assembly window
-  appears
+- Select the first item, and press the "Select button". The Assembly window appears
 - Select a code below the top one(100000); then RMB and then execute "Where used"
 
 Expected result: a where used window appears
@@ -591,9 +937,7 @@ Test description #3:
 
 Expected results #3: The application is ended. No window is showed
 
-
 Passed: [X]
-
 
 ### Test 3.18 - menu->file->exit
 Test description:
@@ -630,11 +974,11 @@ Test description:
 Expected results: The file is in a JSON format
 
 Test description #2
-- Select File->export as csv
-- Save the file and reopen it in a editor
+- Select File->export bom
+- Save the file (with a .csv extension) and reopen it in a editor
 
 Expected results #2:
-- The file is in a CVS (tab separated fields) format
+- The file is in a CVS (SECOLON separated fields) format
 
 Passed: [X]
 
@@ -675,7 +1019,6 @@ Test description 65:
 Expected results #7: The bom is showing all levels
 
 Passed: [X]
-
 
 ### Test Set 3.29 - find
 
@@ -763,6 +1106,7 @@ Test description:
 Expected results:
 - The window "Assembly" is showed
 - The date on the title is replaced by "LATEST"
+- Each code listed, has the "date to" date empty
 
 Passed: [X]
 
@@ -790,32 +1134,20 @@ Test description:
 Expected results:
 - A "Save to" dialog appear
 
-Passed: [X]
+Test description #2:
+- after the step above, press Cancel
 
-### Test 3.32.2 - Menu file -> copy files
-
-Test description:
-- open as "latest assembly" in Assembly window the code 820000
-- Select File, then "Copy files"
-- A "Save to" dialog appear, select Cancel
-
-Expected results:
+Expected results #2:
 - Nothing
 
-Passed: [X]
+Test description #3:
+- repeat teh step above, but instead pressing Cancel, select a directory and press save
 
-### Test 3.32.2 - Menu file -> copy files
-
-Test description:
-- open as "latest assembly" in Assembly window the code 820000
-- Select File, then "Copy files"
-- A "Save to" dialog appear, select a directory
-- Pressa save/open/select
-
-Expected results:
+Expected results #3:
 - In the selected folder, the assemblies files are copied
 
 Passed: [X]
+
 
 ### Test 3.33 - Show prototype assembly
 
@@ -851,7 +1183,10 @@ Passed: [X]
 
 Test description: in the "Codes list" window search for the code 820017. Then select  the right click menu command "Valid where used"
 
-Expected result: the "valid where used" window is showed
+Expected result:
+- the "valid where used" window is showed
+- each code showed (except the top node) has a "end to" date empty
+- no code are repeated
 
 Passed: [X]
 
@@ -861,7 +1196,10 @@ Passed: [X]
 
 Test description: in the "Codes list" window search for the code 820017. Then select  the right click menu command "Where used"
 
-Expected result: the where used window is showed
+Expected result:
+- the where used window is showed
+- few codes showed (the top node doesn't matter) have a "end to" date not empty. These code sometime are repeated
+
 
 Passed: [X]
 
@@ -919,7 +1257,7 @@ Test description
 
 Expected results: the "old-Iter" are the same as the one selected in the "Select date" window
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 8.5 - Revise/copy code window
 Test description
@@ -948,13 +1286,13 @@ Test description: press Cancel button
 Expected results: an exit confirmation dialog will appears
 
 Test description #2:
-- after the steps above, press no
+- after the steps above, press **YES**
 
 Expected results #2: the "Revise/copy windows" is closed
 
 Test description #3:
 - repeat the steps above until the dialog appearance
-- an exit confirmation dialog will appears; press yes
+- an exit confirmation dialog will appears; press **NO**
 
 Expected results #: the dialog is closed; the "Revise/copy windows" is opened
 
@@ -996,6 +1334,7 @@ Passed: [X]
 #### Test 8.6.8 - Copy error
 Test description:
 - click on the copy checkbox
+- check that the Old/code is equal to the new/code
 - press "Copy/Revise button"
 
 Expected results:
@@ -1059,7 +1398,7 @@ Expected results:
 - An error dialog appears saying that the date format is incorrect
 - pressing OK, the Copy / Revise window still exists
 
-Passed: [X]
+Passed: [ ]
 
 #### Test 8.6.16 - Revise a code / date error
 Test description:
@@ -1138,12 +1477,11 @@ Test description:
 
 Expected results:
 - The editor of the code appears.
-- The date in date selector reports  prototype
-- The date in date selector reports only prototype
+- The date in date selector reports prototype
 
 Passed: [X]
 
-### Test 8.10 - revise a code (in proto mode)
+### Test 8.11 - revise a code (in proto mode)
 Test description:
 - revise the code "820004" from the code list window (the code has already a prototype revision, if not create a prototype revision)
 - check the checkbox "Prototype"
@@ -1305,7 +1643,17 @@ Expected result: the cell changed is yellow
 Test description #2:
 - press "save"
 
-Expected result #2: an error dialog appears ssaying that there is an error in the code
+Expected result #2: an error dialog appears saying that there is an error in "...the code '...' in row..."
+
+Test description #3:
+- click the right mouse button
+
+Expected result #3:
+- the menu contains only command to:
+    - remove an row
+    - add a row
+    - search a code
+
 
 Passed: [X]
 
@@ -1318,12 +1666,12 @@ Test description:
 
 Expected result: an error dialog is showed, saying that there is a duplicate code
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.14 - Edit code / Children panel - edit a field - wrong qty
 
 Test description:
-- in the children panel, try to change a qty in a row with a non number value
+- in the children panel, try to change the 'qty' field in a row with a non number value
 
 Expected result: the cell become yellow
 
@@ -1337,7 +1685,7 @@ Passed: [X]
 ### Test 9.16 - Edit code / Children panel - edit a field - wrong each
 
 Test description:
-- in the children panel, try to change a each in a row with a non number value
+- in the children panel, try to change the 'each' field in a row with a non number value
 
 Expected result: the cell become yellow
 
@@ -1388,7 +1736,7 @@ Test description:
 
 Expected result: the edit window is closed
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 9.22 - Edit code / File -> exit
 
@@ -1445,7 +1793,7 @@ Test description:
 
 Expected result: The "BOMBrowser - Search code" dialog appears
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.30 - Edit code / Children panel - search code
 
@@ -1467,9 +1815,12 @@ Test description:
 - click with the RMB on the children list panel
 - execute the command "search code" on a line
 - The "BOMBrowser - Search code" dialog appears
+- search for a code in the dialog (e.g 810007)
 - press Cancel
 
-Expected result: the dialog is closed
+Expected result:
+- the dialog is closed
+- the new code **didn't** replace the original one
 
 Passed: [X]
 
@@ -1480,7 +1831,7 @@ Test description:
 
 Expected result: a confirmation dialog is showed
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.33 - Edit code - delete revision
 
@@ -1490,7 +1841,7 @@ Test description:
 
 Expected result: not happened
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.34 - Edit code - delete revision
 
@@ -1525,7 +1876,9 @@ Test description:
 - From the edit window, delete the first revision
 - Delete the last revision
 
-Expected result: after any delete, the initial "from date" and the final "to date" are the same
+Expected result:
+- after the deletes, the code "from date" is the same of the first code
+- the final "to date" are the same of the last code
 
 Passed: [X]
 
@@ -1564,6 +1917,12 @@ Expected result:
 - a confirmation dialog appears, press ok
 - the edit dialog is not showed anymore
 
+Test description #2:
+- search for the deleted code
+
+Expected result:
+- the code is not showed anymore
+
 Passed: [X]
 
 ### Test 9.40 - Edit code - change revision
@@ -1591,7 +1950,7 @@ Test description:
 Expected result:
 - An error dialog is showed  saying that the change are not saved
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.42 - Edit code - change revision without saving
 
@@ -1644,6 +2003,7 @@ Test description #3:
 
 Expected result #3:
 - The edit window is closed
+- reopening the edit window, check that the change was not saved
 
 Passed: [X]
 
@@ -1658,7 +2018,7 @@ Test description:
 Expected result:
 - An error dialog is showed  saying that the change are not saved
 
-Passed: [X]
+Passed: [ ]
 
 ### Test 9.44 - Edit code - change revision without saving
 
@@ -1692,7 +2052,7 @@ Test description:
 - Take a code from the code list gui with multiple revision
 - Edit this code
 - do a "search code" over an item in the children section
-- press close button
+- press "ok button
 
 Expected result:
 - An error dialog is showed  saying that the change are not saved
@@ -1725,6 +2085,30 @@ Expected result:
 
 Passed: [X]
 
+### Test 9.49 - Edit code - add a duplicated code
+
+Test description:
+- Take a code from the code list gui with multiple revision
+- Edit this code
+- add a two new equal children code
+- press save
+
+Expected result:
+- An error dialog is showed  saying that there is a code duplication
+
+Passed: [X]
+
+### Test 9.50 - Edit code - add a code to an empty children list
+
+Test description:
+- Take a code from the code list gui without children (eg an 8100xx code)
+- Edit this code
+- add a new child code, using the RBM menu
+
+Expected result:
+- clicking the right mouse button shows a menu that allows to insert a code
+
+Passed: [X]
 
 ## 10 - BomBrowser - Edit date
 
@@ -1776,7 +2160,7 @@ Test description:
 
 Expected result: the date in the row below and column "To date" is changed accordling (a day before)
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 10.6
 
@@ -1811,14 +2195,123 @@ Test description:
 
 Expected result: the cell become yellow
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 10.10
 
 Test description:
-- change the "date from" of the first row with a a date before the row below
+- change the "date from" of the first row with a a date equal the row below
 
 Expected result: the cell become yellow
+
+Test description #2:
+- after the steps above, press save
+
+Expected result #2:
+- an error dialog is showed
+- press ok, the edit date window is showed
+
+Test description #3
+- after the step above, press cancel
+- press the '...' button
+- check the dates
+
+Expected result #3:
+- the date are unchanged
+
+Passed: [X]
+
+### Test 10.10.1
+
+Test description:
+- change the "date from" of the first row with a a date before (-1) the row below
+
+Expected result: the cell become yellow
+
+Test description #2:
+- after the steps above, press save
+
+Expected result #2:
+- an error dialog is showed
+- press ok, the edit date window is showed
+
+Test description #3
+- after the step above, press cancel
+- press the '...' button
+- check the dates
+
+Expected result #3:
+- the date are unchanged
+
+Passed: [X]
+
+### Test 10.10.2
+
+Test description:
+- change the "date from" of the 2nd row with a a date equal the row above
+
+Expected result: the cell become yellow
+
+Test description #2:
+- after the steps above, press save
+
+Expected result #2:
+- an error dialog is showed
+- press ok, the edit date window is showed
+
+Test description #3
+- after the step above, press cancel
+- press the '...' button
+- check the dates
+
+Expected result #3:
+- the date are unchanged
+
+Passed: [X]
+
+### Test 10.10.3
+
+Test description:
+- change the "date from" of the 2nd row with a a date after (+1) the row above
+
+Expected result: the cell become yellow
+
+Test description #2:
+- after the steps above, press save
+
+Expected result #2:
+- an error dialog is showed
+- press ok, the edit date window is showed
+
+Test description #3
+- after the step above, press cancel
+- press the '...' button
+- check the dates
+
+Expected result #3:
+- the date are unchanged
+
+Passed: [X]
+
+### Test 10.10.3
+
+Test description:
+- change the "date from" of the first row with a a date after (+1) the row below
+
+Expected result: the cell still be white
+
+Test description #2:
+- after the steps above, press save
+
+Expected result #2:
+- press ok, a confirmation dialog is showed
+
+Test description #3
+- after the steps above press the '...' button
+- check the dates
+
+Expected result #3:
+- the date are changed
 
 Passed: [X]
 
@@ -1835,13 +2328,11 @@ Passed: [X]
 ### Test 10.12
 
 Test description:
-- change the value of the cell of the first row and column "To date" with an
-  invalid one (i.e. 'z')
+- change the value of the cell of the first row and column "To date" with an invalid one (i.e. 'z')
 
 Expected result: the cell become yellow
 
-Test description #2:
-press save
+Test description #2: press save
 
 Expected result #2: an error dialog appear
 
@@ -1864,7 +2355,7 @@ Test description:
 - press the save button
 - reopen the Edit dates" dialog
 
-Expected result: the new date appears
+Expected result: the new date appears in the "edit code window"
 
 Passed: [X]
 
@@ -1938,7 +2429,8 @@ Test description:
 - enter in the edit date dialog
 - change the "To date" to 2020-03-01
 - enter in the edit dialog of code ASS-A
-- add as child COMP-B
+- add child COMP-B
+- press save
 
 Expected result: an error dialog appears saying that the child date range is shorter than the parent one
 
@@ -1983,7 +2475,7 @@ Expected result #4:
 
 Passed: [X]
 
-### Test 10.17 - prototype date
+### Test 10.17 - date in the title bar
 
 Test description:
 - enter in the edit dialog of code with several revisions
@@ -1996,7 +2488,7 @@ Expected result:
 - the "From/to date" is changed accordling to the steps above
 - the date showed in the title bar is changed accordling to the steps above
 
-Passed: [X]
+Passed: [ ]
 
 ## 11 - Generic test
 
@@ -2014,7 +2506,7 @@ Test description: shutdown the sql server
 
 Expected result: at start up time, an error dialog is showed saying that it is imposible to access to the server
 
-Passed: [ ]
+Passed: [X]
 
 ### Test 11.3 - Config test
 
@@ -2024,5 +2516,5 @@ TBD: test the configuration:
 - the overriding of the configuration store in the server
 
 # RESULTS:
-2020-03-23 v0.4.1
+2020-04-05 v0.4.2
 Failed tests list: 0
