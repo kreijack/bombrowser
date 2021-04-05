@@ -1,6 +1,6 @@
 """
 BOM Browser - tool to browse a bom
-Copyright (C) 2020 Goffredo Baroncelli <kreijack@inwind.it>
+Copyright (C) 2020,2021 Goffredo Baroncelli <kreijack@inwind.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@ from PySide2.QtWidgets import QAction
 from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QMessageBox, QMainWindow
 
-version = "v0.4.2b3"
+version = "v0.4.2"
 
 def __show_exception(exc_type, exc_value, exc_traceback,
         title, msg):
