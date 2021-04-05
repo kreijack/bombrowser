@@ -1106,36 +1106,35 @@ class EditWindow(utils.BBMainWindow):
             return
 
     def _children_menu(self, point):
-        idxs = self._children_table.selectedIndexes()
-        if len(idxs) < 1:
-            return
-        row = idxs[0].row()
-
-        code_id = None
-        try:
-            code_id = int(self._children_table.item(row, 1).text())
-        except:
-            pass
-
-        code = self._children_table.item(row, 2).text()
-
-
         contextMenu = QMenu(self)
         m = contextMenu.addAction("Insert row before")
         m.triggered.connect(self._children_insert_before)
-        m = contextMenu.addAction("Insert row after")
-        m.triggered.connect(self._children_insert_after)
-        m = contextMenu.addAction("Delete row")
-        m.triggered.connect(self._children_delete)
-        contextMenu.addSeparator()
-        m = contextMenu.addAction("Search code ...")
-        m.triggered.connect(self._children_search_code)
-        contextMenu.addSeparator()
 
-        if not code_id is None:
-            # sometime the code_id doesn't exist
-            asmgui.generate_codes_context_menu(code_id=code_id,
-                menu = contextMenu, parent=self)
+        idxs = self._children_table.selectedIndexes()
+        if len(idxs) > 0:
+            row = idxs[0].row()
+
+            code_id = None
+            try:
+                code_id = int(self._children_table.item(row, 1).text())
+            except:
+                pass
+
+            code = self._children_table.item(row, 2).text()
+
+            m = contextMenu.addAction("Insert row after")
+            m.triggered.connect(self._children_insert_after)
+            m = contextMenu.addAction("Delete row")
+            m.triggered.connect(self._children_delete)
+            contextMenu.addSeparator()
+            m = contextMenu.addAction("Search code ...")
+            m.triggered.connect(self._children_search_code)
+            contextMenu.addSeparator()
+
+            if not code_id is None:
+                # sometime the code_id doesn't exist
+                asmgui.generate_codes_context_menu(code_id=code_id,
+                    menu = contextMenu, parent=self)
 
         contextMenu.exec_(self._children_table.viewport().mapToGlobal(point))
 
