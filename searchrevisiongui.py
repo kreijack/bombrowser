@@ -91,6 +91,7 @@ class RevisionListWidget(QWidget):
                 self._line_edit_widgets[key] = w
                 grid.addWidget(w, row, col, 1 , span)
                 col += span
+                w.returnPressed.connect(self._search)
 
                 i += 1
                 c -= 1
@@ -154,10 +155,10 @@ class RevisionListWidget(QWidget):
                 # TBD: add check for id, rid, date_X_days
 
                 if k == "date_from_days" or k == "date_to_days":
-                    if k in "<>=!":
-                        k = k[0] + db.iso_to_days(k[1:])
+                    if v[0] in "<>=!":
+                        v = v[0] + str(db.iso_to_days(v[1:]))
                     else:
-                        k = db.iso_to_days(k)
+                        v = db.iso_to_days(v)
                 elif self._descr_force_uppercase == "1" and k == "descr":
                         v = v.upper()
                 elif self._code_force_uppercase == "1" and k == "code":
