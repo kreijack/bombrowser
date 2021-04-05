@@ -670,6 +670,11 @@ class EditWindow(utils.BBMainWindow):
 
         self._windowsMenu = self.build_windows_menu(mainMenu)
 
+        m = mainMenu.addMenu("Help")
+        a = QAction("About ...", self)
+        a.triggered.connect(lambda : utils.about(self, db.connection))
+        m.addAction(a)
+
     def _import_from(self, name, callable_):
 
         bom = callable_()
