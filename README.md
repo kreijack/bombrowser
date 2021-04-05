@@ -63,11 +63,6 @@ Insert capacitor 520xxx
 Insert uprocessor 530xxx
 Insert screws 710xxx
 [...]
-197/200) Updating code '810253', rid=1908
-198/200) Updating code '810258', rid=2256
-199/200) Updating code '810027', rid=2417
-UTF8 TEST HELLO WORLD - 你好世界
-[(2446, 2246, '2005-06-23', '', 2000, 999999, '0', 0, None, None, 'UTF8 TEST HELLO WORLD - 你好世界', 'NR', '', '', '', '', '', '', '', '', 2246, 'T-HELLOWORLD'), (2447, 2247, '2005-06-23', '', 2000, 999999, '0', 0, None, None, 'all lowercase', 'NR', '', '', '', '', '', '', '', '', 2247, 'T-alllowercase'), (2448, 2248, '2005-06-23', '', 2000, 999999, '0', 0, None, None, 'ALL UPPER CASE', 'NR', '', '', '', '', '', '', '', '', 2248, 'T-ALLUPPERCASE')]
 ```
 
 The results is a **database.sqlite** file with several boms. The scripts
@@ -95,6 +90,8 @@ The program is licensed under the GPL V2 (or later).
 - PySide2
 - openpyxl
 - xlrd, xlwt
+- pyodbc
+- psycopg2
 
 
 
