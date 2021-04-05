@@ -628,7 +628,7 @@ class EditWindow(utils.BBMainWindow):
                 return
 
             ret = QMessageBox.question(self, "BOMBrowser",
-                "The form was changed; do you want to change date before saving data  ?")
+                "The form was changed; are you sure to change date without saving ?")
             if ret != QMessageBox.Yes:
                 self._dates_list.setCurrentIndex(self._dates_list_last_index)
                 return
