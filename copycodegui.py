@@ -350,7 +350,7 @@ def revise_copy_code_by_rid(rid):
             return None
 
         if not w.shouldStartEditor():
-            QMessageBox.information(parent, "BOMBrowser",
+            QMessageBox.information(None, "BOMBrowser",
                 "Success: you created a new code/revision")
             return None
 
