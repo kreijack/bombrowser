@@ -296,10 +296,10 @@ class EditDates(QDialog):
                 err = True
 
             if not err:
-                if row > 0 and (self._table.item(row -1 , col).text() < dt):
+                if row > 0 and (self._table.item(row -1 , col).text() <= dt):
                     err = True
                 if ((row < self._table.rowCount() - 1) and
-                    (self._table.item(row +1 , col).text() > dt)):
+                    (self._table.item(row +1 , col).text() >= dt)):
                         err = True
 
         if err:
