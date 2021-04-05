@@ -42,7 +42,7 @@ class SelectCode(QDialog):
     def _init_gui(self):
         grid = QGridLayout()
 
-        self._search_widget = listcodegui.CodesWidget()
+        self._search_widget = listcodegui.CodesListWidget()
         self._search_widget.doubleClicked.connect(self.accept)
         grid.addWidget(self._search_widget, 10, 1, 1, 3)
 
@@ -1106,8 +1106,14 @@ class EditWindow(utils.BBMainWindow):
             return
         row = idxs[0].row()
 
-        code_id = int(self._children_table.item(row, 1).text())
+        code_id = None
+        try:
+            code_id = int(self._children_table.item(row, 1).text())
+        except:
+            pass
+
         code = self._children_table.item(row, 2).text()
+
 
         contextMenu = QMenu(self)
         m = contextMenu.addAction("Insert row before")
@@ -1121,8 +1127,10 @@ class EditWindow(utils.BBMainWindow):
         m.triggered.connect(self._children_search_code)
         contextMenu.addSeparator()
 
-        asmgui.generate_codes_context_menu(code_id=code_id,
-            menu = contextMenu, parent=self)
+        if not code_id is None:
+            # sometime the code_id doesn't exist
+            asmgui.generate_codes_context_menu(code_id=code_id,
+                menu = contextMenu, parent=self)
 
         contextMenu.exec_(self._children_table.viewport().mapToGlobal(point))
 
