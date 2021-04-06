@@ -27,7 +27,7 @@ from PySide2.QtWidgets import QPushButton
 from PySide2.QtWidgets import QComboBox, QMenu
 from PySide2.QtGui import QDesktopServices
 
-from PySide2.QtCore import Qt, QMimeData, QUrl
+from PySide2.QtCore import Qt, QMimeData, QUrl, QByteArray
 
 import db, asmgui, cfg
 
@@ -230,7 +230,24 @@ class CodeWidget(QWidget):
 
     def _copy_file(self, fn):
         md = QMimeData()
+
+        # the life is sometime very complicated !
+
+        # windows
         md.setUrls([QUrl.fromLocalFile(fn)])
+        # mate
+        md.setData("x-special/mate-copied-files",
+            QByteArray(("copy\nfile://"+fn).encode("utf-8")))
+        # nautilus
+        md.setText("x-special/nautilus-clipboard\ncopy\nfile://"+
+            fn+"\n")
+        # gnome
+        md.setData("x-special/gnome-copied-files",
+            QByteArray(("copy\nfile://"+fn).encode("utf-8")))
+        # dolphin
+        md.setData("text/uri-list",
+            QByteArray(("file:"+fn).encode("utf-8")))
+
         cb = QApplication.clipboard()
         cb.clear(mode=cb.Clipboard )
         cb.setMimeData(md)
