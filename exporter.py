@@ -192,7 +192,22 @@ class Exporter:
         if mode == "CSV":
             f = open(nf, "w", encoding='utf-8-sig', newline='')
 
-            writer = csv.writer(f, delimiter=";",  quoting=csv.QUOTE_ALL)
+            quotechar = cfg.config()[template_section].get("quotechar", "DOUBLEQUOTE")
+            if quotechar == 'SINGLEQUOTE':
+                quotechar = "'"
+            else: # 'DOUBLEQUOTE' or other
+                quotechar = '"'
+            delimiter = cfg.config()[template_section].get("delimiter", "SEMICOLON")
+            if delimiter == "COMMA":
+                delimiter = ","
+            elif delimiter == "TAB":
+                delimiter = "\t"
+            else: # SEMICOLON or other
+                delimiter = ";"
+
+            writer = csv.writer(f, delimiter=delimiter,
+                                    quotechar=quotechar,
+                                    quoting=csv.QUOTE_ALL)
             writer.writerow(captions)
             for line in table:
                 writer.writerow(line)

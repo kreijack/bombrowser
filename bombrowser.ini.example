@@ -61,11 +61,8 @@ captions=Seq,Level,Code,Code.Ind,Description,Q.ty,Each,Unit,Reference,Rev,Iter,F
 # Remove duplicated row (e.g if an assy is reported more than once)
 #unique=1
 
-# Separator style: TAB|EXECL
-#     TAB     -> the fields are separated by tab
-#     EXCEL   -> the fields are separated by ';', and each field is protect
-#                by '"'
-mode=TAB
+# delimiter = TAB|COMMA|SEMICOLON
+# quotechar = SINGLEQUOTE|DOUBLEQUOTE
 
 # maximum bom depth (defautl all, 1-> only top node, 2->first level of children
 # maxlevel=-1
@@ -93,13 +90,13 @@ type=parent_child
 
 #map the columns in the file to the internal fields
 map=code=CodeNr,ref=DesignatorText,qty=QuantityNr
-# kind of separator (SEMICOLON, TAB, COMMA, COLON)
-separator=SEMICOLON
-# options: default_unit, skip_first_lines, ignore_duplicate, ignore quote,
-#          ignore_bom (as UTF8 marker),
-options=default_unit=NR,skip_first_lines=1
-#Skip the first lines before parsing
-#skip_first_lines=<nn>
+
+# options:
+# default_unit=...          default unit to use if unspecified (default NR)
+# skip_first_lines=nn       skip the first <nn> lines
+# ignore_duplicate=0|1      ignore duplicated row
+# delimiter=COMMA|SEMICOLON|TAB         use ... as fields separator
+# quotechar=SINGLEQUOTE|DOUBLEQUOTE     use ... as fields quote
 
 
 
