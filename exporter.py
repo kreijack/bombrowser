@@ -80,7 +80,10 @@ class Exporter:
 
     def _export_as_table_by_template_it(self, unique, table, columns,
                 key, level=0, qty="", each="", unit="", ref="", parent="",
-                parent_descr=""):
+                parent_descr="", maxlevel=-1):
+
+        if maxlevel != -1 and level >= maxlevel:
+            return
 
         if unique:
             if key in self._did:
@@ -140,7 +143,8 @@ class Exporter:
             self._export_as_table_by_template_it(unique, table, columns,
                 child_id, level + 1, child["qty"], child["each"],
                 child["unit"], child["ref"],
-                item["code"], item["descr"])
+                item["code"], item["descr"],
+                maxlevel=maxlevel)
 
 
     def _export_as_table_by_template(self, template_name):
@@ -148,13 +152,15 @@ class Exporter:
         captions=cfg.config()[template_name].get("captions").split(",")
         sortby=int(cfg.config()[template_name].get("sortby", -1))
         unique=int(cfg.config()[template_name].get("unique", 0))
+        maxlevel=int(cfg.config()[template_name].get("maxlevel", -1))
         table = []
 
         self._seq = 0
         self._did = set()
         self._path = []
 
-        self._export_as_table_by_template_it(unique, table, columns, self._rootnode)
+        self._export_as_table_by_template_it(unique, table, columns,
+            self._rootnode, maxlevel=maxlevel)
 
 
         if sortby >= 0:

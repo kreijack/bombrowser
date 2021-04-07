@@ -67,6 +67,8 @@ captions=Seq,Level,Code,Code.Ind,Description,Q.ty,Each,Unit,Reference,Rev,Iter,F
 #                by '"'
 mode=TAB
 
+# maximum bom depth (defautl all, 1-> only top node, 2->first level of children
+# maxlevel=-1
 
 
 [template_all]
