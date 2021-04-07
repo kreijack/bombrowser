@@ -39,7 +39,7 @@ def import_csv_parent_child(keyword_map, options):
     if fn == "":
         return None
 
-    data = _read_table(fn)
+    data = _read_table(fn, options)
 
     bom = _import_csv_parent_child2(data, keyword_map, options)
     return bom
@@ -53,7 +53,23 @@ def _read_table_xls(nf):
 
     return ret
 
-def _read_table_csv(nf):
+def _read_table_csv(nf, options):
+    separator = ';'
+    quotechar = '"'
+    if "delimiter" in options:
+        delimiter_ = options["delimiter"]
+        if delimiter_ == "COMMA":
+            delimiter = ","
+        elif delimiter_ == "SEMICOLON":
+            delimiter = ";"
+        elif delimiter_ == "TAB":
+            delimiter = "\t"
+    if "quotechar" in options:
+        quotechar_ = options["quotechar"]
+        if quotechar_ == 'SINGLEQUOTE':
+            quotechar = "'"
+        elif quotechar_ == 'DOUBLEQUOTE':
+            quotechar = '"'
 
     with open(nf, newline='') as csvfile:
         c = csvfile.read(1)
@@ -69,53 +85,41 @@ def _read_table_csv(nf):
 
     dialect = csv.Sniffer().sniff(csvfile.read(1024*16))
     csvfile.seek(0)
-    reader = csv.reader(csvfile, dialect)
+    opts = dict()
+    if "separator" in options:
+        separator = options["separator"]
+    reader = csv.reader(csvfile, dialect, quotechar=quotechar,
+                            delimiter=delimiter)
     reader = list(reader)
+
+    print("enc=",enc,"; reader[0]=",reader[0])
 
     if reader[0][0][0] == '\ufeff':
         reader[0][0] = reader[0][0][1:]
 
     return reader
 
-def _read_table(nf):
+def _read_table(nf, options):
     if nf.lower().endswith(".csv"):
-        return _read_table_csv(nf)
+        return _read_table_csv(nf, options)
     elif nf.lower().endswith(".xls") or nf.lower().endswith(".xlsx"):
         return _read_table_xls(nf)
     else:
-        raise Exception("Format of file '%s' unknown; supperted file: .csv or .xls"%(
+        raise Exception("Format of file '%s' unknown; supported file: .csv or .xls"%(
             nf))
 
 def _import_csv_parent_child2(data, keyword_map, options):
 
-    separator=";"
     default_unit = "NR"
     ignore_duplicate = False
-    ignore_quote = False
-    ignore_bom = True
     skip_first_lines = 0
 
-    if "separator" in options:
-        separator=options["separator"]
     if "default_unit" in options:
         default_unit = options["default_unit"]
     if "ignore_duplicate" in options:
         ignore_duplicate = int(options["ignore_duplicate"]) > 0
-    if "ignore_quote" in options:
-        ignore_quote = int(options["ignore_quote"]) > 0
-    if "ignore_bom" in options:
-        ignore_bom = int(options["ignore_bom"]) > 0
     if "skip_first_lines" in options:
         skip_first_lines = int(options["skip_first_lines"])
-
-    if separator=="COMMA":
-        separator=","
-    elif separator=="SEMICOLON":
-        separator=";"
-    elif separator=="COLON":
-        separator=":"
-    elif separator=="TAB":
-        separator="\t"
 
     headers = data[skip_first_lines]
 
@@ -170,7 +174,10 @@ def _import_csv_parent_child2(data, keyword_map, options):
 
         def xfloat(x):
             if isinstance(x, str):
-                x = str(x).replace(",", ".")
+                if x == "":
+                    x = 0
+                else:
+                    x = str(x).replace(",", ".")
             return float(x)
 
         for v in colmap:
@@ -240,15 +247,11 @@ def get_importer_list():
         name, map_, type_ = map(lambda x : x.strip(), (name, map_, type_))
 
         if type_ == "parent_child":
-            separator = cfg.config()[importer_name].get("separator", ";")
-            optionss = cfg.config()[importer_name].get("options", "")
-            optionsl = optionss.split(",")
-            options = {
-                "separator": separator,
-            }
-            if optionss != "":
-                for (k,v) in [x.split("=") for x in optionsl]:
-                    options[k]=v
+            options = dict()
+            for k in ["default_unit", "skip_first_lines", "ignore_duplicate",
+                        "delimiter", "quotechar"]:
+                if k in cfg.config()[importer_name]:
+                    options[k] = cfg.config()[importer_name].get(k)
             ret.append((importer_name, name,
                 utils.Callable(import_csv_parent_child, map_.split(","), options)))
         else: # json
