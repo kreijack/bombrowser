@@ -54,7 +54,7 @@ def _read_table_xls(nf):
     return ret
 
 def _read_table_csv(nf, options):
-    separator = ';'
+    delimiter = ';'
     quotechar = '"'
     if "delimiter" in options:
         delimiter_ = options["delimiter"]
@@ -86,13 +86,9 @@ def _read_table_csv(nf, options):
     dialect = csv.Sniffer().sniff(csvfile.read(1024*16))
     csvfile.seek(0)
     opts = dict()
-    if "separator" in options:
-        separator = options["separator"]
     reader = csv.reader(csvfile, dialect, quotechar=quotechar,
                             delimiter=delimiter)
     reader = list(reader)
-
-    print("enc=",enc,"; reader[0]=",reader[0])
 
     if reader[0][0][0] == '\ufeff':
         reader[0][0] = reader[0][0][1:]
