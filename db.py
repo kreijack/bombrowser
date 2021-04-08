@@ -41,8 +41,6 @@ import datetime
 import configparser
 import time
 import jdutil
-import customize
-import cfg
 import traceback
 
 def increase_date(d, inc=+1):
@@ -1731,6 +1729,10 @@ class DBPG(_BaseServer):
 
 _globaDBInstance = None
 def DB(path=None):
+
+    # don't do in the module to avoid circular reference
+    import cfg
+
     global _globaDBInstance
     global connection
 
@@ -1765,6 +1767,7 @@ def DB(path=None):
         connection="Server: SQLSERVER/"+connection_string
         return _globaDBInstance
     elif dbtype == "postgresql":
+        import customize
         d = {
             "server": cfg.config().get("POSTGRESQL", "server"),
             "database": cfg.config().get("POSTGRESQL", "database"),
