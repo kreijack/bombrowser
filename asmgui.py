@@ -678,8 +678,6 @@ def show_assembly_by_date(code_id, dt):
     def bom_reload():
         d = db.DB()
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        print("code_id=", code_id, "dt=", dt)
-        print(db.days_to_iso(dt))
         data = d.get_bom_by_code_id3(code_id, dt)
         w.populate(*data, caption_date=dt)
         QApplication.restoreOverrideCursor()
