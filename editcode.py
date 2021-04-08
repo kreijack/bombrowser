@@ -527,9 +527,9 @@ class EditWindow(bbwindow.BBMainWindow):
                         self._le = le
                         self._list = l[:]
                     def __call__(self, i):
-                        if i < 1 or i >= len(self._list):
+                        if i < 1 or i > len(self._list):
                             return
-                        self._le.setText(self._list[i])
+                        self._le.setText(self._list[i-1])
                 b.currentIndexChanged.connect(Do(le, values))
                 w.addWidget(b)
                 qgbg.addLayout(w, row / 2, 11 + (row % 2) * 2)
