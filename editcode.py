@@ -30,7 +30,7 @@ from PySide2.QtGui import QColor, QDesktopServices
 from PySide2.QtCore import Qt, QUrl
 
 import db, utils, listcodegui, jdutil, cfg
-import importer, customize, bbwindow
+import importer, customize, bbwindow, codecontextmenu
 #from utils import catch_exception
 
 class SelectCode(QDialog):
@@ -1132,7 +1132,7 @@ class EditWindow(bbwindow.BBMainWindow):
 
             if not code_id is None:
                 # sometime the code_id doesn't exist
-                utils.generate_codes_context_menu(code_id=code_id,
+                codecontextmenu.generate_codes_context_menu(code_id=code_id,
                     menu = contextMenu, parent=self)
 
         contextMenu.exec_(self._children_table.viewport().mapToGlobal(point))

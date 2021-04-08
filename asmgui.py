@@ -29,7 +29,7 @@ from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtCore import Qt, QItemSelectionModel
 import pprint, shutil
 
-import db, codegui
+import db, codegui, codecontextmenu
 import exporter, utils, selectdategui, bbwindow
 #from utils import catch_exception
 
@@ -393,7 +393,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         id_ = self._data[path[-1]]["id"]
 
         contextMenu = QMenu(self)
-        utils.generate_codes_context_menu(code_id = id_, menu=contextMenu,
+        codecontextmenu.generate_codes_context_menu(code_id = id_, menu=contextMenu,
             parent=self)
         contextMenu.exec_(self._tree.viewport().mapToGlobal(point))
 
