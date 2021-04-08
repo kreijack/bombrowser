@@ -30,7 +30,7 @@ from PySide2.QtGui import QColor, QDesktopServices
 from PySide2.QtCore import Qt, QUrl
 
 import db, asmgui, codegui, diffgui, utils, listcodegui, jdutil, cfg
-import importer, copycodegui
+import importer, copycodegui, customize
 #from utils import catch_exception
 
 class SelectCode(QDialog):
@@ -659,7 +659,7 @@ class EditWindow(utils.BBMainWindow):
         #m.triggered.connect(lambda x: True)
         #m.addAction(a)
 
-        il = importer.get_importer_list()
+        il = importer.get_importer_list() + customize.get_edit_window_importer_list()
         if len(il):
             m = mainMenu.addMenu("Import")
             for (name, descr, callable_) in il:
