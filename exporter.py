@@ -27,10 +27,13 @@ import xlwt
 
 import db
 import cfg
+import utils
 
 def get_template_list():
     ret = []
-    template_list = cfg.config().get("BOMBROWSER", "templates_list").split(",")
+    template_list = utils.split_with_escape(
+                        cfg.config().get("BOMBROWSER", "templates_list"),
+                        delimiter=',', quote='"')
     for template_section in template_list:
         if not cfg.config().has_section(template_section):
             continue
@@ -148,8 +151,13 @@ class Exporter:
 
 
     def _export_as_table_by_template(self, template_name):
-        columns=cfg.config()[template_name].get("columns").split(",")
-        captions=cfg.config()[template_name].get("captions").split(",")
+
+        columns = utils.split_with_escape(
+                        cfg.config()[template_name].get("columns"),
+                        delimiter=',', quote='"')
+        captions = utils.split_with_escape(
+                        cfg.config()[template_name].get("captions"),
+                        delimiter=',', quote='"')
         sortby=int(cfg.config()[template_name].get("sortby", -1))
         unique=int(cfg.config()[template_name].get("unique", 0))
         maxlevel=int(cfg.config()[template_name].get("maxlevel", -1))

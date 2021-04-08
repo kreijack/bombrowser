@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
 import configparser
+import utils
 
 _cfg = None
 
@@ -30,7 +31,9 @@ def config():
     return _cfg
 
 def get_gvalnames():
-    l = config().get("BOMBROWSER", "gvalnames").split(",")
+    l = utils.split_with_escape(
+        config().get("BOMBROWSER", "gvalnames"),
+        delimiter=',', quote='"')
     ret = []
     for n in l:
         i = n.find("[")
@@ -44,7 +47,9 @@ def get_gvalnames():
 
 
 def get_gvalnames_type(name):
-    l = config().get("BOMBROWSER", "gvalnames").split(",")
+    l = utils.split_with_escape(
+        config().get("BOMBROWSER", "gvalnames"),
+        delimiter=',', quote='"')
     ret = []
     for n in l:
         i = n.find("[")

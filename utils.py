@@ -179,3 +179,112 @@ def generate_codes_context_menu(code_id=None, rid=None, dt=None,
 
     return menu
 
+def split_with_escape(s, delimiter, escape_symbol='\\', quote=None):
+
+    ret = []
+    i = 0
+    escape=False
+    item = ""
+    quoted = False
+
+    while i < len(s):
+        if escape_symbol and s[i] == escape_symbol:
+            escape = True
+            i += 1
+            continue
+
+        if escape:
+            if s[i] == 'n':
+                item += '\n'
+            elif s[i] == 't':
+                item += '\t'
+            elif s[i] == 'b':
+                item += '\b'
+            elif s[i] == 'r':
+                item += '\r'
+            else:
+                item += s[i]
+
+            i += 1
+            escape = False
+            continue
+
+        if quote and (s[i] == quote):
+            quoted = not quoted
+            i += 1
+            continue
+
+        if s[i] == delimiter and not quoted:
+            ret.append(item)
+            item = ""
+            i += 1
+            continue
+
+        item += s[i]
+        i += 1
+
+
+    ret.append(item)
+
+    return ret
+
+def test_split_with_escape_escape():
+    r = split_with_escape(r"abcd\,efg", ",")
+    assert(r == ["abcd,efg"])
+
+    r = split_with_escape("abc\\ndefg", ",")
+    assert(r == ["abc\ndefg"])
+
+    r = split_with_escape(r"abc\bdefg", ",")
+    assert(r == ["abc\bdefg"])
+
+    r = split_with_escape(r"abc\tdefg", ",")
+    assert(r == ["abc\tdefg"])
+
+def test_split_with_escape_quote():
+    r = split_with_escape(r'"abcdefg"', ",", quote='"')
+    assert(r == ['abcdefg'])
+
+    r = split_with_escape(r'"abcdefg"', ",", quote='')
+    assert(r == ['"abcdefg"'])
+
+    r = split_with_escape('"abc","defg"', ",", quote='"')
+    assert(r == ["abc", "defg"])
+
+def test_split_with_escape_quote():
+    r = split_with_escape(r'"abcdefg"', ",", quote='"')
+    assert(r == ['abcdefg'])
+
+    r = split_with_escape(r'"abcdefg"', ",", quote='')
+    assert(r == ['"abcdefg"'])
+
+    r = split_with_escape('"ab, c","defg"', ",", quote='"')
+    assert(r == ["ab, c", "defg"])
+
+    r = split_with_escape('"ab\\" c","defg"', ",", quote='"')
+    assert(r == ["ab\" c", "defg"])
+
+
+def test_split_with_escape_simple():
+    r = split_with_escape("abcd,efg", ",")
+    assert(r == ["abcd", "efg"])
+
+    r = split_with_escape("abcdefg", ",")
+    assert(r == ["abcdefg"])
+
+    r = split_with_escape("", ",")
+    assert(r == [""])
+
+    r = split_with_escape("abcd,", ",")
+    assert(r == ["abcd", ""])
+
+    r = split_with_escape("abcd,,,,", ",")
+    assert(r == ["abcd", "", "", "", ""])
+
+    r = split_with_escape(",,abcd,,,,", ",")
+    assert(r == ["", "", "abcd", "", "", "", ""])
+
+if __name__ == "__main__":
+    last = 1
+    import test_db, sys
+    test_db.run_test(sys.argv[last:], sys.modules[__name__])

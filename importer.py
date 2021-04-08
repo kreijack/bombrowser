@@ -225,7 +225,9 @@ def import_json(keyword_map):
 
 def get_importer_list():
 
-    l = cfg.config()["BOMBROWSER"].get("importer_list", "").split(",")
+    l = utils.split_with_escape(
+                    cfg.config()["BOMBROWSER"].get("importer_list"),
+                    delimiter=',', quote='"')
     if l == [""]:
         return None
     ret = []
@@ -252,8 +254,9 @@ def get_importer_list():
                         "delimiter", "quotechar"]:
                 if k in cfg.config()[importer_name]:
                     options[k] = cfg.config()[importer_name].get(k)
+            mapl = utils.split_with_escape(map_, delimiter=',', quote='"')
             ret.append((importer_name, name,
-                utils.Callable(import_csv_parent_child, map_.split(","), options)))
+                utils.Callable(import_csv_parent_child, mapl, options)))
         else: # json
             ret.append((importer_name, name,
                 utils.Callable(import_json, map_)))
