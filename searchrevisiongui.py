@@ -28,8 +28,8 @@ from PySide2.QtWidgets import QHeaderView, QMenu, QTableWidget, QTableWidgetItem
 
 from PySide2.QtCore import Qt, Signal, QPoint
 
-import db, asmgui, codegui, diffgui, utils, editcode
-import copycodegui, selectdategui, cfg
+import db, codegui, utils
+import cfg
 
 class RevisionListWidget(QWidget):
     #tableCustomContextMenuRequested = Signal(QPoint)

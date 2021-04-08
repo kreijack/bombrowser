@@ -29,8 +29,8 @@ from PySide2.QtGui import QColor, QDesktopServices
 
 from PySide2.QtCore import Qt, QUrl
 
-import db, asmgui, codegui, diffgui, utils, listcodegui, jdutil, cfg
-import importer, copycodegui, customize, bbwindow
+import db, utils, listcodegui, jdutil, cfg
+import importer, customize, bbwindow
 #from utils import catch_exception
 
 class SelectCode(QDialog):

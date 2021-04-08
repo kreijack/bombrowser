@@ -26,7 +26,7 @@ from PySide2.QtWidgets import QMessageBox, QDialog
 from PySide2.QtCore import Qt
 import pprint
 
-import db, codegui, diffgui, editcode
+import db, editcode
 import exporter, utils, selectdategui, cfg
 
 class CopyCode(QDialog):

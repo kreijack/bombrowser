@@ -29,7 +29,7 @@ from PySide2.QtWidgets import QHeaderView, QMenu, QTableWidget, QTableWidgetItem
 from PySide2.QtCore import Qt, Signal, QPoint
 
 import db, utils, codegui, bbwindow
-import selectdategui, cfg, searchrevisiongui
+import cfg, searchrevisiongui
 
 class CodesListWidget(QWidget):
     #tableCustomContextMenuRequested = Signal(QPoint)
@@ -291,7 +291,7 @@ class CodesWindow(bbwindow.BBMainWindowNotClose):
         contextMenu = QMenu(self)
 
         utils.generate_codes_context_menu(
-            code_id = Noneself._revisions_widget.getCodeId(),
+            code_id = self._revisions_widget.getCodeId(),
             rid = self._revisions_widget.getRid(),
             menu = contextMenu,
             parent = self)

@@ -39,8 +39,9 @@ import pprint
 import datetime
 import configparser
 import time
-import jdutil
 import traceback
+
+import jdutil
 
 def increase_date(d, inc=+1):
     return (datetime.date.fromisoformat(d) +

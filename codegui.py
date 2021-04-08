@@ -29,7 +29,7 @@ from PySide2.QtGui import QDesktopServices
 
 from PySide2.QtCore import Qt, QMimeData, QUrl, QByteArray
 
-import db, asmgui, cfg
+import db, cfg
 
 class QHLine(QFrame):
     def __init__(self):

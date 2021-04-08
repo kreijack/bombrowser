@@ -26,7 +26,7 @@ from PySide2.QtCore import Qt
 import pprint
 
 import db
-import exporter, utils
+import utils
 
 
 class SelectDate(QDialog):
