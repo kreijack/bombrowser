@@ -23,7 +23,8 @@ from PySide2.QtWidgets import QAction
 from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QMessageBox, QMainWindow
 
-version = "v0.4.2"
+from version import version
+import asmgui, editcode, copycodegui, diffgui, db
 
 def __show_exception(exc_type, exc_value, exc_traceback,
         title, msg):
@@ -43,169 +44,6 @@ def _show_exception(exc_type, exc_value, exc_traceback):
 def show_exception(title = "BOMBrowser - %s"%(version),
                    msg = "BOMBrowser - got exception"):
     __show_exception(*sys.exc_info(), title, msg)
-
-_bbmainwindows_list = []
-_bbmainwindows_list_cnt = 0
-
-
-window_title = "BOMBrowser " + version
-
-class BBMainWindow(QMainWindow):
-    def __init__(self, parent=None):
-        global _bbmainwindows_list_cnt
-        global _bbmainwindows_list
-
-        QMainWindow.__init__(self, parent)
-        self.__bbmainwindow_list_cnt = _bbmainwindows_list_cnt
-        _bbmainwindows_list_cnt += 1
-
-        _bbmainwindows_list.append([self.__bbmainwindow_list_cnt,
-            self, ""])
-
-    def setWindowTitle(self, title):
-        global _bbmainwindows_list_cnt
-        global _bbmainwindows_list
-
-        QMainWindow.setWindowTitle(self, title)
-
-        for i in _bbmainwindows_list:
-            if i[0] == self.__bbmainwindow_list_cnt:
-                i[2] = title
-                break
-
-    def closeEvent(self, event):
-        global _bbmainwindows_list_cnt
-        global _bbmainwindows_list
-
-        for i in range(len(_bbmainwindows_list)):
-            if _bbmainwindows_list[i][0] == self.__bbmainwindow_list_cnt:
-                _bbmainwindows_list.pop(i)
-                break
-
-        QMainWindow.closeEvent(self, event)
-
-    def _get_windows_list(self):
-        global _bbmainwindows_list_cnt
-        global _bbmainwindows_list
-
-        codewindows = []
-        bomwindows = []
-        diffwindows = []
-        editwindows = []
-        for (id_, w, t) in _bbmainwindows_list:
-
-            if id_ == self.__bbmainwindow_list_cnt:
-                continue
-
-            if t.startswith(window_title + " - Diff window"):
-                diffwindows.append((t, id_))
-            elif t.startswith(window_title + " - Edit code"):
-                editwindows.append((t, id_))
-            elif (t.startswith(window_title + " - Assembly") or
-                  t.startswith(window_title + " - Valid where used") or
-                  t.startswith(window_title + " - Where used")):
-                bomwindows.append((t, id_))
-            elif t.startswith(window_title + " - Codes list"):
-                codewindows.append((t, id_))
-
-        return (codewindows, bomwindows, diffwindows, editwindows)
-
-    def build_windows_menu(self, main_menu, title="Windows", win=None):
-        if win is None:
-            win = self
-
-        wm = main_menu.addMenu(title)
-        self._build_windows_menu(wm, win)
-        wm.aboutToShow.connect(
-            lambda : self._build_windows_menu(wm, win))
-
-    def _build_windows_menu(self, m, win):
-
-        global _bbmainwindows_list_cnt
-        global _bbmainwindows_list
-
-        for a in list(m.actions()):
-            m.removeAction(a)
-
-        c, b, d, e = win._get_windows_list()
-
-        class ShowWindow():
-            def __init__(self, id_):
-                self._id = id_
-            def __call__(self):
-                for (id_, w, t) in _bbmainwindows_list:
-                    if id_ == self._id:
-                        w.raise_()
-                        w.setWindowState(Qt.WindowActive)
-                        w.showNormal()
-                        w.activateWindow()
-                        w.show()
-                        break
-
-        separator = False
-
-        for (t, w) in c:
-            a = QAction(t, win)
-            # add the CTRL-L short cut only for the first window
-            if not separator:
-                a.setShortcut("Ctrl+L")
-            a.triggered.connect(ShowWindow(w))
-            m.addAction(a)
-
-            separator = True
-
-        if len(b):
-            if separator:
-                m.addSeparator()
-            for t,w in b:
-                a = QAction(t, win)
-                a.triggered.connect(ShowWindow(w))
-                m.addAction(a)
-
-            separator = True
-
-        if len(d):
-            if separator:
-                m.addSeparator()
-            for t,w in d:
-                a = QAction(t, win)
-                a.triggered.connect(ShowWindow(w))
-                m.addAction(a)
-
-            separator = True
-
-        if len(e):
-            if separator:
-                m.addSeparator()
-            for t,w in e:
-                a = QAction(t, win)
-                a.triggered.connect(ShowWindow(w))
-                m.addAction(a)
-
-            separator = True
-
-class BBMainWindowNotClose(BBMainWindow):
-    def __init__(self, parent=None):
-        BBMainWindow.__init__(self, parent)
-
-    def closeEvent(self, event):
-        if len(_bbmainwindows_list) == 1:
-            BBMainWindow.closeEvent(self, event)
-        else:
-            QMainWindow.closeEvent(self, event)
-
-
-def about(w, connection=""):
-    msgBox = QMessageBox(w)
-    msgBox.setWindowTitle("BOMBrowser - about");
-    msgBox.setTextFormat(Qt.RichText)
-    msgBox.setText(window_title + "\n"
-        "Copyright 2020,2021 G.Baroncelli<br>"
-        "<br>"
-        "<a href=https://gitlab.com/kreijack/bombrowser>"
-        "https://gitlab.com/kreijack/bombrowser</a><br><br>" +
-        connection)
-    msgBox.exec_();
 
 class Callable:
     def __init__(self, f, *args, **kwargs):
@@ -231,3 +69,113 @@ def catch_exception(f):
             raise
 
     return wrapper
+
+def generate_codes_context_menu(code_id=None, rid=None, dt=None,
+                                    menu=None, parent=None):
+
+    def _edit_code(code_id, rid):
+        if code_id is None:
+            d = db.DB()
+            data = d.get_code_by_rid(rid)
+            code_id = data["id"]
+
+        editcode.edit_code_by_code_id(code_id)
+
+    def _revise_code(code_id, rid, parent):
+        if code_id is None:
+            d = db.DB()
+            data = d.get_code_by_rid(rid)
+            code_id = data["id"]
+
+        copycodegui.revise_copy_code(code_id, parent)
+
+    def _set_diff_from(scode_id, rid, parent):
+        if not rid is None:
+            diffgui.set_from_by_rid(rid)
+            return
+
+        diffgui.set_from(code_id, parent)
+
+    def _set_diff_to(code_id, rid, parent):
+        if not rid is None:
+            diffgui.set_to_by_rid(rid)
+            return
+
+        diffgui.set_to(code_id, parent)
+
+    def _show_assembly(code_id, rid, parent):
+        if code_id is None:
+            d = db.DB()
+            data = d.get_code_by_rid(rid)
+            code_id = data["id"]
+
+        asmgui.show_assembly(code_id, parent)
+
+    def _show_this_assembly(code_id, date_from_days, rid):
+        if code_id is None:
+            d = db.DB()
+            data = d.get_code_by_rid(rid)
+            code_id = data["id"]
+            date_from_days = data["date_from_days"]
+
+        asmgui.show_assembly_by_date(code_id, date_from_days)
+
+    def _show_latest_assembly(code_id, rid):
+        if code_id is None:
+            d = db.DB()
+            data = d.get_code_by_rid(rid)
+            code_id = data["id"]
+
+        asmgui.show_latest_assembly(code_id)
+
+    def _show_proto_assembly(code_id, rid):
+        if code_id is None:
+            d = db.DB()
+            data = d.get_code_by_rid(rid)
+            code_id = data["id"]
+
+        asmgui.show_proto_assembly(code_id)
+
+    def _show_where_used(code_id, rid):
+        if code_id is None:
+            d = db.DB()
+            data = d.get_code_by_rid(rid)
+            code_id = data["id"]
+
+        asmgui.where_used(code_id)
+
+    def _show_valid_where_used(code_id, rid):
+        if code_id is None:
+            d = db.DB()
+            data = d.get_code_by_rid(rid)
+            code_id = data["id"]
+
+        asmgui.valid_where_used(code_id)
+
+
+    menu.addAction("Show latest assembly").triggered.connect(
+        lambda : _show_latest_assembly(code_id, rid))
+    menu.addAction("Where used").triggered.connect(
+        lambda : _show_where_used(code_id, rid))
+    menu.addAction("Valid where used").triggered.connect(
+        lambda : _show_valid_where_used(code_id, rid))
+    menu.addAction("Show assembly by date").triggered.connect(
+        lambda : _show_assembly(code_id, rid, parent))
+    if (not code_id is None and not dt is None) or not rid is None:
+        menu.addAction("Show this assembly").triggered.connect(
+            lambda : _show_this_assembly(code_id, dt, rid))
+    menu.addAction("Show prototype assembly").triggered.connect(
+        lambda : _show_proto_assembly(code_id, rid))
+    menu.addSeparator()
+    menu.addAction("Copy/revise code ...").triggered.connect(
+        lambda : _revise_code(code_id, rid, parent))
+    menu.addAction("Edit code ...").triggered.connect(
+        lambda : _edit_code(code_id, rid))
+    menu.addSeparator()
+    menu.addAction("Diff from...").triggered.connect(
+        lambda : _set_diff_from(code_id, rid, parent))
+    menu.addAction("Diff to...").triggered.connect(
+        lambda : _set_diff_to(code_id, rid, parent))
+
+    return menu
+

@@ -22,7 +22,9 @@ import sys
 from PySide2.QtWidgets import QApplication
 from PySide2.QtWidgets import QMessageBox
 
-import db, listcodegui, cfg, utils
+import cfg, db
+import utils
+import listcodegui
 
 def main(args):
     app = QApplication(sys.argv)

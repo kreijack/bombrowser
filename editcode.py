@@ -30,7 +30,7 @@ from PySide2.QtGui import QColor, QDesktopServices
 from PySide2.QtCore import Qt, QUrl
 
 import db, asmgui, codegui, diffgui, utils, listcodegui, jdutil, cfg
-import importer, copycodegui, customize
+import importer, copycodegui, customize, bbwindow
 #from utils import catch_exception
 
 class SelectCode(QDialog):
@@ -56,7 +56,7 @@ class SelectCode(QDialog):
 
         self.setLayout(grid)
 
-        self.setWindowTitle(utils.window_title + " - Search code")
+        self.setWindowTitle("Search code")
         self.setAttribute(Qt.WA_DeleteOnClose)
 
     def getCodeId(self):
@@ -242,7 +242,7 @@ class EditDates(QDialog):
 
             row += 1
 
-        self.setWindowTitle(utils.window_title + " - Edit dates: %s"%(code))
+        self.setWindowTitle("Edit dates: %s"%(code))
         self._table.cellChanged.connect(self._cell_changed)
         self._table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeToContents)
@@ -387,9 +387,9 @@ class SelectFromList(QDialog):
         return self._return_index
 
 
-class EditWindow(utils.BBMainWindow):
+class EditWindow(bbwindow.BBMainWindow):
     def __init__(self, code_id, dt=None, parent=None):
-        utils.BBMainWindow.__init__(self, parent)
+        bbwindow.BBMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._code_id = code_id
         self._rid = None
@@ -589,7 +589,7 @@ class EditWindow(utils.BBMainWindow):
         self._update_btn.clicked.connect(self._save_changes)
         g.addWidget(self._update_btn, 100, 13)
 
-        self.setWindowTitle(utils.window_title + " - Edit code")
+        self.setWindowTitle("Edit code")
 
         w = QWidget()
         w.setLayout(g)
@@ -672,7 +672,7 @@ class EditWindow(utils.BBMainWindow):
 
         m = mainMenu.addMenu("Help")
         a = QAction("About ...", self)
-        a.triggered.connect(lambda : utils.about(self, db.connection))
+        a.triggered.connect(lambda : self._show_about(db.connection))
         m.addAction(a)
 
     def _import_from(self, name, callable_):
@@ -833,7 +833,7 @@ class EditWindow(utils.BBMainWindow):
         d = db.DB()
         data = d.get_code_by_rid(self._rid)
 
-        self.setWindowTitle(utils.window_title + " - Edit code: %s @ %s"%(
+        self.setWindowTitle("Edit code: %s @ %s"%(
             data["code"], data["date_from"]))
 
         self._from_date_days = data["date_from_days"]
@@ -1020,7 +1020,7 @@ class EditWindow(utils.BBMainWindow):
 
         data = d.get_code_by_rid(self._rid)
 
-        self.setWindowTitle(utils.window_title + " - Edit code: %s @ %s"%(
+        self.setWindowTitle("Edit code: %s @ %s"%(
             data["code"], data["date_from"]))
 
         self._rid_w.setText(str(self._rid))
@@ -1132,7 +1132,7 @@ class EditWindow(utils.BBMainWindow):
 
             if not code_id is None:
                 # sometime the code_id doesn't exist
-                asmgui.generate_codes_context_menu(code_id=code_id,
+                utils.generate_codes_context_menu(code_id=code_id,
                     menu = contextMenu, parent=self)
 
         contextMenu.exec_(self._children_table.viewport().mapToGlobal(point))

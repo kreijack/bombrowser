@@ -29,8 +29,8 @@ from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtCore import Qt, QItemSelectionModel
 import pprint, shutil
 
-import db, codegui, diffgui, copycodegui
-import exporter, utils, selectdategui, editcode
+import db, codegui
+import exporter, utils, selectdategui, bbwindow
 #from utils import catch_exception
 
 
@@ -158,9 +158,9 @@ class FindDialog(QDialog):
         self._do_search(next=True)
 
 
-class AssemblyWindow(utils.BBMainWindow):
+class AssemblyWindow(bbwindow.BBMainWindow):
     def __init__(self, parent, asm=True, valid_where_used=False):
-        utils.BBMainWindow.__init__(self, parent)
+        bbwindow.BBMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self._asm = asm
@@ -247,7 +247,7 @@ class AssemblyWindow(utils.BBMainWindow):
 
         m = mainMenu.addMenu("Help")
         a = QAction("About ...", self)
-        a.triggered.connect(lambda : utils.about(self, db.connection))
+        a.triggered.connect(lambda : self._show_about(db.connection))
         m.addAction(a)
 
     def _copy_all_bom_files(self):
@@ -393,7 +393,7 @@ class AssemblyWindow(utils.BBMainWindow):
         id_ = self._data[path[-1]]["id"]
 
         contextMenu = QMenu(self)
-        generate_codes_context_menu(code_id = id_, menu=contextMenu,
+        utils.generate_codes_context_menu(code_id = id_, menu=contextMenu,
             parent=self)
         contextMenu.exec_(self._tree.viewport().mapToGlobal(point))
 
@@ -410,14 +410,11 @@ class AssemblyWindow(utils.BBMainWindow):
                 else:
                     dt2 = db.days_to_iso(caption_date)
 
-                self.setWindowTitle(utils.window_title +
-                        " - Assembly: " + top_code + " @ " + dt2)
+                self.setWindowTitle("Assembly: " + top_code + " @ " + dt2)
         elif self._valid_where_used:
-                self.setWindowTitle(utils.window_title +
-                        " - Valid where used: " + top_code)
+                self.setWindowTitle("Valid where used: " + top_code)
         else:
-                self.setWindowTitle(utils.window_title +
-                        " - Where used: "+top_code)
+                self.setWindowTitle("Where used: "+top_code)
         self._data = data
         self._top = top
 
@@ -681,117 +678,11 @@ def show_assembly_by_date(code_id, dt):
     def bom_reload():
         d = db.DB()
         QApplication.setOverrideCursor(Qt.WaitCursor)
+        print("code_id=", code_id, "dt=", dt)
+        print(db.days_to_iso(dt))
         data = d.get_bom_by_code_id3(code_id, dt)
         w.populate(*data, caption_date=dt)
         QApplication.restoreOverrideCursor()
     w.set_bom_reload(bom_reload)
     w.bom_reload()
 
-def generate_codes_context_menu(code_id=None, rid=None, dt=None,
-                                    menu=None, parent=None):
-
-    def _edit_code(code_id, rid):
-        if code_id is None:
-            d = db.DB()
-            data = d.get_code_by_rid(rid)
-            code_id = data["id"]
-
-        editcode.edit_code_by_code_id(code_id)
-
-    def _revise_code(code_id, rid, parent):
-        if code_id is None:
-            d = db.DB()
-            data = d.get_code_by_rid(rid)
-            code_id = data["id"]
-
-        copycodegui.revise_copy_code(code_id, parent)
-
-    def _set_diff_from(scode_id, rid, parent):
-        if not rid is None:
-            diffgui.set_from_by_rid(rid)
-            return
-
-        diffgui.set_from(code_id, parent)
-
-    def _set_diff_to(code_id, rid, parent):
-        if not rid is None:
-            diffgui.set_to_by_rid(rid)
-            return
-
-        diffgui.set_to(code_id, parent)
-
-    def _show_assembly(code_id, rid, parent):
-        if code_id is None:
-            d = db.DB()
-            data = d.get_code_by_rid(rid)
-            code_id = data["id"]
-
-        show_assembly(code_id, parent)
-
-    def _show_this_assembly(code_id, date_from_days, rid):
-        if code_id is None:
-            d = db.DB()
-            data = d.get_code_by_rid(rid)
-            code_id = data["id"]
-            date_from_days = data["date_from_days"]
-
-        show_assembly_by_date(code_id, date_from_days)
-
-    def _show_latest_assembly(code_id, rid):
-        if code_id is None:
-            d = db.DB()
-            data = d.get_code_by_rid(rid)
-            code_id = data["id"]
-
-        show_latest_assembly(code_id)
-
-    def _show_proto_assembly(code_id, rid):
-        if code_id is None:
-            d = db.DB()
-            data = d.get_code_by_rid(rid)
-            code_id = data["id"]
-
-        show_proto_assembly(code_id)
-
-    def _show_where_used(code_id, rid):
-        if code_id is None:
-            d = db.DB()
-            data = d.get_code_by_rid(rid)
-            code_id = data["id"]
-
-        where_used(code_id)
-
-    def _show_valid_where_used(code_id, rid):
-        if code_id is None:
-            d = db.DB()
-            data = d.get_code_by_rid(rid)
-            code_id = data["id"]
-
-        valid_where_used(code_id)
-
-
-    menu.addAction("Show latest assembly").triggered.connect(
-        lambda : _show_latest_assembly(code_id, rid))
-    menu.addAction("Where used").triggered.connect(
-        lambda : _show_where_used(code_id, rid))
-    menu.addAction("Valid where used").triggered.connect(
-        lambda : _show_valid_where_used(code_id, rid))
-    menu.addAction("Show assembly by date").triggered.connect(
-        lambda : _show_assembly(code_id, rid, parent))
-    if (not code_id is None and not dt is None) or not rid is None:
-        menu.addAction("Show this assembly").triggered.connect(
-            lambda : _show_this_assembly(code_id, dt, rid))
-    menu.addAction("Show prototype assembly").triggered.connect(
-        lambda : _show_proto_assembly(code_id, rid))
-    menu.addSeparator()
-    menu.addAction("Copy/revise code ...").triggered.connect(
-        lambda : _revise_code(code_id, rid, parent))
-    menu.addAction("Edit code ...").triggered.connect(
-        lambda : _edit_code(code_id, rid))
-    menu.addSeparator()
-    menu.addAction("Diff from...").triggered.connect(
-        lambda : _set_diff_from(code_id, rid, parent))
-    menu.addAction("Diff to...").triggered.connect(
-        lambda : _set_diff_to(code_id, rid, parent))
-
-    return menu

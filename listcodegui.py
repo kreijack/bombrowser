@@ -28,7 +28,7 @@ from PySide2.QtWidgets import QHeaderView, QMenu, QTableWidget, QTableWidgetItem
 
 from PySide2.QtCore import Qt, Signal, QPoint
 
-import db, asmgui, utils, copycodegui,editcode,codegui, diffgui
+import db, utils, codegui, bbwindow
 import selectdategui, cfg, searchrevisiongui
 
 class CodesListWidget(QWidget):
@@ -178,10 +178,10 @@ class CodesListWidget(QWidget):
     def getTableText(self):
         return self._copy_info
 
-class CodesWindow(utils.BBMainWindowNotClose):
+class CodesWindow(bbwindow.BBMainWindowNotClose):
     def __init__(self, parent=None):
-        utils.BBMainWindowNotClose.__init__(self, parent)
-        self.setWindowTitle(utils.window_title + " - Codes list")
+        bbwindow.BBMainWindowNotClose.__init__(self, parent)
+        self.setWindowTitle("Codes list")
 
         self._init_gui()
         self.resize(1024, 600)
@@ -229,7 +229,7 @@ class CodesWindow(utils.BBMainWindowNotClose):
 
         m = mainMenu.addMenu("Help")
         a = QAction("About ...", self)
-        a.triggered.connect(lambda : utils.about(self, db.connection))
+        a.triggered.connect(lambda : self._show_about(db.connection))
         m.addAction(a)
 
     def _exit_app(self):
@@ -275,7 +275,7 @@ class CodesWindow(utils.BBMainWindowNotClose):
             return
         contextMenu = QMenu(self)
 
-        asmgui.generate_codes_context_menu(
+        utils.generate_codes_context_menu(
             code_id = self._codes_widget.getCodeId(),
             menu = contextMenu,
             parent = self)
@@ -290,8 +290,8 @@ class CodesWindow(utils.BBMainWindowNotClose):
 
         contextMenu = QMenu(self)
 
-        asmgui.generate_codes_context_menu(
-            code_id = self._codes_widget.getCodeId(),
+        utils.generate_codes_context_menu(
+            code_id = Noneself._revisions_widget.getCodeId(),
             rid = self._revisions_widget.getRid(),
             menu = contextMenu,
             parent = self)

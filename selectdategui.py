@@ -25,7 +25,7 @@ from PySide2.QtWidgets import QDialog, QHeaderView, QApplication
 from PySide2.QtCore import Qt
 import pprint
 
-import db, codegui, diffgui
+import db
 import exporter, utils
 
 

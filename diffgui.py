@@ -27,12 +27,12 @@ from PySide2.QtWidgets import QMessageBox, QAction, QDialog
 from PySide2.QtCore import Qt
 import pprint, traceback
 
-import db, utils, selectdategui
+import db, utils, selectdategui, bbwindow
 
-class DiffWindow(utils.BBMainWindow):
+class DiffWindow(bbwindow.BBMainWindow):
     def __init__(self, id1, code1, date1, date_days1, id2, code2,
                         date2, date_days2, parent=None):
-        utils.BBMainWindow.__init__(self, parent)
+        bbwindow.BBMainWindow.__init__(self, parent)
         self._date_from_days1 = date_days1
         self._date_from_days2 = date_days2
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -40,8 +40,7 @@ class DiffWindow(utils.BBMainWindow):
         self._create_menu()
         self._create_statusbar()
         self.resize(1024, 600)
-        self.setWindowTitle(utils.window_title +
-                " - Diff window: %s @ %s <-> %s @ %s"%(
+        self.setWindowTitle("Diff window: %s @ %s <-> %s @ %s"%(
                         code1, date1[:10], code2, date2[:10]))
 
 
@@ -131,7 +130,7 @@ class DiffWindow(utils.BBMainWindow):
 
         helpMenu = mainMenu.addMenu("Help")
         a = QAction("About ...", self)
-        a.triggered.connect(lambda : utils.about(self, db.connection))
+        a.triggered.connect(lambda : self._show_about(db.connection))
         helpMenu.addAction(a)
 
     def _exit_app(self):
@@ -300,7 +299,7 @@ class DiffDialog(QDialog):
         grid.addWidget(QLabel("Codes"), 0, 2)
         grid.addWidget(QLabel("Dates"), 0, 3)
 
-        self.setWindowTitle(utils.window_title + " - Diff dialog")
+        self.setWindowTitle("Diff dialog")
 
         b=QPushButton("Hide")
         b.clicked.connect(self._do_hide)
