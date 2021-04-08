@@ -291,7 +291,6 @@ class CodesWindow(bbwindow.BBMainWindowNotClose):
         contextMenu = QMenu(self)
 
         utils.generate_codes_context_menu(
-            code_id = self._revisions_widget.getCodeId(),
             rid = self._revisions_widget.getRid(),
             menu = contextMenu,
             parent = self)
