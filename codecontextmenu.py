@@ -1,6 +1,6 @@
 """
 BOM Browser - tool to browse a bom
-Copyright (C) 2020,2021 Goffredo Baroncelli <kreijack@inwind.it>
+Copyright (C) 2021 Goffredo Baroncelli <kreijack@inwind.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
