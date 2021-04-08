@@ -725,20 +725,19 @@ class EditWindow(utils.BBMainWindow):
 
         self._children_table.setSortingEnabled(True)
 
-        if root != 0:
-            if "descr" in bom[root]:
-                self._descr.setText(bom[root]["descr"])
-            if "unit" in bom[root]:
-                self._unit.setText(bom[root]["unit"])
+        if "descr" in bom[root]:
+            self._descr.setText(bom[root]["descr"])
+        if "unit" in bom[root]:
+            self._unit.setText(bom[root]["unit"])
 
-            for i in range(db.gvals_count):
-                gvn = "gval%d"%(i+1)
-                if not gvn in bom[root]:
-                    continue
-                v = bom[root][gvn]
-                if v is None:
-                    continue
-                self._gvals[i][1].setText(v)
+        for i in range(db.gvals_count):
+            gvn = "gval%d"%(i+1)
+            if not gvn in bom[root]:
+                continue
+            v = bom[root][gvn]
+            if v is None:
+                continue
+            self._gvals[i][1].setText(v)
 
     def _delete_code(self):
         if self._form_is_changed():
