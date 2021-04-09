@@ -739,6 +739,8 @@ class EditWindow(bbwindow.BBMainWindow):
                 continue
             self._gvals[i][1].setText(v)
 
+        self._qtab.setTabText(0, "Children (%d)"%(self._children_table.rowCount()))
+
     def _delete_code(self):
         if self._form_is_changed():
             ret = QMessageBox.question(self, "BOMBrowser",
