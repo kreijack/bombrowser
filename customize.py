@@ -28,9 +28,8 @@ def get_edit_window_importer_list():
 
 # ----
 
-import imp
 try:
-    imp.find_module('customize_ext')
+    import customize_ext
     found = True
 except ImportError:
     found = False
