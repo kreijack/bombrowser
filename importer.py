@@ -137,8 +137,9 @@ def _import_csv_parent_child2(data, keyword_map, options):
     for i in range(0, db.gvals_count):
         colmap["gval%d"%(i)] = None
 
+    print(keyword_map)
     for v in keyword_map:
-        s1, s2 = v.split("=")
+        s1, s2 = v.split(":")
         map1[s2] = s1
 
     for i, name in enumerate(headers):
@@ -250,7 +251,7 @@ def get_importer_list():
                         "delimiter", "quotechar"]:
                 if k in cfg.config()[importer_name]:
                     options[k] = cfg.config()[importer_name].get(k)
-            mapl = utils.split_with_escape(map_, delimiter=',', quote='"')
+            mapl = [x.strip() for x in map_.split("\n") if len(x.strip()) > 0]
             ret.append((importer_name, name,
                 utils.Callable(import_csv_parent_child, mapl, options)))
         else: # json

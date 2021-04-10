@@ -31,9 +31,10 @@ def config():
     return _cfg
 
 def get_gvalnames():
-    l = utils.split_with_escape(
-        config().get("BOMBROWSER", "gvalnames"),
-        delimiter=',', quote='"')
+    l = [x.strip() for x in
+            config().get("BOMBROWSER", "gvalnames").split("\n")
+            if len(x.strip()) > 0
+        ]
     ret = []
     for n in l:
         i = n.find("[")
@@ -47,9 +48,10 @@ def get_gvalnames():
 
 
 def get_gvalnames_type(name):
-    l = utils.split_with_escape(
-        config().get("BOMBROWSER", "gvalnames"),
-        delimiter=',', quote='"')
+    l = [x.strip() for x in
+            config().get("BOMBROWSER", "gvalnames").split("\n")
+            if len(x.strip()) > 0
+        ]
     ret = []
     for n in l:
         i = n.find("[")

@@ -14,7 +14,13 @@ importer_list=import_simple,importer_all
 
 # the name of gvalN (n=1..8) fields separated by comma
 # it is allowed to have less than 8 fields
-gvalnames=Supplier#1 PN,Supplier#1 name,Manufacturer#1 PN,Manufacturer#1 name,Manufacturer#2 PN,Manufacturer#2 name
+gvalnames=
+    Supplier#1 PN
+    Supplier#1 name
+    Manufacturer#1 PN
+    Manufacturer#1 name
+    Manufacturer#2 PN
+    Manufacturer#2 name
 genericnames=
 
 [SQLITE]
@@ -32,27 +38,47 @@ password = bombrowser1
 
 # this appears in the menu as "copy" or as "export as csv"
 [template_simple]
-# available columns type
-# seq -> sequential number AFTER the sorting
-# level -> level of identation
-# code -> code
-# indented_code code indented (prefixe by "... ... " depending by the level )
-# descr -> code description
-# qty -> code quantity
-# unit -> unit
-# each -> each
-# ref -> ref
-# paren -> parent_code
-# drawings -> drawings path
-# gval1, glval20 -> generic fields
-# rev -> code revision
-# iter -> code iteration
-# date_from -> from date
-# date_to -> date_to
-# :xxxx -> xxxx
+
+#showed name
 name=Simple table
-columns=seq,level,code,indented_code,descr,qty,each,unit,ref,rev,iter,date_from,date_to
-captions=Seq,Level,Code,Code.Ind,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date
+
+# Pair column-type:column-caption
+#
+# available columns type:
+#
+#   seq -> sequential number AFTER the sorting
+#   level -> level of identation
+#   code -> code
+#   indented_code code indented (prefixe by "... ... " depending by the level )
+#   descr -> code description
+#   qty -> code quantity
+#   unit -> unit
+#   each -> each
+#   ref -> ref
+#   paren -> parent_code
+#   drawings -> drawings path
+#   gval1, glval20 -> generic fields
+#   rev -> code revision
+#   iter -> code iteration
+#   date_from -> from date
+#   date_to -> date_to
+#   'xxxx -> xxxx
+#
+# pay attention to indent the column at the same level
+columns=
+    seq:Seq
+    level:Level
+    code:Code
+    indented_code:Code.Ind
+    descr:Description
+    qty:Q.ty
+    each:Each
+    unit:Unit
+    ref:Reference
+    rev:Rev
+    iter:Iter
+    date_from:From date
+    date_to:To date
 
 # Options:
 
@@ -60,27 +86,60 @@ captions=Seq,Level,Code,Code.Ind,Description,Q.ty,Each,Unit,Reference,Rev,Iter,F
 #sortby=-1
 
 # Remove duplicated row (e.g if an assy is reported more than once)
-#unique=1
+#unique=1|0
 
+# used if the output is a CSV file
 # delimiter = TAB|COMMA|SEMICOLON
 # quotechar = SINGLEQUOTE|DOUBLEQUOTE
 
-# maximum bom depth (defautl all, 1-> only top node, 2->first level of children
+# maximum bom depth (-1 -> all, 1-> only top node, 2->top node + first level of children
 # maxlevel=-1
 
 
 [template_all]
 name=Full table
-#sortby=2
-columns=seq,level,parent,parent_descr,:-,code,indented_code,descr,qty,each,unit,ref,rev,iter,date_from,date_to,gval1,gval2,gval3,gval4,gval5,gval6
-captions=Seq,Level,Parent code,Parent description,-,Code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date,Supplier#1 PN,Supplier#1 name,Manufacturer#1 PN,Manufacturer#1 name,Manufacturer#2 PN,Manufacturer#2 name
+columns=
+    seq:Seq
+    level:Level
+    parent:Parent code
+    parent_descr:Parent description
+    :-:-
+    code:Code
+    indented_code:Code
+    descr:Description
+    qty:Q.ty
+    each:Each
+    unit:Unit
+    ref:Reference
+    rev:Rev
+    iter:Iter
+    date_from:From date
+    date_to:To date
+    gval1:Supplier#1 PN
+    gval2:Supplier#1 name
+    gval3:Manufacturer#1 PN
+    gval4:Manufacturer#1 name
+    gval5:Manufacturer#2 PN
+    gval6:Manufacturer#2 name
 #unique
+#sortby=2
 
 [template_dummy]
 name=Dummy table
 sortby=2
-columns=seq,parent,code,descr,qty,each,unit,ref,rev,iter,date_from,date_to
-captions=Seq,Parent code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date
+columns=
+    seq:Seq
+    parent:Parent code
+    code:Code
+    descr:Description
+    qty:Q.ty
+    each:Each
+    unit:Unit
+    ref:Reference
+    rev:Rev
+    iter:Iter
+    date_from:From date
+    date_to:To date
 #unique
 
 [import_simple]
@@ -89,8 +148,12 @@ name=Simple importer
 # parent_child or json
 type=parent_child
 
-#map the columns in the file to the internal fields
-map=code=CodeNr,ref=DesignatorText,qty=QuantityNr
+# map the columns caption in the file to the internal fields
+# the map is a list of pair column-type:column-caption
+map=
+    code:CodeNr
+    ref:DesignatorText
+    qty:QuantityNr
 
 # options:
 # default_unit=...          default unit to use if unspecified (default NR)
@@ -99,12 +162,107 @@ map=code=CodeNr,ref=DesignatorText,qty=QuantityNr
 # delimiter=COMMA|SEMICOLON|TAB         use ... as fields separator
 # quotechar=SINGLEQUOTE|DOUBLEQUOTE     use ... as fields quote
 
-
-
 [importer_all]
 name=Importer all
 type=parent_child
+map=
+    parent_code:Parent code
+    parent_descr:Parent descritpion
+    code:Code
+    descr:Description
+    qty:Q.ty
+    each:Each
+    unit:Unit
+    ref:Reference
+    gval1:Supplier#1 PN
+    gval2:Supplier#1 name
+    gval3:Manufacturer#1 PN
+    gval4:Manufacturer#1 name
+    gval5:Manufacturer#2 PN
+    gval6:Manufacturer#2 name
+delimiter=TAB
+default_unit=NR
+ignore_duplicate=1
+
+[test_importer_all]
+name=Test importer all
+type=parent_child
 # Seq	Level	Parent code	Parent descritpion	-	Code	Code2	Description	Q.ty	Each	Unit	Reference	Rev	Iter	From date	To date	Supplier#1 PN	Supplier#1 name	Manufacturer#1 PN	Manufacturer#1 name	Manufacturer#2 PN	Manufacturer#2 name
-map=parent_code=Parent code,parent_descr=Parent descritpion,code=Code,descr=Description,qty=Q.ty,each=Each,unit=Unit,ref=Reference,gval1=Supplier#1 PN,gval2=Supplier#1 name,gval3=Manufacturer#1 PN,gval4=Manufacturer#1 name,gval5=Manufacturer#2 PN,gval6=Manufacturer#2 name
-separator=TAB
-options=default_unit=NR,ignore_duplicate=1
+map=
+    parent_code:Parent code
+    parent_descr:Parent description
+    code:Code
+    descr:Description
+    qty:Q.ty
+    each:Each
+    unit:Unit
+    ref:Reference
+    gval1:Supplier#1 PN
+    gval2:Supplier#1 name
+    gval3:Manufacturer#1 PN
+    gval4:Manufacturer#1 name
+    gval5:Manufacturer#2 PN
+    gval6:Manufacturer#2 nam
+default_unit=NR
+ignore_duplicate=1
+delimiter=SEMICOLON
+quotechar=SINGLEQUOTE
+
+[test_template_all]
+name=Test full table
+#sortby=2
+columns=
+    seq:Seq
+    level:Level
+    parent:Parent code
+    parent_descr:Parent description
+    '-:-
+    code:Code
+    indented_code:Code2
+    descr:Description
+    qty:Q.ty
+    each:Each
+    unit:Unit
+    ref:Reference
+    rev:Rev
+    iter:Iter
+    date_from:From date
+    date_to:To date
+    gval1:Supplier#1 PN
+    gval2:Supplier#1 name
+    gval3:Manufacturer#1 PN
+    gval4:Manufacturer#1 name
+    gval5:Manufacturer#2 PN
+    gval6:Manufacturer#2 name
+#unique
+
+[test_template_all_1]
+name=Test full table (1st level)
+#sortby=2
+columns=
+    seq:Seq
+    level:Level
+    parent:Parent code
+    parent_descr:Parent description
+    '-:-
+    code:Code
+    indented_code:Code2
+    descr:Description
+    qty:Q.ty
+    each:Each
+    unit:Unit
+    ref:Reference
+    rev:Rev
+    iter:Iter
+    date_from:From date
+    date_to:To date
+    gval1:Supplier#1 PN
+    gval2:Supplier#1 name
+    gval3:Manufacturer#1 PN
+    gval4:Manufacturer#1 name
+    gval5:Manufacturer#2 PN
+    gval6:Manufacturer#2 name
+#unique
+maxlevel=2
+delimiter=SEMICOLON
+quotechar=SINGLEQUOTE

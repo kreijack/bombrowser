@@ -129,7 +129,7 @@ class Exporter:
                 row += [item[col]]
             elif col.startswith("gval"):
                 row += [item[col]]
-            elif col.startswith(':'):
+            elif col.startswith("'"):
                 col = col[1:]
                 row += [col]
             elif col == "":
@@ -150,12 +150,25 @@ class Exporter:
 
     def _export_as_table_by_template(self, template_name):
 
-        columns = utils.split_with_escape(
-                        cfg.config()[template_name].get("columns"),
-                        delimiter=',', quote='"')
-        captions = utils.split_with_escape(
-                        cfg.config()[template_name].get("captions"),
-                        delimiter=',', quote='"')
+        columns = []
+        captions = []
+
+        for line in cfg.config()[template_name].get("columns").split("\n"):
+            line = line.strip()
+            if len(line) == 0:
+                continue
+
+            i = line.find(":")
+            if i < 0:
+                cl = line
+                cp = ""
+            else:
+                cl = line[:i]
+                cp = line[i+1:]
+
+            columns.append(cl)
+            captions.append(cp)
+
         sortby=int(cfg.config()[template_name].get("sortby", -1))
         unique=int(cfg.config()[template_name].get("unique", 0))
         maxlevel=int(cfg.config()[template_name].get("maxlevel", -1))
