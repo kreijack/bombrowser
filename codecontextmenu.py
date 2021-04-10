@@ -35,7 +35,7 @@ def _revise_code(code_id, rid, parent):
 
     copycodegui.revise_copy_code(code_id, parent)
 
-def _set_diff_from(scode_id, rid, parent):
+def _set_diff_from(code_id, rid, parent):
     if not rid is None:
         diffgui.set_from_by_rid(rid)
         return
