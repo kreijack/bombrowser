@@ -49,6 +49,7 @@ password = bombrowser1
 # iter -> code iteration
 # date_from -> from date
 # date_to -> date_to
+# :xxxx -> xxxx
 name=Simple table
 columns=seq,level,code,indented_code,descr,qty,each,unit,ref,rev,iter,date_from,date_to
 captions=Seq,Level,Code,Code.Ind,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date
@@ -71,7 +72,7 @@ captions=Seq,Level,Code,Code.Ind,Description,Q.ty,Each,Unit,Reference,Rev,Iter,F
 [template_all]
 name=Full table
 #sortby=2
-columns=seq,level,parent,parent_descr,"-",code,indented_code,descr,qty,each,unit,ref,rev,iter,date_from,date_to,gval1,gval2,gval3,gval4,gval5,gval6
+columns=seq,level,parent,parent_descr,:-,code,indented_code,descr,qty,each,unit,ref,rev,iter,date_from,date_to,gval1,gval2,gval3,gval4,gval5,gval6
 captions=Seq,Level,Parent code,Parent description,-,Code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date,Supplier#1 PN,Supplier#1 name,Manufacturer#1 PN,Manufacturer#1 name,Manufacturer#2 PN,Manufacturer#2 name
 #unique
 

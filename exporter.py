@@ -129,10 +129,8 @@ class Exporter:
                 row += [item[col]]
             elif col.startswith("gval"):
                 row += [item[col]]
-            elif col.startswith('"'):
+            elif col.startswith(':'):
                 col = col[1:]
-                if col.endswith('"'):
-                    col = col[:-1]
                 row += [col]
             elif col == "":
                 row += [""]
