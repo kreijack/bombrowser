@@ -629,12 +629,15 @@ def show_latest_assembly(code_id):
         d = db.DB()
         dates = d.get_dates_by_code_id3(code_id)
 
-        if dates[0][3] > db.prototype_date - 1:
-            QApplication.beep()
-            QMessageBox.critical(None, "BOMBrowser", "The item is a prototype")
-            return
-
-        dt = min(db.prototype_date - 1, dates[0][3])
+        # get the prototype date ONLY if there is the only option
+        # otherwise get the latest "non prototype" date
+        if dates[0][2] >= db.prototype_date:
+            if len(dates) > 1:
+                dt = min(db.prototype_date - 1, dates[1][3])
+            else:
+                dt = db.prototype_date
+        else:
+            dt = min(db.prototype_date - 1, dates[0][3])
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
         data = d.get_bom_by_code_id3(code_id, dt)
