@@ -23,6 +23,11 @@ import utils
 _cfg = None
 
 def init():
+
+    line = open("bombrowser.ini").readline().strip()
+    if line != "# -- BOMBROWSER.ini -- v2":
+        raise Exception("Incorrect version of bombrowser.ini\nMinimum v2 required")
+
     global _cfg
     _cfg = configparser.ConfigParser()
     _cfg.read_file(open("bombrowser.ini"))

@@ -34,7 +34,7 @@ def main(args):
     try:
         cfg.init()
     except:
-        utils.show_exception(msg="Cannot load configuration: may be bombroser.ini missing ?\nAbort")
+        utils.show_exception(msg="Cannot load configuration: may be bombroser.ini is missing ?\nAbort\n")
         return
 
     try:

@@ -1,5 +1,6 @@
-[BOMBROWSER]
+# -- bombrowser.ini -- v2
 
+[BOMBROWSER]
 # select db source
 #db=sqlite
 db=sqlserver
