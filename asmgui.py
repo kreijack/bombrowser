@@ -627,11 +627,16 @@ def show_latest_assembly(code_id):
 
     def bom_reload():
         d = db.DB()
-        QApplication.setOverrideCursor(Qt.WaitCursor)
         dates = d.get_dates_by_code_id3(code_id)
+
+        if dates[0][3] > db.prototype_date - 1:
+            QApplication.beep()
+            QMessageBox.critical(None, "BOMBrowser", "The item is a prototype")
+            return
 
         dt = min(db.prototype_date - 1, dates[0][3])
 
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         data = d.get_bom_by_code_id3(code_id, dt)
         w.populate(*data, caption_date=dt)
         QApplication.restoreOverrideCursor()
