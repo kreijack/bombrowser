@@ -25,17 +25,16 @@ import io
 import csv
 import xlwt
 
-import db
 import cfg
 import utils
 
 def get_template_list():
     ret = []
     template_list = utils.split_with_escape(
-                        cfg.config().get("BOMBROWSER", "templates_list"),
+                        cfg.config()["BOMBROWSER"]["templates_list"],
                         delimiter=',', quote='"')
     for template_section in template_list:
-        if not cfg.config().has_section(template_section):
+        if not template_section in cfg.config():
             continue
         if not "name" in cfg.config()[template_section]:
             continue
@@ -46,13 +45,6 @@ class Exporter:
     def __init__(self, rootnode, data):
         self._data = data
         self._rootnode = rootnode
-        self._headers = [
-            "Seq", "Level", "Code", "Code",
-            "Description", "Unit",
-            "Quantity", "Each", "Date from", "Date to"]
-        self._add_headers = cfg.get_gvalnames()
-        self._headers += self._add_headers
-        self._db = db.DB()
 
     def export_as_json(self, nf):
         f = open(nf, "w")
@@ -127,7 +119,7 @@ class Exporter:
                 row += ["... "*level + item["code"]]
             elif col in ["code", "descr", "iter", "date_from", "date_to"]:
                 row += [item[col]]
-            elif col.startswith("gval"):
+            elif col.startswith("gval") and col in item:
                 row += [item[col]]
             elif col.startswith("'"):
                 col = col[1:]
@@ -239,3 +231,434 @@ class Exporter:
                 for c,t in enumerate(line):
                     ws.write(r+1, c, t)
             wb.save(nf)
+
+def test_get_template_list():
+    cfg._cfg = {
+        "BOMBROWSER": {
+            "templates_list": "template_simple,template_all,no-section"
+        },
+        "template_simple" :  {"name": "template simple"},
+        "template_all" :  {"name": "template all"},
+        "no-key" : {"name": "xxx"},
+    }
+
+    r = get_template_list()
+    found = 0
+    for section_name, d in r:
+        if section_name == "template_simple":
+            found += 1
+            assert(d["name"] == "template simple")
+        if section_name == "template_all":
+            found += 1
+            assert(d["name"] == "template all")
+        assert(section_name != "no-key")
+        assert(section_name != "no-section")
+    assert(found == 2)
+
+def _get_test_bom():
+    return {
+        "0": {
+            "code": "0",
+            "descr": "0-descr",
+            "ver" : "ver-0",
+            "unit": "NR",
+            "gval1": "0-gval1",
+            "deps" : {
+                "A" : { "code": "A", "qty": 2,
+                            "each": 2, "unit" : "NR", "ref": "A-ref" },
+                "B" : { "code": "B", "qty": 3,
+                            "each": 1, "unit" : "NR", "ref": "B-ref" }
+            }
+        },
+        "A": {
+            "code": "A",
+            "descr": "A-descr",
+            "ver" : "ver-A",
+            "unit": "NR",
+            "gval1": "A-gval1",
+            "deps" : {
+                "C" : { "code": "C", "qty": 1,
+                            "each": 1, "unit" : "NR", "ref": "0-ref" }
+            }
+        },
+        "B": {
+            "code": "B",
+            "descr": "B-descr",
+            "ver" : "ver-B",
+            "unit": "NR",
+            "gval1": "B-gval1",
+            "deps" : {
+                "C" : { "code": "C", "qty": 1,
+                            "each": 1, "unit" : "NR", "ref": "0-ref" }
+            }
+        },
+        "C": {
+            "code": "C",
+            "descr": "C-descr",
+            "ver" : "ver-C",
+            "unit": "NR",
+            "gval1": "C-gval1",
+            "deps" : { }
+        }
+    }
+
+def test_export_simple():
+    cfg._cfg = {
+        "BOMBROWSER": {
+            "templates_list": "template_simple"
+        },
+        "template_simple" :  {
+            "name": "template simple",
+            "columns": """
+                code:Code
+                descr:Descr
+                parent:Parent code
+                qty:Q.ty
+            """
+        },
+    }
+
+    bom = _get_test_bom()
+
+    e = Exporter("0", bom)
+    r = e.export_as_table_by_template2("template_simple")
+
+    assert("A-descr" in r)
+    assert("B-descr" in r)
+    assert("0-descr" in r)
+    cnt = 0
+    for line in r.split("\n"):
+        if "A-descr" in line:
+            assert("2" in line)
+        if "C-descr" in line:
+            cnt += 1
+            assert("C" in line)
+            assert("A" in line or "B" in line)
+
+    assert(cnt == 2)
+    assert("\t" in r)
+
+def test_export_unique():
+    cfg._cfg = {
+        "BOMBROWSER": {
+            "templates_list": "template_simple"
+        },
+        "template_simple" :  {
+            "name": "template simple",
+            "columns": """
+                code:Code
+                descr:Descr
+                parent:Parent code
+                qty:Q.ty
+            """,
+            "unique": "1"
+        },
+    }
+
+    bom = _get_test_bom()
+
+    e = Exporter("0", bom)
+    r = e.export_as_table_by_template2("template_simple")
+
+    assert("A-descr" in r)
+    assert("B-descr" in r)
+    assert("0-descr" in r)
+    cnt = 0
+    for line in r.split("\n"):
+        if "C-descr" in line:
+            cnt += 1
+            assert("C" in line)
+            assert("A" in line or "B" in line)
+
+    assert(cnt == 1)
+
+def test_export_max_level():
+    cfg._cfg = {
+        "BOMBROWSER": {
+            "templates_list": "template_simple"
+        },
+        "template_simple" :  {
+            "name": "template simple",
+            "columns": """
+                code:Code
+                descr:Descr
+                parent:Parent code
+                qty:Q.ty
+            """,
+            "maxlevel": "2"
+        },
+    }
+
+    bom = _get_test_bom()
+
+    e = Exporter("0", bom)
+    r = e.export_as_table_by_template2("template_simple")
+
+    assert("A-descr" in r)
+    assert("B-descr" in r)
+    assert("0-descr" in r)
+    assert(not "C-descr" in r)
+
+def test_export_csv_comma_doublequote():
+    cfg._cfg = {
+        "BOMBROWSER": {
+            "templates_list": "template_simple"
+        },
+        "template_simple" :  {
+            "name": "template simple",
+            "columns": """
+                code:Code
+                descr:Descr
+                parent:Parent code
+                qty:Q.ty
+            """,
+            "delimiter": "COMMA",
+            "quotechar": "DOUBLEQUOTE",
+        },
+    }
+
+    bom = _get_test_bom()
+
+    e = Exporter("0", bom)
+    e.export_as_file_by_template2("/tmp/test_bombrowser.csv", "template_simple")
+
+    r = open("/tmp/test_bombrowser.csv").read()
+
+    assert("," in r)
+    assert('"' in r)
+    assert("A-descr" in r)
+    assert("B-descr" in r)
+    assert("0-descr" in r)
+    assert("C-descr" in r)
+
+def test_export_csv_semicolon_singlequote():
+    cfg._cfg = {
+        "BOMBROWSER": {
+            "templates_list": "template_simple"
+        },
+        "template_simple" :  {
+            "name": "template simple",
+            "columns": """
+                code:Code
+                descr:Descr
+                parent:Parent code
+                qty:Q.ty
+            """,
+            "delimiter": "SEMICOLON",
+            "quotechar": "SINGLEQUOTE",
+        },
+    }
+
+    bom = _get_test_bom()
+
+    e = Exporter("0", bom)
+    e.export_as_file_by_template2("/tmp/test_bombrowser.csv", "template_simple")
+
+    r = open("/tmp/test_bombrowser.csv").read()
+
+    assert(";" in r)
+    assert("'" in r)
+    assert("A-descr" in r)
+    assert("B-descr" in r)
+    assert("0-descr" in r)
+    assert("C-descr" in r)
+
+def test_export_seq():
+    cfg._cfg = {
+        "BOMBROWSER": {
+            "templates_list": "template_simple"
+        },
+        "template_simple" :  {
+            "name": "template simple",
+            "columns": """
+                seq:Seq
+                code:Code
+                descr:Descr
+                parent:Parent code
+                qty:Q.ty
+            """
+        },
+    }
+
+    bom = _get_test_bom()
+
+    e = Exporter("0", bom)
+    r = e.export_as_table_by_template2("template_simple")
+
+    assert("Seq" in r.split("\n")[0])
+    assert("Descr" in r.split("\n")[0])
+
+    start = None
+    cnt = 0
+    for line in r.split("\n")[1:]:
+        if len(line.strip()) == 0:
+            continue
+        fields = line.split("\t")
+        if not start is None:
+            assert(int(fields[0]) == start + 1)
+            cnt += 1
+        start = int(fields[0])
+
+    assert(cnt > 0)
+
+def test_export_parent_descr():
+    cfg._cfg = {
+        "BOMBROWSER": {
+            "templates_list": "template_simple"
+        },
+        "template_simple" :  {
+            "name": "template simple",
+            "columns": """
+                code:Code
+                descr:Descr
+                parent:Parent code
+                parent_descr:Parent descr
+                qty:Q.ty
+            """
+        },
+    }
+
+    bom = _get_test_bom()
+
+    e = Exporter("0", bom)
+    r = e.export_as_table_by_template2("template_simple")
+
+    for line in r.split("\n"):
+        if "A-descr" in line:
+            assert("0-descr" in line or "C-descr" in line)
+
+def test_export_static_text():
+    cfg._cfg = {
+        "BOMBROWSER": {
+            "templates_list": "template_simple"
+        },
+        "template_simple" :  {
+            "name": "template simple",
+            "columns": """
+                seq:Seq
+                code:Code
+                descr:Descr
+                'static-text:Static text
+                qty:Q.ty
+            """
+        },
+    }
+
+    bom = _get_test_bom()
+
+    e = Exporter("0", bom)
+    r = e.export_as_table_by_template2("template_simple")
+
+    for line in r.split("\n")[1:]:
+        if len(line.strip()) == 0:
+            continue
+
+        assert("static-text" in line)
+        assert( not "'" in line)
+
+def test_export_level():
+    cfg._cfg = {
+        "BOMBROWSER": {
+            "templates_list": "template_simple"
+        },
+        "template_simple" :  {
+            "name": "template simple",
+            "columns": """
+                descr:Description
+                level:Level
+            """
+        },
+    }
+
+    bom = _get_test_bom()
+
+    e = Exporter("0", bom)
+    r = e.export_as_table_by_template2("template_simple")
+
+    assert("C-descr" in r)
+
+    for line in r.split("\n")[1:]:
+        if len(line.strip()) == 0:
+            continue
+
+        if "C-descr" in line:
+            assert("2" in line)
+
+def test_export_indented_code():
+    cfg._cfg = {
+        "BOMBROWSER": {
+            "templates_list": "template_simple"
+        },
+        "template_simple" :  {
+            "name": "template simple",
+            "columns": """
+                descr:Description
+                indented_code:Code
+            """
+        },
+    }
+
+    bom = _get_test_bom()
+
+    e = Exporter("0", bom)
+    r = e.export_as_table_by_template2("template_simple")
+
+    assert("C-descr" in r)
+
+    for line in r.split("\n")[1:]:
+        if len(line.strip()) == 0:
+            continue
+
+        if "C-descr" in line:
+            assert("... ... C" in line)
+
+def test_export_unknown_column():
+    cfg._cfg = {
+        "BOMBROWSER": {
+            "templates_list": "template_simple"
+        },
+        "template_simple" :  {
+            "name": "template simple",
+            "columns": """
+                descr:Description
+                wrong_code:Code
+            """
+        },
+    }
+
+    bom = _get_test_bom()
+
+    e = Exporter("0", bom)
+    r = e.export_as_table_by_template2("template_simple")
+
+    assert("Unknown col" in r)
+    assert("'wrong_code'" in r)
+
+def test_export_gval1():
+    cfg._cfg = {
+        "BOMBROWSER": {
+            "templates_list": "template_simple"
+        },
+        "template_simple" :  {
+            "name": "template simple",
+            "columns": """
+                code:code
+                descr:Description
+                gval1:GVal1
+            """
+        },
+    }
+
+    bom = _get_test_bom()
+
+    e = Exporter("0", bom)
+    r = e.export_as_table_by_template2("template_simple")
+
+    assert("C-descr" in r)
+    assert("C-gval1" in r)
+
+
+if __name__ == "__main__":
+    last = 1
+    import test_db
+    test_db.run_test(sys.argv[last:], sys.modules[__name__])
