@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sys
+import sys, html
 
 from PySide2.QtWidgets import QStatusBar
 from PySide2.QtWidgets import QTextEdit
@@ -27,7 +27,7 @@ from PySide2.QtWidgets import QMessageBox, QAction, QDialog
 from PySide2.QtCore import Qt
 import pprint, traceback
 
-import db, utils, selectdategui, bbwindow
+import db, utils, selectdategui, bbwindow, cfg
 
 class DiffWindow(bbwindow.BBMainWindow):
     def __init__(self, id1, code1, date1, date_days1, id2, code2,
@@ -69,19 +69,19 @@ class DiffWindow(bbwindow.BBMainWindow):
         grid.addWidget(self._ql_id1, 1, 1)
         grid.addWidget(self._ql_code1, 1, 2)
         grid.addWidget(self._ql_date1, 1, 3)
-        grid.addWidget(self._ql_id2, 1, 6)
-        grid.addWidget(self._ql_code2, 1, 7)
-        grid.addWidget(self._ql_date2, 1, 8)
+        grid.addWidget(self._ql_id2, 1, 7)
+        grid.addWidget(self._ql_code2, 1, 8)
+        grid.addWidget(self._ql_date2, 1, 9)
 
-        grid.addWidget(QLabel("From (-)"), 1, 0)
+        grid.addWidget(QLabel("<font color=red>From (-)</>"), 1, 0)
         grid.addWidget(QLabel("ID"), 0, 1)
         grid.addWidget(QLabel("Codes"), 0, 2)
         grid.addWidget(QLabel("Dates"), 0, 3)
 
-        grid.addWidget(QLabel("To (+)"), 1, 5)
-        grid.addWidget(QLabel("ID"), 0, 6)
-        grid.addWidget(QLabel("Codes"), 0, 7)
-        grid.addWidget(QLabel("Dates"), 0, 8)
+        grid.addWidget(QLabel("<font color=green>To (+)</>"), 1, 6)
+        grid.addWidget(QLabel("ID"), 0, 7)
+        grid.addWidget(QLabel("Codes"), 0, 8)
+        grid.addWidget(QLabel("Dates"), 0, 9)
 
         b = QPushButton("<->")
         b.clicked.connect(self._swap_diff)
@@ -90,7 +90,7 @@ class DiffWindow(bbwindow.BBMainWindow):
         self._text = QTextEdit()
         self._text.setReadOnly(True)
 
-        grid.addWidget(self._text, 4, 0, 1, 9)
+        grid.addWidget(self._text, 4, 0, 1, 10)
 
         w = QWidget()
         w.setLayout(grid)
@@ -154,7 +154,7 @@ class DiffWindow(bbwindow.BBMainWindow):
         code2, data2 = d.get_bom_by_code_id3(int(self._ql_id2.text()),
                                    self._date_from_days2)
 
-        # put the head of boms to the same ID to enshure to compare the "same" head
+        # put the head of boms to the same ID to ensure to compare the "same" head
         if code1 != code2:
             code3 = max([max(data1.keys()), max(data2.keys())])+1
             data1[code3] = data1[code1]
@@ -164,6 +164,8 @@ class DiffWindow(bbwindow.BBMainWindow):
             data1.pop(code1)
             data2.pop(code2)
 
+        gvals = cfg.get_gvalnames()
+
         keys = list(set(data1.keys()).union(data2.keys()))
         keys.sort()
 
@@ -171,15 +173,22 @@ class DiffWindow(bbwindow.BBMainWindow):
 
         txt = ""
 
+        item_props_blacklist = set(["id", "rid", "deps"])
+
         def is_children_equal(c1, c2):
-            for k in ["qty", "each"]:
+            for k in ["qty", "each", "unit", "ref"]:
                 if c1[k] != c2[k]:
                     return False
 
             return True
 
         def is_codes_equal(c1, c2):
-            for k in ["code", "descr", "unit", "iter", "ver"]:
+            if c1.keys() != c2.keys():
+                return False
+
+            keys = set(c1.keys())
+            keys.difference_update(item_props_blacklist)
+            for k in keys:
                 if c1[k] != c2[k]:
                     return False
 
@@ -192,20 +201,44 @@ class DiffWindow(bbwindow.BBMainWindow):
 
             return True
 
+        def makeRed(s):
+            s = html.escape(s)
+            s = "<font color=red>"+s+"</font><br>"
+            return s
+        def makeGreen(s):
+            s = html.escape(s)
+            s = "<font color=green>"+s+"</font><br>"
+            return s
+
         for key in keys:
             if key in data1.keys() and key in data2.keys():
                 if is_codes_equal(data1[key], data2[key]):
                         continue
 
-                txt += "\n"
+                txt += "<br>\n"
                 # diff between the same code
-                txt += " code: %s rev %s - %s\n"%(data1[key]["code"], data1[key]["ver"], data1[key]["descr"])
-                for key2 in ["code", "descr", "unit", "ver"]:
+                txt += html.escape(
+                    " code: %s rev %s - %s\n"%(data1[key]["code"],
+                        data1[key]["ver"], data1[key]["descr"])
+                ) + "<br>"
+
+                keys = set(data1[key].keys()).union(data2[key].keys())
+                keys.difference_update(item_props_blacklist)
+                keys = list(keys)
+                keys.sort()
+                keys = [x for x in keys if not x.startswith("gval")]
+                keys = keys + ["gval%d"%(i+1) for i in range(len(gvals))]
+
+                for key2 in keys:
                     if data1[key][key2] == data2[key][key2]:
                         continue
-
-                    txt += "     -%s: %s\n"%(key2, data1[key][key2])
-                    txt += "     +%s: %s\n"%(key2, data2[key][key2])
+                    name = key2
+                    if name.startswith("gval"):
+                        name = gvals[int(name[4:]) - 1]
+                    txt += "&nbsp;" * 5 + makeRed(
+                            "-%s: %s\n"%(name, data1[key][key2]))
+                    txt += "&nbsp;" * 5 + makeGreen(
+                            "+%s: %s\n"%(name, data2[key][key2]))
 
                 child_ids = list(set(data1[key]["deps"].keys()).union(
                                      data2[key]["deps"].keys()))
@@ -217,51 +250,70 @@ class DiffWindow(bbwindow.BBMainWindow):
                             continue
 
                         child1 =data1[key]["deps"][child_id]
-                        txt += "         -%f / %f: %s rev %s - %s\n"%(
-                            child1["qty"], child1["each"],
-                            data1[child_id]["code"],
-                            data1[child_id]["ver"],
-                            data1[child_id]["descr"])
+                        txt += "&nbsp;" * 9 + makeRed(
+                                    "-%f / %f: %s rev %s - %s\n"%(
+                                        child1["qty"], child1["each"],
+                                        data1[child_id]["code"],
+                                        data1[child_id]["ver"],
+                                        data1[child_id]["descr"]))
                         child2 =data2[key]["deps"][child_id]
-                        txt += "         +%f / %f: %s rev %s - %s\n"%(
-                            child2["qty"], child2["each"],
-                            data2[child_id]["code"],
-                            data2[child_id]["ver"],
-                            data2[child_id]["descr"])
+                        txt += "&nbsp;" * 9 + makeGreen(
+                                    "+%f / %f: %s rev %s - %s\n"%(
+                                        child2["qty"], child2["each"],
+                                        data2[child_id]["code"],
+                                        data2[child_id]["ver"],
+                                        data2[child_id]["descr"]))
                     elif child_id in data1[key]["deps"].keys():
                         child1 =data1[key]["deps"][child_id]
-                        txt += "         -%f / %f: %s rev %s - %s\n"%(
-                            child1["qty"], child1["each"],
-                            data1[child_id]["code"],
-                            data1[child_id]["ver"],
-                            data1[child_id]["descr"])
+                        txt += "&nbsp;" * 9 + makeRed(
+                                    "-%f / %f: %s rev %s - %s\n"%(
+                                        child1["qty"], child1["each"],
+                                        data1[child_id]["code"],
+                                        data1[child_id]["ver"],
+                                        data1[child_id]["descr"]))
                     else:
                         child2 =data2[key]["deps"][child_id]
-                        txt += "         +%f / %f: %s rev %s - %s\n"%(
-                            child2["qty"], child2["each"],
-                            data2[child_id]["code"],
-                            data2[child_id]["ver"],
-                            data2[child_id]["descr"])
+                        txt += "&nbsp;" * 9 + makeGreen(
+                                    "+%f / %f: %s rev %s - %s\n"%(
+                                        child2["qty"], child2["each"],
+                                        data2[child_id]["code"],
+                                        data2[child_id]["ver"],
+                                        data2[child_id]["descr"]))
 
             elif  key in data1.keys():
-                txt += "\n"
-                txt += "-code: %s rev %s - %s\n"%(data1[key]["code"], data1[key]["ver"], data1[key]["descr"])
-                txt += "     [....]\n"
+                txt += "<br>\n"
+                txt += makeRed("-code: %s rev %s - %s\n"%(
+                    data1[key]["code"], data1[key]["ver"],
+                    data1[key]["descr"]))
+                txt += "&nbsp;" * 5 + "[....]<br>\n"
             else:
-                txt += "\n"
-                txt += "+code: "+data2[key]["code"]+"\n"
-                for key2 in  ["descr", "unit", "ver"]:
-                    txt += "     +%s: %s\n"%(key2, data2[key][key2])
+                txt += "<br>\n"
+                txt += makeGreen("+code: "+data2[key]["code"]+"\n")
+
+                keys = set(data2[key].keys())
+                keys.difference_update(item_props_blacklist)
+                keys = list(keys)
+                keys.sort()
+                keys = [x for x in keys if not x.startswith("gval")]
+                keys = keys + ["gval%d"%(i+1) for i in range(len(gvals))]
+
+                for key2 in  keys:
+                    name = key2
+                    if name.startswith("gval"):
+                        name = gvals[int(name[4:]) - 1]
+                    txt += "&nbsp;" * 5 + makeGreen(
+                        "+%s: %s\n"%(name, data2[key][key2]))
 
                 child_ids = list(data2[key]["deps"].keys())
                 child_ids.sort()
                 for child_id in child_ids:
                     child2 =data2[key]["deps"][child_id]
-                    txt += "         +%f / %f: %s rev %s - %s\n"%(
+                    txt += "&nbsp;" * 5 + makeGreen(
+                        "+%f / %f: %s rev %s - %s\n"%(
                             child2["qty"], child2["each"],
                             data2[child_id]["code"],
                             data2[child_id]["ver"],
-                            data2[child_id]["descr"])
+                            data2[child_id]["descr"]))
 
         self._text.setText(txt)
 
