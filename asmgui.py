@@ -664,6 +664,7 @@ def show_proto_assembly(code_id):
         d = db.DB()
         dates = d.get_dates_by_code_id3(code_id)
         dt = min(db.end_of_the_world, dates[0][3])
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         data = d.get_bom_by_code_id3(code_id, dates[0][3])
         w.populate(*data, caption_date=db.end_of_the_world)
         QApplication.restoreOverrideCursor()
