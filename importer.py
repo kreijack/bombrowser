@@ -137,7 +137,6 @@ def _import_csv_parent_child2(data, keyword_map, options):
     for i in range(0, db.gvals_count):
         colmap["gval%d"%(i)] = None
 
-    print(keyword_map)
     for v in keyword_map:
         s1, s2 = v.split(":")
         map1[s2] = s1
