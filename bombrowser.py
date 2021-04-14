@@ -27,6 +27,17 @@ import utils
 import listcodegui
 
 def main(args):
+
+    if len(args) > 1 and args[1] == "--self-test":
+        import exporter
+        import importer
+        import test_db
+
+        for m in ["exporter", "importer", "test_db", "utils"]:
+            test_db.run_test(sys.argv[2:], sys.modules[m], m)
+        return
+
+
     app = QApplication(sys.argv)
 
     sys.excepthook = utils._show_exception

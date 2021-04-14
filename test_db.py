@@ -1541,9 +1541,12 @@ def test_search_revisions_all_values():
 
 #------
 
-def run_test(filters, modules):
+def run_test(filters, modules, prefix=""):
     import inspect
     from inspect import getmembers, isfunction
+
+    if prefix != "":
+        prefix += "."
 
     for (name, obj) in inspect.getmembers(modules):
         if not inspect.isfunction(obj):
@@ -1553,14 +1556,14 @@ def run_test(filters, modules):
 
         skip = len(filters) > 0
         for f in filters:
-            if f in name:
+            if f in prefix+name:
                 skip = False
                 break
 
         if skip:
             continue
 
-        print(name, end="...")
+        print(prefix+name, end="...")
         sys.stdout.flush()
         try:
             obj()
