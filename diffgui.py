@@ -422,11 +422,11 @@ def set_from(code_id, parent):
         QApplication.beep()
         return
 
-    d = db.DB()
-    if not d.is_assembly(code_id):
-        QApplication.beep()
-        QMessageBox.critical(parent, "BOMBrowser", "The item is not an assembly")
-        return
+    #d = db.DB()
+    #if not d.is_assembly(code_id):
+    #    QApplication.beep()
+    #    QMessageBox.critical(parent, "BOMBrowser", "The item is not an assembly")
+    #    return
 
     dlg = selectdategui.SelectDate(code_id, parent)
     ret = dlg.exec_()
@@ -447,11 +447,11 @@ def set_to(code_id, parent):
         QApplication.beep()
         return
 
-    d = db.DB()
-    if not d.is_assembly(code_id):
-        QApplication.beep()
-        QMessageBox.critical(parent, "BOMBrowser", "The item is not an assembly")
-        return
+    #d = db.DB()
+    #if not d.is_assembly(code_id):
+    #    QApplication.beep()
+    #    QMessageBox.critical(parent, "BOMBrowser", "The item is not an assembly")
+    #    return
 
     dlg = selectdategui.SelectDate(code_id, parent)
     ret = dlg.exec_()
@@ -476,10 +476,10 @@ def set_to_by_rid(rid):
     date_from = db.days_to_txt(data["date_from_days"])
     code = data["code"]
 
-    if not d.is_assembly(code_id):
-        QApplication.beep()
-        QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
-        return
+    #if not d.is_assembly(code_id):
+    #    QApplication.beep()
+    #    QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
+    #    return
 
     global _diffDialog
     if _diffDialog is None:
@@ -496,10 +496,10 @@ def set_from_by_rid(rid):
     date_from = db.days_to_txt(data["date_from_days"])
     code = data["code"]
 
-    if not d.is_assembly(code_id):
-        QApplication.beep()
-        QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
-        return
+    #if not d.is_assembly(code_id):
+    #    QApplication.beep()
+    #    QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
+    #    return
 
     global _diffDialog
     if _diffDialog is None:
