@@ -85,7 +85,9 @@ class RevisionListWidget(QWidget):
                 else:
                     key, descr = self._field_names[i]
                     span = 1
-                grid.addWidget(QLabel(descr), row, col)
+                l = QLabel(descr)
+                l.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                grid.addWidget(l, row, col)
                 col += 1
                 w = QLineEdit()
                 self._line_edit_widgets[key] = w
