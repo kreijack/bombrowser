@@ -552,7 +552,7 @@ def where_used(code_id, valid=False):
         QApplication.beep()
         return
 
-    d = db.DB()
+    #d = db.DB()
 
     #if not d.is_child(code_id):
     #    QApplication.beep()
@@ -585,7 +585,7 @@ def show_assembly(code_id, winParent):
         QApplication.beep()
         return
 
-    d = db.DB()
+    #d = db.DB()
     #if not d.is_assembly(code_id):
     #    QApplication.beep()
     #    QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
@@ -616,7 +616,7 @@ def show_latest_assembly(code_id):
         QApplication.beep()
         return
 
-    d = db.DB()
+    #d = db.DB()
     #if not d.is_assembly(code_id):
     #    QApplication.beep()
     #    QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
@@ -651,7 +651,7 @@ def show_proto_assembly(code_id):
         QApplication.beep()
         return
 
-    d = db.DB()
+    #d = db.DB()
     #if not d.is_assembly(code_id):
     #    QApplication.beep()
     #    QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
@@ -676,7 +676,7 @@ def show_assembly_by_date(code_id, dt):
         QApplication.beep()
         return
 
-    d = db.DB()
+    #d = db.DB()
     #if not d.is_assembly(code_id):
     #    QApplication.beep()
     #    QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
