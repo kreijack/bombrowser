@@ -24,24 +24,77 @@ from PySide2.QtWidgets import QTextEdit
 from PySide2.QtWidgets import QLabel, QLineEdit
 from PySide2.QtWidgets import QGridLayout, QWidget, QApplication, QPushButton
 from PySide2.QtWidgets import QMessageBox, QAction, QDialog
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, Signal
 import pprint, traceback
 
 import db, utils, selectdategui, bbwindow, cfg
 
+class CodeDate(QWidget):
+
+    refreshBom = Signal()
+
+    def __init__(self, id_, code, date_days, parent=None):
+        QWidget.__init__(self, parent)
+        date = db.days_to_txt(date_days)
+        self._code = code
+        self._id = id_
+        self._date = date
+        self._date_days = date_days
+        self._ret_code = None
+        self._ret_data = None
+
+        g = QGridLayout()
+
+        g.addWidget(QLabel("Code"), 10, 10)
+        le = QLineEdit()
+        le.setText(code)
+        le.setReadOnly(True)
+        g.addWidget(le, 11, 10)
+
+        g.addWidget(QLabel("Date"), 10, 15)
+        le = QLineEdit()
+        le.setText(date)
+        le.setReadOnly(True)
+        g.addWidget(le, 11, 15)
+
+        b = QPushButton("Refresh")
+        b.clicked.connect(self._do_refresh)
+        g.addWidget(b, 10, 20, 2, 1)
+
+        self.setLayout(g)
+
+    def _do_refresh(self):
+        d = db.DB()
+        self._ret_code, self._ret_data = d.get_bom_by_code_id3(
+            self._id, self._date_days)
+        self.refreshBom.emit()
+
+    def getData(self):
+        return (self._id, self._code, self._date, self._date_days)
+
+    def getBom(self):
+        if self._ret_code is None:
+            d = db.DB()
+            self._ret_code, self._ret_data = d.get_bom_by_code_id3(
+                self._id, self._date_days)
+        return (self._ret_code, self._ret_data)
+
+    def getCaption(self):
+        return "%s @ %s"%(self._code, self._date)
+
 class DiffWindow(bbwindow.BBMainWindow):
-    def __init__(self, id1, code1, date1, date_days1, id2, code2,
-                        date2, date_days2, parent=None):
+    def __init__(self, bom1, bom2, parent=None):
         bbwindow.BBMainWindow.__init__(self, parent)
-        self._date_from_days1 = date_days1
-        self._date_from_days2 = date_days2
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self._init_gui(id1, code1, date1, id2, code2, date2)
+
+        self._bom1 = bom1
+        self._bom2 = bom2
+        self._init_gui()
         self._create_menu()
         self._create_statusbar()
         self.resize(1024, 600)
-        self.setWindowTitle("Diff window: %s @ %s <-> %s @ %s"%(
-                        code1, date1[:10], code2, date2[:10]))
+        self.setWindowTitle("Diff window: %s <-> %s"%(
+                        bom1.getCaption(), bom2.getCaption()))
 
 
     def _create_statusbar(self):
@@ -49,39 +102,16 @@ class DiffWindow(bbwindow.BBMainWindow):
         #self._my_statusbar.showMessage("Status Bar Is Ready", 3000)
         self.setStatusBar(self._my_statusbar)
 
-    def _init_gui(self, id1, code1, date1, id2, code2, date2):
+    def _init_gui(self):
         grid = QGridLayout()
+        self._grid = grid
 
-        self._ql_id1 = QLineEdit(id1)
-        self._ql_id2 = QLineEdit(id2)
-        self._ql_code1 = QLineEdit(code1)
-        self._ql_code2 = QLineEdit(code2)
-        self._ql_date1 = QLineEdit(date1)
-        self._ql_date2 = QLineEdit(date2)
-
-        self._ql_id1.setReadOnly(True)
-        self._ql_id2.setReadOnly(True)
-        self._ql_code1.setReadOnly(True)
-        self._ql_code2.setReadOnly(True)
-        self._ql_date1.setReadOnly(True)
-        self._ql_date2.setReadOnly(True)
-
-        grid.addWidget(self._ql_id1, 1, 1)
-        grid.addWidget(self._ql_code1, 1, 2)
-        grid.addWidget(self._ql_date1, 1, 3)
-        grid.addWidget(self._ql_id2, 1, 7)
-        grid.addWidget(self._ql_code2, 1, 8)
-        grid.addWidget(self._ql_date2, 1, 9)
-
+        grid.addWidget(self._bom1, 1, 1)
+        grid.addWidget(self._bom2, 1, 7)
+        self._bom2.refreshBom.connect(self.do_diff)
+        self._bom1.refreshBom.connect(self.do_diff)
         grid.addWidget(QLabel("<font color=red>From (-)</>"), 1, 0)
-        grid.addWidget(QLabel("ID"), 0, 1)
-        grid.addWidget(QLabel("Codes"), 0, 2)
-        grid.addWidget(QLabel("Dates"), 0, 3)
-
         grid.addWidget(QLabel("<font color=green>To (+)</>"), 1, 6)
-        grid.addWidget(QLabel("ID"), 0, 7)
-        grid.addWidget(QLabel("Codes"), 0, 8)
-        grid.addWidget(QLabel("Dates"), 0, 9)
 
         b = QPushButton("<->")
         b.clicked.connect(self._swap_diff)
@@ -98,18 +128,11 @@ class DiffWindow(bbwindow.BBMainWindow):
         self.setCentralWidget(w)
 
     def _swap_diff(self):
-        tmp = self._ql_id1.text()
-        self._ql_id1.setText(self._ql_id2.text())
-        self._ql_id2.setText(tmp)
-
-        tmp = self._ql_code1.text()
-        self._ql_code1.setText(self._ql_code2.text())
-        self._ql_code2.setText(tmp)
-
-        tmp = self._ql_date1.text()
-        self._ql_date1.setText(self._ql_date2.text())
-        self._ql_date2.setText(tmp)
-
+        tmp = self._bom1
+        self._bom1 = self._bom2
+        self._bom2 = tmp
+        self._grid.addWidget(self._bom1, 1, 1)
+        self._grid.addWidget(self._bom2, 1, 7)
         self.do_diff()
 
     def _create_menu(self):
@@ -148,11 +171,8 @@ class DiffWindow(bbwindow.BBMainWindow):
             QApplication.restoreOverrideCursor()
 
     def _do_diff(self):
-        d = db.DB()
-        code1, data1 = d.get_bom_by_code_id3(int(self._ql_id1.text()),
-                                   self._date_from_days1)
-        code2, data2 = d.get_bom_by_code_id3(int(self._ql_id2.text()),
-                                   self._date_from_days2)
+        code1, data1 = self._bom1.getBom()
+        code2, data2 = self._bom2.getBom()
 
         # put the head of boms to the same ID to ensure to compare the "same" head
         if code1 != code2:
@@ -367,11 +387,11 @@ class DiffDialog(QDialog):
         self._date2 = ""
 
     def _do_diff(self):
-        w = DiffWindow(self._id1, self._code1,
-                       self._date1, self._date_from_days1,
-                       self._id2, self._code2,
-                       self._date2, self._date_from_days2,
-                      parent=self)
+        bom1 = CodeDate(self._id1, self._code1,
+                       self._date_from_days1)
+        bom2 = CodeDate(self._id2, self._code2,
+                       self._date_from_days2)
+        w = DiffWindow(bom1, bom2)
         w.do_diff()
         w.show()
         self._do_hide()
