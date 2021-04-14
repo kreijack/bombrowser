@@ -937,8 +937,8 @@ class EditWindow(bbwindow.BBMainWindow):
         d = db.DB()
 
         try:
-            d.update_by_rid2(self._rid, descr
-                , self._ver.text(), self._unit.text(),
+            d.update_by_rid2(self._rid, descr.strip(),
+                self._ver.text(), self._unit.text(),
                 gvals, drawings, children
             )
         except:

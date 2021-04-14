@@ -206,8 +206,8 @@ class CopyCode(QDialog):
 
         d = db.DB()
 
-        code = self._l_new_code.text()
-        descr = self._l_new_descr.text()
+        code = self._l_new_code.text().strip()
+        descr = self._l_new_descr.text().strip()
         if self._descr_force_uppercase == "1":
                 descr = descr.upper()
         if self._code_force_uppercase == "1":
