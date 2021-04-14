@@ -554,10 +554,10 @@ def where_used(code_id, valid=False):
 
     d = db.DB()
 
-    if not d.is_child(code_id):
-        QApplication.beep()
-        QMessageBox.critical(None, "BOMBrowser", "The item is not in an assembly")
-        return
+    #if not d.is_child(code_id):
+    #    QApplication.beep()
+    #    QMessageBox.critical(None, "BOMBrowser", "The item is not in an assembly")
+    #    return
 
     if valid:
         w = ValidWhereUsedWindow(None)
@@ -586,10 +586,10 @@ def show_assembly(code_id, winParent):
         return
 
     d = db.DB()
-    if not d.is_assembly(code_id):
-        QApplication.beep()
-        QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
-        return
+    #if not d.is_assembly(code_id):
+    #    QApplication.beep()
+    #    QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
+    #    return
 
     dlg = selectdategui.SelectDate(code_id, winParent)
     ret = dlg.exec_()
@@ -617,10 +617,10 @@ def show_latest_assembly(code_id):
         return
 
     d = db.DB()
-    if not d.is_assembly(code_id):
-        QApplication.beep()
-        QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
-        return
+    #if not d.is_assembly(code_id):
+    #    QApplication.beep()
+    #    QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
+    #    return
 
     w = AssemblyWindow(None)
     w.show()
@@ -652,10 +652,10 @@ def show_proto_assembly(code_id):
         return
 
     d = db.DB()
-    if not d.is_assembly(code_id):
-        QApplication.beep()
-        QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
-        return
+    #if not d.is_assembly(code_id):
+    #    QApplication.beep()
+    #    QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
+    #    return
 
     w = AssemblyWindow(None)
     w.show()
@@ -677,10 +677,10 @@ def show_assembly_by_date(code_id, dt):
         return
 
     d = db.DB()
-    if not d.is_assembly(code_id):
-        QApplication.beep()
-        QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
-        return
+    #if not d.is_assembly(code_id):
+    #    QApplication.beep()
+    #    QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
+    #    return
 
     w = AssemblyWindow(None)
     w.show()
