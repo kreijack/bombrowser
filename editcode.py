@@ -875,12 +875,12 @@ class EditWindow(bbwindow.BBMainWindow):
         codes_set = set()
         children = []
         for i in range(self._children_table.rowCount()):
-            code_id = self._children_table.item(i, 1).text()
-            code = self._children_table.item(i, 2).text()
-            qty = self._children_table.item(i, 4).text()
-            each = self._children_table.item(i, 5).text()
-            unit = self._children_table.item(i, 6).text()
-            ref = self._children_table.item(i, 7).text()
+            code_id = self._children_table.item(i, 1).text().strip()
+            code = self._children_table.item(i, 2).text().strip()
+            qty = self._children_table.item(i, 4).text().strip()
+            each = self._children_table.item(i, 5).text().strip()
+            unit = self._children_table.item(i, 6).text().strip()
+            ref = self._children_table.item(i, 7).text().strip()
 
             try:
                 qty = float(qty)
