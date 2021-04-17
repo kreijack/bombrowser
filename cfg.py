@@ -18,7 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
 import configparser
-import utils
+import utils, os
 
 _cfg = None
 
@@ -26,11 +26,23 @@ def init():
 
     line = open("bombrowser.ini").readline().strip()
     if line != "# -- BOMBROWSER.ini -- v3":
-        raise Exception("Incorrect version of bombrowser.ini\nMinimum v2 required")
+        raise Exception("Incorrect version of bombrowser.ini\nMinimum v3 required")
 
     global _cfg
     _cfg = configparser.ConfigParser()
     _cfg.read_file(open("bombrowser.ini"))
+
+    if not os.path.exists("bombrowser-local.ini"):
+        return
+
+    line = open("bombrowser-local.ini").readline().strip()
+    if line != "# -- BOMBROWSER.ini -- v3":
+        raise Exception("Incorrect version of bombrowser-local.ini\nMinimum v3 required")
+
+    cfg2 = configparser.ConfigParser()
+    cfg2.read_file(open("bombrowser-local.ini"))
+
+    update_cfg(cfg2)
 
 def config():
     return _cfg
