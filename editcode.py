@@ -579,13 +579,18 @@ class EditWindow(bbwindow.BBMainWindow):
         self._drawings_table.customContextMenuRequested.connect(
             self._drawing_menu)
 
+
+        hl = QHBoxLayout()
+
         b = QPushButton("Close")
         b.clicked.connect(self._close)
-        g.addWidget(b, 100, 10)
+        hl.addWidget(b)
+        hl.addStretch()
+        b= QPushButton("Save...")
+        b.clicked.connect(self._save_changes)
+        hl.addWidget(b)
 
-        self._update_btn = QPushButton("Save...")
-        self._update_btn.clicked.connect(self._save_changes)
-        g.addWidget(self._update_btn, 100, 13)
+        g.addLayout(hl , 100, 10, 1, 4)
 
         self.setWindowTitle("Edit code")
 
