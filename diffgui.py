@@ -184,7 +184,7 @@ class DiffWindow(bbwindow.BBMainWindow):
             data1.pop(code1)
             data2.pop(code2)
 
-        gvals = cfg.get_gvalnames()
+        gvals = cfg.get_gvalnames2()
 
         keys = list(set(data1.keys()).union(data2.keys()))
         keys.sort()
@@ -247,14 +247,18 @@ class DiffWindow(bbwindow.BBMainWindow):
                 keys = list(keys)
                 keys.sort()
                 keys = [x for x in keys if not x.startswith("gval")]
-                keys = keys + ["gval%d"%(i+1) for i in range(len(gvals))]
+                keys = keys + [gvalname for (seq, idx, gvalname, caption, type_) in gvals]
 
                 for key2 in keys:
                     if data1[key][key2] == data2[key][key2]:
                         continue
                     name = key2
                     if name.startswith("gval"):
-                        name = gvals[int(name[4:]) - 1]
+                        for (seq, idx, gvalname, caption, type_) in gvals:
+                            if gvalname == name:
+                                name = caption
+                                break
+
                     txt += "&nbsp;" * 5 + makeRed(
                             "-%s: %s\n"%(name, data1[key][key2]))
                     txt += "&nbsp;" * 5 + makeGreen(
@@ -315,12 +319,15 @@ class DiffWindow(bbwindow.BBMainWindow):
                 keys = list(keys)
                 keys.sort()
                 keys = [x for x in keys if not x.startswith("gval")]
-                keys = keys + ["gval%d"%(i+1) for i in range(len(gvals))]
+                keys = keys + [gvalname for (seq, idx, gvalname, caption, type_) in gvals]
 
                 for key2 in  keys:
                     name = key2
                     if name.startswith("gval"):
-                        name = gvals[int(name[4:]) - 1]
+                        for (seq, idx, gvalname, caption, type_) in gvals:
+                            if gvalname == name:
+                                name = caption
+                                break
                     txt += "&nbsp;" * 5 + makeGreen(
                         "+%s: %s\n"%(name, data2[key][key2]))
 

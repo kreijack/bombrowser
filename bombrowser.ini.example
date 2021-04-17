@@ -1,4 +1,4 @@
-# -- bombrowser.ini -- v2
+# -- BOMBROWSER.ini -- v3
 
 [BOMBROWSER]
 # select db source
@@ -16,12 +16,14 @@ importer_list=import_simple,importer_all
 # the name of gvalN (n=1..8) fields separated by comma
 # it is allowed to have less than 8 fields
 gvalnames=
-    Supplier#1 PN
-    Supplier#1 name
-    Manufacturer#1 PN
-    Manufacturer#1 name
-    Manufacturer#2 PN
-    Manufacturer#2 name
+    gval2:Supplier#1 name
+    gval1:Supplier#1 PN
+    gval4:Manufacturer#1 name
+    gval3:Manufacturer#1 PN
+    gval6:Manufacturer#2 name
+    gval5:Manufacturer#2 PN
+    gval7:TestFile[file]
+    gval8:Test2[list:prova1;prova2;pro, va3]
 
 # increase the font size by a factor (default 1.0)
 scalefont=1.2

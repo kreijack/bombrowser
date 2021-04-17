@@ -491,14 +491,13 @@ class EditWindow(bbwindow.BBMainWindow):
         qgb.setLayout(qgbg)
 
         self._gvals = []
-        gvalnames = cfg.get_gvalnames()
+        gvalnames = cfg.get_gvalnames2()
         i = 0
         row = 0
-        for name in gvalnames:
-            t = cfg.get_gvalnames_type(name)
+        for (seq, idx, gvalname, caption, type_) in gvalnames:
             le = QLineEdit()
-            qgbg.addWidget(QLabel(name), row / 2, 10 + (row % 2) * 2)
-            if t == "file":
+            qgbg.addWidget(QLabel(caption), row / 2, 10 + (row % 2) * 2)
+            if type_ == "file":
                 w = QHBoxLayout()
                 w.addWidget(le)
                 b = QPushButton("...")
@@ -514,11 +513,11 @@ class EditWindow(bbwindow.BBMainWindow):
                             self._le.setText(fn)
                 b.clicked.connect(Do(le, self))
                 qgbg.addLayout(w, row / 2, 11 + (row % 2) * 2)
-            elif t.startswith("list:"):
+            elif type_.startswith("list:"):
                 w = QHBoxLayout()
                 w.addWidget(le)
                 b = QComboBox()
-                values =t[5:].split(";")
+                values =type_[5:].split(";")
                 b.addItem("...")
                 for i in values:
                     b.addItem(i)
@@ -536,8 +535,7 @@ class EditWindow(bbwindow.BBMainWindow):
             else:
                 qgbg.addWidget(le, row / 2, 11 + (row % 2) * 2)
 
-
-            self._gvals.append((name, le))
+            self._gvals.append((gvalname, le, idx))
             row += 1
 
 
@@ -854,7 +852,7 @@ class EditWindow(bbwindow.BBMainWindow):
         # gvals values
         gvals = ["" for i in range(db.gvals_count)]
         for i in range(len(self._gvals)):
-            gvals[i] = self._gvals[i][1].text()
+            gvals[self._gvals[i][2]-1] = self._gvals[i][1].text()
 
         # drawings
         drawings = []
@@ -1038,7 +1036,7 @@ class EditWindow(bbwindow.BBMainWindow):
 
         # add the properties
         for i in range(len(self._gvals)):
-            self._gvals[i][1].setText(data["gval%d"%(i+1)])
+            self._gvals[i][1].setText(data[self._gvals[i][0]])
 
         # children
 
