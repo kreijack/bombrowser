@@ -47,19 +47,20 @@ class RevisionListWidget(QWidget):
         self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
         self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
         self._data = dict()
-        self._gvals_caption = cfg.get_gvalnames()
         self._field_names = [
             ("code", "Code"), ("descr", "Description", 6),
             ("id", "id"), ("rid", "rid"),
             ("rev", "Rev"), ("iter_", "Iteration"),
             ("date_from_days", "Date from"),
             ("date_to_days", "Date to")]
-        for i, n in enumerate(self._gvals_caption):
-            self._field_names.append(("gval%d"%(i+1), n))
+
+        for (seq, idx, gvalname, caption, type_) in cfg.get_gvalnames2():
+            self._field_names.append((gvalname, caption))
         self._dates = dict()
         self._search_revision_cols = ["id", "rid", "Code","Description",
             "Rev", "Iteration", "Date from", "Date to"]
-        self._search_revision_cols += self._gvals_caption
+        for (seq, idx, gvalname, caption, type_) in cfg.get_gvalnames2():
+            self._search_revision_cols.append(caption)
 
         assert(len(self._search_revision_cols) == len(self._field_names))
 
@@ -195,19 +196,30 @@ class RevisionListWidget(QWidget):
         r = 0
         limit = 1000
         self._dates = dict()
+
+
+        col_map = dict()
+        for (seq, idx, gvalname, caption, type_) in cfg.get_gvalnames2():
+            col_map[8 + idx - 1] = seq + 8
         for row in ret:
             c = 0
-            for v in row:
+            for c, v in enumerate(row):
                 if c == 1:
                     rid = int(v)
                 elif c == 6 or c == 7:
                     if c == 6:
                         self._dates[rid] = v
                     v = db.days_to_txt(v)
+
+                # gval(s) are from column 8 onwards. Map it correctly
+                if c >= 8:
+                    if not c in col_map:
+                        continue
+                    c = col_map[c]
                 i = QTableWidgetItem(str(v))
                 i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                 self._table.setItem(r, c, i)
-                c += 1
+
             r += 1
         self._table.setSortingEnabled(True)
         self._table.selectionModel().selectionChanged.connect(self._table_clicked)

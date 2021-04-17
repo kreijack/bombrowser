@@ -65,10 +65,9 @@ class CodeWidget(QWidget):
             ("Unit", "unit"),
         ]
 
-        gvalnames = cfg.get_gvalnames()
-        i = 0
-        for i in range(len(gvalnames)):
-            self._main_data.append((gvalnames[i], "gval%d"%(i+1)))
+        gvalnames = cfg.get_gvalnames2()
+        for (seq, idx, gvalname, caption, type_) in gvalnames:
+            self._main_data.append((caption, gvalname))
 
         self._drawings = d.get_drawings_by_code_id(self._data["rid"])
 

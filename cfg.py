@@ -25,7 +25,7 @@ _cfg = None
 def init():
 
     line = open("bombrowser.ini").readline().strip()
-    if line != "# -- BOMBROWSER.ini -- v2":
+    if line != "# -- BOMBROWSER.ini -- v3":
         raise Exception("Incorrect version of bombrowser.ini\nMinimum v2 required")
 
     global _cfg
@@ -35,46 +35,39 @@ def init():
 def config():
     return _cfg
 
-def get_gvalnames():
+def get_gvalnames2():
     l = [x.strip() for x in
             config().get("BOMBROWSER", "gvalnames").split("\n")
             if len(x.strip()) > 0
         ]
     ret = []
+    alreadyinserted = set()
+    c = 0
     for n in l:
+        j = n.find(":")
+        gvalname = n[:j]
+
+        assert(gvalname.startswith("gval"))
+        assert(not gvalname in alreadyinserted)
+        alreadyinserted.add(gvalname)
+        idx = int(gvalname[4:])
+
+        n = n[j+1:]
+        if len(n) == 0:
+            n = gvalname
         i = n.find("[")
         if i < 0:
-            ret.append(n.strip())
-        else:
-            assert(len(n[:i].strip()))
-            ret.append(n[:i].strip())
-
-    return ret
-
-
-def get_gvalnames_type(name):
-    l = [x.strip() for x in
-            config().get("BOMBROWSER", "gvalnames").split("\n")
-            if len(x.strip()) > 0
-        ]
-    ret = []
-    for n in l:
-        i = n.find("[")
-        if i < 0:
-            k = n
-        else:
-            k = n[:i]
-
-        if k != name:
+            ret.append((c, idx, gvalname, n, "free"))
+            c += 1
             continue
 
-        if i < 0:
-            return ""
-
         j = n.find("]")
-        return n[i+1:j]
+        assert(j >= 0)
+        v = n[i+1:j].strip()
+        ret.append((c, idx, gvalname, n[:i], v))
+        c += 1
 
-    return ""
+    return ret
 
 def update_cfg(data):
     for key1 in data:
