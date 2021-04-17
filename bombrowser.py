@@ -48,6 +48,11 @@ def main(args):
         utils.show_exception(msg="Cannot load configuration: may be bombroser.ini is missing ?\nAbort\n")
         return
 
+    fontscale = float(cfg.config()["BOMBROWSER"].get("scalefont", "1.0"))
+    f = app.font()
+    f.setPointSize(f.pointSize() * fontscale)
+    app.setFont(f)
+
     try:
         d = db.DB()
         data = d.get_config()

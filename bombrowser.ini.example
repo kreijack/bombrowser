@@ -22,7 +22,9 @@ gvalnames=
     Manufacturer#1 name
     Manufacturer#2 PN
     Manufacturer#2 name
-genericnames=
+
+# increase the font size by a factor (default 1.0)
+scalefont=1.2
 
 [SQLITE]
 path=database.sqlite
