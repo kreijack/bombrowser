@@ -252,6 +252,10 @@ class CopyCode(QDialog):
             return
 
         if self.shouldStartEditor():
+            codes = d.get_codes_by_code(self._new_code)
+            if len(codes):
+                w2 = editcode.EditWindow(codes[0][0])
+                w2.show()
             self.accept()
         else:
             if self._cb_copy_rev.checkState() == Qt.CheckState.Checked:
@@ -356,17 +360,6 @@ def revise_copy_code(code_id, parent):
 
 def revise_copy_code_by_rid(rid):
         w = CopyCode(rid, None)
-        if not w.exec_():
-            return None
+        w.exec_()
 
-        if w.getNewCode() is None:
-            return None
 
-        if not w.shouldStartEditor():
-            return None
-
-        d = db.DB()
-        codes = d.get_codes_by_code(w.getNewCode())
-        if len(codes):
-            w2 = editcode.EditWindow(codes[0][0])
-            w2.show()
