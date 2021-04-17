@@ -141,13 +141,14 @@ class CopyCode(QDialog):
         grid.addWidget(self._cb_proto, 21, 2)
 
 
-        pb = QPushButton("Cancel")
+        pb = QPushButton("Close")
         pb.clicked.connect(self._close)
         grid.addWidget(pb, 30, 0)
 
         pb = QPushButton("Copy/Revise")
         pb.clicked.connect(self._do)
         grid.addWidget(pb, 30, 2)
+        self._copy_revise_push_button = pb
 
         self.setLayout(grid)
 
@@ -250,7 +251,15 @@ class CopyCode(QDialog):
                 self._l_old_code.text())
             return
 
-        self.accept()
+        if self.shouldStartEditor():
+            self.accept()
+        else:
+            if self._cb_copy_rev.checkState() == Qt.CheckState.Checked:
+                QMessageBox.information(None, "BOMBrowser",
+                    "Success: the code was copied")
+            else:
+                QMessageBox.information(None, "BOMBrowser",
+                    "Success: the code was revised")
 
     def getNewCode(self):
         return self._new_code
@@ -283,10 +292,14 @@ class CopyCode(QDialog):
             self._l_new_code.setReadOnly(False)
             self._l_new_code.setEnabled(True)
             self._l_new_rev.setText("0")
+            self.setWindowTitle("BOMBrowser - copy code")
+            self._copy_revise_push_button.setText("Copy code")
         else:
             self._l_new_code.setText(self._l_old_code.text())
             self._l_new_code.setReadOnly(True)
             self._l_new_code.setEnabled(False)
+            self.setWindowTitle("BOMBrowser - revise code")
+            self._copy_revise_push_button.setText("Revise code")
             new_rev = self._l_old_rev.text()
             try:
                 if new_rev == '':
@@ -350,8 +363,6 @@ def revise_copy_code_by_rid(rid):
             return None
 
         if not w.shouldStartEditor():
-            QMessageBox.information(None, "BOMBrowser",
-                "Success: you created a new code/revision")
             return None
 
         d = db.DB()
