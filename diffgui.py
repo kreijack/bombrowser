@@ -193,7 +193,8 @@ class DiffWindow(bbwindow.BBMainWindow):
 
         txt = ""
 
-        item_props_blacklist = set(["id", "rid", "deps"])
+        item_props_blacklist = set(["id", "rid", "deps",
+            "date_from_days", "date_to_days"])
 
         def is_children_equal(c1, c2):
             for k in ["qty", "each", "unit", "ref"]:
@@ -229,6 +230,21 @@ class DiffWindow(bbwindow.BBMainWindow):
             s = html.escape(s)
             s = "<font color=green>"+s+"</font><br>"
             return s
+        def pretty_float(f):
+            s="%f"%(f)
+            while len(s) > 1 and s[-1] in "0.":
+                s = s[:-1]
+            return s
+        def dump_child(child_dep, child_data):
+            return "%s / %s %s: %s rev %s - %s; %s\n"%(
+                    pretty_float(child_dep["qty"]),
+                    pretty_float(child_dep["each"]),
+                    child_dep["unit"],
+                    child_data["code"],
+                    child_data["ver"],
+                    child_data["descr"],
+                    child_dep["ref"])
+
 
         for key in keys:
             if key in data1.keys() and key in data2.keys():
@@ -273,36 +289,14 @@ class DiffWindow(bbwindow.BBMainWindow):
                         if is_children_equal(data1[key]["deps"][child_id], data2[key]["deps"][child_id]):
                             continue
 
-                        child1 =data1[key]["deps"][child_id]
-                        txt += "&nbsp;" * 9 + makeRed(
-                                    "-%f / %f: %s rev %s - %s\n"%(
-                                        child1["qty"], child1["each"],
-                                        data1[child_id]["code"],
-                                        data1[child_id]["ver"],
-                                        data1[child_id]["descr"]))
-                        child2 =data2[key]["deps"][child_id]
-                        txt += "&nbsp;" * 9 + makeGreen(
-                                    "+%f / %f: %s rev %s - %s\n"%(
-                                        child2["qty"], child2["each"],
-                                        data2[child_id]["code"],
-                                        data2[child_id]["ver"],
-                                        data2[child_id]["descr"]))
-                    elif child_id in data1[key]["deps"].keys():
-                        child1 =data1[key]["deps"][child_id]
-                        txt += "&nbsp;" * 9 + makeRed(
-                                    "-%f / %f: %s rev %s - %s\n"%(
-                                        child1["qty"], child1["each"],
-                                        data1[child_id]["code"],
-                                        data1[child_id]["ver"],
-                                        data1[child_id]["descr"]))
-                    else:
-                        child2 =data2[key]["deps"][child_id]
-                        txt += "&nbsp;" * 9 + makeGreen(
-                                    "+%f / %f: %s rev %s - %s\n"%(
-                                        child2["qty"], child2["each"],
-                                        data2[child_id]["code"],
-                                        data2[child_id]["ver"],
-                                        data2[child_id]["descr"]))
+                    if child_id in data1[key]["deps"].keys():
+                        child =data1[key]["deps"][child_id]
+                        txt += "&nbsp;" * 9 + makeRed("-" +
+                            dump_child(child, data1[child_id]))
+                    if child_id in data2[key]["deps"].keys():
+                        child =data2[key]["deps"][child_id]
+                        txt += "&nbsp;" * 9 + makeGreen("+" +
+                            dump_child(child, data2[child_id]))
 
             elif  key in data1.keys():
                 txt += "<br>\n"
@@ -334,13 +328,9 @@ class DiffWindow(bbwindow.BBMainWindow):
                 child_ids = list(data2[key]["deps"].keys())
                 child_ids.sort()
                 for child_id in child_ids:
-                    child2 =data2[key]["deps"][child_id]
-                    txt += "&nbsp;" * 5 + makeGreen(
-                        "+%f / %f: %s rev %s - %s\n"%(
-                            child2["qty"], child2["each"],
-                            data2[child_id]["code"],
-                            data2[child_id]["ver"],
-                            data2[child_id]["descr"]))
+                    child =data2[key]["deps"][child_id]
+                    txt += "&nbsp;" * 9 + makeGreen("+" +
+                        dump_child(child, data2[child_id]))
 
         self._text.setText(txt)
 
