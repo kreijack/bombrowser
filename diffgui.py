@@ -176,6 +176,8 @@ class DiffWindow(bbwindow.BBMainWindow):
 
         # put the head of boms to the same ID to ensure to compare the "same" head
         if code1 != code2:
+            data1 = data1.copy()
+            data2 = data2.copy()
             code3 = max([max(data1.keys()), max(data2.keys())])+1
             data1[code3] = data1[code1]
             data1[code3]["id"] = code3
@@ -376,14 +378,15 @@ class DiffDialog(QDialog):
 
         self.setLayout(grid)
 
-        self._id1 = ""
-        self._id2 = ""
+        self._id1 = -1
+        self._id2 = -1
         self._code1 = ""
         self._code2 = ""
         self._date1 = ""
         self._date2 = ""
 
     def _do_diff(self):
+        print(self._id1 + self._id2 + 0)
         bom1 = CodeDate(self._id1, self._code1,
                        self._date_from_days1)
         bom2 = CodeDate(self._id2, self._code2,
@@ -395,19 +398,19 @@ class DiffDialog(QDialog):
 
     def _do_hide(self):
         self.hide()
-        id_ = ""
+        id_ = -1
         code = ""
         date = ""
         self._id1 = id_
         self._code1 = code
         self._date1 = date
-        self._ql_id1.setText(id_)
+        self._ql_id1.setText("")
         self._ql_code1.setText(code)
         self._ql_date1.setText(date)
         self._id2 = id_
         self._code2 = code
         self._date2 = date
-        self._ql_id2.setText(id_)
+        self._ql_id2.setText("")
         self._ql_code2.setText(code)
         self._ql_date2.setText(date)
 
@@ -415,7 +418,7 @@ class DiffDialog(QDialog):
         self._id1 = code_id
         self._code1 = code
         self._date1 = date
-        self._ql_id1.setText(code_id)
+        self._ql_id1.setText(str(code_id))
         self._ql_code1.setText(code)
         self._ql_date1.setText(date)
         self._date_from_days1 = date_from_days
@@ -424,7 +427,7 @@ class DiffDialog(QDialog):
         self._id2 = code_id
         self._code2 = code
         self._date2 = date
-        self._ql_id2.setText(code_id)
+        self._ql_id2.setText(str(code_id))
         self._ql_code2.setText(code)
         self._ql_date2.setText(date)
         self._date_from_days2 = date_from_days
@@ -457,7 +460,7 @@ def set_from(code_id, parent):
     if _diffDialog is None:
         _diffDialog = DiffDialog()
     _diffDialog.show()
-    _diffDialog.set_from(str(code_id), code, date_from, date_from_days)
+    _diffDialog.set_from(code_id, code, date_from, date_from_days)
 
 def set_to(code_id, parent):
     if not code_id:
@@ -482,7 +485,7 @@ def set_to(code_id, parent):
     if _diffDialog is None:
         _diffDialog = DiffDialog()
     _diffDialog.show()
-    _diffDialog.set_to(str(code_id), code, date_from, date_from_days)
+    _diffDialog.set_to(code_id, code, date_from, date_from_days)
 
 def set_to_by_rid(rid):
 
@@ -502,7 +505,7 @@ def set_to_by_rid(rid):
     if _diffDialog is None:
         _diffDialog = DiffDialog()
     _diffDialog.show()
-    _diffDialog.set_to(str(code_id), code, date_from, date_from_days)
+    _diffDialog.set_to(code_id, code, date_from, date_from_days)
 
 def set_from_by_rid(rid):
 
@@ -522,5 +525,5 @@ def set_from_by_rid(rid):
     if _diffDialog is None:
         _diffDialog = DiffDialog()
     _diffDialog.show()
-    _diffDialog.set_from(str(code_id), code, date_from, date_from_days)
+    _diffDialog.set_from(code_id, code, date_from, date_from_days)
 
