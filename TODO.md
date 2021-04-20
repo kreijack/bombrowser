@@ -24,6 +24,7 @@
 - [ ] Ensure that during revise the latest rev_id is not changed
 - [ ] Ensure that during dates update latest rev_id is not changed, and the date are always the same
 - [ ] add test for updating function
+- [ ] increase the database_props value size to 2048
 
 ## BUGS
 
