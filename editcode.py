@@ -583,7 +583,7 @@ class EditWindow(bbwindow.BBMainWindow):
         hl = QHBoxLayout()
 
         b = QPushButton("Close")
-        b.clicked.connect(self._close)
+        b.clicked.connect(self.close)
         hl.addWidget(b)
         hl.addStretch()
         b= QPushButton("Save...")
@@ -609,13 +609,14 @@ class EditWindow(bbwindow.BBMainWindow):
             if qle.isModified():
                 return True
 
-    def _close(self):
+    def closeEvent(self, event):
         if self._form_is_changed():
             ret = QMessageBox.question(self, "BOMBrowser",
                 "The form was changed; do you want to close this window without saving  ?")
             if ret != QMessageBox.Yes:
+                event.ignore()
                 return
-        self.close()
+        event.accept()
 
     def _dates_list_change_index(self, i):
         if self._dates_list_info is None:
@@ -645,7 +646,7 @@ class EditWindow(bbwindow.BBMainWindow):
         m = mainMenu.addMenu("File")
         a = QAction("Close", self)
         a.setShortcut("Ctrl+Q")
-        a.triggered.connect(self._close)
+        a.triggered.connect(self.close)
         m.addAction(a)
         a = QAction("Exit", self)
         a.triggered.connect(self._exit_app)
