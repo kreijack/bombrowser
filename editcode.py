@@ -893,7 +893,7 @@ class EditWindow(bbwindow.BBMainWindow):
             try:
                 each = float(each)
             except:
-                return ("Incorrect value 'Each' in row %d (%s)'"%(i + 1, qty),
+                return ("Incorrect value 'Each' in row %d (%s)'"%(i + 1, each),
                             None)
 
             codes = d.get_codes_by_code(code)
