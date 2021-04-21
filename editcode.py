@@ -616,6 +616,7 @@ class EditWindow(bbwindow.BBMainWindow):
             if ret != QMessageBox.Yes:
                 event.ignore()
                 return
+        bbwindow.BBMainWindow.closeEvent(self, event)
         event.accept()
 
     def _dates_list_change_index(self, i):
