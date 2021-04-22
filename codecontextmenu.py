@@ -98,6 +98,14 @@ def _show_valid_where_used(code_id, rid):
 
     asmgui.valid_where_used(code_id)
 
+def _show_smart_where_used(code_id, rid):
+    if code_id is None:
+        d = db.DB()
+        data = d.get_code_by_rid(rid)
+        code_id = data["id"]
+
+    asmgui.smart_where_used(code_id)
+
 def generate_codes_context_menu(code_id=None, rid=None, dt=None,
                                     menu=None, parent=None):
 
@@ -107,6 +115,8 @@ def generate_codes_context_menu(code_id=None, rid=None, dt=None,
         lambda : _show_where_used(code_id, rid))
     menu.addAction("Valid where used").triggered.connect(
         lambda : _show_valid_where_used(code_id, rid))
+    menu.addAction("Smart where used").triggered.connect(
+        lambda : _show_smart_where_used(code_id, rid))
     menu.addAction("Show assembly by date").triggered.connect(
         lambda : _show_assembly(code_id, rid, parent))
     if (not code_id is None and not dt is None) or not rid is None:

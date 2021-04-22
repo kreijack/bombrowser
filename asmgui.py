@@ -159,12 +159,14 @@ class FindDialog(QDialog):
 
 
 class AssemblyWindow(bbwindow.BBMainWindow):
-    def __init__(self, parent, asm=True, valid_where_used=False):
+    def __init__(self, parent, mode="asm"):
         bbwindow.BBMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        self._asm = asm
-        self._valid_where_used = valid_where_used
+        assert mode in ["asm", "where_used", "valid_where_used",
+                            "smart_where_used"]
+
+        self._mode = mode
         self._data = dict()
         self._bom_reload = None
 
@@ -400,7 +402,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
     def populate(self, top, data, caption_date=None):
         top_code = data[top]["code"]
 
-        if self._asm:
+        if self._mode == "asm":
                 if caption_date == db.prototype_date -1:
                     dt2 = "LATEST"
                 elif caption_date == db.end_of_the_world:
@@ -411,9 +413,11 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                     dt2 = db.days_to_iso(caption_date)
 
                 self.setWindowTitle("Assembly: " + top_code + " @ " + dt2)
-        elif self._valid_where_used:
+        elif self._mode == "valid_where_used":
                 self.setWindowTitle("Valid where used: " + top_code)
-        else:
+        elif self._mode == "smart_where_used":
+                self.setWindowTitle("Smart where used: " + top_code)
+        else: # mode == "where used"
                 self.setWindowTitle("Where used: "+top_code)
         self._data = data
         self._top = top
@@ -536,18 +540,53 @@ class AssemblyWindow(bbwindow.BBMainWindow):
     def set_bom_reload(self, f):
         self._bom_reload = f
 
-class WhereUsedWindow(AssemblyWindow):
-    def __init__(self, parent):
-        AssemblyWindow.__init__(self, parent, asm = False)
+def _smart_filter(top, data):
+    top_node = data[top]
+    first_level_keys = top_node["deps"].keys()
+
+    def find_tails(key):
+        ret = set()
+        todo = set([key])
+        done = set()
+
+        while len(todo):
+            key = todo.pop()
+            done.add(key)
+
+            if len(data[key]["deps"]) == 0:
+                if not data[key]["code"].startswith("[...] "):
+                    data[key]["code"] = "[...] " + data[key]["code"]
+                ret.add(key)
+            else:
+                for key2 in data[key]["deps"]:
+                    if not key2 in done:
+                        todo.add(key2)
+
+        return ret
+
+    for key in first_level_keys:
+        fl_node = data[key]
+        if len(fl_node["deps"]) == 0:
+            continue
+        tails = find_tails(key)
+        fl_node["__deps"] = {}
+        for tail in tails:
+            fl_node["__deps"][tail] = {
+                "code": data[tail]["code"],
+                "qty": 0,
+                "each": 0,
+                "ref": "",
+                "unit": "",
+            }
+
+    for key in first_level_keys:
+        if "__deps" in data[key]:
+            data[key]["deps"] = data[key]["__deps"]
+
+    return data
 
 
-class ValidWhereUsedWindow(AssemblyWindow):
-    def __init__(self, parent):
-        AssemblyWindow.__init__(self, parent, asm = False,
-            valid_where_used = True)
-
-
-def where_used(code_id, valid=False):
+def where_used(code_id, mode="where_used"):
     if not code_id:
         QApplication.beep()
         return
@@ -559,18 +598,17 @@ def where_used(code_id, valid=False):
     #    QMessageBox.critical(None, "BOMBrowser", "The item is not in an assembly")
     #    return
 
-    if valid:
-        w = ValidWhereUsedWindow(None)
-    else:
-        w = WhereUsedWindow(None)
+    w = AssemblyWindow(None, mode)
 
     w.show()
 
     def bom_reload():
         d = db.DB()
         QApplication.setOverrideCursor(Qt.WaitCursor)
+        valid = mode in ["smart_where_used", "valid_where_used"]
         (top, data) = d.get_where_used_from_id_code(code_id, valid)
-
+        if mode == "smart_where_used":
+            data = _smart_filter(top, data)
         w.populate(top, data)
         QApplication.restoreOverrideCursor()
 
@@ -578,7 +616,9 @@ def where_used(code_id, valid=False):
     w.bom_reload()
 
 def valid_where_used(code_id):
-    return where_used(code_id, valid=True)
+    return where_used(code_id, mode="valid_where_used")
+def smart_where_used(code_id):
+    return where_used(code_id, mode="smart_where_used")
 
 def show_assembly(code_id, winParent):
     if not code_id:
