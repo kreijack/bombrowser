@@ -297,7 +297,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
     def _export_assemblies_list(self):
         nf = QFileDialog.getSaveFileName(self, "BOMBrowser - export bom",
                                     filter="Json file format (*.json);; All files (*.*)",
-                                    selectedFilter="*.json")
+                                    selectedFilter="Json file format (*.json)")
         if nf[0] == '':
             return
         e = exporter.Exporter(self._top , self._data)
@@ -306,7 +306,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
     def _export_as_template(self, template):
         nf, _ = QFileDialog.getSaveFileName(self, "BOMBrowser - export bom",
                                     filter="CSV file (*.csv);; Excel file (*.xls)",
-                                    selectedFilter="*.xls")
+                                    selectedFilter="Excel file (*.xls)")
         if nf == '':
             return
         if (not nf.lower().endswith(".xls") and
