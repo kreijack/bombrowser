@@ -181,8 +181,17 @@ def _import_csv_parent_child2(data, keyword_map, options):
                 continue
             if v in ["qty", "each"]:
                 code_values[v] = xfloat(fields[colmap[v]])
+            elif isinstance(fields[colmap[v]], int):
+                # it is an int convert to str
+                code_values[v] = str(fields[colmap[v]])
+            elif (isinstance(fields[colmap[v]], float) and
+                  (float(int(fields[colmap[v]])) == fields[colmap[v]])):
+                    # it is a float convert to int then to str
+                    # only if this doesn't change its value (i.e. the
+                    # decimal part is .0)
+                    code_values[v] = str(int(fields[colmap[v]]))
             else:
-                code_values[v] = fields[colmap[v]]
+                code_values[v] = str(fields[colmap[v]])
 
         if not code_values["parent_code"] in bom:
             bom[code_values["parent_code"]] = {
