@@ -694,9 +694,9 @@ class EditWindow(bbwindow.BBMainWindow):
         else:
             data = []
             for k in bom:
-                descr = k
-                if "descr" in k:
-                    descr = str(k["descr"])
+                descr = "N/A"
+                if "descr" in bom[k]:
+                    descr = str(bom[k]["descr"])
                 data.append((str(k), descr))
             w = SelectFromList(self, "Select a code for import",
                 ["CODE", "DESCR"], data)
