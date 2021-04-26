@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import sys, configparser, os, pprint, traceback
 
-from PySide2.QtWidgets import QComboBox
+from PySide2.QtWidgets import QComboBox, QAbstractItemView
 from PySide2.QtWidgets import QSplitter, QTableView, QLabel, QTableWidgetItem
 from PySide2.QtWidgets import QGridLayout, QWidget, QApplication, QFileDialog
 from PySide2.QtWidgets import QMessageBox, QAction, QLineEdit, QSplitter
@@ -27,7 +27,7 @@ from PySide2.QtWidgets import QHBoxLayout, QPushButton, QDialog, QTabWidget
 from PySide2.QtWidgets import QHeaderView, QMenu, QGroupBox, QTableWidget
 from PySide2.QtGui import QColor, QDesktopServices
 
-from PySide2.QtCore import Qt, QUrl
+from PySide2.QtCore import Qt, QUrl, QEvent, Signal
 
 import db, utils, listcodegui, jdutil, cfg
 import importer, customize, bbwindow, codecontextmenu
@@ -316,6 +316,82 @@ class EditDates(QDialog):
             to_date = db.days_to_iso(to_date)
             self._table.item(row+1, col+1).setText(to_date)
 
+class DrawingTable(QTableWidget):
+
+    rowChanged = Signal()
+
+    def __init__(self):
+        QTableWidget.__init__(self)
+
+        # from https://stackoverflow.com/questions/59005081/how-to-drop-a-file-into-a-qtablewidget-in-pyqt5
+        self.setAcceptDrops(True)
+        self.viewport().installEventFilter(self)
+        types = ['text/uri-list']
+        types.extend(self.mimeTypes())
+        self.mimeTypes = lambda: types
+
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(
+            self._drawing_menu)
+
+        self.doubleClicked.connect(self._view_drawing)
+
+    def eventFilter(self, source, event):
+        if (event.type() == QEvent.Drop and
+            event.mimeData().hasUrls()):
+            for url in event.mimeData().urls():
+                self._add_filename(url.toLocalFile())
+            return True
+        return super().eventFilter(source, event)
+
+    def _drawing_menu(self, point):
+        contextMenu = QMenu(self)
+        viewDrawing = contextMenu.addAction("View drawing")
+        viewDrawing.triggered.connect(self._view_drawing)
+        deleteDrawing = contextMenu.addAction("Delete drawing")
+        deleteDrawing.triggered.connect(self._delete_drawing)
+        deleteDrawing = contextMenu.addAction("Add drawing ...")
+        deleteDrawing.triggered.connect(self._add_drawing)
+
+        contextMenu.exec_(self.viewport().mapToGlobal(point))
+
+    def _view_drawing(self):
+        idxs = self.selectedIndexes()
+        if len(idxs) == 0:
+            return
+
+        for idx in idxs:
+            r = idx.row()
+            path = self.item(r, 1).text()
+            QDesktopServices.openUrl(QUrl.fromLocalFile(path))
+
+    def _delete_drawing(self):
+        idxs = self.selectedIndexes()
+        if len(idxs) == 0:
+            return
+        self._drawing_modified = True
+
+        rows = list(set([idx.row() for idx in idxs]))
+        rows.sort(reverse=True)
+
+        for row in rows:
+            self.removeRow(row)
+
+        self.rowChanged.emit()
+
+    def _add_drawing(self):
+        (fn, _) = QFileDialog.getOpenFileName(self, "Select a file")
+        if fn != "":
+            self._add_filename(fn)
+
+    def _add_filename(self, fn):
+        self._drawing_modified = True
+
+        row = self.rowCount()
+        self.setRowCount(row+1)
+        self.setItem(row, 0, QTableWidgetItem(os.path.basename(fn)))
+        self.setItem(row, 1, QTableWidgetItem(fn))
+        self.rowChanged.emit()
 
 class SelectFromList(QDialog):
     def __init__(self, parent, title, header, data):
@@ -573,12 +649,9 @@ class EditWindow(bbwindow.BBMainWindow):
 
 
         # drawing
-        self._drawings_table = QTableWidget()
+        self._drawings_table = DrawingTable() #QTableWidget()
+        self._drawings_table.rowChanged.connect(self._update_drawing_row)
         qtab.addTab(self._drawings_table, "Drawings")
-        self._drawings_table.setContextMenuPolicy(Qt.CustomContextMenu)
-        self._drawings_table.customContextMenuRequested.connect(
-            self._drawing_menu)
-
 
         hl = QHBoxLayout()
 
@@ -1083,7 +1156,7 @@ class EditWindow(bbwindow.BBMainWindow):
         self._children_modified = False
         self._drawing_modified = False
         self._qtab.setTabText(0, "Children (%d)"%(self._children_table.rowCount()))
-        self._qtab.setTabText(1, "Drawings list (%d)"%(self._drawings_table.rowCount()))
+        self._update_drawing_row()
 
     def _children_cell_changed(self, row, col):
         self._children_modified = True
@@ -1264,51 +1337,7 @@ class EditWindow(bbwindow.BBMainWindow):
         self._children_table.item(row, 2).setText(code)
         self._children_modified = True
 
-    def _drawing_menu(self, point):
-        contextMenu = QMenu(self)
-        viewDrawing = contextMenu.addAction("View drawing")
-        viewDrawing.triggered.connect(self._view_drawing)
-        deleteDrawing = contextMenu.addAction("Delete drawing")
-        deleteDrawing.triggered.connect(self._delete_drawing)
-        deleteDrawing = contextMenu.addAction("Add drawing ...")
-        deleteDrawing.triggered.connect(self._add_drawing)
-
-        contextMenu.exec_(self._drawings_table.viewport().mapToGlobal(point))
-
-    def _view_drawing(self):
-        idxs = self._drawings_table.selectedIndexes()
-        if len(idxs) == 0:
-            return
-
-        for idx in idxs:
-            r = idx.row()
-            path = self._drawings_table.item(r, 1).text()
-            QDesktopServices.openUrl(QUrl.fromLocalFile(path))
-
-    def _delete_drawing(self):
-        idxs = self._drawings_table.selectedIndexes()
-        if len(idxs) == 0:
-            return
-        self._drawing_modified = True
-
-        rows = list(set([idx.row() for idx in idxs]))
-        rows.sort(reverse=True)
-
-        for row in rows:
-            self._drawings_table.removeRow(row)
-
-        self._qtab.setTabText(1, "Drawings list (%d)"%(self._drawings_table.rowCount()))
-
-    def _add_drawing(self):
-        (fn, _) = QFileDialog.getOpenFileName(self, "Select a file")
-        if fn == "":
-            return
-        self._drawing_modified = True
-
-        row = self._drawings_table.rowCount()
-        self._drawings_table.setRowCount(row+1)
-        self._drawings_table.setItem(row, 0, QTableWidgetItem(os.path.basename(fn)))
-        self._drawings_table.setItem(row, 1, QTableWidgetItem(fn))
+    def _update_drawing_row(self):
         self._qtab.setTabText(1, "Drawings list (%d)"%(self._drawings_table.rowCount()))
 
 def edit_code_by_code_id(code_id, dt=None):
