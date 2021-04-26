@@ -975,22 +975,23 @@ class EditWindow(bbwindow.BBMainWindow):
         i.setFont(f)
         self._children_table.setItem(row, 1, i)
 
-
         i = QTableWidgetItem(descr)
         i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
         i.setFont(f)
         self._children_table.setItem(row, 3, i)
 
-
-
-
         self._children_table.setItem(row, 4, QTableWidgetItem(str(qty)))
         self._children_table.setItem(row, 5, QTableWidgetItem(str(each)))
-        self._children_table.setItem(row, 6, QTableWidgetItem(unit))
+
         self._children_table.setItem(row, 7, QTableWidgetItem(ref))
 
-        # after 1,3  and 6 because if we change 'code', 1,3 or 6  may be changed
+        # after 1 and 3 because if we change 'code', 1 or 3 depends by code
+        # and _children_cell_changed override these
         self._children_table.setItem(row, 2, QTableWidgetItem(code))
+
+        if not unit is None and len(unit) > 0:
+            # if unit is valid, override the code default one
+            self._children_table.setItem(row, 6, QTableWidgetItem(unit))
 
     def _populate_children(self, children):
         try:
@@ -1087,6 +1088,14 @@ class EditWindow(bbwindow.BBMainWindow):
     def _children_cell_changed(self, row, col):
         self._children_modified = True
         table = self._children_table
+
+        def table_set_text(c, v):
+            i = table.item(row, c)
+            if i is None:
+                table.setItem(row, c, QTableWidgetItem(str(v)))
+            else:
+                i.setText(str(v))
+
         if col == 2:
             d = db.DB()
             i = table.item(row, 2)
@@ -1101,10 +1110,10 @@ class EditWindow(bbwindow.BBMainWindow):
             i.setBackground(table.item(row, 0).background())
 
             (id_, code, descr, ver, iter_, default_unit) = codes[0]
-            table.item(row, 1).setText(str(id_))
-            table.item(row, 3).setText(str(descr))
-            table.item(row, 6).setText(str(default_unit))
-            #code change
+            table_set_text(1, id_)
+            table_set_text(3, descr)
+            table_set_text(6, default_unit)
+
             return
         elif col == 4 or col == 5:
             i = table.item(row, col)
