@@ -149,8 +149,9 @@ def _import_csv_parent_child2(data, keyword_map, options):
 
         # ignore other names
 
-    if colmap["code"] is None or colmap["qty"] is None:
-        raise Exception("Some mandatory columns are missing")
+    for col in ["code", "qty"] :
+        if colmap[col] is None:
+            raise Exception("The mandatory column '%s' is missing"%(col))
 
     linenr = skip_first_lines
     bom = dict()
@@ -214,10 +215,12 @@ def _import_csv_parent_child2(data, keyword_map, options):
         }
 
         if not code_values["code"] in bom:
-            bom[code_values["code"]] = {"deps": dict()}
+            bom[code_values["code"]] = {
+                "deps": dict(),
+            }
 
         for v in code_values:
-            if v in ["parent_code", "parent_descr"]:
+            if v in ["parent_code", "parent_descr", "qty", "each", "ref"]:
                 continue
             if colmap[v] is None:
                 continue
@@ -402,6 +405,51 @@ def test_import_csv_parent_child2_wo_parent_columns():
 
     assert( bom[0]["deps"]["2"]["qty"] == 2)
     assert( bom[0]["deps"]["2"]["each"] == 3)
+
+
+def test_import_csv_parent_child2_fields_convesrion():
+    import io
+    s = """code\tdescr\tqty\teach\tunit\tgval1
+1\t1-descr\t1\t2\tnr\tgval-1
+2\t2-descr\t2.0\t3.1\tnr\tgval-2
+3\t3-descr\t8\t9\tnr\tgval-7
+4\t4-descr\t1.5\t3\tgr\tgval-4"""
+
+    data = [x.split("\t") for x in s.split("\n")]
+
+    data[1][0] = 1
+    data[2][0] = 2.0
+    data[3][0] = 3.1
+    data[4][0] = "4.0"
+    bom = _import_csv_parent_child2(data,[], {})
+
+    assert(0 in bom)
+    assert("1" in bom)      # 1 -> '1'          int -> str
+    assert("2" in bom)      # 2.0 -> 2 -> '2'   int -> floar -> str
+    assert("3.1" in bom)    # 3.1 -> '3.1'      float -> str, because
+                            #                   float(int(3..1)) != 3.1
+    assert("4.0" in bom)    # '4.0'             no conversion
+
+    assert( bom[0]["deps"]["2"]["qty"] == 2.0)
+    assert( bom[0]["deps"]["2"]["each"] == 3.1)
+
+def test_import_csv_parent_child2_qty_each_conversion():
+    import io
+    s = """code\tdescr\tqty\teach\tunit\tgval1
+1\t1-descr\t1\t2\tnr\tgval-1
+2\t2-descr\t2.0\t3.1\tnr\tgval-2
+3\t3-descr\t\t9\tnr\tgval-7
+4\t4-descr\t1,5\t3\tgr\tgval-4"""
+
+    data = [x.split("\t") for x in s.split("\n")]
+
+    bom = _import_csv_parent_child2(data,[], {})
+
+    assert( bom[0]["deps"]["1"]["qty"] == 1)    #  '1' -> 1.0
+    assert( bom[0]["deps"]["2"]["qty"] == 2)    #  '2.0' -> 2.0
+    assert( bom[0]["deps"]["2"]["each"] == 3.1) #  '3.1' -> 3.1
+    assert( bom[0]["deps"]["3"]["qty"] == 0)    #  '' -> 0.0
+    assert( bom[0]["deps"]["4"]["qty"] == 1.5)  #   '1,5' -> '1.5' -> 1.5
 
 
 if __name__ == "__main__":
