@@ -27,6 +27,7 @@ import xlwt
 
 import cfg
 import utils
+import db
 
 def get_template_list():
     ret = []
@@ -45,6 +46,7 @@ class Exporter:
     def __init__(self, rootnode, data):
         self._data = data
         self._rootnode = rootnode
+        self._drawings = dict()
 
     def export_as_json(self, nf):
         f = open(nf, "w")
@@ -114,7 +116,12 @@ class Exporter:
             elif col=="rev":
                 row += [item["ver"]]
             elif col=="drawings":
-                row += ["TBD"]
+                rid = item["rid"]
+                if rid in self._drawings:
+                    l = self._drawings[rid]
+                else:
+                    l = []
+                row += [", ".join(l)]
             elif col=="indented_code":
                 row += ["... "*level + item["code"]]
             elif col in ["code", "descr", "iter", "date_from", "date_to"]:
@@ -139,7 +146,6 @@ class Exporter:
                 item["code"], item["descr"],
                 maxlevel=maxlevel)
 
-
     def _export_as_table_by_template(self, template_name):
 
         columns = []
@@ -160,6 +166,15 @@ class Exporter:
 
             columns.append(cl)
             captions.append(cp)
+
+        if "drawings" in columns and len(self._drawings) == 0:
+            d = db.DB()
+            fnl = []
+            for k, v in self._data.items():
+                rid = v["rid"]
+                l = d.get_drawings_by_code_id(rid)
+                if len(l):
+                    self._drawings[k] = [os.path.basename(x[1]) for x in l]
 
         sortby=int(cfg.config()[template_name].get("sortby", -1))
         unique=int(cfg.config()[template_name].get("unique", 0))

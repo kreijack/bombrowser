@@ -61,7 +61,7 @@ name=Simple table
 #   each -> each
 #   ref -> ref
 #   paren -> parent_code
-#   drawings -> drawings path
+#   drawings -> drawings filenaname
 #   gval1, glval20 -> generic fields
 #   rev -> code revision
 #   iter -> code iteration
