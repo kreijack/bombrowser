@@ -174,7 +174,7 @@ class Exporter:
                 rid = v["rid"]
                 l = d.get_drawings_by_code_id(rid)
                 if len(l):
-                    self._drawings[k] = [os.path.basename(x[1]) for x in l]
+                    self._drawings[rid] = [os.path.basename(x[1]) for x in l]
 
         sortby=int(cfg.config()[template_name].get("sortby", -1))
         unique=int(cfg.config()[template_name].get("unique", 0))
