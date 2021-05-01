@@ -127,7 +127,7 @@ class BBMainWindow(QMainWindow):
                         w.show()
                         break
 
-        a = QAction("New coedes list window", win)
+        a = QAction("New codes list window", win)
         a.setShortcut("Ctrl+L")
         m.addAction(a)
         a.triggered.connect(lambda : listcodegui.CodesWindow().show())
