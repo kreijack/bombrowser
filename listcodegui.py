@@ -178,9 +178,9 @@ class CodesListWidget(QWidget):
     def getTableText(self):
         return self._copy_info
 
-class CodesWindow(bbwindow.BBMainWindowNotClose):
+class CodesWindow(bbwindow.BBMainWindow):
     def __init__(self, parent=None):
-        bbwindow.BBMainWindowNotClose.__init__(self, parent)
+        bbwindow.BBMainWindow.__init__(self, parent)
         self.setWindowTitle("Codes list")
 
         self._init_gui()

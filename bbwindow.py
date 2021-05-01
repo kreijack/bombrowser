@@ -24,6 +24,7 @@ from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QMessageBox, QMainWindow
 
 from version import version
+import listcodegui
 
 window_title = "BOMBrowser " + version
 
@@ -123,47 +124,24 @@ class BBMainWindow(QMainWindow):
                         w.show()
                         break
 
-        separator = False
+        a = QAction("New coedes list window", win)
+        a.setShortcut("Ctrl+L")
+        m.addAction(a)
+        a.triggered.connect(lambda : listcodegui.CodesWindow().show())
 
-        for (t, w) in c:
-            a = QAction(t, win)
-            # add the CTRL-L short cut only for the first window
-            if not separator:
-                a.setShortcut("Ctrl+L")
-            a.triggered.connect(ShowWindow(w))
-            m.addAction(a)
+        separator = True
 
-            separator = True
+        for l in [c, b, d, e]:
+            if len(l):
+                if separator:
+                    m.addSeparator()
+                for (t, w) in l:
+                    a = QAction(t, win)
+                    a.triggered.connect(ShowWindow(w))
+                    m.addAction(a)
 
-        if len(b):
-            if separator:
-                m.addSeparator()
-            for t,w in b:
-                a = QAction(t, win)
-                a.triggered.connect(ShowWindow(w))
-                m.addAction(a)
+                separator = True
 
-            separator = True
-
-        if len(d):
-            if separator:
-                m.addSeparator()
-            for t,w in d:
-                a = QAction(t, win)
-                a.triggered.connect(ShowWindow(w))
-                m.addAction(a)
-
-            separator = True
-
-        if len(e):
-            if separator:
-                m.addSeparator()
-            for t,w in e:
-                a = QAction(t, win)
-                a.triggered.connect(ShowWindow(w))
-                m.addAction(a)
-
-            separator = True
 
     def _show_about(self, connection=""):
         msgBox = QMessageBox(self)
@@ -176,16 +154,3 @@ class BBMainWindow(QMainWindow):
             "https://gitlab.com/kreijack/bombrowser</a><br><br>" +
             connection)
         msgBox.exec_();
-
-
-class BBMainWindowNotClose(BBMainWindow):
-    def __init__(self, parent=None):
-        BBMainWindow.__init__(self, parent)
-
-    def closeEvent(self, event):
-        if len(_bbmainwindows_list) == 1:
-            BBMainWindow.closeEvent(self, event)
-        else:
-            QMainWindow.closeEvent(self, event)
-
-
