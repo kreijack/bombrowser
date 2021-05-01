@@ -19,19 +19,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import sys, configparser
 
-from PySide2.QtWidgets import QGroupBox
+from PySide2.QtWidgets import QGroupBox, QWidget
 from PySide2.QtWidgets import QLabel, QLineEdit, QCheckBox
 from PySide2.QtWidgets import QGridLayout, QWidget, QPushButton
 from PySide2.QtWidgets import QMessageBox, QDialog
 from PySide2.QtCore import Qt
 import pprint
 
-import db, editcode
+import db, editcode, bbwindow
 import exporter, utils, selectdategui, cfg
 
-class CopyCode(QDialog):
+class CopyCode(bbwindow.BBMainWindow):
     def __init__(self, rev_id, parent):
-        QDialog.__init__(self, parent)
+        bbwindow.BBMainWindow.__init__(self)
         self._rid = rev_id
         self._results = None
         self._new_code = None
@@ -150,7 +150,9 @@ class CopyCode(QDialog):
         grid.addWidget(pb, 30, 2)
         self._copy_revise_push_button = pb
 
-        self.setLayout(grid)
+        w = QWidget()
+        w.setLayout(grid)
+        self.setCentralWidget(w)
 
         self._change_copy_btn()
         self._change_proto_btn()
@@ -296,13 +298,15 @@ class CopyCode(QDialog):
             self._l_new_code.setReadOnly(False)
             self._l_new_code.setEnabled(True)
             self._l_new_rev.setText("0")
-            self.setWindowTitle("BOMBrowser - copy code")
+            self.setWindowTitle("Copy code: %s"%(
+                self._l_old_code.text()))
             self._copy_revise_push_button.setText("Copy code")
         else:
             self._l_new_code.setText(self._l_old_code.text())
             self._l_new_code.setReadOnly(True)
             self._l_new_code.setEnabled(False)
-            self.setWindowTitle("BOMBrowser - revise code")
+            self.setWindowTitle("Revise code: %s"%(
+                self._l_old_code.text()))
             self._copy_revise_push_button.setText("Revise code")
             new_rev = self._l_old_rev.text()
             try:
@@ -360,6 +364,6 @@ def revise_copy_code(code_id, parent):
 
 def revise_copy_code_by_rid(rid):
         w = CopyCode(rid, None)
-        w.exec_()
+        w.show()
 
 

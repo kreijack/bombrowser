@@ -73,6 +73,7 @@ class BBMainWindow(QMainWindow):
         bomwindows = []
         diffwindows = []
         editwindows = []
+        copywindows = []
         for (id_, w, t) in _bbmainwindows_list:
 
             if id_ == self.__bbmainwindow_list_cnt:
@@ -87,10 +88,14 @@ class BBMainWindow(QMainWindow):
                   t.startswith(window_title + " - Smart where used") or
                   t.startswith(window_title + " - Where used")):
                 bomwindows.append((t, id_))
+            elif (t.startswith(window_title + " - Copy code:") or
+                  t.startswith(window_title + " - Revise code:")):
+                copywindows.append((t, id_))
             elif t.startswith(window_title + " - Codes list"):
                 codewindows.append((t, id_))
 
-        return (codewindows, bomwindows, diffwindows, editwindows)
+        return (codewindows, bomwindows, diffwindows, editwindows,
+            copywindows)
 
     def build_windows_menu(self, main_menu, title="Windows", win=None):
         if win is None:
@@ -108,8 +113,6 @@ class BBMainWindow(QMainWindow):
 
         for a in list(m.actions()):
             m.removeAction(a)
-
-        c, b, d, e = win._get_windows_list()
 
         class ShowWindow():
             def __init__(self, id_):
@@ -131,7 +134,7 @@ class BBMainWindow(QMainWindow):
 
         separator = True
 
-        for l in [c, b, d, e]:
+        for l in win._get_windows_list():
             if len(l):
                 if separator:
                     m.addSeparator()
