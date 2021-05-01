@@ -127,6 +127,18 @@ class BBMainWindow(QMainWindow):
                         w.show()
                         break
 
+
+        def close_all_other_windows():
+            for (id_, w, t) in _bbmainwindows_list[:]:
+                if id_ == self.__bbmainwindow_list_cnt:
+                    continue
+                w.close()
+
+        a = QAction("Close all other windows", win)
+        a.setShortcut("Ctrl+W")
+        m.addAction(a)
+        a.triggered.connect(close_all_other_windows)
+
         a = QAction("New codes list window", win)
         a.setShortcut("Ctrl+L")
         m.addAction(a)
