@@ -258,7 +258,7 @@ class CopyCode(bbwindow.BBMainWindow):
             if len(codes):
                 w2 = editcode.EditWindow(codes[0][0])
                 w2.show()
-            self.accept()
+            self.close()
         else:
             if self._cb_copy_rev.checkState() == Qt.CheckState.Checked:
                 QMessageBox.information(None, "BOMBrowser",
@@ -278,7 +278,7 @@ class CopyCode(bbwindow.BBMainWindow):
                                 QMessageBox.Yes, QMessageBox.No);
         self._start_editor = self._cb_start_edit.checkState() == Qt.CheckState.Checked
         if reply == QMessageBox.Yes:
-            self.reject()
+            self.close()
 
     def _change_proto_btn(self):
         if self._cb_proto.checkState() == Qt.CheckState.Checked:
