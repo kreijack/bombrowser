@@ -41,7 +41,14 @@ rnd = MyRandom()
 
 dbname="database.sqlite"
 
-def insert_code(c, descr, code, ver, iter_, default_unit, gval1, gval2):
+def insert_code(c, descr, code, ver='0', iter_=0, default_unit='NR',
+                gval1='', gval2='', date=None, date_to=None):
+
+            if date is None:
+                date = date0
+            if date_to is None:
+                date_to = db.days_to_iso(db.end_of_the_world)
+
             c.execute("INSERT INTO items(code) VALUES (?)", (
                 code,)
             )
@@ -52,13 +59,16 @@ def insert_code(c, descr, code, ver, iter_, default_unit, gval1, gval2):
                 descr, code_id, ver,
                 iter, default_unit,
                 gval1, gval2,
-                date_from, date_from_days) VALUES (
+                date_from, date_from_days,
+                date_to, date_to_days) VALUES (
                 ?, ?, ?,
+                ?, ?,
                 ?, ?,
                 ?, ?,
                 ?, ?)""",
                 (descr, mid, ver, iter_, default_unit, gval1, gval2,
-                 date0, db.iso_to_days(date0))
+                 date, db.iso_to_days(date),
+                 date_to, db.iso_to_days(date_to))
             )
 
 # create screws
@@ -834,18 +844,132 @@ def xrmdir(path):
             os.unlink(path)
 
 # insert non ascii string
-def insert_strange_code(c):
+def insert_unicode_code(c):
     s="UTF8 TEST HELLO WORLD - 你好世界"
-    insert_code(c, s, "T-HELLOWORLD", 0,
+    insert_code(c, s, "TEST-HELLOWORLD", 0,
                 0, "NR", "", "")
-    insert_code(c, "all lowercase", "T-alllowercase", 0,
+    insert_code(c, "all lowercase", "TEST-alllowercase", 0,
                 0, "NR", "", "")
-    insert_code(c, "ALL UPPER CASE", "T-ALLUPPERCASE", 0,
+    insert_code(c, "ALL UPPER CASE", "TEST-ALLUPPERCASE", 0,
                 0, "NR", "", "")
-    insert_code(c, "DEGREE SYMBOL '°'", "T-DEGREE", 0,
+    insert_code(c, "DEGREE SYMBOL '°'", "TEST-DEGREE", 0,
                 0, "NR", "", "")
-    insert_code(c, "A-ACUTE 'à'", "T-AACUTE", 0,
+    insert_code(c, "A-ACUTE 'à'", "TEST-AACUTE", 0,
                 0, "NR", "", "")
+
+def insert_codes_with_date(c):
+
+    insert_code(c, "TEST-ASS-A", "TEST-ASS-A", 0,
+                0, "NR", date='2020-01-01', date_to='2021-01-01')
+    c.execute("""SELECT MAX(id) FROM item_revisions""")
+    aaid = c.fetchone()
+
+
+    insert_code(c, "TEST-A", "TEST-A", 0,
+                0, "NR", date='2020-01-01')
+    c.execute("""SELECT MAX(id) FROM items""")
+    caid = c.fetchone()
+
+    insert_code(c, "TEST-B", "TEST-B", 0,
+                0, "NR", date='2020-01-01', date_to='2021-01-01')
+    c.execute("""SELECT MAX(id) FROM items""")
+    cbid = c.fetchone()
+
+    for child_id in [caid, cbid]:
+        c.execute("""
+            INSERT INTO assemblies(
+                        unit, child_id,
+                        revision_id,
+                        qty, each, ref
+            ) VALUES (
+                ?, ?,
+                ?,
+                ?, ?, ?
+            )""",  ('NR', child_id, aaid, 1, 1, '//'))
+
+def insert_codes_with_date(c):
+
+    insert_code(c, "TEST-ASS-A", "TEST-ASS-A", 0,
+                0, "NR", date='2020-01-01', date_to='2021-01-01')
+    c.execute("""SELECT MAX(id) FROM item_revisions""")
+    aaid = c.fetchone()
+
+
+    insert_code(c, "TEST-A", "TEST-A", 0,
+                0, "NR", date='2020-01-01')
+    c.execute("""SELECT MAX(id) FROM items""")
+    caid = c.fetchone()
+
+    insert_code(c, "TEST-B", "TEST-B", 0,
+                0, "NR", date='2020-01-01', date_to='2021-01-01')
+    c.execute("""SELECT MAX(id) FROM items""")
+    cbid = c.fetchone()
+
+    for child_id in [caid, cbid]:
+        c.execute("""
+            INSERT INTO assemblies(
+                        unit, child_id,
+                        revision_id,
+                        qty, each, ref
+            ) VALUES (
+                ?, ?,
+                ?,
+                ?, ?, ?
+            )""",  ('NR', child_id, aaid, 1, 1, '//'))
+
+def insert_codes_with_loop(c):
+
+    insert_code(c, "TEST-LOOP-A", "TEST-LOOP-A")
+    c.execute("""SELECT MAX(id) FROM item_revisions""")
+    car = c.fetchone()
+    c.execute("""SELECT MAX(id) FROM items""")
+    cai = c.fetchone()
+
+    insert_code(c, "TEST-LOOP-B", "TEST-LOOP-B")
+    c.execute("""SELECT MAX(id) FROM item_revisions""")
+    cbr = c.fetchone()
+    c.execute("""SELECT MAX(id) FROM items""")
+    cbi = c.fetchone()
+
+    insert_code(c, "TEST-LOOP-C", "TEST-LOOP-C")
+    c.execute("""SELECT MAX(id) FROM item_revisions""")
+    ccr = c.fetchone()
+    c.execute("""SELECT MAX(id) FROM items""")
+    cci = c.fetchone()
+
+    c.execute("""
+        INSERT INTO assemblies(
+                    unit, child_id,
+                    revision_id,
+                    qty, each, ref
+        ) VALUES (
+            ?, ?,
+            ?,
+            ?, ?, ?
+        )""",  ('NR', cbi, car, 1, 1, '//'))
+
+    c.execute("""
+        INSERT INTO assemblies(
+                    unit, child_id,
+                    revision_id,
+                    qty, each, ref
+        ) VALUES (
+            ?, ?,
+            ?,
+            ?, ?, ?
+        )""",  ('NR', cci, cbr, 1, 1, '//'))
+
+    c.execute("""
+        INSERT INTO assemblies(
+                    unit, child_id,
+                    revision_id,
+                    qty, each, ref
+        ) VALUES (
+            ?, ?,
+            ?,
+            ?, ?, ?
+        )""",  ('NR', cai, ccr, 1, 1, '//'))
+
 
 def create_db():
     d = db.DB()
@@ -947,7 +1071,12 @@ def create_db():
     ))
     conn.commit()
 
-    insert_strange_code(c)
+    print("Insert unicode codes")
+    insert_unicode_code(c)
+    print("Insert code with date")
+    insert_codes_with_date(c)
+    print("Insert assembly with a loop")
+    insert_codes_with_loop(c)
 
     conn.commit()
 
