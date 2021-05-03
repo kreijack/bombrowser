@@ -29,7 +29,7 @@ from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtCore import Qt, QItemSelectionModel
 import pprint, shutil
 
-import db, codegui, codecontextmenu
+import db, codegui, codecontextmenu, checker
 import exporter, utils, selectdategui, bbwindow
 #from utils import catch_exception
 
@@ -245,12 +245,20 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         a.triggered.connect(self._start_find)
         m.addAction(a)
 
+        m = mainMenu.addMenu("Tools")
+        a = QAction("Check bom", self)
+        a.triggered.connect(self._check_bom)
+        m.addAction(a)
+
         self._windowsMenu = self.build_windows_menu(mainMenu)
 
         m = mainMenu.addMenu("Help")
         a = QAction("About ...", self)
         a.triggered.connect(lambda : self._show_about(db.connection))
         m.addAction(a)
+
+    def _check_bom(self):
+        checker.run_bom_tests(self._top, self._data)
 
     def _copy_all_bom_files(self):
         dest = QFileDialog.getExistingDirectory(self, "Save to...",

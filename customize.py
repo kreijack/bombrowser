@@ -26,6 +26,12 @@ def get_edit_window_importer_list():
     """
     return []
 
+def get_bom_checker_list():
+    """
+        return a list of methods that check a pair (rootnode, bom)
+    """
+    return []
+
 # ----
 
 try:
@@ -42,3 +48,6 @@ if found:
 
     if hasattr(customize_ext, 'get_edit_window_importer_list'):
         get_edit_window_importer_list = customize_ext.get_edit_window_importer_list
+
+    if hasattr(customize_ext, 'get_bom_checker_list'):
+        get_bom_checker_list = customize_ext.get_bom_checker_list
