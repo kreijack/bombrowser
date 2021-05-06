@@ -245,15 +245,16 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         a.triggered.connect(self._start_find)
         m.addAction(a)
 
-        m = mainMenu.addMenu("Tools")
-        a = QAction("Check bom", self)
-        a.triggered.connect(self._check_bom)
-        m.addAction(a)
-
-        for (name, func) in customize.get_asm_tool_menu_list():
-            a = QAction(name, self)
-            a.triggered.connect(lambda : func(self._top, self._data))
+        if self._mode == "asm":
+            m = mainMenu.addMenu("Tools")
+            a = QAction("Check bom", self)
+            a.triggered.connect(self._check_bom)
             m.addAction(a)
+
+            for (name, func) in customize.get_asm_tool_menu_list():
+                a = QAction(name, self)
+                a.triggered.connect(lambda : func(self._top, self._data))
+                m.addAction(a)
 
         self._windowsMenu = self.build_windows_menu(mainMenu)
 
