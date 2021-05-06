@@ -32,6 +32,13 @@ def get_bom_checker_list():
     """
     return []
 
+def get_asm_tool_menu_list():
+    """
+        return a list of pairs (menuname, function(root, data)) to show
+        in the asmgui window (asm mode)
+    """
+    return []
+
 # ----
 
 try:
@@ -51,3 +58,9 @@ if found:
 
     if hasattr(customize_ext, 'get_bom_checker_list'):
         get_bom_checker_list = customize_ext.get_bom_checker_list
+
+    if hasattr(customize_ext, 'get_bom_checker_list'):
+        get_bom_checker_list = customize_ext.get_bom_checker_list
+
+    if hasattr(customize_ext, 'get_asm_tool_menu_list'):
+        get_asm_tool_menu_list = customize_ext.get_asm_tool_menu_list

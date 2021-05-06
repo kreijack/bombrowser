@@ -29,7 +29,7 @@ from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtCore import Qt, QItemSelectionModel
 import pprint, shutil
 
-import db, codegui, codecontextmenu, checker
+import db, codegui, codecontextmenu, checker, customize
 import exporter, utils, selectdategui, bbwindow
 #from utils import catch_exception
 
@@ -249,6 +249,11 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         a = QAction("Check bom", self)
         a.triggered.connect(self._check_bom)
         m.addAction(a)
+
+        for (name, func) in customize.get_asm_tool_menu_list():
+            a = QAction(name, self)
+            a.triggered.connect(lambda : func(self._top, self._data))
+            m.addAction(a)
 
         self._windowsMenu = self.build_windows_menu(mainMenu)
 
