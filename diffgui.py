@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import sys, html
 
 from PySide2.QtWidgets import QStatusBar
-from PySide2.QtWidgets import QTextEdit
+from PySide2.QtWidgets import QTextEdit, QHBoxLayout, QCheckBox
 from PySide2.QtWidgets import QLabel, QLineEdit
 from PySide2.QtWidgets import QGridLayout, QWidget, QApplication, QPushButton
 from PySide2.QtWidgets import QMessageBox, QAction, QDialog
@@ -106,21 +106,32 @@ class DiffWindow(bbwindow.BBMainWindow):
         grid = QGridLayout()
         self._grid = grid
 
-        grid.addWidget(self._bom1, 1, 1)
-        grid.addWidget(self._bom2, 1, 7)
+        hl = QHBoxLayout()
+        grid.addLayout(hl, 5, 0, 1, 10)
+
+        self._cb_only_top_code = QCheckBox("Diff only top code")
+        self._cb_only_top_code.clicked.connect(self.do_diff)
+        hl.addWidget(self._cb_only_top_code)
+        self._cb_minimal = QCheckBox("Diff only main attributes")
+        self._cb_minimal.clicked.connect(self.do_diff)
+        hl.addWidget(self._cb_minimal)
+        hl.addStretch()
+
+        grid.addWidget(self._bom1, 10, 1)
+        grid.addWidget(self._bom2, 10, 7)
         self._bom2.refreshBom.connect(self.do_diff)
         self._bom1.refreshBom.connect(self.do_diff)
-        grid.addWidget(QLabel("<font color=red>From (-)</>"), 1, 0)
-        grid.addWidget(QLabel("<font color=green>To (+)</>"), 1, 6)
+        grid.addWidget(QLabel("<font color=red>From (-)</>"), 10, 0)
+        grid.addWidget(QLabel("<font color=green>To (+)</>"), 10, 6)
 
         b = QPushButton("<->")
         b.clicked.connect(self._swap_diff)
-        grid.addWidget(b, 1, 5)
+        grid.addWidget(b, 10, 5)
 
         self._text = QTextEdit()
         self._text.setReadOnly(True)
 
-        grid.addWidget(self._text, 4, 0, 1, 10)
+        grid.addWidget(self._text, 20, 0, 1, 10)
 
         w = QWidget()
         w.setLayout(grid)
@@ -185,11 +196,24 @@ class DiffWindow(bbwindow.BBMainWindow):
             data2[code3]["id"] = code3
             data1.pop(code1)
             data2.pop(code2)
+        else:
+            code3 = code1
 
         gvals = cfg.get_gvalnames2()
 
-        keys = list(set(data1.keys()).union(data2.keys()))
-        keys.sort()
+        if self._cb_only_top_code.isChecked():
+            keys = [code1]
+        else:
+            keys = list(set(data1.keys()).union(data2.keys()))
+            keys.sort()
+
+        if self._cb_minimal.isChecked():
+            allowed_keys = [
+                "qty", "descr", "code"
+            ]
+        else:
+            allowed_keys = None
+
 
         self._text.clear()
 
@@ -206,12 +230,16 @@ class DiffWindow(bbwindow.BBMainWindow):
             return True
 
         def is_codes_equal(c1, c2):
-            if c1.keys() != c2.keys():
+            k1 = set(c1.keys())
+            k2 = set(c2.keys())
+            if allowed_keys:
+                k1 = k1.intersection(allowed_keys)
+                k2 = k2.intersection(allowed_keys)
+            if k1 != k2:
                 return False
 
-            keys = set(c1.keys())
-            keys.difference_update(item_props_blacklist)
-            for k in keys:
+            k1.difference_update(item_props_blacklist)
+            for k in k1:
                 if c1[k] != c2[k]:
                     return False
 
@@ -238,15 +266,25 @@ class DiffWindow(bbwindow.BBMainWindow):
                 s = s[:-1]
             return s
         def dump_child(child_dep, child_data):
-            return "%s / %s %s: %s rev %s - %s; %s\n"%(
+            s = "%s / %s %s: %s"%(
                     pretty_float(child_dep["qty"]),
                     pretty_float(child_dep["each"]),
                     child_dep["unit"],
-                    child_data["code"],
-                    child_data["ver"],
-                    child_data["descr"],
-                    child_dep["ref"])
-
+                    child_data["code"])
+            if not allowed_keys or "ver" in allowed_keys:
+                s += " rev %s"%(child_data["ver"])
+            if not allowed_keys or "descr" in allowed_keys:
+                s += " - %s"%(child_data["descr"])
+            if not allowed_keys or "ref" in allowed_keys:
+                s += ";- %s"%(child_dep["ref"])
+            return s
+        def dump_code(c):
+            s = " code: %s"%(c["code"])
+            if not allowed_keys or "ver" in allowed_keys:
+                s += " rev %s"%(c["ver"])
+            if not allowed_keys or "descr" in allowed_keys:
+                s += " - %s"%(c["descr"])
+            return s
 
         for key in keys:
             if key in data1.keys() and key in data2.keys():
@@ -255,10 +293,7 @@ class DiffWindow(bbwindow.BBMainWindow):
 
                 txt += "<br>\n"
                 # diff between the same code
-                txt += html.escape(
-                    " code: %s rev %s - %s\n"%(data1[key]["code"],
-                        data1[key]["ver"], data1[key]["descr"])
-                ) + "<br>"
+                txt += html.escape(dump_code(data1[key])) + "<br>"
 
                 keys = set(data1[key].keys()).union(data2[key].keys())
                 keys.difference_update(item_props_blacklist)
@@ -266,6 +301,8 @@ class DiffWindow(bbwindow.BBMainWindow):
                 keys.sort()
                 keys = [x for x in keys if not x.startswith("gval")]
                 keys = keys + [gvalname for (seq, idx, gvalname, caption, type_) in gvals]
+                if allowed_keys:
+                    keys = [ x for x in keys if x in allowed_keys]
 
                 for key2 in keys:
                     if data1[key][key2] == data2[key][key2]:
@@ -302,13 +339,11 @@ class DiffWindow(bbwindow.BBMainWindow):
 
             elif  key in data1.keys():
                 txt += "<br>\n"
-                txt += makeRed("-code: %s rev %s - %s\n"%(
-                    data1[key]["code"], data1[key]["ver"],
-                    data1[key]["descr"]))
+                txt += makeRed("-" + dump_code(data1[key])) + "\n"
                 txt += "&nbsp;" * 5 + "[....]<br>\n"
             else:
                 txt += "<br>\n"
-                txt += makeGreen("+code: "+data2[key]["code"]+"\n")
+                txt += makeGreen("+" + dump_code(data2[key])) + "\n"
 
                 keys = set(data2[key].keys())
                 keys.difference_update(item_props_blacklist)
@@ -316,6 +351,8 @@ class DiffWindow(bbwindow.BBMainWindow):
                 keys.sort()
                 keys = [x for x in keys if not x.startswith("gval")]
                 keys = keys + [gvalname for (seq, idx, gvalname, caption, type_) in gvals]
+                if allowed_keys:
+                    keys = [ x for x in keys if x in allowed_keys]
 
                 for key2 in  keys:
                     name = key2
