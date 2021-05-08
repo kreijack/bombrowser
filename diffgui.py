@@ -63,10 +63,12 @@ class CodeDate(QWidget):
 
         self.setLayout(g)
 
-    def _do_refresh(self):
+    def _get_bom(self):
         d = db.DB()
-        self._ret_code, self._ret_data = d.get_bom_by_code_id3(
-            self._id, self._date_days)
+        return d.get_bom_by_code_id3(self._id, self._date_days)
+
+    def _do_refresh(self):
+        self._ret_code, self._ret_data = self._get_bom()
         self.refreshBom.emit()
 
     def getData(self):
@@ -74,9 +76,7 @@ class CodeDate(QWidget):
 
     def getBom(self):
         if self._ret_code is None:
-            d = db.DB()
-            self._ret_code, self._ret_data = d.get_bom_by_code_id3(
-                self._id, self._date_days)
+            self._ret_code, self._ret_data = self._get_bom()
         return (self._ret_code, self._ret_data)
 
     def getCaption(self):
