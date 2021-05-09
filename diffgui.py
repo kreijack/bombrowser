@@ -224,6 +224,8 @@ class DiffWindow(bbwindow.BBMainWindow):
 
         def is_children_equal(c1, c2):
             for k in ["qty", "each", "unit", "ref"]:
+                if allowed_keys and not k in allowed_keys:
+                    continue
                 if c1[k] != c2[k]:
                     return False
 
