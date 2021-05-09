@@ -197,7 +197,7 @@ def _import_csv_parent_child2(data, keyword_map, options):
         if not code_values["parent_code"] in bom:
             bom[code_values["parent_code"]] = {
                 "deps": dict(),
-                "code:": code_values["parent_code"],
+                "code": code_values["parent_code"],
             }
             if "parent_descr" in code_values:
                 bom[code_values["parent_code"]]["descr"] = code_values["parent_descr"]
