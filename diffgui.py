@@ -142,8 +142,8 @@ class DiffWindow(bbwindow.BBMainWindow):
         tmp = self._bom1
         self._bom1 = self._bom2
         self._bom2 = tmp
-        self._grid.addWidget(self._bom1, 1, 1)
-        self._grid.addWidget(self._bom2, 1, 7)
+        self._grid.addWidget(self._bom1, 10, 1)
+        self._grid.addWidget(self._bom2, 10, 7)
         self.do_diff()
 
     def _create_menu(self):
@@ -271,18 +271,23 @@ class DiffWindow(bbwindow.BBMainWindow):
                     pretty_float(child_dep["each"]),
                     child_dep["unit"],
                     child_data["code"])
-            if not allowed_keys or "ver" in allowed_keys:
+            if ((not allowed_keys or "ver" in allowed_keys) and
+                    "ver" in child_data):
                 s += " rev %s"%(child_data["ver"])
-            if not allowed_keys or "descr" in allowed_keys:
+            if ((not allowed_keys or "descr" in allowed_keys) and
+                    "descr" in child_data):
                 s += " - %s"%(child_data["descr"])
-            if not allowed_keys or "ref" in allowed_keys:
+            if ((not allowed_keys or "ref" in allowed_keys) and
+                    "ref" in child_data):
                 s += ";- %s"%(child_dep["ref"])
             return s
         def dump_code(c):
             s = " code: %s"%(c["code"])
-            if not allowed_keys or "ver" in allowed_keys:
+            if ((not allowed_keys or "ver" in allowed_keys) and
+                    "ver" in c):
                 s += " rev %s"%(c["ver"])
-            if not allowed_keys or "descr" in allowed_keys:
+            if ((not allowed_keys or "descr" in allowed_keys) and
+                    "descr" in c):
                 s += " - %s"%(c["descr"])
             return s
 
@@ -305,7 +310,8 @@ class DiffWindow(bbwindow.BBMainWindow):
                     keys = [ x for x in keys if x in allowed_keys]
 
                 for key2 in keys:
-                    if data1[key][key2] == data2[key][key2]:
+                    if (key2 in data1[key] and key2 in data2[key] and
+                            data1[key][key2] == data2[key][key2]):
                         continue
                     name = key2
                     if name.startswith("gval"):
@@ -314,9 +320,11 @@ class DiffWindow(bbwindow.BBMainWindow):
                                 name = caption
                                 break
 
-                    txt += "&nbsp;" * 5 + makeRed(
-                            "-%s: %s\n"%(name, data1[key][key2]))
-                    txt += "&nbsp;" * 5 + makeGreen(
+                    if key2 in data1[key]:
+                        txt += "&nbsp;" * 5 + makeRed(
+                                "-%s: %s\n"%(name, data1[key][key2]))
+                    if key2 in data2[key]:
+                        txt += "&nbsp;" * 5 + makeGreen(
                             "+%s: %s\n"%(name, data2[key][key2]))
 
                 child_ids = list(set(data1[key]["deps"].keys()).union(
@@ -361,8 +369,9 @@ class DiffWindow(bbwindow.BBMainWindow):
                             if gvalname == name:
                                 name = caption
                                 break
-                    txt += "&nbsp;" * 5 + makeGreen(
-                        "+%s: %s\n"%(name, data2[key][key2]))
+                    if key2 in data2[key]:
+                        txt += "&nbsp;" * 5 + makeGreen(
+                            "+%s: %s\n"%(name, data2[key][key2]))
 
                 child_ids = list(data2[key]["deps"].keys())
                 child_ids.sort()
