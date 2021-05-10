@@ -30,7 +30,7 @@ from PySide2.QtCore import Qt, QItemSelectionModel
 import pprint, shutil
 
 import db, codegui, codecontextmenu, checker, customize
-import exporter, utils, selectdategui, bbwindow
+import exporter, utils, selectdategui, bbwindow, importer, diffgui
 #from utils import catch_exception
 
 
@@ -251,10 +251,22 @@ class AssemblyWindow(bbwindow.BBMainWindow):
             a.triggered.connect(self._check_bom)
             m.addAction(a)
 
-            for (name, func) in customize.get_asm_tool_menu_list():
-                a = QAction(name, self)
-                a.triggered.connect(lambda : func(self._top, self._data))
-                m.addAction(a)
+            l = importer.get_diff_importer_list()
+            if len(l):
+                m.addSeparator()
+                for (importer_name, name, open_fn, import_fn) in l:
+                    a = QAction("Diff against '%s'..."%(name), self)
+                    a.triggered.connect(utils.Callable(self._diff_bom,
+                            importer_name, name, open_fn, import_fn))
+                    m.addAction(a)
+
+            l = customize.get_asm_tool_menu_list()
+            if len(l):
+                m.addSeparator()
+                for (name, func) in l:
+                    a = QAction(name, self)
+                    a.triggered.connect(lambda : func(self._top, self._data))
+                    m.addAction(a)
 
         self._windowsMenu = self.build_windows_menu(mainMenu)
 
@@ -262,6 +274,17 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         a = QAction("About ...", self)
         a.triggered.connect(lambda : self._show_about(db.connection))
         m.addAction(a)
+
+    def _diff_bom(self, importer_name, name, open_fn, import_fn):
+        bom1 = diffgui.CodeDateSingle(self._data[self._top]["id"],
+            self._data[self._top]["code"], 
+            self._data[self._top]["date_from_days"])
+        fn = open_fn()
+        bom2 = diffgui.BomImported(name, import_fn, open_fn, fn)
+        
+        w = diffgui.DiffWindow(bom1, bom2)
+        w.do_diff()
+        w.show()
 
     def _check_bom(self):
         checker.run_bom_tests(self._top, self._data)
