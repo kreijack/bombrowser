@@ -47,8 +47,8 @@ class Callable:
         self._f = f
         self._args = args
         self._kwargs = kwargs
-    def __call__(self):
-        return self._f(*self._args, **self._kwargs)
+    def __call__(self, *args, **kwargs):
+        return self._f(*args, *self._args, **kwargs, **self._kwargs)
 
 def catch_exception(f):
     def wrapper(*args, **kwargs):
@@ -152,7 +152,6 @@ def test_split_with_escape_quote():
     r = split_with_escape('"ab\\" c","defg"', ",", quote='"')
     assert(r == ["ab\" c", "defg"])
 
-
 def test_split_with_escape_simple():
     r = split_with_escape("abcd,efg", ",")
     assert(r == ["abcd", "efg"])
@@ -171,6 +170,62 @@ def test_split_with_escape_simple():
 
     r = split_with_escape(",,abcd,,,,", ",")
     assert(r == ["", "", "abcd", "", "", "", ""])
+    
+def test_callable_simple():
+
+    def effe():
+        return True
+    
+    c = Callable(effe)
+    assert(c)
+
+def test_callable_with_args_1():
+
+    def effe(n):
+        return n
+    
+    c = Callable(effe, True)
+    assert(c())
+
+def test_callable_with_args_2():
+    def effe(n):
+        return n
+    
+    c = Callable(effe)
+    assert(c(True))
+
+def test_callable_with_args_3():
+    def effe(n, n1=False):
+        return n != n1
+    
+    c = Callable(effe , n1=True)
+    assert(c(False))
+
+def test_callable_with_args_4():
+    def effe(n, n1=False):
+        return n != n1
+    
+    c = Callable(effe , False, n1=True)
+    assert(c())
+    
+def test_callable_with_args_5():
+    def effe(n, n2, n3=7):
+        return n - n2 + n3
+    
+    c = Callable(effe , 2, n3=8)
+    assert(c(3) == (3 - 2 + 8))
+
+def test_callable_with_args_6():
+    def effe(n, n2, n3=7, n4=22):
+        return n - n2 + n3 / n4
+    
+    c = Callable(effe , 3, n3=8)
+    
+    # check that a different order would give a different results
+    assert((2 - 3 + 8 / 77) != (3 - 2 + 8 / 77))
+    assert((2 - 3 + 8 / 77) != (2 - 3 + 77 / 8))
+    
+    assert(c(2, n4=77) == (2 - 3 + 8 / 77))
 
 if __name__ == "__main__":
     last = 1
