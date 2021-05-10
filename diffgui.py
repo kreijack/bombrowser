@@ -21,13 +21,110 @@ import sys, html
 
 from PySide2.QtWidgets import QStatusBar
 from PySide2.QtWidgets import QTextEdit, QHBoxLayout, QCheckBox
-from PySide2.QtWidgets import QLabel, QLineEdit
+from PySide2.QtWidgets import QLabel, QLineEdit, QFileDialog
 from PySide2.QtWidgets import QGridLayout, QWidget, QApplication, QPushButton
 from PySide2.QtWidgets import QMessageBox, QAction, QDialog
 from PySide2.QtCore import Qt, Signal
 import pprint, traceback
 
-import db, utils, selectdategui, bbwindow, cfg
+import db, utils, selectdategui, bbwindow, cfg, importer, editcode
+
+
+class BomImported(QWidget):
+
+    refreshBom = Signal()
+
+    def __init__(self, title, importer, open_file, fn='', parent=None):
+        QWidget.__init__(self, parent)
+        
+        self._fn = fn
+        self._importer = importer
+        self._open_file = open_file
+        self._top = None
+        
+        self._title = title
+        
+        self._ret_code = None
+        self._ret_data = None
+
+        g = QGridLayout()
+
+
+        g.addWidget(QLabel("Title"), 10, 10)
+        le = QLineEdit()
+        le.setText(self._fn)
+        le.setReadOnly(True)
+        g.addWidget(le, 11, 10)
+        self._fn_widget = le
+
+        b = QPushButton("...")
+        b.clicked.connect(self._open_file)
+        g.addWidget(b, 11, 15)
+
+        b = QPushButton("Refresh")
+        b.clicked.connect(self._do_refresh)
+        g.addWidget(b, 10, 20, 2, 1)
+
+        self.setLayout(g)
+
+    def _get_bom(self):
+        if self._fn == '':
+            return (None, None)
+
+        bom = self._importer(self._fn)
+                            
+        if bom is None:
+            QMessageBox.critical(self, "BOMBrowser",
+                "Cannot import data")
+            return
+
+        if 0 in bom:
+            root = 0
+        else:
+            data = []
+            for k in bom:
+                descr = "N/A"
+                if "descr" in bom[k]:
+                    descr = str(bom[k]["descr"])
+                data.append((str(k), descr))
+            w = editcode.SelectFromList(self, "Select a code for import",
+                ["CODE", "DESCR"], data)
+            w.exec_()
+
+            ret = w.getIndex()
+            if ret is None:
+                return
+
+            root = data[ret][0]
+        
+        return (root, bom)
+        
+    def _open_file(self):
+        fn = self._load_file()
+        if fn == "":
+            return
+            
+        self._fn = fn
+        self._fn_widget = fn
+        self._ret_code, self._ret_data = self._get_bom()
+
+    def _do_refresh(self):
+        self._ret_code, self._ret_data = self._get_bom()
+        if self._ret_code is None:
+            return
+        self.refreshBom.emit()
+
+    def getData(self):
+        return (self._id, self._code, self._date, self._date_days)
+
+    def getBom(self):
+        if self._ret_code is None:
+            self._ret_code, self._ret_data = self._get_bom()
+        return (self._ret_code, self._ret_data)
+
+    def getCaption(self):
+        return "%s:%s"%(self._title, self._fn)
+
 
 class CodeDate(QWidget):
 
@@ -81,6 +178,32 @@ class CodeDate(QWidget):
 
     def getCaption(self):
         return "%s @ %s"%(self._code, self._date)
+
+
+class CodeDateSingle(CodeDate):
+
+    def __init__(self, id_, code, date_days, parent=None):
+        CodeDate.__init__(self, id_, code, date_days, parent)
+
+    def _get_bom(self):
+        (top, data) = CodeDate._get_bom(self)
+
+        top2 = data[top]["code"]
+        data2 = dict()
+
+        for k,v in data.items():
+            code = v["code"]
+            data2[code] = v.copy()
+            data2[code]["deps"] = dict()
+
+            for k2, v2 in v["deps"].items():
+                code2 = data[k2]["code"]
+                data2[code]["deps"][code2] = v2
+
+        assert(top2 in data2)
+
+        return top2, data2
+
 
 class DiffWindow(bbwindow.BBMainWindow):
     def __init__(self, bom1, bom2, parent=None):
