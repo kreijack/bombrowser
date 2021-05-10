@@ -31,11 +31,15 @@ import utils
 
 _default_unit = "NR"
 
-def import_csv_parent_child(keyword_map, options):
+def _csv_parent_child_get_filename(options):
 
     (fn, _) = QFileDialog.getOpenFileName(None, "Select a file to import",
         None,
         "CSV files (*.csv);;Excel file (*.xls *.xlsx);;All files (*.*)")
+    return fn
+
+def _csv_parent_child_import(fn, keyword_map, options):
+
     if fn == "":
         return None
 
@@ -43,6 +47,11 @@ def import_csv_parent_child(keyword_map, options):
 
     bom = _import_csv_parent_child2(data, keyword_map, options)
     return bom
+
+def import_csv_parent_child(keyword_map, options):
+
+    fn = _csv_parent_child_get_filename(options)
+    return _csv_parent_child_import(fn, keyword_map, options)
 
 def _read_table_xls(nf):
     book = xlrd.open_workbook(nf)
@@ -268,6 +277,48 @@ def get_importer_list():
         else: # json
             ret.append((importer_name, name,
                 utils.Callable(import_json, map_)))
+
+    return ret
+
+def get_diff_importer_list():
+
+    l = utils.split_with_escape(
+                    cfg.config()["BOMBROWSER"].get("importer_list"),
+                    delimiter=',', quote='"')
+    if l == [""]:
+        return None
+    ret = []
+    for importer_name in l:
+        if not cfg.config().has_section(importer_name):
+            continue
+        name = cfg.config()[importer_name].get("name", None)
+        type_ = cfg.config()[importer_name].get("type", None)
+        map_ = cfg.config()[importer_name].get("map", None)
+
+        if map_ is None or type_ is None or name is None:
+            print("Importer '%s' is not defined properly"%(importer_name))
+            continue
+
+        if not type_ in ["parent_child", "json"]:
+            print("Importer '%s': unknown type '%s'"%(importer_name, type_))
+            continue
+
+        name, map_, type_ = map(lambda x : x.strip(), (name, map_, type_))
+
+        if type_ == "parent_child":
+            options = dict()
+            for k in ["default_unit", "skip_first_lines", "ignore_duplicate",
+                        "delimiter", "quotechar"]:
+                if k in cfg.config()[importer_name]:
+                    options[k] = cfg.config()[importer_name].get(k)
+            mapl = [x.strip() for x in map_.split("\n") if len(x.strip()) > 0]
+            ret.append((importer_name, name,
+                utils.Callable(_csv_parent_child_get_filename, options.copy()),
+                utils.Callable(_csv_parent_child_import, mapl[:], options.copy()))
+            )
+        #else: # json
+        #    ret.append((importer_name, name,
+        #        utils.Callable(import_json, map_)))
 
     return ret
 
