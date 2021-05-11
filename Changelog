@@ -1,6 +1,6 @@
 
 2021-05-11: v0.4.4
-- add command smart where used
+- add command 'smart where used'
 - import: improve the euristic to convert a number in float
 - import: add test fro number conversion
 - import: if a 'mandatory' field is missed, show which one
@@ -10,6 +10,7 @@
 - copycode: the 'copy revise' window is a standard window instead a modeless dialog
 - windows menu: add the 'close all other windows' command
 - assembly window: allow to compare againt an imported file
+- assembly window: add check bom (test for loop)
 - diff window: add option to show only the first level diff
 - diff window: add option to show only diff of the main properties (code, descr, qty)
 - bug: editcode: don't change a cell which is not initialized
