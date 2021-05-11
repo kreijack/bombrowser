@@ -17,6 +17,7 @@
 - [ ] for each command in code list window and in assembly window check that the code exists and it is not an artifact of a deleted one
 - [ ] add an exception handler for each database update [partially]
 - [ ] in the "edit dialog", handle the case when the dates are changed by another user returning from "edit dates dialog"
+- [ ] make the find dialog no modal
 
 ## Database
 
