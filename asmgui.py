@@ -278,7 +278,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
     def _diff_bom(self, importer_name, name, open_fn, import_fn):
         bom1 = diffgui.CodeDateSingle(self._data[self._top]["id"],
             self._data[self._top]["code"], 
-            self._data[self._top]["date_from_days"])
+            self._bom_date)
         fn = open_fn()
         bom2 = diffgui.BomImported(name, import_fn, open_fn, fn)
         
@@ -436,19 +436,20 @@ class AssemblyWindow(bbwindow.BBMainWindow):
             parent=self)
         contextMenu.exec_(self._tree.viewport().mapToGlobal(point))
 
-    def populate(self, top, data, caption_date=None):
+    def populate(self, top, data, bom_date=None):
         top_code = data[top]["code"]
 
         if self._mode == "asm":
-                if caption_date == db.prototype_date -1:
+                if bom_date == db.prototype_date -1:
                     dt2 = "LATEST"
-                elif caption_date == db.end_of_the_world:
+                elif bom_date == db.end_of_the_world:
                     dt2 = "PROTOTYPE"
-                elif caption_date == db.prototype_date:
+                elif bom_date == db.prototype_date:
                     dt2 = "PROTOTYPE"
                 else:
-                    dt2 = db.days_to_iso(caption_date)
-
+                    dt2 = db.days_to_iso(bom_date)
+                    
+                self._bom_date = bom_date
                 self.setWindowTitle("Assembly: " + top_code + " @ " + dt2)
         elif self._mode == "valid_where_used":
                 self.setWindowTitle("Valid where used: " + top_code)
@@ -683,7 +684,7 @@ def show_assembly(code_id, winParent):
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
         data = d.get_bom_by_code_id3(code_id, date_from_days)
-        w.populate(*data, caption_date=date_from_days)
+        w.populate(*data, bom_date=date_from_days)
         QApplication.restoreOverrideCursor()
     w.set_bom_reload(bom_reload)
     w.bom_reload()
@@ -718,7 +719,7 @@ def show_latest_assembly(code_id):
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
         data = d.get_bom_by_code_id3(code_id, dt)
-        w.populate(*data, caption_date=dt)
+        w.populate(*data, bom_date=dt)
         QApplication.restoreOverrideCursor()
     w.set_bom_reload(bom_reload)
     w.bom_reload()
@@ -743,7 +744,7 @@ def show_proto_assembly(code_id):
         dt = min(db.end_of_the_world, dates[0][3])
         QApplication.setOverrideCursor(Qt.WaitCursor)
         data = d.get_bom_by_code_id3(code_id, dates[0][3])
-        w.populate(*data, caption_date=db.end_of_the_world)
+        w.populate(*data, bom_date=db.end_of_the_world)
         QApplication.restoreOverrideCursor()
     w.set_bom_reload(bom_reload)
     w.bom_reload()
@@ -765,7 +766,7 @@ def show_assembly_by_date(code_id, dt):
         d = db.DB()
         QApplication.setOverrideCursor(Qt.WaitCursor)
         data = d.get_bom_by_code_id3(code_id, dt)
-        w.populate(*data, caption_date=dt)
+        w.populate(*data, bom_date=dt)
         QApplication.restoreOverrideCursor()
     w.set_bom_reload(bom_reload)
     w.bom_reload()
