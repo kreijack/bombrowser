@@ -1,0 +1,20 @@
+
+2021-05-11: v0.4.4
+- add command smart where used
+- import: improve the euristic to convert a number in float
+- import: add test fro number conversion
+- import: if a 'mandatory' field is missed, show which one
+- editcode: during the import use a valid unit ONLY if it is imported
+- export: export the drawings name
+- codelist: allow to open many 'Codes list' window
+- copycode: the 'copy revise' window is a standard window instead a modeless dialog
+- windows menu: add the 'close all other windows' command
+- assembly window: allow to compare againt an imported file
+- diff window: add option to show only the first level diff
+- diff window: add option to show only diff of the main properties (code, descr, qty)
+- bug: editcode: don't change a cell which is not initialized
+- bug: editcode: during the import n the dialog select code show the description
+- bug: import: handle the case where there is no description
+- bug: export: set the correct selectedFilter parameter in the QFileDialog
+- bug: export: search the drawings by rid
+
