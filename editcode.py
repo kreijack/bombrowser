@@ -369,7 +369,6 @@ class DrawingTable(QTableWidget):
         idxs = self.selectedIndexes()
         if len(idxs) == 0:
             return
-        self._drawing_modified = True
 
         rows = list(set([idx.row() for idx in idxs]))
         rows.sort(reverse=True)
@@ -385,8 +384,6 @@ class DrawingTable(QTableWidget):
             self._add_filename(fn)
 
     def _add_filename(self, fn):
-        self._drawing_modified = True
-
         row = self.rowCount()
         self.setRowCount(row+1)
         self.setItem(row, 0, QTableWidgetItem(os.path.basename(fn)))
@@ -1154,9 +1151,9 @@ class EditWindow(bbwindow.BBMainWindow):
             QHeaderView.ResizeToContents)
 
         self._children_modified = False
-        self._drawing_modified = False
         self._qtab.setTabText(0, "Children (%d)"%(self._children_table.rowCount()))
         self._update_drawing_row()
+        self._drawing_modified = False
 
     def _children_cell_changed(self, row, col):
         self._children_modified = True
@@ -1339,6 +1336,7 @@ class EditWindow(bbwindow.BBMainWindow):
 
     def _update_drawing_row(self):
         self._qtab.setTabText(1, "Drawings list (%d)"%(self._drawings_table.rowCount()))
+        self._drawing_modified = True
 
 def edit_code_by_code_id(code_id, dt=None):
     w = EditWindow(code_id, dt)
