@@ -1,32 +1,32 @@
- 
+#  - BOMBrowser tests list
 
-# BOMBrowser tests list
+## 1 - Index
 
-## Index
+- 1 - Index
+- 2 - Preface
+- 3 - BOMBrowser - Codes list
+- 4 - 'Code gui' panel
+- 5 - BOMBrowser - Assembly
+- 6 - BOMBrowser - Valid where used
+- 7 - BOMBrowser - Where used
+- 8 - BOMBrowser - Select date (empty)
+- 9 - BOMBrowser - Diff window
+- 10 - BOMBrowser - Copy/revise code
+- 11 - BOMBrowser - Edit code
+- 12 - BOMBrowser - Edit date
+- 13 - Generic test
+- 14 - Export test
+- 15 - Import test
 
-- 1 - BOMBrowser - Codes list
-- 2 - 'Code gui' panel
-- 3 - BOMBrowser - Assembly
-- 4 - BOMBrowser - Valid where used
-- 5 - BOMBrowser - Where used
-- 6 - BOMBrowser - Select date (empty)
-- 7 - BOMBrowser - Diff window
-- 8 - BOMBrowser - Copy/revise code
-- 9 - BOMBrowser - Edit code
-- 10 - BOMBrowser - Edit date
-- 11 - Generic test
-- 12 - Export test
-- 13 - Import test
-
-## Preface
+## 2 - Preface
 
 This tests list assumes that you are working with the test database generated
 by mkdb.py.
 This tests list is related to the v0.4.
 
-## 1 - BOMBrowser - Codes list
+## 3 - BOMBrowser - Codes list
 
-### Test 1.1 - search a code
+### 3.1 - search a code
 
 Test description:
 Insert the code '820037' in the 'Code' field and press **ENTER**
@@ -36,7 +36,7 @@ The code 820037 is showed
 
 Passed: [X]
 
-### Test 1.2 - search a code (2)
+### 3.2 - search a code (2)
 
 Test description:
 Insert the code '820038' in the 'Code' field and press the button **'Search'**
@@ -46,7 +46,7 @@ The code 820038 is showed
 
 Passed: [X]
 
-### Test 1.3 - search a code by description
+### 3.3 - search a code by description
 
 Test description:
 Insert the code 'BOARD 14' in the 'Description' field and press the button 'Search'
@@ -56,7 +56,7 @@ The code 610014 - "BOARD 14" is showed
 
 Passed: [X]
 
-### Test 1.4 - search a code by description with a jolly character
+### 3.4 - search a code by description with a jolly character
 
 Test description:
 Insert the code '%BOARD%13' in the 'Description' field and press ENTER
@@ -66,7 +66,7 @@ The code 610013 - "BOARD 13" is showed
 
 Passed: [X]
 
-### Test 1.5 - search a code with a jolly character
+### 3.5 - search a code with a jolly character
 
 Test description:
 - Insert the code '%6%' in the 'Code' field
@@ -77,7 +77,7 @@ The codes that contains '6' are showed
 
 Passed: [X]
 
-### Test 1.6 - search a code and a description with a jolly character
+### 3.6 - search a code and a description with a jolly character
 
 Test description:
 - Insert the code '%6%' in the 'Code' field
@@ -89,7 +89,7 @@ The codes that contains '6' and the description which contains BOARD are showed
 
 Passed: [X]
 
-### Test 1.7 - assembly
+### 3.7 - assembly
 
 Test description:
 - Insert the code '820037' in the 'Code' field
@@ -123,7 +123,7 @@ Expected results #3:
 
 Passed: [X]
 
-### Test 1.11 - where used
+### 3.10 - where used
 
 Test description:
 - Insert the code '810036' in the 'Code' field,
@@ -136,7 +136,7 @@ The "BOMBrowser - Where used" window is showed
 
 Passed: [X]
 
-### Test 1.12 - where used (2)
+### 3.11 - where used (2)
 
 Test description:
 - Insert the code '100037' in the 'Code' field
@@ -149,7 +149,7 @@ The "BOMBrowser - Where used" window is showed. Only one code (100037) is showed
 
 Passed: [X]
 
-### Test 1.13 - valid where used
+### 3.12 - valid where used
 
 Test description:
 - Insert the code '810036' in the 'Code' field
@@ -162,7 +162,7 @@ The "BOMBrowser - Valid where used" window is showed
 
 Passed: [X]
 
-### Test 1.14 - valid where used (2)
+### 3.13 - valid where used (2)
 
 Test description:
 - Insert the code '100037' in the 'Code' field
@@ -175,7 +175,7 @@ The "BOMBrowser - Valid where used" window is showed. Only one code (100037) is 
 
 Passed: [X]
 
-### Test 1.15 - Copy/revise code
+### 3.14 - Copy/revise code
 
 Test description:
 - Insert the code '810037' in the 'Code' field,
@@ -188,7 +188,7 @@ The "BOMBrowser: select date" dialog is showed; this contains a list of the code
 
 Passed: [X]
 
-### Test 1.16 - edit code
+### 3.15 - edit code
 
 Test description:
 - Insert the code '810036' in the 'Code' field
@@ -201,7 +201,7 @@ The "BOMBrowser - Edit code" window showed; this contains the code 810036 proper
 
 Passed: [X]
 
-### Test 1.17 - diff from
+### 3.16 - diff from
 
 Test description:
 - Insert the code '810037' in the 'Code' field
@@ -214,7 +214,7 @@ The "BOMBrowser: select date" dialog is showed; this dialog contains a list of 8
 
 Passed: [X]
 
-### Test 1.18 - diff from (2x)
+### 3.17 - diff from (2x)
 
 Test description:
 - Insert the code '820036' in the 'Code' field
@@ -227,7 +227,7 @@ The "BOMBrowser: select date" dialog is showed; this dialog contains a list of 8
 
 Passed: [X]
 
-### Test 1.19 - diff to
+### 3.18 - diff to
 
 Test description:
 - Insert the code '810037' in the 'Code' field
@@ -240,7 +240,7 @@ The "BOMBrowser: select date" dialog is showed; this dialog contains a list of 8
 
 Passed: [X]
 
-### Test 1.20 - diff to (2x)
+### 3.19 - diff to (2x)
 
 Test description:
 - Insert the code '820036' in the 'Code' field
@@ -253,7 +253,7 @@ The "BOMBrowser: select date" dialog is showed; this dialog contains a list of 8
 
 Passed: [X]
 
-### Test 1.21 - menu->help->about
+### 3.20 - menu->help->about
 
 Test description:
 In the menu select the Help and About subcommand
@@ -265,7 +265,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 1.22 - menu->window
+### 3.21 - menu->window
 
 Test description:
 - insert code 820037
@@ -288,7 +288,7 @@ in the menu are showed the four windows: BOMBrowser - Where used, BOM Browser - 
 
 Passed: [X]
 
-### Test 1.23 - menu->file->close
+### 3.22 - menu->file->close
 
 Test description:
 - insert code 820037
@@ -317,7 +317,7 @@ Expected results #3:
 
 Passed: [X]
 
-### Test 1.24 -Ctrl-Q  menu->file->close
+### 3.25 - Test 1.24 -Ctrl-Q  menu->file->close
 
 Test description:
 - insert code 820037
@@ -330,7 +330,7 @@ The "BOMBrowser - Codes list" is closed. "BOMBrowser - Where used" is opened.
 
 Passed: [X]
 
-### Test 1.25 - menu->file->exit
+### 3.26 - menu->file->exit
 
 Test description:
 - insert code 820037
@@ -358,7 +358,7 @@ The application is ended. No window is sowed
 
 Passed: [X]
 
-### Test 1.31 - Menu->edit->copy
+### 3.29 - Menu->edit->copy
 
 Test description:
 - insert code %6% and press ENTER;
@@ -371,7 +371,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 1.33 - Code gui
+### 3.30 - Code gui
 
 Test description:
 - insert code 8200% and press ENTER
@@ -390,7 +390,7 @@ the information of the 2nd selected codes are showed in the right panel
 
 Passed: [X]
 
-### Test 1.34 - Status bar
+### 3.32 - Status bar
 
 Test description:
 - insert code 8200% and press ENTER
@@ -400,7 +400,7 @@ in the status bar appears the number of the results
 
 Passed: [X]
 
-### Test 1.35 - Status bar
+### 3.33 - Status bar
 
 Test description:
 - insert code CODE_INVALID and press ENTER
@@ -411,7 +411,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 1.36 - Revision search
+### 3.34 - Revision search
 
 Test description:
 - select from the menu "Search mode->advanced"
@@ -422,7 +422,7 @@ in the status bar appears the number of the results
 
 Passed: [X]
 
-### Test 1.37 - Revision search
+### 3.35 - Revision search
 
 Test description:
 - select from the menu "Search mode->advanced"
@@ -433,7 +433,7 @@ in the status bar appears the number of the results (0)
 
 Passed: [X]
 
-### Test 1.38 - Revision search
+### 3.36 - Revision search
 
 Test description:
 - select from the menu "Search mode->advanced"
@@ -445,7 +445,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 1.39 - Revision search
+### 3.37 - Revision search
 
 Test description:
 - select from the menu "Search mode->advanced"
@@ -457,7 +457,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 1.40 - Revision search
+### 3.38 - Revision search
 
 Test description:
 - select from the menu "Search mode->advanced"
@@ -468,7 +468,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 1.41 - Revision search
+### 3.39 - Revision search
 
 Test description:
 - select from the menu "Search mode->advanced"
@@ -479,7 +479,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 1.42 - Revision search
+### 3.40 - Revision search
 
 Test description:
 - select from the menu "Search mode->advanced"
@@ -490,7 +490,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 1.43 - Revision search
+### 3.41 - Revision search
 
 Test description:
 - select from the menu "Search mode->advanced"
@@ -501,7 +501,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 1.44 - Revision search
+### 3.42 - Revision search
 
 Test description:
 - select from the menu "Search mode->advanced"
@@ -512,7 +512,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 1.45 - Revision search
+### 3.43 - Revision search
 
 Test description:
 - select from the menu "Search mode->advanced"
@@ -540,7 +540,7 @@ Expected results #3:
 
 Passed: [X]
 
-### Test 1.46 - Revision search - RMB menu
+### 3.46 - RMB menu
 
 Test description:
 - select from the menu "Search mode->advanced"
@@ -636,15 +636,15 @@ Expected results #10:
 
 Passed: [X]
 
-### Test 1.47 - Revision search - RMB menu error
+### 3.56 - RMB menu error
 
 Dropped in v0.4.3b4
 
-### Test 1.48 - Revision search - RMB menu error
+### 3.57 - RMB menu error
 
 Dropped in v0.4.3b4
 
-### Test 1.49 - Revision search - search <
+### 3.58 - search <
 
 Test description:
 - select from the menu "Search mode->advanced"
@@ -656,7 +656,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 1.50 - Revision search - search !
+### 3.59 - search !
 
 Test description:
 - select from the menu "Search mode->advanced"
@@ -668,7 +668,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 1.50 - Revision search - search =
+### 3.60 - search =
 
 Test description:
 - select from the menu "Search mode->advanced"
@@ -679,9 +679,9 @@ Expected results:
 
 Passed: [X]
 
-## 2 - 'Code gui' panel
+## 4 - 2 - 'Code gui' panel
 
-### Test 2.1 - general
+### 4.1 - general
 
 Test description:
 - In the "BOMBrowser - codes list" window insert code 8200%
@@ -693,7 +693,7 @@ on the left panel there are the information of the selected code
 
 Passed: [X]
 
-### Test 2.2 - multiple revision
+### 4.2 - multiple revision
 
 Test description:
 - In the "BOMBrowser - codes list" window insert code 8200%
@@ -706,7 +706,7 @@ The information on the panel are changed accordly
 
 Passed: [X]
 
-### Test 2.3 - multiple revision (2)
+### 4.3 - multiple revision (2)
 
 Test description:
 - In the "BOMBrowser - codes list" window insert code 8200% and press ENTER; Select the 2nd entry (820001)
@@ -716,7 +716,7 @@ The right combo box button, contains all the dates
 
 Passed: [X]
 
-### Test 2.4 - documents
+### 4.4 - documents
 
 Test description:
 - In the "BOMBrowser - codes list" window insert code 8200%
@@ -728,7 +728,7 @@ In the bottom part are showed two buttons with two documens
 
 Passed: [X]
 
-### Test 2.5 - documents (2x)
+### 4.5 - documents (2x)
 
 Test description:
 - In the "BOMBrowser - codes list" window insert code 8200%
@@ -741,7 +741,7 @@ Clicking one button document, the related document is opened
 
 Passed: [X]
 
-### Test 2.6 - Copy info..
+### 4.6 - Copy info..
 
 Test description:
 - In the "BOMBrowser - codes list" window insert code 8200%
@@ -754,7 +754,7 @@ Pasting the clipboard content in a editor, the relevant information are showed
 
 Passed: [X]
 
-### Test 2.7 - Check tool tip
+### 4.7 - Check tool tip
 
 Test description:
 - In the "BOMBrowser - codes list" window insert code 820000
@@ -765,7 +765,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 2.8 - RMB menu of drawing button
+### 4.8 - RMB menu of drawing button
 
 Test description:
 - In the "BOMBrowser - codes list" window insert code 820000
@@ -777,7 +777,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 2.9 - RMB menu of drawing button
+### 4.9 - RMB menu of drawing button
 
 Test description:
 - In the "BOMBrowser - codes list" window insert code 820000
@@ -790,7 +790,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 2.10 - RMB menu of drawing button
+### 4.10 - RMB menu of drawing button
 
 Test description:
 - In the "BOMBrowser - codes list" window insert code 820000
@@ -803,7 +803,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 2.11 - RMB menu of drawing button
+### 4.11 - RMB menu of drawing button
 
 Test description:
 - In the "BOMBrowser - codes list" window insert code 820000
@@ -816,7 +816,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 2.12 - RMB menu of drawing button (windows only)
+### 4.12 - RMB menu of drawing button (windows only)
 
 Test description:
 - In the "BOMBrowser - codes list" window insert code 820000
@@ -829,9 +829,9 @@ Expected results:
 
 Passed: [X]
 
-## 3 - BOMBrowser - Assembly
+## 5 - BOMBrowser - Assembly
 
-### Test 3.1 - select date
+### 5.1 - select date
 
 Test description:
 - insert code "820037" in "BOMBrowser - Code list"
@@ -864,7 +864,7 @@ Expected results #3:
 
 Passed: [X]
 
-### Test 3.4 - show assembly
+### 5.4 - show assembly
 
 Test description:
 - insert code "810037" in "BOMBrowser - Code list"
@@ -877,7 +877,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 3.6 - show assembly (2)
+### 5.5 - show assembly (2)
 
 Test description:
 - insert code "820037" in "BOMBrowser - Code list"
@@ -894,7 +894,7 @@ A new "Select date" window is showed.
 
 Passed: [X]
 
-### Test 3.8 - where used (2)
+### 5.6 - where used (2)
 
 Test description:
 - insert code "100000" in "BOMBrowser - Code list"
@@ -909,7 +909,7 @@ a where used window appears
 
 Passed: [X]
 
-### Test 3.10 - valid where used (2)
+### 5.7 - valid where used (2)
 
 Test description:
 - insert code "100000" in "BOMBrowser - Code list"
@@ -926,7 +926,7 @@ a where used window appears
 
 Passed: [X]
 
-### Test 3.11- menu->help->about
+### 5.8 - menu->help->about
 
 Test description:
 In the menu select the Help and About subcommand
@@ -936,7 +936,7 @@ The "about" dialog is showed. The dialog contains the current version and the co
 
 Passed: [X]
 
-### Test 3.12 - menu->window
+### 5.9 - menu->window
 
 Test description:
 - insert code 820037 in "BOMBrowser - Codes list"
@@ -950,7 +950,7 @@ in the menu only one  window is showed: "BOM Browser - Codes list".
 
 Passed: [X]
 
-### Test 3.13 - menu->file->close
+### 5.10 - menu->file->close
 
 Test description:
 - insert code 820037 in "BOMBrowser - Codes list"
@@ -964,7 +964,7 @@ The "BOMBrowser - Assembly" list is closed. "BOMBrowser - Codes list" is opened.
 
 Passed: [X]
 
-### Test 3.14 -Ctrl-Q  menu->file->close
+### 5.11 - Test 3.14 -Ctrl-Q  menu->file->close
 
 Test description:
 - insert code 820037 in "BOMBrowser - Codes list"
@@ -978,7 +978,7 @@ The "BOMBrowser - Assembly" is closed. "BOMBrowser - Codes list" is opened.
 
 Passed: [X]
 
-### Test 3.15 - menu->file->exit
+### 5.12 - menu->file->exit
 
 Test description:
 - insert code 820037 in "BOMBrowser - Codes list"
@@ -1008,7 +1008,7 @@ The application is ended. No window is showed
 
 Passed: [X]
 
-### Test 3.18 - menu->file->exit
+### 5.15 - menu->file->exit
 
 Test description:
 - insert code 820037 in "BOMBrowser - Codes list"
@@ -1039,7 +1039,7 @@ The application is ended. No window is showed
 
 Passed: [X]
 
-### Test 3.21 - menu->file->export as json
+### 5.18 - menu->file->export as json
 
 Test description:
 - insert code 820037 in "BOMBrowser - Codes list"
@@ -1064,7 +1064,7 @@ Expected results #2:
 
 Passed: [X]
 
-### Test 3.23 - menu->view->show up level 1
+### 5.20 - menu->view->show up level 1
 
 Test description:
 - insert code 820037 in "BOMBrowser - Codes list"
@@ -1118,9 +1118,16 @@ The bom is showing all levels
 
 Passed: [X]
 
-### Test Set 3.29 - find
+### 5.26 - find
 
-#### Test 3.29.1 - find
+Preparatory steps:
+- insert code 820037 in "BOMBrowser - Codes list"
+- press the right mouse button on the first entry
+- select the "Show assembly" command
+- select the first date doubleckicking on it.
+- the BOMBrowser Assembly window is showed
+
+#### 5.26.1 - find ctrl-f
 
 Preparatory steps:
 - insert code 820037 in "BOMBrowser - Codes list"
@@ -1137,7 +1144,7 @@ The find dialog is showed
 
 Passed: [X]
 
-#### Test 3.29.2 - find
+#### 5.26.2 - find
 
 Preparatory steps:
 - insert code 820037 in "BOMBrowser - Codes list"
@@ -1154,7 +1161,7 @@ The find dialog is showed
 
 Passed: [X]
 
-#### Test 3.29.3 - cancel
+#### 5.26.3 - cancel
 
 Preparatory steps:
 - insert code 820037 in "BOMBrowser - Codes list"
@@ -1173,7 +1180,7 @@ The find dialog is closed
 
 Passed: [X]
 
-#### Test 3.29.4 - find a code
+#### 5.26.4 - find a code
 
 Preparatory steps:
 - insert code 820037 in "BOMBrowser - Codes list"
@@ -1201,7 +1208,7 @@ A different instance of the code 810003 is showed each time
 
 Passed: [X]
 
-#### Test 3.29.6 - find a code
+#### 5.26.6 - find a code
 
 Preparatory steps:
 - insert code 820037 in "BOMBrowser - Codes list"
@@ -1222,7 +1229,7 @@ After thelast action a dialog "Data not found" is showed
 
 Passed: [X]
 
-#### Test 3.29.7 - find a code
+#### 5.26.7 - find a code
 
 Preparatory steps:
 - insert code 820037 in "BOMBrowser - Codes list"
@@ -1242,7 +1249,7 @@ After the last action a dialog "Data not found" is showed
 
 Passed: [X]
 
-### Test 3.30 - show latest assembly
+### 5.27 - show latest assembly
 
 Test description:
 - in "Code list" window, select the code 820017
@@ -1258,7 +1265,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 3.31 - show latest assembly
+### 5.28 - show latest assembly
 
 Test description:
 - in "Code list" window, select the code 100017
@@ -1273,7 +1280,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 3.32.1 - Menu file -> copy files
+### 5.29 - Menu file -> copy files
 
 Test description:
 - open as "latest assembly" in Assembly window the code 820000
@@ -1300,9 +1307,9 @@ Expected results #3:
 
 Passed: [X]
 
-### Test 3.33 - Show prototype assembly
+### 5.32 - Show prototype assembly
 
-#### Test 3.33.1 - Show prototype assembly
+#### 5.32.1 - Show prototype assembly
 
 Preparatory steps:
 - look at the code 610004 in the codes list window
@@ -1318,7 +1325,7 @@ Expected results:
 
 Passed: [X]
 
-#### Test 3.33.2 - Show prototype assembly
+#### 5.32.2 - Show prototype assembly
 
 Preparatory steps:
 - look at the code 610004 in the codes list window
@@ -1334,9 +1341,21 @@ Expected results:
 
 Passed: [X]
 
-## 4 - BOMBrowser - Valid where used
+### 5.33 - Check for loop
 
-### Test 4.1
+Test description:
+- look at the code TEST-LOOP-A in the codes list window
+- From the RMB menu, select "Show latest assembly"
+- Select menu->Tools->Check bom
+
+Expected results:
+A report saying 'ERROR loop detected' is showed
+
+Passed: [X]
+
+## 6 - BOMBrowser - Valid where used
+
+### 6.1 - Test 4.1
 
 Test description:
 in the "Codes list" window search for the code 820017. Then select  the right click menu command "Valid where used"
@@ -1348,9 +1367,9 @@ Expected results:
 
 Passed: [X]
 
-## 5 - BOMBrowser - Where used
+## 7 - BOMBrowser - Where used
 
-### Test 5.1
+### 7.1 - Test 5.1
 
 Test description:
 in the "Codes list" window search for the code 820017. Then select  the right click menu command "Where used"
@@ -1361,13 +1380,13 @@ Expected results:
 
 Passed: [X]
 
-## 6 - BOMBrowser - Select date
+## 8 - BOMBrowser - Select date
 
 This test is covered by the ones of the Assembly window
 
-## 7 - BOMBrowser - Diff window
+## 9 - BOMBrowser - Diff window
 
-### Test 7.1 - diff the same code
+### 9.1 - diff the same code
 
 Test description:
 - in the "Codes list" window search for the codes 82%.
@@ -1421,7 +1440,7 @@ Expected results #5:
 
 Passed: [X]
 
-### Test 7.2 - diff two different codes
+### 9.6 - diff two different codes
 
 Test description:
 - in the "Codes list" window search for the codes 82%.
@@ -1474,7 +1493,7 @@ Expected results #5:
 
 Passed: [X]
 
-### Test 7.3 - diff two different codes
+### 9.11 - diff two different codes
 
 Test description:
 - open a diff window as described in the previous test
@@ -1489,9 +1508,49 @@ Expected results:
 
 Passed: [X]
 
-## 8 - BOMBrowser - Copy/revise code
+### 9.12 - diff option: diff only top code
 
-### Test 8.1 - date dialog
+Test description:
+- open a diff window against two different date of the code 820017
+- check the checkbox "Diff only the top code
+
+Expected results:
+- only the top code is showed
+- the differents 'date_from' are showed (other fields may be showed)
+
+Passed: [X]
+
+### 9.13 - diff option: diff only top code
+
+Test description:
+- open a diff window against two codes:  - 820017
+  - 820018
+- check the checkbox "Diff only the top code
+
+Expected results:
+- only the top code is showed
+- the differents 'code' and 'descr' are showed (other fields may be showed)
+
+Passed: [X]
+
+### 9.14 - diff option: diff only main attributes
+
+Test description:
+- open a diff window against two different date of the code820017
+- check the checkbox "Diff only main attributes
+
+Expected results:
+only the main attributes are showed:
+- description
+- qty
+- code
+
+
+Passed: [X]
+
+## 10 - BOMBrowser - Copy/revise code
+
+### 10.1 - date dialog
 
 Test description:
 Test description
@@ -1521,11 +1580,11 @@ The Copy/revise windows appears
 
 Passed: [X]
 
-### Test 8.3 - date dialog
+### 10.4 - date dialog
 
 INtegrated in 8.4
 
-### Test 8.4 - Copy/revise code window
+### 10.5 - Copy/revise code window
 
 Test description:
 Test description
@@ -1540,7 +1599,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 8.5 - Copy/revise code window
+### 10.6 - Copy/revise code window
 
 Test description:
 Test description
@@ -1555,9 +1614,9 @@ the "Iter" are the same as the one selected in the "Select date" window
 
 Passed: [X]
 
-### Test set 8.6 - Copy/revise code window
+### 10.7 - Copy/revise code window
 
-#### Test 8.6.1 - Cancel
+#### 10.7.1 - Cancel
 
 Preparatory steps:
 - insert code 820040 in the "BOMBrowser codes list" window
@@ -1591,7 +1650,7 @@ the dialog is closed; the "Copy/revise windows" is opened
 
 Passed: [X]
 
-#### Test 8.6.4 - *Revise*/copy code window
+#### 10.7.4 - *Revise*/copy code window
 
 Preparatory steps:
 - insert code 820040 in the "BOMBrowser codes list" window
@@ -1608,7 +1667,7 @@ only New/Description, New/date from and New/rev are editable
 
 Passed: [X]
 
-#### Test 8.6.5 - Copy/revise code window
+#### 10.7.5 - Copy/revise code window
 
 Preparatory steps:
 - insert code 820040 in the "BOMBrowser codes list" window
@@ -1625,7 +1684,7 @@ The field New/Iter is Old/Iter + 1
 
 Passed: [X]
 
-#### Test 8.6.6 - Copy/revise code window
+#### 10.7.6 - Copy/revise code window
 
 Preparatory steps:
 - insert code 820040 in the "BOMBrowser codes list" window
@@ -1643,7 +1702,7 @@ the field New/Code, New/Description, New/Date from and New/Rev are editable
 
 Passed: [X]
 
-#### Test 8.6.7 - Copy/revise code window
+#### 10.7.7 - Copy/revise code window
 
 Preparatory steps:
 - insert code 820040 in the "BOMBrowser codes list" window
@@ -1661,7 +1720,7 @@ The field New/Iter is 0
 
 Passed: [X]
 
-#### Test 8.6.8 - Copy error
+#### 10.7.8 - Copy error
 
 Preparatory steps:
 - insert code 820040 in the "BOMBrowser codes list" window
@@ -1681,7 +1740,7 @@ Expected results:
 
 Passed: [X]
 
-#### Test 8.6.10 - Confirmation dialog / success
+#### 10.7.9 - Confirmation dialog / success
 
 Preparatory steps:
 - insert code 820040 in the "BOMBrowser codes list" window
@@ -1711,7 +1770,7 @@ A successfull dialog appears
 
 Passed: [X]
 
-#### Test 8.6.12 - Confirmation dialog / success (2)
+#### 10.7.11 - Confirmation dialog / success (2)
 
 Preparatory steps:
 - insert code 820040 in the "BOMBrowser codes list" window
@@ -1733,7 +1792,7 @@ Expected results:
 
 Passed: [X]
 
-#### Test 8.6.14 - Confirmation dialog / success (3)
+#### 10.7.12 - Confirmation dialog / success (3)
 
 Preparatory steps:
 - insert code 820040 in the "BOMBrowser codes list" window
@@ -1756,7 +1815,7 @@ Expected results:
 
 Passed: [X]
 
-#### Test 8.6.15 - Revise a code / date error
+#### 10.7.13 - Revise a code / date error
 
 Preparatory steps:
 - insert code 820040 in the "BOMBrowser codes list" window
@@ -1775,7 +1834,7 @@ Expected results:
 
 Passed: [X]
 
-#### Test 8.6.16 - Revise a code / date error
+#### 10.7.14 - Revise a code / date error
 
 Preparatory steps:
 - insert code 820040 in the "BOMBrowser codes list" window
@@ -1795,7 +1854,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 8.7 - revise a code
+### 10.8 - revise a code
 
 Test description:
 - revise the code "820041" from the code list window
@@ -1815,7 +1874,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 8.8 - copy a code
+### 10.9 - copy a code
 
 Test description:
 - revise the code "820041" from the code list window
@@ -1838,7 +1897,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 8.9 - copy a code (in proto mode)
+### 10.10 - copy a code (in proto mode)
 
 Test description:
 - revise the code "820041" from the code list window
@@ -1856,7 +1915,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 8.10 - revise a code (in proto mode)
+### 10.11 - revise a code (in proto mode)
 
 Test description:
 - revise the code "820041" from the code list window
@@ -1870,7 +1929,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 8.11 - revise a code (in proto mode)
+### 10.12 - revise a code (in proto mode)
 
 Test description:
 - revise the code "820004" from the code list window (the code has already a prototype revision, if not create a prototype revision)
@@ -1883,7 +1942,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 8.12 - chenge from revision to copy mode
+### 10.13 - chenge from revision to copy mode
 
 Test description:
 - revise the code "820041" from the code list window
@@ -1904,7 +1963,7 @@ Expected results #2:
 
 Passed: [X]
 
-## 9 - BomBrowser - Edit code
+## 11 - BomBrowser - Edit code
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -1912,7 +1971,7 @@ Preparatory steps:
 - press the right mouse button on the first entry and select "Edit code..." command
 - The Edit code windows appears
 
-### Test 9.1 - Edit code / Rev field
+### 11.1 - Edit code / Rev field
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -1932,7 +1991,7 @@ the "rev" field is like the one changed
 
 Passed: [X]
 
-### Test 9.2 - Edit code / Default unit field
+### 11.2 - Edit code / Default unit field
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -1952,7 +2011,7 @@ the "Default unit" field is like the one changed
 
 Passed: [X]
 
-### Test 9.3 - Edit code / Description field
+### 11.3 - Edit code / Description field
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -1972,7 +2031,7 @@ the "Description" field is like the one changed
 
 Passed: [X]
 
-### Test 9.4 - Edit code / Generic properties field
+### 11.4 - Edit code / Generic properties field
 
 Preparatory steps:
 
@@ -1985,7 +2044,7 @@ the "generic property" field is like the one changed
 
 Passed: [X]
 
-### Test 9.5 - Edit code / Drawing list - add drawing
+### 11.5 - add drawing
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2019,7 +2078,7 @@ the added drawing is still present
 
 Passed: [X]
 
-### Test 9.6 - Edit code / Drawing list - del drawing
+### 11.7 - del drawing
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2040,7 +2099,7 @@ the removed drawing is not present
 
 Passed: [X]
 
-### Test 9.7 - Edit code / Drawing list - view drawing
+### 11.8 - view drawing
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2065,7 +2124,7 @@ the selected drawing is showed
 
 Passed: [X]
 
-### Test 9.8 - Edit code / Children panel - del a child
+### 11.10 - del a child
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2086,7 +2145,7 @@ the removed item is not present
 
 Passed: [X]
 
-### Test 9.9 - Edit code / Children panel - add a child
+### 11.11 - add a child
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2109,7 +2168,7 @@ the added item is present
 
 Passed: [X]
 
-### Test 9.10 - Edit code / Children panel - add a child
+### 11.12 - add a child
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2132,7 +2191,7 @@ the added item is present
 
 Passed: [X]
 
-### Test 9.11 - Edit code / Children panel - edit a field - non existant code
+### 11.13 - non existant code
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2156,7 +2215,7 @@ an error dialog appears saying that there is an error in "...the code '...' in r
 
 Passed: [X]
 
-### Test 9.13 - Edit code / Children panel - edit a field - duplicate code
+### 11.15 - duplicate code
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2173,7 +2232,7 @@ an error dialog is showed, saying that there is a duplicate code
 
 Passed: [X]
 
-### Test 9.14 - Edit code / Children panel - edit a field - wrong qty
+### 11.16 - wrong qty
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2197,7 +2256,7 @@ an error dialog appears saying that the value is incorrect
 
 Passed: [X]
 
-### Test 9.16 - Edit code / Children panel - edit a field - wrong each
+### 11.18 - wrong each
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2221,7 +2280,7 @@ an error dialog appears saying that the value is incorrect
 
 Passed: [X]
 
-### Test 9.18 - Edit code / Children panel - sorting
+### 11.20 - sorting
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2239,7 +2298,7 @@ the seq values are reordered on the basis of the current sequence.
 
 Passed: [X]
 
-### Test 9.19 - Edit code / Children panel - sorting
+### 11.21 - sorting
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2257,7 +2316,7 @@ the seq values are reordered on the basis of the current sequence.
 
 Passed: [X]
 
-### Test 9.20 - Edit code / Children panel - sorting
+### 11.22 - sorting
 
 Preparatory steps:
 
@@ -2272,7 +2331,7 @@ the seq values are reordered on the basis of the current sequence.
 
 Passed: [X]
 
-### Test 9.21 - Edit code / File -> close
+### 11.23 - Edit code / File -> close
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2288,7 +2347,7 @@ the edit window is closed
 
 Passed: [X]
 
-### Test 9.22 - Edit code / File -> exit
+### 11.24 - Edit code / File -> exit
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2320,7 +2379,7 @@ the application is closed, no window is opened
 
 Passed: [X]
 
-### Test 9.25 - Edit code / CTRL-Q
+### 11.27 - Edit code / CTRL-Q
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2336,7 +2395,7 @@ the edit window is closed
 
 Passed: [X]
 
-### Test 9.27 - Edit code / Windows
+### 11.28 - Edit code / Windows
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2352,7 +2411,7 @@ the opened windows are showed
 
 Passed: [X]
 
-### Test 9.28 - Edit code / Help->about
+### 11.29 - Edit code / Help->about
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2368,7 +2427,7 @@ the about dialog is showed
 
 Passed: [X]
 
-### Test 9.29 - Edit code / Children panel - search code
+### 11.30 - search code
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2385,7 +2444,7 @@ The "BOMBrowser - Search code" dialog appears
 
 Passed: [X]
 
-### Test 9.30 - Edit code / Children panel - search code
+### 11.31 - search code
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2406,7 +2465,7 @@ the dialog is closed and the new code replaces the old one
 
 Passed: [X]
 
-### Test 9.31 - Edit code / Children panel - search code
+### 11.32 - search code
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2427,7 +2486,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 9.32 - Edit code - delete revision
+### 11.33 - delete revision
 
 Preparatory steps:
 - Take a code from the code list gui, copy it (to avoid problem about the parent dates)
@@ -2461,7 +2520,7 @@ Expected results #3:
 
 Passed: [X]
 
-### Test 9.35 - Edit code - delete revision
+### 11.36 - delete revision
 
 Preparatory steps:
 - Take a code from the code list gui, copy it (to avoid problem about the parent dates)
@@ -2479,7 +2538,7 @@ an error dialog box is showed saying that it is not possible to delete the last 
 
 Passed: [X]
 
-### Test 9.36 - Edit code - delete revision
+### 11.37 - delete revision
 
 Preparatory steps:
 
@@ -2495,7 +2554,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 9.37 - Edit code - delete code
+### 11.38 - delete code
 
 Preparatory steps:
 - Take a code from the code list gui, copy it (to avoid problem about the parent dates)
@@ -2513,7 +2572,7 @@ a confirmation dialog appears
 
 Passed: [X]
 
-### Test 9.38 - Edit code - delete code
+### 11.39 - delete code
 
 Preparatory steps:
 - Take a code from the code list gui, copy it (to avoid problem about the parent dates)
@@ -2532,7 +2591,7 @@ nothing happened
 
 Passed: [X]
 
-### Test 9.39 - Edit code - delete code
+### 11.40 - delete code
 
 Preparatory steps:
 - Take a code from the code list gui, copy it (to avoid problem about the parent dates)
@@ -2560,7 +2619,7 @@ Expected results #2:
 
 Passed: [X]
 
-### Test 9.40 - Edit code - change revision
+### 11.42 - change revision
 
 Preparatory steps:
 - Take a code from the code list gui with multiple revision
@@ -2578,7 +2637,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 9.41 - Edit code - change revision without saving
+### 11.43 - change revision without saving
 
 Preparatory steps:
 - Take a code from the code list gui with multiple revision
@@ -2611,7 +2670,7 @@ Expected results #3:
 
 Passed: [X]
 
-### Test 9.42 - Edit code - change revision without saving
+### 11.46 - change revision without saving
 
 Preparatory steps:
 - Take a code from the code list gui with multiple revision
@@ -2645,7 +2704,7 @@ Expected results #3:
 
 Passed: [X]
 
-### Test 9.43 - Edit code - remove a child without saving
+### 11.49 - remove a child without saving
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2662,7 +2721,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 9.44 - Edit code - insert a child without saving
+### 11.50 - insert a child without saving
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2679,7 +2738,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 9.45 - Edit code - insert a child  without saving
+### 11.51 - insert a child  without saving
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2696,7 +2755,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 9.46 - Edit code - change child without saving
+### 11.52 - change child without saving
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2713,7 +2772,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 9.47 - Edit code - add drawing without saving
+### 11.53 - add drawing without saving
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2730,7 +2789,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 9.48 - Edit code - remove a drawing without saving
+### 11.54 - remove a drawing without saving
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2747,7 +2806,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 9.49 - Edit code - add a duplicated code
+### 11.55 - add a duplicated code
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2764,7 +2823,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 9.50 - Edit code - add a code to an empty children list
+### 11.56 - add a code to an empty children list
 
 Preparatory steps:
 - Take a code from the code list gui without children (eg an 8100xx code)
@@ -2779,7 +2838,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 9.51 - Edit code - exit without saving
+### 11.57 - exit without saving
 
 Preparatory steps:
 - Take a code from the code list gui without children (eg an 8100xx code)
@@ -2794,7 +2853,7 @@ Expected results:
 
 Passed: [X]
 
-### Test 9.51 - Edit code - exit without saving
+### 11.58 - exit without saving
 
 Preparatory steps:
 - Take a code from the code list gui without children (eg an 8100xx code)
@@ -2828,7 +2887,7 @@ Expected results #3:
 
 Passed: [X]
 
-## 10 - BomBrowser - Edit date
+## 12 - BomBrowser - Edit date
 
 Preparatory steps:
 - insert code 810036 (or any other code with more revisions) in the "BOMBrowser codes list" window
@@ -2838,7 +2897,7 @@ Preparatory steps:
 - Select the "..." button near the "to date" field
 - An edit dates dialog is showed
 
-### Test 10.1
+### 12.1 - Cancel button
 
 Preparatory steps:
 - insert code 810036 (or any other code with more revisions) in the "BOMBrowser codes list" window
@@ -2856,7 +2915,7 @@ the edit dates dialog is closed
 
 Passed: [X]
 
-### Test 10.2
+### 12.2 - Save button
 
 Preparatory steps:
 - insert code 810036 (or any other code with more revisions) in the "BOMBrowser codes list" window
@@ -2882,7 +2941,7 @@ the edit dates dialog is closed
 
 Passed: [X]
 
-### Test 10.4
+### 12.4 - Modify date
 
 Preparatory steps:
 - insert code 810036 (or any other code with more revisions) in the "BOMBrowser codes list" window
@@ -2902,7 +2961,7 @@ the new date is showed in the last row
 
 Passed: [X]
 
-### Test 10.5
+### 12.5 - Modify date
 
 Preparatory steps:
 - insert code 810036 (or any other code with more revisions) in the "BOMBrowser codes list" window
@@ -2920,7 +2979,7 @@ the date in the row below and column "To date" is changed accordling (a day befo
 
 Passed: [X]
 
-### Test 10.6
+### 12.6 - Modify date with an invalid one
 
 Preparatory steps:
 - insert code 810036 (or any other code with more revisions) in the "BOMBrowser codes list" window
@@ -2947,7 +3006,7 @@ an error dialog is showed
 
 Passed: [X]
 
-### Test 10.8
+### 12.8 - Modify date with an invalid one
 
 Preparatory steps:
 - insert code 810036 (or any other code with more revisions) in the "BOMBrowser codes list" window
@@ -2967,7 +3026,7 @@ the valid old date appear
 
 Passed: [X]
 
-### Test 10.9
+### 12.9 - Modify date with an invalid one
 
 Preparatory steps:
 
@@ -2980,7 +3039,7 @@ the cell become yellow
 
 Passed: [X]
 
-### Test 10.10
+### 12.10 - Modify date with an invalid one
 
 Preparatory steps:
 - insert code 810036 (or any other code with more revisions) in the "BOMBrowser codes list" window
@@ -3018,7 +3077,7 @@ Expected results #3:
 
 Passed: [X]
 
-### Test 10.10.1
+### 12.13 - Modify date with an invalid one
 
 Preparatory steps:
 - insert code 810036 (or any other code with more revisions) in the "BOMBrowser codes list" window
@@ -3056,7 +3115,7 @@ Expected results #3:
 
 Passed: [X]
 
-### Test 10.10.2
+### 12.16 - Modify date with an invalid one
 
 Preparatory steps:
 - insert code 810036 (or any other code with more revisions) in the "BOMBrowser codes list" window
@@ -3094,7 +3153,7 @@ Expected results #3:
 
 Passed: [X]
 
-### Test 10.10.3
+### 12.19 - Modify date with an invalid one
 
 Preparatory steps:
 - insert code 810036 (or any other code with more revisions) in the "BOMBrowser codes list" window
@@ -3132,7 +3191,7 @@ Expected results #3:
 
 Passed: [X]
 
-### Test 10.10.3
+### 12.22 - Modify date
 
 Preparatory steps:
 - insert code 810036 (or any other code with more revisions) in the "BOMBrowser codes list" window
@@ -3168,7 +3227,7 @@ Expected results #3:
 
 Passed: [X]
 
-### Test 10.11
+### 12.25 - Check the read-only/read-write ness of the cells
 
 Preparatory steps:
 - insert code 810036 (or any other code with more revisions) in the "BOMBrowser codes list" window
@@ -3188,7 +3247,7 @@ only the cells listed above are read write
 
 Passed: [X]
 
-### Test 10.12
+### 12.26 - Insert an invalid date
 
 Preparatory steps:
 - insert code 810036 (or any other code with more revisions) in the "BOMBrowser codes list" window
@@ -3214,7 +3273,7 @@ an error dialog appear
 
 Passed: [X]
 
-### Test 10.14
+### 12.28 - Insert an invalid date
 
 Preparatory steps:
 - insert code 810036 (or any other code with more revisions) in the "BOMBrowser codes list" window
@@ -3232,7 +3291,7 @@ the cell become yellow
 
 Passed: [X]
 
-### Test 10.15
+### 12.29 - Insert a valid date
 
 Preparatory steps:
 - insert code 100001 in the "BOMBrowser codes list" window
@@ -3252,9 +3311,9 @@ the new date appears in the "edit code window"
 
 Passed: [X]
 
-### Test 10.16 - conflict date
+### 12.30 - conflict date
 
-#### Test 10.16.1 - parent too early
+#### 12.30.1 - parent too early
 
 Preparatory steps:
 - create a component code (copying from an existing component); name it as TEST-A; set a Date from 2020-01-01.
@@ -3273,7 +3332,7 @@ an error dialog appears saying that the date range is wider than the children on
 
 Passed: [X]
 
-#### Test 10.16.2 - parent too late
+#### 12.30.2 - parent too late
 
 Preparatory steps:
 - create a component code (copying from an existing component); name it as TEST-A; set a Date from 2020-01-01.
@@ -3292,7 +3351,7 @@ an error dialog appears saying that the date range is wider than the children on
 
 Passed: [X]
 
-#### Test 10.16.3 - children too late
+#### 12.30.3 - children too late
 
 Preparatory steps:
 - create a component code (copying from an existing component); name it as TEST-A; set a Date from 2020-01-01.
@@ -3311,7 +3370,7 @@ an error dialog appears saying that the date range is shorter than the parent on
 
 Passed: [X]
 
-#### Test 10.16.4 - children too early
+#### 12.30.4 - children too early
 
 Preparatory steps:
 - create a component code (copying from an existing component); name it as TEST-A; set a Date from 2020-01-01.
@@ -3334,7 +3393,7 @@ an error dialog appears saying that the date range is shorter than the parent on
 
 Passed: [X]
 
-#### Test 10.16.5 - children too early
+#### 12.30.5 - children too early
 
 Preparatory steps:
 - create a component code (copying from an existing component); name it as TEST-A; set a Date from 2020-01-01.
@@ -3358,7 +3417,7 @@ an error dialog appears saying that the child date range is shorter than the par
 
 Passed: [X]
 
-### Test 10.17 - prototype date
+### 12.31 - prototype date
 
 Test description:
 - enter in the edit dialog of code with several revisions without prototype
@@ -3403,7 +3462,7 @@ Expected results #4:
 
 Passed: [X]
 
-### Test 10.18 - date in the title bar
+### 12.35 - date in the title bar
 
 Test description:
 - enter in the edit dialog of code with several revisions
@@ -3418,9 +3477,9 @@ Expected results:
 
 Passed: [X]
 
-## 11 - Generic test
+## 13 - Generic test
 
-### Test 11.1
+### 13.1 - rename bombrowser.ini
 
 Test description:
 rename bombrowser.ini as bombrowser.ini.no
@@ -3430,7 +3489,7 @@ at start up time, an error dialog is showed saying that the confuguration cannot
 
 Passed: [X]
 
-### Test 11.2
+### 13.2 - shutdown the sql server
 
 Test description:
 shutdown the sql server
@@ -3440,16 +3499,68 @@ at start up time, an error dialog is showed saying that it is imposible to acces
 
 Passed: [X]
 
-### Test 11.3 - Config test
+### 13.3 - Config test
 
 TBD: test the configuration:
 - force_*_uppercase
 - template
 - the overriding of the configuration store in the server
 
-## 12 - Export test
+## 14 - Export test
 
-# RESULTS:
+TBD
+
+## 15 - Import test
+
+TBD
+
+## 16 - Window menu test
+
+### 16.1 - Window menu test, close all other window
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open an assembly window
+- where used window
+- valid where used window
+
+
+Test description:
+from the 'where used' window, select menu->windows->close all other windows
+
+Expected results:
+all windows closed but the 'where used' window
+
+Passed: [X]
+
+### 16.2 - Window menu test, new codes list window
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open an assembly window
+- where used window
+- valid where used window
+
+
+Test description:
+from the 'where used' window, select menu->windows->new codes list window
+
+Expected results:
+a NEW 'Codes list' window is opened
+
+Passed: [X]
+
+Test description #2:
+from the 'where used' window, select menu->windows->new codes list window
+
+Expected results #2:
+a 3rd 'Codes list' window is opened
+
+Passed: [X]
+
+#  - RESULTS:
 
 2020-05-12 v0.4.4b3
 Failed tests list: 0
