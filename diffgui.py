@@ -325,7 +325,7 @@ class DiffWindow(bbwindow.BBMainWindow):
         gvals = cfg.get_gvalnames2()
 
         if self._cb_only_top_code.isChecked():
-            keys = [code1]
+            keys = [code3]
         else:
             keys = list(set(data1.keys()).union(data2.keys()))
             keys.sort()
