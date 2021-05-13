@@ -2,7 +2,7 @@
 2021-05-11: v0.4.4
 - add command 'smart where used'
 - import: improve the euristic to convert a number in float
-- import: add test fro number conversion
+- import: add test for number conversion
 - import: if a 'mandatory' field is missed, show which one
 - editcode: during the import use a valid unit ONLY if it is imported
 - export: export the drawings name
