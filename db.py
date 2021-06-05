@@ -160,26 +160,10 @@ class _BaseServer:
                 note            VARCHAR(255),
                 descr           VARCHAR(255) NOT NULL,
                 default_unit    VARCHAR(10) NOT NULL,
+
+                -- the line below will be expanded on the basis of
+                -- the global module variable 'gvals_count'
                 gval1           VARCHAR(255) DEFAULT '',
-                gval2           VARCHAR(255) DEFAULT '',
-                gval3           VARCHAR(255) DEFAULT '',
-                gval4           VARCHAR(255) DEFAULT '',
-                gval5           VARCHAR(255) DEFAULT '',
-                gval6           VARCHAR(255) DEFAULT '',
-                gval7           VARCHAR(255) DEFAULT '',
-                gval8           VARCHAR(255) DEFAULT '',
-                gval9           VARCHAR(255) DEFAULT '',
-                gval10          VARCHAR(255) DEFAULT '',
-                gval11          VARCHAR(255) DEFAULT '',
-                gval12          VARCHAR(255) DEFAULT '',
-                gval13          VARCHAR(255) DEFAULT '',
-                gval14          VARCHAR(255) DEFAULT '',
-                gval15          VARCHAR(255) DEFAULT '',
-                gval16          VARCHAR(255) DEFAULT '',
-                gval17          VARCHAR(255) DEFAULT '',
-                gval18          VARCHAR(255) DEFAULT '',
-                gval19          VARCHAR(255) DEFAULT '',
-                gval20          VARCHAR(255) DEFAULT '',
 
                 FOREIGN KEY (code_id) REFERENCES items(id)
             );
@@ -240,6 +224,22 @@ class _BaseServer:
 
         """
 
+        t = stms.split("\n")
+        s = "gval1           VARCHAR(255) DEFAULT '',"
+        for i in range(len(t)):
+            if s in t[i]:
+                break
+        else:
+            assert(False and "we need to find 's'")
+
+        k = t[i]
+        stms = '\n'.join(t[:i])
+        stms += '\n'
+        stms += '\n'.join([
+            k.replace('1', "%d"%(i)) for i in range(1, gvals_count+1)
+        ])
+        stms += '\n'
+        stms += '\n'.join(t[i+1:])
         stms = self._sql_translate(stms)
 
         return stms

@@ -1539,6 +1539,34 @@ def test_search_revisions_all_values():
 
     # TBD dates
 
+def test_gvals():
+    d, c = _create_db()
+    _test_insert_assembly(c)
+
+    # these two queries should not raise
+    c.execute("SELECT COUNT(gval1) FROM item_revisions")
+    c.fetchone()
+
+    c.execute("SELECT COUNT(gval%d) FROM item_revisions"%(db.gvals_count))
+    c.fetchone()
+
+    # these two queries should raise
+    ret = False
+    try:
+        c.execute("SELECT COUNT(gval0) FROM item_revisions")
+        c.fetchone()
+    except:
+        ret = True
+    assert(ret)
+
+    ret = False
+    try:
+        c.execute("SELECT COUNT(gval%d) FROM item_revisions"%(db.gvals_count+1))
+        c.fetchone()
+    except:
+        ret = True
+    assert(ret)
+
 #------
 
 def run_test(filters, modules, prefix=""):
