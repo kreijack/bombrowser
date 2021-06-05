@@ -74,6 +74,7 @@ end_of_the_world = 999999   # around 5000 ac
 prototype_date = 999900
 prototype_iter = 999999
 gvals_count = 20
+gavals_count = 3
 connection="Server: <UNDEF>"
 
 class DBException(RuntimeError):
@@ -197,6 +198,10 @@ class _BaseServer:
                 each            FLOAT DEFAULT 1.0,
                 ref             VARCHAR(600) DEFAULT '',
 
+                -- the line below will be expanded on the basis of
+                -- the global module variable 'gavals_count'
+                gaval1          VARCHAR(255) DEFAULT '',
+
                 FOREIGN KEY (child_id) REFERENCES items(id),
                 FOREIGN KEY (revision_id) REFERENCES item_revisions(id)
             );
@@ -240,6 +245,24 @@ class _BaseServer:
         ])
         stms += '\n'
         stms += '\n'.join(t[i+1:])
+
+        t = stms.split("\n")
+        s = "gaval1          VARCHAR(255) DEFAULT '',"
+        for i in range(len(t)):
+            if s in t[i]:
+                break
+        else:
+            assert(False and "we need to find 's'")
+
+        k = t[i]
+        stms = '\n'.join(t[:i])
+        stms += '\n'
+        stms += '\n'.join([
+            k.replace('1', "%d"%(i)) for i in range(1, gavals_count+1)
+        ])
+        stms += '\n'
+        stms += '\n'.join(t[i+1:])
+
         stms = self._sql_translate(stms)
 
         return stms

@@ -1567,6 +1567,33 @@ def test_gvals():
         ret = True
     assert(ret)
 
+def test_gavals():
+    d, c = _create_db()
+    _test_insert_assembly(c)
+
+    # these two queries should not raise
+    c.execute("SELECT COUNT(gaval1) FROM assemblies")
+    c.fetchone()
+
+    c.execute("SELECT COUNT(gaval%d) FROM assemblies"%(db.gavals_count))
+    c.fetchone()
+
+    # these two queries should raise
+    ret = False
+    try:
+        c.execute("SELECT COUNT(gaval0) FROM assemblies")
+        c.fetchone()
+    except:
+        ret = True
+    assert(ret)
+
+    ret = False
+    try:
+        c.execute("SELECT COUNT(gaval%d) FROM assemblies"%(db.gavals_count+1))
+        c.fetchone()
+    except:
+        ret = True
+    assert(ret)
 #------
 
 def run_test(filters, modules, prefix=""):
