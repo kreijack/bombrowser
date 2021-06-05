@@ -320,8 +320,13 @@ class FindDialog(QDialog):
         selection = self._tree.selectionModel()
 
         if not selection.hasSelection():
+            if not selection.currentIndex().isValid():
+                self._tree.setCurrentIndex(self._tree.model().index(0,0))
+                self._first_search = True
+
             selection.select(selection.currentIndex(),
                 QItemSelectionModel.Select|QItemSelectionModel.Rows)
+
         idx = selection.selectedIndexes()[0]
 
         while True:
@@ -546,8 +551,8 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         QApplication.restoreOverrideCursor()
 
     def _start_find(self):
-        f = FindDialog(self, self._tree)
-        f.exec_()
+        self._find = FindDialog(self, self._tree)
+        self._find.show()
 
     def _exit_app(self):
         ret = QMessageBox.question(self, "BOMBrowser", "Do you want to exit from the application ?")
