@@ -18,7 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
 
-import sys
+import sys, tempfile
 
 from PySide2.QtWidgets import QScrollArea, QStatusBar, QProgressDialog
 from PySide2.QtWidgets import QMenu, QFileDialog, QAbstractItemView
@@ -27,13 +27,209 @@ from PySide2.QtWidgets import QGridLayout, QApplication, QPushButton
 from PySide2.QtWidgets import QMessageBox, QAction, QDialog, QHeaderView
 from PySide2.QtGui import QStandardItemModel, QStandardItem
 from PySide2.QtCore import Qt, QItemSelectionModel
+
+from PySide2.QtGui import QDesktopServices
+from PySide2.QtCore import QUrl, QMimeData, QByteArray
+from PySide2.QtWidgets import QComboBox, QCheckBox
+import os, zipfile
+
 import pprint, shutil
 
 import db, codegui, codecontextmenu, checker, customize
 import exporter, utils, selectdategui, bbwindow, importer, diffgui
 #from utils import catch_exception
 
+class ExportDialog(QDialog):
+    def __init__(self, parent, top, data):
+        QDialog.__init__(self, parent)
+        self._data = data
+        self._top = top
+        
+        self._init_gui()
+        
+        max_date = db.days_to_iso(data[top]["date_from_days"])
+        #pprint.pprint(data)
+        for k, v in data.items():
+            d = db.days_to_iso(v["date_from_days"])
+            if d > max_date:
+                max_date = d
+        self._max_date = max_date
+        self._fn = "%s_%d_rev%s@%s"%(data[top]["code"], data[top]["iter"],
+                data[top]["ver"], self._max_date)
 
+        self.setWindowTitle("Export: "+data[top]["code"]+" @ " +
+                                    self._max_date)
+        i = None
+        
+        while True:
+            fn = self._fn
+            if i is None:
+                i = 1
+            else:
+                fn += "_%d"%(i)
+            
+            path = os.path.join(tempfile.gettempdir(), fn)
+            if not os.path.exists(path):
+                break
+            i += 1
+        self._dfolder.setText(path)
+
+    def _set_dest_path(self):
+        dest = QFileDialog.getExistingDirectory(self, "Export to to...",
+                                                "",
+                                                QFileDialog.ShowDirsOnly)
+        if dest == "":
+            return
+        self._dfolder.setText(dest)
+
+    def _export_bom(self, template, ext):
+        e = exporter.Exporter(self._top , self._data)
+        nf = os.path.join(self._dfolder.text(),
+            "bom-" + self._fn + ext)
+        e.export_as_file_by_template2(nf, template)
+        
+        return nf
+
+    def _init_gui(self):
+        grid = QGridLayout()
+        self.setLayout(grid)
+
+        self._dfolder = QLineEdit()
+        grid.addWidget(self._dfolder, 10, 10)
+        b = QPushButton("...")
+        grid.addWidget(b, 10, 11)
+        b.clicked.connect(self._set_dest_path)
+
+        self._bom_format = QComboBox()
+        self._exporter = []
+        grid.addWidget(self._bom_format, 15, 10, 1, 2)
+        self._bom_format.addItem("No BOM export")
+        self._exporter.append((None, None))
+        for name, descr in exporter.get_template_list():
+            for ext in [".xls", ".csv"]:
+                if name == "template_simple":
+                    self._bom_format.addItem("Export BOM with default format (%s)"%(
+                        ext))
+                else:
+                    self._bom_format.addItem("Export BOM with format '%s' (%s)"%(
+                        descr, ext))
+                self._exporter.append((utils.Callable(self._export_bom, name, ext), name))
+        
+            self._bom_format.setCurrentIndex(1)
+        
+        self._cb_export_files = QCheckBox("Export files")
+        self._cb_export_files.setChecked(True)
+        grid.addWidget(self._cb_export_files, 21, 10, 1, 2)
+        self._cb_zip_all = QCheckBox("Zip all")
+        self._cb_zip_all.setChecked(True)
+        grid.addWidget(self._cb_zip_all, 22, 10, 1, 2)
+        self._cb_copy_link = QCheckBox("Copy link")
+        self._cb_copy_link.setChecked(True)
+        grid.addWidget(self._cb_copy_link, 23, 10, 1, 2)
+        self._cb_open_dest_folder = QCheckBox("Open destination folder")
+        self._cb_open_dest_folder.setChecked(True)
+        grid.addWidget(self._cb_open_dest_folder, 24, 10, 1, 2)
+        
+        b = QPushButton("Close")
+        grid.addWidget(b, 30, 10)
+        b.clicked.connect(self.close)
+        
+        b = QPushButton("Export...")
+        grid.addWidget(b, 30, 11)
+        b.clicked.connect(self._do_export)    
+        
+    def _do_export(self):
+    
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        dest = self._dfolder.text()
+        if not os.path.exists(dest):
+            os.makedirs(dest)
+        fnl = []
+
+        if self._cb_export_files.isChecked():
+            
+            d = db.DB()
+            for k in self._data:
+                rid = self._data[k]["rid"]
+                drawings = d.get_drawings_by_code_id(rid)
+                fnl += [x[1] for x in drawings]
+
+            fname = ''
+
+            progress = QProgressDialog("Copying files...", "Abort Copy", 0, len(fnl), self)
+            progress.setWindowModality(Qt.WindowModal)
+
+            for i in range(len(fnl)):
+                fname = fnl[i]
+                progress.setValue(i)
+
+                if progress.wasCanceled():
+                    break
+                #... copy one file
+
+                progress.setLabelText(fname)
+                try:
+                    shutil.copy(fname, dest)
+                except Exception as e:
+                    progress.forceShow()
+                    ret = QMessageBox.question(self, "BOMBrowser",
+                        "Error during the copy of '%s'\nEnd the copy ?"%(fname))
+                    if ret == QMessageBox.Yes:
+                        print(er)
+                        QApplication.restoreOverrideCursor()
+            progress.setValue(len(fnl))
+        
+        (cmd, name) = self._exporter[self._bom_format.currentIndex()]
+        bom_file = None
+        if not cmd is None:
+            bom_file = cmd()
+
+        link = dest
+        if self._cb_zip_all.isChecked():
+            nf = os.path.join(dest, self._fn + ".zip")
+            z = zipfile.ZipFile(nf, "w", compression=zipfile.ZIP_DEFLATED)
+            if bom_file:
+                z.write(bom_file, arcname=os.path.basename(bom_file))
+            for i in fnl:
+                nf2 = os.path.join(dest, os.path.basename(i))
+                z.write(nf2, arcname = os.path.basename(i))
+            link = nf
+        QApplication.restoreOverrideCursor()
+        
+        if self._cb_open_dest_folder.isChecked():
+            QDesktopServices.openUrl(QUrl.fromLocalFile(dest))
+        
+        if self._cb_copy_link.isChecked():
+            self._copy_file(link) 
+        
+        QMessageBox.information(self, "BOMBrowser", "Export ended")
+        self.close()
+
+    def _copy_file(self, fn):
+        md = QMimeData()
+
+        # the life is sometime very complicated !
+
+        # windows
+        md.setUrls([QUrl.fromLocalFile(fn)])
+        # mate
+        md.setData("x-special/mate-copied-files",
+            QByteArray(("copy\nfile://"+fn).encode("utf-8")))
+        # nautilus
+        md.setText("x-special/nautilus-clipboard\ncopy\nfile://"+
+            fn+"\n")
+        # gnome
+        md.setData("x-special/gnome-copied-files",
+            QByteArray(("copy\nfile://"+fn).encode("utf-8")))
+        # dolphin
+        md.setData("text/uri-list",
+            QByteArray(("file:"+fn).encode("utf-8")))
+
+        cb = QApplication.clipboard()
+        cb.clear(mode=cb.Clipboard )
+        cb.setMimeData(md)
+
+    
 class FindDialog(QDialog):
     def __init__(self, parent, tree):
         QDialog.__init__(self, parent)
@@ -204,8 +400,8 @@ class AssemblyWindow(bbwindow.BBMainWindow):
             m.addAction(a)
 
         m.addSeparator()
-        a = QAction("Copy files ...", self)
-        a.triggered.connect(self._copy_all_bom_files)
+        a = QAction("Export data ...", self)
+        a.triggered.connect(self._export_data)
         m.addAction(a)
         m.addSeparator()
         a = QAction("Close", self)
@@ -289,47 +485,9 @@ class AssemblyWindow(bbwindow.BBMainWindow):
     def _check_bom(self):
         checker.run_bom_tests(self._top, self._data)
 
-    def _copy_all_bom_files(self):
-        dest = QFileDialog.getExistingDirectory(self, "Save to...",
-                                                "",
-                                                QFileDialog.ShowDirsOnly)
-        if dest == "":
-            return
-
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        d = db.DB()
-        fnl = []
-        for k in self._data:
-            rid = self._data[k]["rid"]
-            drawings = d.get_drawings_by_code_id(rid)
-            fnl += [x[1] for x in drawings]
-
-        fname = ''
-
-        progress = QProgressDialog("Copying files...", "Abort Copy", 0, len(fnl), self)
-        progress.setWindowModality(Qt.WindowModal)
-
-        for i in range(len(fnl)):
-            fname = fnl[i]
-            progress.setValue(i)
-
-            if progress.wasCanceled():
-                break
-            #... copy one file
-
-            progress.setLabelText(fname)
-            try:
-                shutil.copy(fname, dest)
-            except Exception as e:
-                progress.forceShow()
-                ret = QMessageBox.question(self, "BOMBrowser",
-                    "Error during the copy of '%s'\nEnd the copy ?"%(fname))
-                if ret == QMessageBox.Yes:
-                    print(er)
-                    QApplication.restoreOverrideCursor()
-        progress.setValue(len(fnl))
-
-        QApplication.restoreOverrideCursor()
+    def _export_data(self):
+        d = ExportDialog(self, self._top, self._data)
+        d.exec_()
 
     def _export_assemblies_list(self):
         nf = QFileDialog.getSaveFileName(self, "BOMBrowser - export bom",
