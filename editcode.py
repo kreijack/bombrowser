@@ -472,6 +472,7 @@ class EditWindow(bbwindow.BBMainWindow):
         self._dates_list_info = None
         self._children_modified = False
         self._drawing_modified = False
+        self._gavals = cfg.get_gavalnames()
 
         self._init_gui()
 
@@ -502,6 +503,58 @@ class EditWindow(bbwindow.BBMainWindow):
                 db.days_to_txt(date_to_days)))
 
         self._dates_list_last_index = 0
+
+    def _make_gval_widget(self, type_):
+        class PairLEWidget(QWidget):
+            def __init__(self, le, w, parent_=None):
+                QWidget.__init__(self, parent=parent_)
+                l = QHBoxLayout()
+                l.addWidget(le)
+                l.addWidget(w)
+                l.setMargin(0)
+                self.setLayout(l)
+                self._le = le
+
+            def text(self):
+                return self._le.text()
+            def setText(self, s):
+                return self._le.setText(s)
+
+        if type_ == "file":
+            le = QLineEdit()
+            b = QPushButton("...")
+            class Do:
+                def __init__(self, le, parent):
+                    self._le = le
+                    self._parent = parent
+                def __call__(self):
+                    (fn, _) = QFileDialog.getOpenFileName(self._parent,
+                        "Select a file")
+                    if fn != "":
+                        self._le.setText(fn)
+                        self._le.setModified(True)
+            b.clicked.connect(Do(le, self))
+            return PairLEWidget(le, b)
+        elif type_.startswith("list:"):
+            le = QLineEdit()
+            b = QComboBox()
+            values =type_[5:].split(";")
+            b.addItem("...")
+            for i in values:
+                b.addItem(i)
+            class Do:
+                def __init__(self, le, l):
+                    self._le = le
+                    self._list = l[:]
+                def __call__(self, i):
+                    if i < 1 or i > len(self._list):
+                        return
+                    self._le.setText(self._list[i-1])
+                    self._le.setModified(True)
+            b.currentIndexChanged.connect(Do(le, values))
+            return PairLEWidget(le, b)
+        else:
+            return QLineEdit()
 
     def _init_gui(self):
 
@@ -568,49 +621,11 @@ class EditWindow(bbwindow.BBMainWindow):
         i = 0
         row = 0
         for (seq, idx, gvalname, caption, type_) in gvalnames:
-            le = QLineEdit()
             qgbg.addWidget(QLabel(caption), row / 2, 10 + (row % 2) * 2)
-            if type_ == "file":
-                w = QHBoxLayout()
-                w.addWidget(le)
-                b = QPushButton("...")
-                w.addWidget(b)
-                class Do:
-                    def __init__(self, le, parent):
-                        self._le = le
-                        self._parent = parent
-                    def __call__(self):
-                        (fn, _) = QFileDialog.getOpenFileName(self._parent,
-                            "Select a file")
-                        if fn != "":
-                            self._le.setText(fn)
-                b.clicked.connect(Do(le, self))
-                qgbg.addLayout(w, row / 2, 11 + (row % 2) * 2)
-            elif type_.startswith("list:"):
-                w = QHBoxLayout()
-                w.addWidget(le)
-                b = QComboBox()
-                values =type_[5:].split(";")
-                b.addItem("...")
-                for i in values:
-                    b.addItem(i)
-                class Do:
-                    def __init__(self, le, l):
-                        self._le = le
-                        self._list = l[:]
-                    def __call__(self, i):
-                        if i < 1 or i > len(self._list):
-                            return
-                        self._le.setText(self._list[i-1])
-                b.currentIndexChanged.connect(Do(le, values))
-                w.addWidget(b)
-                qgbg.addLayout(w, row / 2, 11 + (row % 2) * 2)
-            else:
-                qgbg.addWidget(le, row / 2, 11 + (row % 2) * 2)
-
+            le = self._make_gval_widget(type_)
+            qgbg.addWidget(le, row / 2, 11 + (row % 2) * 2)
             self._gvals.append((gvalname, le, idx))
             row += 1
-
 
         # TODO: add the properties
 
@@ -621,6 +636,7 @@ class EditWindow(bbwindow.BBMainWindow):
 
         # children
         self._children_table = QTableWidget()
+
         self._children_table.setContextMenuPolicy(Qt.CustomContextMenu)
         self._children_table.customContextMenuRequested.connect(
             self._children_menu)
@@ -643,7 +659,6 @@ class EditWindow(bbwindow.BBMainWindow):
         l.addWidget(self._children_table, 10, 20, 5, 1)
         l.setRowStretch(14, 100)
         qtab.addTab(w, "Children")
-
 
         # drawing
         self._drawings_table = DrawingTable() #QTableWidget()
@@ -954,6 +969,7 @@ class EditWindow(bbwindow.BBMainWindow):
         # TBD: check for loop
         codes_set = set()
         children = []
+
         for i in range(self._children_table.rowCount()):
             code_id = self._children_table.item(i, 1).text().strip()
             code = self._children_table.item(i, 2).text().strip()
@@ -961,6 +977,11 @@ class EditWindow(bbwindow.BBMainWindow):
             each = self._children_table.item(i, 5).text().strip()
             unit = self._children_table.item(i, 6).text().strip()
             ref = self._children_table.item(i, 7).text().strip()
+
+            gavals_values = ["" for i in range(db.gavals_count)]
+            for c, idx, gvalname, name, type_ in self._gavals:
+                #gavals_values[idx-1] = self._children_table.item(i, 8+c).text().strip()
+                gavals_values[idx-1] = self._children_table.cellWidget(i, 8+c).text().strip()
 
             try:
                 qty = float(qty)
@@ -996,7 +1017,7 @@ class EditWindow(bbwindow.BBMainWindow):
 
             codes_set.add(code)
 
-            children.append((code_id, qty, each, unit, ref))
+            children.append((code_id, qty, each, unit, ref, gavals_values))
 
         return (None, (gvals, drawings, children))
 
@@ -1032,7 +1053,7 @@ class EditWindow(bbwindow.BBMainWindow):
         return "OK"
 
     def _children_populate_row(self, row, child_id, code, descr, qty,
-                                each, unit, ref):
+                                each, unit, ref, gvls):
         i = QTableWidgetItem("%03d"%(row+1))
         i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
         f = i.font()
@@ -1063,11 +1084,30 @@ class EditWindow(bbwindow.BBMainWindow):
             # if unit is valid, override the code default one
             self._children_table.setItem(row, 6, QTableWidgetItem(unit))
 
+        for c, idx, gvalname, name, type_ in self._gavals:
+            txt = gvls[idx - 1]
+            # TBD: set a more appropriate item
+            #w = QTableWidgetItem()
+            w = self._make_gval_widget(type_)
+            w.setText(txt)
+            self._children_table.setCellWidget(row, 8+c, w)
+
     def _populate_children(self, children):
         try:
             self._children_table.cellChanged.disconnect()
         except:
             pass
+
+        labels = [
+            "Seq",
+            "Code id",
+            "Code",
+            "Description",
+            "Q.ty", "Each", "Unit",
+            "Ref"]
+        labels.extend([
+            name for c, idx, gvalname, name, value in self._gavals
+        ])
 
         self._children_table.clear()
         self._children_table.horizontalHeader().setStretchLastSection(True)
@@ -1075,21 +1115,16 @@ class EditWindow(bbwindow.BBMainWindow):
         self._children_table.setSelectionBehavior(QTableView.SelectRows);
         self._children_table.setAlternatingRowColors(True)
         self._children_table.setSelectionMode(self._drawings_table.SingleSelection)
-        self._children_table.setColumnCount(8)
+        self._children_table.setColumnCount(len(labels))
         self._children_table.setRowCount(len(children))
-        self._children_table.setHorizontalHeaderLabels([
-            "Seq",
-            "Code id",
-            "Code",
-            "Description",
-            "Q.ty", "Each", "Unit",
-            "Ref"])
+
+        self._children_table.setHorizontalHeaderLabels(labels)
         self._children_table.setSortingEnabled(False)
 
         row = 0
-        for (child_id, code, descr, qty, each, unit, ref) in children:
+        for (child_id, code, descr, qty, each, unit, ref, *gvls) in children:
             self._children_populate_row(row, child_id, code, descr, qty,
-                                            each, unit, ref)
+                                            each, unit, ref, gvls)
             row += 1
 
         self._children_table.setSortingEnabled(True)
