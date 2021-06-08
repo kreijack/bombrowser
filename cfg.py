@@ -81,6 +81,40 @@ def get_gvalnames2():
 
     return ret
 
+def get_gavalnames():
+    l = [x.strip() for x in
+            config().get("BOMBROWSER", "gavalnames").split("\n")
+            if len(x.strip()) > 0
+        ]
+    ret = []
+    alreadyinserted = set()
+    c = 0
+    for n in l:
+        j = n.find(":")
+        gvalname = n[:j]
+
+        assert(gvalname.startswith("gaval"))
+        assert(not gvalname in alreadyinserted)
+        alreadyinserted.add(gvalname)
+        idx = int(gvalname[5:])
+
+        n = n[j+1:]
+        if len(n) == 0:
+            n = gvalname
+        i = n.find("[")
+        if i < 0:
+            ret.append((c, idx, gvalname, n, "free"))
+            c += 1
+            continue
+
+        j = n.find("]")
+        assert(j >= 0)
+        v = n[i+1:j].strip()
+        ret.append((c, idx, gvalname, n[:i], v))
+        c += 1
+
+    return ret
+
 def update_cfg(data):
     for key1 in data:
         row1 = data[key1]
