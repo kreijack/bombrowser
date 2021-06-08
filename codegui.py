@@ -45,7 +45,7 @@ class CodeWidget(QWidget):
 
         self._init_gui()
 
-    def populate(self, id_, date_from_days, qty, each, unit, ref):
+    def populate(self, id_, date_from_days, qty, each, unit, ref, gavals=dict()):
 
         d = db.DB()
         data = d.get_code(id_, date_from_days)
@@ -57,6 +57,8 @@ class CodeWidget(QWidget):
             self._unit = data["unit"]
         self._unit = unit
         self._ref = ref
+        self._gavals = gavals
+        self._gavalnames = []
         self._main_data = [
             ("Code", "code"),
             ("Revision", "ver"),
@@ -68,6 +70,10 @@ class CodeWidget(QWidget):
         gvalnames = cfg.get_gvalnames2()
         for (seq, idx, gvalname, caption, type_) in gvalnames:
             self._main_data.append((caption, gvalname))
+
+        gavalnames = cfg.get_gavalnames()
+        for (seq, idx, gavalname, caption, type_) in gavalnames:
+            self._gavalnames.append((caption, gavalname))
 
         self._drawings = d.get_drawings_by_code_id(self._data["rid"])
 
@@ -149,6 +155,15 @@ class CodeWidget(QWidget):
             grid.addWidget(XLabel(str(self._qty)), row , 1)
             txt += "Quantity: %s\n"%(self._qty)
             row += 1
+
+        if self._qty != "" and len(self._gavals):
+            # if qty != "" the items is inside an assy, and it does
+            # make sense to print the gavals fields
+            for caption, name in self._gavalnames:
+                    grid.addWidget(XLabel(caption), row, 0)
+                    grid.addWidget(XLabel(self._gavals[name]), row , 1)
+                    txt += "%s: %s\n"%(caption, self._gavals[name])
+                    row += 1
 
         if self._each != "":
             grid.addWidget(XLabel("   Each"), row, 0)
