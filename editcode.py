@@ -187,7 +187,6 @@ class EditDates(QDialog):
         data = d.get_dates_by_code_id3(self._code_id)
 
         self._table.clear()
-        self._table.horizontalHeader().setStretchLastSection(True)
         self._table.setSortingEnabled(False)
         #self._table.setSelectionBehavior(QTableView.SelectCell);
         self._table.setAlternatingRowColors(True)
@@ -244,8 +243,10 @@ class EditDates(QDialog):
 
         self.setWindowTitle("Edit dates: %s"%(code))
         self._table.cellChanged.connect(self._cell_changed)
-        self._table.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeToContents)
+        self._table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        QApplication.instance().processEvents()
+        self._table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self._table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
 
     def _cell_changed(self, row, col):
         # check the date from column
@@ -1110,7 +1111,6 @@ class EditWindow(bbwindow.BBMainWindow):
         ])
 
         self._children_table.clear()
-        self._children_table.horizontalHeader().setStretchLastSection(True)
         self._children_table.setSortingEnabled(True)
         self._children_table.setSelectionBehavior(QTableView.SelectRows);
         self._children_table.setAlternatingRowColors(True)
@@ -1128,9 +1128,12 @@ class EditWindow(bbwindow.BBMainWindow):
             row += 1
 
         self._children_table.setSortingEnabled(True)
+        self._children_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        QApplication.instance().processEvents()
+        self._children_table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self._children_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
         self._children_table.cellChanged.connect(self._children_cell_changed)
-        self._children_table.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeToContents)
+
 
     def _populate_table(self, rid):
         self._rid = rid

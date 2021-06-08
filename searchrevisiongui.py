@@ -118,7 +118,6 @@ class RevisionListWidget(QWidget):
         self._table = QTableWidget()
 
         self._table.clear()
-        self._table.horizontalHeader().setStretchLastSection(True)
         self._table.setSortingEnabled(True)
         self._table.setSelectionBehavior(QTableView.SelectRows);
         self._table.setAlternatingRowColors(True)
@@ -226,6 +225,10 @@ class RevisionListWidget(QWidget):
         if len(ret) > 0:
             self._table.selectRow(0)
         self._table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        QApplication.instance().processEvents()
+        self._table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self._table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
+
         self.emitResult.emit(len(ret))
 
     def _table_clicked(self, to, from_):

@@ -49,7 +49,6 @@ class SelectDate(QDialog):
         self.setWindowTitle("BOMBrowser - Select date")
 
         self._table = QTableWidget()
-        self._table.horizontalHeader().setStretchLastSection(True)
         self._table.setSortingEnabled(True)
         self._table.setSelectionBehavior(QTableWidget.SelectRows);
         self._table.setAlternatingRowColors(True)
@@ -108,7 +107,7 @@ class SelectDate(QDialog):
         self._table.doubleClicked.connect(self.accept)
         self._table.setSortingEnabled(False)
         self._table.setRowCount(len(data))
-        self._table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        #self._table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self._table.setHorizontalHeaderLabels(["Code", "Description", "Rev", "Iter", "Date from"])
 
         for r in range(len(data)):
@@ -117,6 +116,11 @@ class SelectDate(QDialog):
                 i = QTableWidgetItem(str(row[c]))
                 i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                 self._table.setItem(r, c, i)
+
+        self._table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        QApplication.instance().processEvents()
+        self._table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self._table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
 
         self._table.selectRow(0)
 
