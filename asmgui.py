@@ -723,14 +723,19 @@ class AssemblyWindow(bbwindow.BBMainWindow):
 
         unit = ""
         ref = ""
+        gavals = dict()
         date_from_days = self._data[data_key]["date_from_days"]
         if len(path) > 1:
             unit = self._data[path[-2]]["deps"][path[-1]]["unit"]
             ref = self._data[path[-2]]["deps"][path[-1]]["ref"]
+            for i in range(db.gavals_count):
+                k = "gaval%d"%(i+1)
+                if k in self._data[path[-2]]["deps"][path[-1]]:
+                    gavals[k] = self._data[path[-2]]["deps"][path[-1]][k]
 
         self._code_widget.populate(self._data[data_key]["id"],
             self._data[data_key]["date_from_days"],
-            qty, each, unit, ref)
+            qty, each, unit, ref, gavals)
 
         self._my_statusbar.showMessage("/".join(map(lambda x : self._data[x]["code"], path)))
 
