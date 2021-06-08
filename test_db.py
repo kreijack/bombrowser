@@ -1405,6 +1405,55 @@ def test_update_by_rid2():
     for i in range(db.gvals_count):
         assert(gvals[i] == data["gval%d"%(i+1)])
 
+def test_update_by_rid2_with_children():
+
+    d, c = _create_db()
+    code = "TEST-CODE"
+    code2 = "TEST-CODE-2"
+    code_id, dates = _create_code_revision(c, code, 1)
+    code_id2, dates = _create_code_revision(c, code2, 1)
+    d._commit(c)
+
+    rid = dates[0][0]
+
+    gvals = ["2-new gval %d"%(i) for i in range(db.gvals_count)]
+    gavals = ["new gaval %d"%(i) for i in range(db.gavals_count)]
+
+    d.update_by_rid2(rid, "new descr", "new ver", "new-unit",
+            gvals, children = [
+                (code_id, 2, 3, 'xNR', 'xREF', gavals)
+    ])
+
+    root, bom = d.get_bom_by_code_id3(code_id2, dates[0][2])
+    assert(len(bom) == 2)
+
+    v = bom[root]
+
+    assert(len(v["deps"]) == 1)
+    # took the first/unique child
+    key = list(v["deps"].keys())[0]
+
+    # may be gavals_count is 0
+    for i in range(db.gavals_count):
+        assert(v["deps"][key]["gaval%d"%(i+1)] == gavals[i])
+
+    children = d.get_children_by_rid(rid)
+    assert(len(children) == 1)
+
+    cchild_id, ccode, cdescr, cqty, ceach, cunit, cref = children[0][:7]
+    assert(cchild_id == code_id)
+    assert(ccode == code)
+    assert(cqty == 2)
+    assert(ceach == 3)
+    assert(cunit == "xNR")
+    assert(cref == "xREF")
+
+    gvls = children[0][7:]
+    assert(len(gvls) == db.gavals_count)
+
+    for i in range(db.gavals_count):
+        assert(children[0][7+i] == gavals[i])
+
 def _create_data_for_search_revisions(c, d):
     code1 = "TEST-CODE-1"
     code2 = "TEST-CODE-2"

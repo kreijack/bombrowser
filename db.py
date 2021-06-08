@@ -591,10 +591,14 @@ class _BaseServer:
             d.update(d2)
             d["deps"] = dict()
 
+            gavals = ""
+            for i in range(gavals_count):
+                gavals += ", gaval%d"%(i+1)
             self._sqlex(c, """
                 SELECT a.unit, a.qty, a.each,
                         rc.iter, a.child_id, rc.code_id, rc.date_from_days,
-                        rc.date_to_days, a.ref, rc.id
+                        rc.date_to_days, a.ref,
+                        rc.id %s
                 FROM assemblies AS a
                 LEFT JOIN item_revisions AS rc
                   ON a.child_id = rc.code_id
@@ -602,7 +606,7 @@ class _BaseServer:
                   AND   rc.date_from_days <= ?
                   AND   ? <= rc.date_to_days
                 ORDER BY a.child_id
-                """, (rid, date_from_days_ref, date_from_days_ref))
+                """%(gavals), (rid, date_from_days_ref, date_from_days_ref))
 
             children = c.fetchall()
 
@@ -610,8 +614,10 @@ class _BaseServer:
                 data[d["id"]] = d
                 continue
 
-            for (unit, qty, each, it, child_id,parent_id,
-                 date_from_days_, date_to_days_, ref, crid) in children:
+            for line in children:
+                (unit, qty, each, it, child_id,parent_id,
+                 date_from_days_, date_to_days_, ref, crid) = line[:10]
+                gavalues = line[10:]
                 d["deps"][child_id] = {
                     "code_id": child_id,
                     "unit": unit,
@@ -620,6 +626,8 @@ class _BaseServer:
                     "iter": it,
                     "ref": ref,
                 }
+                for i in range(gavals_count):
+                    d["deps"][child_id]["gaval%d"%(i+1)] = gavalues[i]
 
                 if not crid in done:
                     todo.append(crid)
@@ -1038,9 +1046,10 @@ class _BaseServer:
 
     def get_children_by_rid(self, rid):
         c = self._conn.cursor()
+        gval_query = "".join([",a.gaval%d"%(i+1) for i in range(gavals_count)])
         self._sqlex(c, """
             SELECT a.child_id, i.code, r2.descr, a.qty, a.each, a.unit,
-                   a.ref
+                   a.ref %s
             FROM assemblies AS a
             LEFT JOIN (
                 SELECT code_id, MAX(iter) AS iter
@@ -1054,7 +1063,7 @@ class _BaseServer:
               ON r2.code_id = a.child_id AND r2.iter = r.iter
             WHERE a.revision_id = ?
             ORDER BY a.id
-        """, (rid,))
+        """%(gval_query), (rid,))
 
         return c.fetchall()
 
@@ -1091,13 +1100,16 @@ class _BaseServer:
             """, (rid, ))
 
             if len(children) > 0:
-                # (code_id, qty, each, unit)
-                self._sqlexm(c, """
+                q = """
                         INSERT INTO assemblies(
-                            revision_id, child_id, qty, each, ref, unit)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    """, [(rid, code_id, qty, each, ref, unit)
-                        for (code_id, qty, each, unit, ref) in children])
+                            revision_id, child_id, qty, each, ref, unit %s)
+                        VALUES (?, ?, ?, ?, ?, ? %s)
+                """%( "".join([",gaval%d "%(x+1) for x in range(gavals_count)]),
+                    "".join([",? " for x in range(gavals_count)]),
+                )
+                # (code_id, qty, each, unit)
+                self._sqlexm(c, q, [(rid, code_id, qty, each, ref, unit, *gvs)
+                        for (code_id, qty, each, unit, ref, gvs) in children])
 
         except:
             self._rollback(c)
