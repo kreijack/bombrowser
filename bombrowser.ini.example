@@ -13,8 +13,8 @@ code_force_uppercase=1
 templates_list=template_simple,template_all,template_dummy
 importer_list=import_simple,importer_all
 
-# the name of gvalN (n=1..8) fields separated by comma
-# it is allowed to have less than 8 fields
+# the name of gvalN (n=1..) fields separated by comma
+# it is allowed to not have all availables fields
 gvalnames=
     gval2:Supplier#1 name
     gval1:Supplier#1 PN
@@ -24,6 +24,11 @@ gvalnames=
     gval5:Manufacturer#2 PN
     gval7:TestFile[file]
     gval8:Test2[list:prova1;prova2;pro, va3]
+
+# the name of gavalN (n=1..) fields separated by comma
+# it is allowed to not have all availables fields
+gavalnames=
+    gaval1:Planned
 
 # increase the font size by a factor (default 1.0)
 scalefont=1.2
