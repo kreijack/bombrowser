@@ -593,7 +593,7 @@ class _BaseServer:
 
             gavals = ""
             for i in range(gavals_count):
-                gavals += ", gaval%d"%(i+1)
+                gavals += ", a.gaval%d"%(i+1)
             self._sqlex(c, """
                 SELECT a.unit, a.qty, a.each,
                         rc.iter, a.child_id, rc.code_id, rc.date_from_days,
