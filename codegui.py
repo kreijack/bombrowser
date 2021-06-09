@@ -156,6 +156,12 @@ class CodeWidget(QWidget):
             txt += "Quantity: %s\n"%(self._qty)
             row += 1
 
+        if self._each != "":
+            grid.addWidget(XLabel("   Each"), row, 0)
+            grid.addWidget(XLabel(str(self._each)), row , 1)
+            txt += "Each: %s\n"%(self._each)
+            row += 1
+
         if self._qty != "" and len(self._gavals):
             # if qty != "" the items is inside an assy, and it does
             # make sense to print the gavals fields
@@ -164,12 +170,6 @@ class CodeWidget(QWidget):
                     grid.addWidget(XLabel(self._gavals[name]), row , 1)
                     txt += "%s: %s\n"%(caption, self._gavals[name])
                     row += 1
-
-        if self._each != "":
-            grid.addWidget(XLabel("   Each"), row, 0)
-            grid.addWidget(XLabel(str(self._each)), row , 1)
-            txt += "Each: %s\n"%(self._each)
-            row += 1
 
         grid.addWidget(QHLine(), row, 0, 1, 2)
         row += 1
