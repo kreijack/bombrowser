@@ -830,10 +830,11 @@ class EditWindow(bbwindow.BBMainWindow):
                 delta += 1
         assert(nrow - self._children_table.rowCount() == 0)
 
+        gavals = ["" for x in range(db.gavals_count)]
         for (row, (code, qty, each, unit, ref)) in enumerate(children):
 
             self._children_populate_row(row, "-", code, "-", qty,
-                                each, unit, ref)
+                                each, unit, ref, gavls)
 
         self._children_table.setSortingEnabled(True)
 
@@ -1342,8 +1343,9 @@ class EditWindow(bbwindow.BBMainWindow):
         self._children_table.setSortingEnabled(False)
         self._children_table.insertRow(row)
 
+        gavals = ["" for x in range(db.gavals_count)]
         self._children_populate_row(row, "", "", "", "1",
-                                        "1", "NR", "")
+                                        "1", "NR", "", gavals)
 
         for row in range(self._children_table.rowCount()):
             self._children_table.item(row, 0).setText("%03d"%(row+1))
