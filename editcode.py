@@ -554,6 +554,22 @@ class EditWindow(bbwindow.BBMainWindow):
                     self._le.setModified(True)
             b.currentIndexChanged.connect(Do(le, values))
             return PairLEWidget(le, b)
+        elif type_.startswith("clist:"):
+            class CList(QComboBox):
+                def __init__(self, parent_=None):
+                    QComboBox.__init__(self, parent=parent_)
+                def text(self):
+                    i = self.findText(s)
+                    return self.itemText(i)
+                def setText(self, s):
+                    i = self.findText(s)
+                    if i >= 0:
+                        self.setCurrentIndex(i)
+            b = CList()
+            values =type_[6:].split(";")
+            for i in values:
+                b.addItem(i)
+            return b
         else:
             return QLineEdit()
 

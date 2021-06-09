@@ -24,12 +24,12 @@ gvalnames=
     gval5:Manufacturer#2 PN
     gval7:TestFile[file]
     gval8:Test2[list:prova1;prova2;pro, va3]
-    gval9:Transparent[list:1;0]
+    gval9:Transparent[clist:0;1]
 
 # the name of gavalN (n=1..) fields separated by comma
 # it is allowed to not have all availables fields
 gavalnames=
-    gaval1:Planned[list:1;0]
+    gaval1:Planned[clist:1;0]
 
 #
 # this table allow to set a color (and stile) on the basis of a 
