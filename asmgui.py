@@ -25,7 +25,7 @@ from PySide2.QtWidgets import QMenu, QFileDialog, QAbstractItemView
 from PySide2.QtWidgets import QSplitter, QTreeView, QLineEdit
 from PySide2.QtWidgets import QGridLayout, QApplication, QPushButton
 from PySide2.QtWidgets import QMessageBox, QAction, QDialog, QHeaderView
-from PySide2.QtGui import QStandardItemModel, QStandardItem
+from PySide2.QtGui import QStandardItemModel, QStandardItem, QColor, QBrush
 from PySide2.QtCore import Qt, QItemSelectionModel
 
 from PySide2.QtGui import QDesktopServices
@@ -37,6 +37,7 @@ import pprint, shutil
 
 import db, codegui, codecontextmenu, checker, customize
 import exporter, utils, selectdategui, bbwindow, importer, diffgui
+import cfg
 #from utils import catch_exception
 
 class ExportDialog(QDialog):
@@ -599,9 +600,75 @@ class AssemblyWindow(bbwindow.BBMainWindow):
             parent=self)
         contextMenu.exec_(self._tree.viewport().mapToGlobal(point))
 
+    def _set_bom_colors(self, path, colors_filter, item):
+        if len(path) == 0:
+            return
+
+        def match(k, v):
+            if k.startswith("*"):
+                k = k[1:]
+                l = path
+            else:
+                l = path[-1:]
+
+            for idx in range(len(l)):
+                i = l[idx]
+                tmp = self._data[i]
+                if k in tmp:
+                    if v.startswith("!") and tmp[k] != v[1:]:
+                        return True
+                    if tmp[k] == v:
+                        return True
+
+                if idx == 0:
+                    continue
+
+
+                j = l[idx-1]
+                tmp2 = self._data[j]["deps"][i]
+                if k in tmp2:
+                    if v.startswith("!") and tmp2[k] != v[1:]:
+                        return True
+                    if tmp2[k] == v:
+                        return True
+
+            return False
+
+        def apply_actions(actions):
+            for action in actions:
+                if action.startswith("bg="):
+                    c = QColor(action[3:])
+                    b = QBrush()
+                    b.setColor(c)
+                    item.setBackground(b)
+                elif action.startswith("fg="):
+                    c = QColor(action[3:])
+                    b = QBrush()
+                    b.setColor(c)
+                    item.setForeground(b)
+                elif action.startswith("italic"):
+                    f = item.font()
+                    f.setItalic(True)
+                    item.setFont(f)
+                elif action.startswith("bold"):
+                    f = item.font()
+                    f.setBold(True)
+                    item.setFont(f)
+                else:
+                    print("WARNING: unknown action '%s'"%(action))
+
+        for (filters, actions) in colors_filter:
+            for f in filters:
+                k,v = f.split("=")[:2]
+                if not match(k, v):
+                    break
+            else:
+                apply_actions(actions)
+
     def populate(self, top, data, bom_date=None):
         top_code = data[top]["code"]
 
+        colors_filter = []
         if self._mode == "asm":
                 if bom_date == db.prototype_date -1:
                     dt2 = "LATEST"
@@ -611,9 +678,11 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                     dt2 = "PROTOTYPE"
                 else:
                     dt2 = db.days_to_iso(bom_date)
-                    
+
                 self._bom_date = bom_date
                 self.setWindowTitle("Assembly: " + top_code + " @ " + dt2)
+
+                colors_filter = cfg.get_bomcolors()
         elif self._mode == "valid_where_used":
                 self.setWindowTitle("Valid where used: " + top_code)
         elif self._mode == "smart_where_used":
@@ -627,7 +696,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         self._tree.setModel(model)
         model.setHorizontalHeaderLabels(["Code", "Description"])
 
-        def rec_update(n, path=[]):
+        def rec_update(n, path):
             d = data[n]
             #if self._valid_where_used and d["date_to"] != "":
             #    return None
@@ -636,6 +705,10 @@ class AssemblyWindow(bbwindow.BBMainWindow):
             i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
             i2 =  QStandardItem(d["descr"])
             i2.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+
+            if len(colors_filter):
+                self._set_bom_colors(path, colors_filter, i)
+                self._set_bom_colors(path, colors_filter, i2)
             for c in data[n]["deps"]:
                 if c in path:
                     # ERROR: a recursive path
@@ -652,7 +725,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                     i.appendRow(ci)
             return (i, i2)
 
-        root_items = rec_update(top)
+        root_items = rec_update(top, [top])
         if root_items is None:
             model.appendRow((QStandardItem("Empty"),))
         else:

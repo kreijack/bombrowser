@@ -24,11 +24,43 @@ gvalnames=
     gval5:Manufacturer#2 PN
     gval7:TestFile[file]
     gval8:Test2[list:prova1;prova2;pro, va3]
+    gval9:Transparent[list:1;0]
 
 # the name of gavalN (n=1..) fields separated by comma
 # it is allowed to not have all availables fields
 gavalnames=
-    gaval1:Planned
+    gaval1:Planned[list:1;0]
+
+#
+# this table allow to set a color (and stile) on the basis of a 
+# combination of the code fields (code, description, qty....)
+# if a field is prefixed by '*', the check is perfomred on the 
+# path from the top node to the code
+# available action:
+#   bg -> background color
+#   fg -> foreground color
+#   italic -> set italic
+#   bold -> set bold
+#
+# available colors: (from qt man page)
+# 
+#    #RGB (each of R, G, and B is a single hex digit)
+#    #RRGGBB
+#    #AARRGGBB (Since 5.2)
+#    #RRRGGGBBB
+#    #RRRRGGGGBBBB
+#    A name from the list of colors defined in the list of SVG color
+#    keyword names provided by the World Wide Web Consortium; for
+#    example, "steelblue" or "gainsboro". These color names work on all
+#    platforms. Note that these color names are not the same as defined
+#    by the Qt::GlobalColor enums, e.g. "green" and Qt::green does not
+#    refer to the same color.
+#    transparent - representing the absence of a color.
+#    
+bomcolors=
+    gval9=1,*gaval1=1:italic
+    gval9=1,*gaval1=0:italic,fg=gray
+    gval9=0,*gaval1=0:fg=gray
 
 # increase the font size by a factor (default 1.0)
 scalefont=1.2

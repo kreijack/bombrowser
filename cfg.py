@@ -122,3 +122,21 @@ def update_cfg(data):
             if not key1 in _cfg:
                 _cfg[key1] = dict()
             _cfg[key1][key2] =  row1[key2]
+
+def get_bomcolors():
+    if not "bomcolors" in config()["BOMBROWSER"]:
+        return []
+
+    l = [x.strip() for x in
+            config().get("BOMBROWSER", "bomcolors").split("\n")
+            if len(x.strip()) > 0
+        ]    
+
+    ret = []
+    for line in l:
+        assert(":" in line)
+        f = [x.strip() for x in line.split(":")[0].split(",")]
+        a = [x.strip() for x in line.split(":")[1].split(",")]
+        ret.append((f,a))
+        
+    return ret
