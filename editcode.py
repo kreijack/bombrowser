@@ -559,7 +559,7 @@ class EditWindow(bbwindow.BBMainWindow):
                 def __init__(self, parent_=None):
                     QComboBox.__init__(self, parent=parent_)
                 def text(self):
-                    i = self.findText(s)
+                    i = self.currentIndex()
                     return self.itemText(i)
                 def setText(self, s):
                     i = self.findText(s)
