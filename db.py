@@ -1455,8 +1455,6 @@ class _BaseServer:
             assert(k in arg_names)
             arg = str(kwargs[k]).strip()
             assert(len(arg) > 0)
-            if arg[0] in "=><!":
-                assert(len(arg) > 1)
 
             table = "r"
             if k in ["code", "id"]:
