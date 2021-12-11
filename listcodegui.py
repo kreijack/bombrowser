@@ -37,9 +37,10 @@ class CodesListWidget(QWidget):
     doubleClicked = Signal()
     emitResult = Signal(int)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, bom=None):
         QWidget.__init__(self, parent)
 
+        self._bom = bom
         self._copy_info = ""
         self._code_id = None
         self._code = None
@@ -104,7 +105,6 @@ class CodesListWidget(QWidget):
         self.rightMenu.emit(self._table.viewport().mapToGlobal(point))
 
     def _search(self):
-        d = db.DB()
         cs = self._code_search.text()
         ds = self._descr_search.text()
         if self._descr_force_uppercase == "1":
@@ -112,12 +112,20 @@ class CodesListWidget(QWidget):
         if self._code_force_uppercase == "1":
                 cs = cs.upper()
 
-        if cs != "" and ds:
-            ret = d.get_codes_by_like_code_and_descr(cs, ds)
-        elif cs == "":
-            ret = d.get_codes_by_like_descr(ds)
+        if self._bom:
+                ret = []
+                for k, v in self._bom.items():
+                    if ((cs != "" and cs in v["code"]) or
+                        (ds != "" and cs in v["descr"])):
+                            ret.append((v["id"], v["code"], v["ver"], v["iter"], v["descr"]))
         else:
-            ret = d.get_codes_by_like_code(cs)
+                d = db.DB()
+                if cs != "" and ds:
+                    ret = d.get_codes_by_like_code_and_descr(cs, ds)
+                elif cs == "":
+                    ret = d.get_codes_by_like_descr(ds)
+                else:
+                    ret = d.get_codes_by_like_code(cs)
 
         if not ret or len(ret) == 0:
             QApplication.beep()
@@ -183,9 +191,14 @@ class CodesListWidget(QWidget):
         return self._copy_info
 
 class CodesWindow(bbwindow.BBMainWindow):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, bom=None, bomdesc=''):
         bbwindow.BBMainWindow.__init__(self, parent)
-        self.setWindowTitle("Codes list")
+        self._bom = bom
+
+        if bom is None:
+                self.setWindowTitle("Codes list")
+        else:
+                self.setWindowTitle("Search in bom: "+bomdesc)
 
         self._init_gui()
         self.resize(1024, 600)
@@ -251,8 +264,8 @@ class CodesWindow(bbwindow.BBMainWindow):
 
         self._create_statusbar()
 
-        self._codes_widget = CodesListWidget(self)
-        self._revisions_widget = searchrevisiongui.RevisionListWidget(self)
+        self._codes_widget = CodesListWidget(self, bom=self._bom)
+        self._revisions_widget = searchrevisiongui.RevisionListWidget(self, bom=self._bom)
         self._stacked_widget = QStackedWidget()
         self._stacked_widget.addWidget(self._codes_widget)
         self._stacked_widget.addWidget(self._revisions_widget)

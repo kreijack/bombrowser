@@ -37,13 +37,14 @@ class RevisionListWidget(QWidget):
     doubleClicked = Signal()
     emitResult = Signal(int)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, bom=None):
         QWidget.__init__(self, parent)
 
         self._copy_info = ""
         self._code_id = None
         self._code = None
         self._rid = None
+        self._bom = bom
         self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
         self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
         self._data = dict()
@@ -143,6 +144,64 @@ class RevisionListWidget(QWidget):
     def _tree_context_menu(self, point):
         self.rightMenu.emit(self._table.viewport().mapToGlobal(point))
 
+    def _search_in_bom(self, pattern):
+        ret = []
+        fns = ["id", "rid", "code","descr",
+            "ver", "iter", "date_from_days", "date_to_days"]
+
+        fns += ["" for x in cfg.get_gvalnames2()]
+        for (seq, idx, gvalname, caption, type_) in cfg.get_gvalnames2():
+            fns[8 + idx -1] = gvalname
+
+        for k, v in self._bom.items():
+            match = False
+            for pk, pv in pattern.items():
+                if not pk in v.keys():
+                    print("WARNING: key '%s' not found"%(pk))
+                    print("WARNING: pattern=", pattern)
+                    print("WARNING: v=", v)
+                    continue
+
+                if len(pv) < 1:
+                    continue
+
+                match = True
+
+                if pv[0] in "=!<>":
+                    mode = pv[0]
+                    v1 = pv[1:]
+                else:
+                    mode = ""
+                    v1 = pv
+
+                if pk == "rid":
+                    v1 = int(v1)
+
+                if mode == '=':
+                    if v1 == v[pk]:
+                        break
+                elif mode == '!':
+                    if v1 != v[pk]:
+                        break
+                elif mode == '>':
+                    if v1 < v[pk]:
+                        break
+                elif mode == '<':
+                    if v1 > v[pk]:
+                        break
+                else:
+                    if pk != "rid" and v1 in v[pk]:
+                        break
+                    elif pk == "rid" and v1 == v[pk]:
+                        break
+            else:
+                if match:
+                    continue
+
+            ret.append([v[kk] for kk in fns])
+
+        return ret
+
     def _search(self):
 
         try:
@@ -151,7 +210,7 @@ class RevisionListWidget(QWidget):
                 v = str(self._line_edit_widgets[k].text())
                 if len(v) == 0:
                     continue
-                if v in "=!<>" and len(v) < 2:
+                if v in "=!<>" and len(v) < 1:
                     continue
 
                 # TBD: add check for id, rid, date_X_days
@@ -168,9 +227,11 @@ class RevisionListWidget(QWidget):
 
                 dd[k] = v
 
-            d = db.DB()
-
-            ret = d.search_revisions(**dd)
+            if self._bom:
+                ret = self._search_in_bom(dd)
+            else:
+                d = db.DB()
+                ret = d.search_revisions(**dd)
         except:
             QApplication.beep()
             utils.show_exception(msg="Incorrect parameter for search")
