@@ -1646,17 +1646,6 @@ def test_gavals():
         ret = True
     assert(ret)
 
-def test_escape_unescape():
-    assert(db.xescape("abc") == "abc")
-    assert(db.xescape("ab\ncxx") == "ab\\ncxx")
-    assert(db.xescape("ab\tcxx") == "ab\\tcxx")
-    assert(db.xescape("ab\\cxx") == "ab\\\\cxx")
-
-    assert("abc" == db.xunescape("abc"))
-    assert("ab\ncxx" == db.xunescape("ab\\ncxx"))
-    assert("ab\tcxx" == db.xunescape("ab\\tcxx"))
-    assert("ab\\cxx" == db.xunescape("ab\\\\cxx"))
-
 def test_dump_new_restore_db():
     d, c = _create_db()
     rids = _create_simple_assy_with_drawings(c)

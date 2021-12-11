@@ -116,6 +116,60 @@ def split_with_escape(s, delimiter, escape_symbol='\\', quote=None):
 
     return ret
 
+
+def xescape(s):
+    if s is None:
+        return "\\N"
+
+    s = str(s)
+    for i, k in [("\\", "\\"), ("\n", "n"), ("\t", "t")]:
+        j = 0
+        while True:
+            j = s.find(i, j)
+            if j < 0:
+                break
+            s = s[:j] + "\\" + k + s[j+1:]
+            j += 2
+
+    return s
+
+def xunescape(s):
+
+    if s == "\\N":
+        return None
+
+    j = 0
+    while True:
+        j = s.find("\\", j)
+        if j < 0:
+            break
+        if s[j+1] == '\\':
+            s = s[:j] + s[j+1:]
+            j += 1
+        elif s[j+1] == "n":
+            s = s[:j] + "\n" + s[j+2:]
+            j += 1
+        elif s[j+1] == "t":
+            s = s[:j] + "\t" + s[j+2:]
+            j += 1
+
+    return s
+
+def test_xescape_xunescape():
+    assert(xescape("abc") == "abc")
+    assert(xescape("a\0bc") == "a\0bc")
+    assert(xescape("ab\ncxx") == "ab\\ncxx")
+    assert(xescape("ab\tcxx") == "ab\\tcxx")
+    assert(xescape("ab\\cxx") == "ab\\\\cxx")
+    assert(xescape(None) == "\\N")
+
+    assert("abc" == xunescape("abc"))
+    assert("ab\0c" == xunescape("ab\0c"))
+    assert("ab\ncxx" == xunescape("ab\\ncxx"))
+    assert("ab\tcxx" == xunescape("ab\\tcxx"))
+    assert("ab\\cxx" == xunescape("ab\\\\cxx"))
+    assert(None is xunescape("\\N"))
+
 def test_split_with_escape_escape():
     r = split_with_escape(r"abcd\,efg", ",")
     assert(r == ["abcd,efg"])

@@ -42,6 +42,7 @@ import time
 import traceback
 
 import jdutil
+from utils import xescape, xunescape
 
 def increase_date(d, inc=+1):
     return (datetime.date.fromisoformat(d) +
@@ -1866,44 +1867,6 @@ def DB(path=None):
         return _globaDBInstance
 
     assert(False)
-
-def xescape(s):
-    if s is None:
-        return "\\N"
-
-    s = str(s)
-    for i, k in [("\\", "\\"), ("\n", "n"), ("\t", "t")]:
-        j = 0
-        while True:
-            j = s.find(i, j)
-            if j < 0:
-                break
-            s = s[:j] + "\\" + k + s[j+1:]
-            j += 2
-
-    return s
-
-def xunescape(s):
-
-    if s == "\\N":
-        return None
-
-    j = 0
-    while True:
-        j = s.find("\\", j)
-        if j < 0:
-            break
-        if s[j+1] == '\\':
-            s = s[:j] + s[j+1:]
-            j += 1
-        elif s[j+1] == "n":
-            s = s[:j] + "\n" + s[j+2:]
-            j += 1
-        elif s[j+1] == "t":
-            s = s[:j] + "\t" + s[j+2:]
-            j += 1
-
-    return s
 
 def restore_tables(nf, d, quiet=False):
     import zipfile
