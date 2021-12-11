@@ -134,6 +134,7 @@ class _BaseServer:
             DROP INDEX IF EXISTS drawings.assemblies_child_idx;
             DROP INDEX IF EXISTS drawings.assemblies_parent_idx;
 
+            -- remember to sync the list_main_tables() method
             DROP TABLE IF EXISTS assemblies;
             DROP TABLE IF EXISTS item_properties;
             DROP TABLE IF EXISTS database_props;
@@ -278,6 +279,32 @@ class _BaseServer:
             self._sqlex(c, s)
 
         self._conn.commit()
+
+    def dump_table(self, tname):
+        c = self._conn.cursor()
+        self._sqlex(c, "SELECT * FROM "+ tname)
+        colnames = [desc[0] for desc in c.description]
+        return (colnames, c.fetchall())
+
+    def insert_table(self, tname, columns, data):
+        c = self._conn.cursor()
+        self._sqlex(c, "DELETE FROM " + tname)
+        for row in data:
+            self._sqlex(c, ("INSERT INTO " + tname +
+                " (" + ",".join(columns) + ") VALUES " +
+                " (" + ",".join(["?" for i in columns]) + ")"),
+                row)
+        self._commit(c)
+
+    def list_main_tables(self):
+        # maintains in the correct order by reference
+        return ["items", "item_revisions", "assemblies",
+            "item_properties", "drawings",
+            "database_props"]
+
+    def dump_tables(self):
+        for i in self.list_main_tables():
+            yield (i, *self.dump_table(i))
 
     def get_code(self, id_code, date_from_days):
         return self._get_code(self._conn.cursor(), id_code, date_from_days)
@@ -1504,6 +1531,18 @@ class DBSQLServer(_BaseServer):
     def __init__(self, path=None):
         _BaseServer.__init__(self, path)
 
+    def insert_table(self, tname, columns, data):
+
+        cs = columns[:]
+        while "key" in cs:
+            i = cs.index("key")
+            cs[i] = "[key]"
+
+        c = self._conn.cursor()
+        self._sqlex(c, "SET IDENTITY_INSERT " + tname +" ON" )
+        _BaseServer.insert_table(self, tname, cs, data)
+        self._sqlex(c, "SET IDENTITY_INSERT " + tname +" OFF" )
+
     def _begin(self, c):
         pass
     def _commit(self, c):
@@ -1653,6 +1692,19 @@ class DBPG(_BaseServer):
 
     def _begin(self, c):
         c.execute("BEGIN")
+
+    def insert_table(self, tname, columns, data):
+        _BaseServer.insert_table(self, tname, columns, data)
+
+        c = self._conn.cursor()
+        self._sqlex(c, "SELECT COUNT(*) FROM " + tname)
+        n = c.fetchone()[0]
+        if n > 0:
+            self._sqlex(c, "SELECT MAX(id) FROM " + tname)
+            n = c.fetchone()[0] + 10
+        else:
+            n = 100
+        self._sqlex(c, "ALTER SEQUENCE " + tname + "_id_seq RESTART WITH %d"%(n) )
 
     def _sqlex(self, c, query, *args, **kwargs):
         query = self._sql_translate(query)
@@ -1815,4 +1867,117 @@ def DB(path=None):
 
     assert(False)
 
+def xescape(s):
+    if s is None:
+        return "\\N"
+
+    s = str(s)
+    for i, k in [("\\", "\\"), ("\n", "n"), ("\t", "t")]:
+        j = 0
+        while True:
+            j = s.find(i, j)
+            if j < 0:
+                break
+            s = s[:j] + "\\" + k + s[j+1:]
+            j += 2
+
+    return s
+
+def xunescape(s):
+
+    if s == "\\N":
+        return None
+
+    j = 0
+    while True:
+        j = s.find("\\", j)
+        if j < 0:
+            break
+        if s[j+1] == '\\':
+            s = s[:j] + s[j+1:]
+            j += 1
+        elif s[j+1] == "n":
+            s = s[:j] + "\n" + s[j+2:]
+            j += 1
+        elif s[j+1] == "t":
+            s = s[:j] + "\t" + s[j+2:]
+            j += 1
+
+    return s
+
+def restore_tables(nf, d, quiet=False):
+    import zipfile
+    with zipfile.ZipFile(nf) as z:
+        d.create_db()
+        fntables = [i[:-4] for i in z.namelist() if i.endswith(".csv")]
+        fntables.sort()
+        l = d.list_main_tables()
+        l.sort()
+        assert(l==fntables)
+        if not quiet:
+            print()
+        for table in d.list_main_tables():
+            tablefn = table+".csv"
+            with z.open(tablefn) as f:
+                columns = f.readline()[:-1].decode("utf-8").split("\t")
+                d.insert_table(table, columns,
+                    [list(map(xunescape, x[:-1].decode("utf-8").split("\t"))) for x in f.readlines()]
+                )
+                if not quiet:
+                     print("\r%s                                 "%(table), end="")
+        if not quiet:
+            print("\rDone                          ")
+
+def dump_tables(nf, d, quiet=False):
+        import zipfile
+        import tempfile
+        import os
+
+        z=zipfile.ZipFile(nf, "w", compression=zipfile.ZIP_DEFLATED)
+        tmpfilename = tempfile.NamedTemporaryFile(delete=False).name
+        try:
+            for (tname, columns, data) in d.dump_tables():
+
+                with open(tmpfilename, "w", encoding='utf-8') as f:
+                    f.write("\t".join(columns)+"\n")
+                    cnt = 0
+                    for row in data:
+                        f.write("\t".join(map(xescape, row))+"\n")
+                        if not quiet:
+                            print("%s: %d                                 \r"%(tname, cnt), end="")
+                        cnt += 1
+
+                z.write(tmpfilename, arcname="%s.csv"%(tname))
+        finally:
+            if os.path.exists(tmpfilename):
+                os.unlink(tmpfilename)
+
+def main(prgname, args):
+
+    if len(args) == 2 and args[0] == "dump-tables":
+        d = DB()
+        dump_tables(args[1], d)
+
+    elif len(args) == 1 and args[0] == "new-db":
+        d = DB()
+        d.create_db()
+
+    elif len(args) == 2 and args[0] == "restore-tables":
+        d = DB()
+        restore_tables(args[1], d)
+
+    else:
+        print("usage: %s dump-tables <file.zip>"%(prgname))
+        print("usage: %s new-db"%(prgname))
+        print("usage: %s restore-tables <file.zip>"%(prgname))
+        sys.exit(0)
+
+if __name__ == "__main__":
+    if len(sys.argv) == 2 and sys.argv[1] == "--selftest":
+        _test()
+        sys.exit(0)
+
+    import cfg
+    cfg.init()
+    main(sys.argv[0], sys.argv[1:])
 

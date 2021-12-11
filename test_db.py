@@ -21,6 +21,8 @@ import db
 import sys
 import datetime
 import pprint
+import tempfile
+import os
 
 def _test_insert_items(c):
     codes = [('code123', "descr456", 0), ('code124', "descr457", 0),
@@ -1643,6 +1645,64 @@ def test_gavals():
     except:
         ret = True
     assert(ret)
+
+def test_escape_unescape():
+    assert(db.xescape("abc") == "abc")
+    assert(db.xescape("ab\ncxx") == "ab\\ncxx")
+    assert(db.xescape("ab\tcxx") == "ab\\tcxx")
+    assert(db.xescape("ab\\cxx") == "ab\\\\cxx")
+
+    assert("abc" == db.xunescape("abc"))
+    assert("ab\ncxx" == db.xunescape("ab\\ncxx"))
+    assert("ab\tcxx" == db.xunescape("ab\\tcxx"))
+    assert("ab\\cxx" == db.xunescape("ab\\\\cxx"))
+
+def test_dump_new_restore_db():
+    d, c = _create_db()
+    rids = _create_simple_assy_with_drawings(c)
+    d._commit(c)
+
+    c.execute("SELECT COUNT(*) FROM ITEMS")
+    ci = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM ITEM_REVISIONS")
+    cr = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+    ca = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM DRAWINGS")
+    cd = c.fetchone()[0]
+
+    assert(cd > 0)
+    assert(ca > 0)
+
+    tmpfilename = tempfile.NamedTemporaryFile(delete=False).name+".zip"
+    try:
+        db.dump_tables(tmpfilename, d, quiet=True)
+        assert(os.path.exists(tmpfilename))
+
+        d.create_db()
+        c.execute("SELECT COUNT(*) FROM ITEMS")
+        assert(0 == c.fetchone()[0])
+        c.execute("SELECT COUNT(*) FROM ITEM_REVISIONS")
+        assert(0 == c.fetchone()[0])
+        c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+        assert(0 == c.fetchone()[0])
+        c.execute("SELECT COUNT(*) FROM DRAWINGS")
+        assert(0 == c.fetchone()[0])
+
+        db.restore_tables(tmpfilename, d, quiet=True)
+        c.execute("SELECT COUNT(*) FROM ITEMS")
+        assert(ci == c.fetchone()[0])
+        c.execute("SELECT COUNT(*) FROM ITEM_REVISIONS")
+        assert(cr == c.fetchone()[0])
+        c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+        assert(ca == c.fetchone()[0])
+        c.execute("SELECT COUNT(*) FROM DRAWINGS")
+        assert(cd == c.fetchone()[0])
+
+    finally:
+        if os.path.exists(tmpfilename):
+            os.unlink(tmpfilename)
+
 #------
 
 def run_test(filters, modules, prefix=""):

@@ -33,7 +33,7 @@ def main(args):
         import importer
         import test_db
 
-        for m in ["exporter", "importer", "test_db", "utils"]:
+        for m in ["exporter", "importer", "test_db", "utils", "db"]:
             test_db.run_test(sys.argv[2:], sys.modules[m], m)
         return
 
@@ -89,6 +89,8 @@ def main(args):
             editcode.edit_code_by_code_id(int(args[i]))
         elif args[i] == "--test-exception":
             _ = 1/0
+        elif args[i] == "--manage-db":
+            db.main("bombrowser --manage-db", args[i+1:])
         else:
             print("Ignore command '%s'"%(args[i]))
 
