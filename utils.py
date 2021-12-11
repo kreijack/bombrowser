@@ -119,7 +119,7 @@ def split_with_escape(s, delimiter, escape_symbol='\\', quote=None):
 
 def xescape(s):
     if s is None:
-        return "\\N"
+        return "\\None"
 
     s = str(s)
     for i, k in [("\\", "\\"), ("\n", "n"), ("\t", "t")]:
@@ -135,7 +135,7 @@ def xescape(s):
 
 def xunescape(s):
 
-    if s == "\\N":
+    if s == "\\None":
         return None
 
     j = 0
@@ -155,20 +155,21 @@ def xunescape(s):
 
     return s
 
-def test_xescape_xunescape():
+def test_xescape():
     assert(xescape("abc") == "abc")
     assert(xescape("a\0bc") == "a\0bc")
     assert(xescape("ab\ncxx") == "ab\\ncxx")
     assert(xescape("ab\tcxx") == "ab\\tcxx")
     assert(xescape("ab\\cxx") == "ab\\\\cxx")
-    assert(xescape(None) == "\\N")
+    assert(xescape(None) == "\\None")
 
+def test_xunescape():
     assert("abc" == xunescape("abc"))
     assert("ab\0c" == xunescape("ab\0c"))
     assert("ab\ncxx" == xunescape("ab\\ncxx"))
     assert("ab\tcxx" == xunescape("ab\\tcxx"))
     assert("ab\\cxx" == xunescape("ab\\\\cxx"))
-    assert(None is xunescape("\\N"))
+    assert(None is xunescape("\\None"))
 
 def test_split_with_escape_escape():
     r = split_with_escape(r"abcd\,efg", ",")
