@@ -37,7 +37,7 @@ import pprint, shutil
 
 import db, codegui, codecontextmenu, checker, customize
 import exporter, utils, selectdategui, bbwindow, importer, diffgui
-import cfg
+import cfg, listcodegui
 #from utils import catch_exception
 
 class ExportDialog(QDialog):
@@ -371,6 +371,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         self._mode = mode
         self._data = dict()
         self._bom_reload = None
+        self._top_reference = ''
 
         self._init_gui()
         self.resize(1024, 600)
@@ -447,6 +448,10 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         a.triggered.connect(self._start_find)
         m.addAction(a)
 
+        a = QAction("Advanced search", self)
+        a.triggered.connect(self._advanced_search)
+        m.addAction(a)
+
         if self._mode == "asm":
             m = mainMenu.addMenu("Tools")
             a = QAction("Check bom", self)
@@ -476,6 +481,10 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         a = QAction("About ...", self)
         a.triggered.connect(lambda : self._show_about(db.connection))
         m.addAction(a)
+
+    def _advanced_search(self):
+        w = listcodegui.CodesWindow(bom=self._data, bomdesc=self._top_reference)
+        w.show()
 
     def _diff_bom(self, importer_name, name, open_fn, import_fn):
         bom1 = diffgui.CodeDateSingle(self._data[self._top]["id"],
@@ -669,6 +678,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         top_code = data[top]["code"]
 
         colors_filter = []
+        self._top_reference = top_code
         if self._mode == "asm":
                 if bom_date == db.prototype_date -1:
                     dt2 = "LATEST"
@@ -680,15 +690,16 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                     dt2 = db.days_to_iso(bom_date)
 
                 self._bom_date = bom_date
-                self.setWindowTitle("Assembly: " + top_code + " @ " + dt2)
+                self._top_reference = top_code + " @ " + dt2
+                self.setWindowTitle("Assembly: " + self._top_reference)
 
                 colors_filter = cfg.get_bomcolors()
         elif self._mode == "valid_where_used":
-                self.setWindowTitle("Valid where used: " + top_code)
+                self.setWindowTitle("Valid where used: " + self._top_reference)
         elif self._mode == "smart_where_used":
-                self.setWindowTitle("Smart where used: " + top_code)
+                self.setWindowTitle("Smart where used: " + self._top_reference)
         else: # mode == "where used"
-                self.setWindowTitle("Where used: "+top_code)
+                self.setWindowTitle("Where used: "+self._top_reference)
         self._data = data
         self._top = top
 

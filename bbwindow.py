@@ -84,6 +84,7 @@ class BBMainWindow(QMainWindow):
             elif t.startswith(window_title + " - Edit code"):
                 editwindows.append((t, id_))
             elif (t.startswith(window_title + " - Assembly") or
+                  t.startswith(window_title + " - Search in bom") or
                   t.startswith(window_title + " - Valid where used") or
                   t.startswith(window_title + " - Smart where used") or
                   t.startswith(window_title + " - Where used")):
