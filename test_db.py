@@ -23,6 +23,7 @@ import datetime
 import pprint
 import tempfile
 import os
+import zipfile
 
 def _test_insert_items(c):
     codes = [('code123', "descr456", 0), ('code124', "descr457", 0),
@@ -1646,7 +1647,39 @@ def test_gavals():
         ret = True
     assert(ret)
 
-def test_dump_new_restore_db():
+def test_dump_db():
+    d, c = _create_db()
+    rids = _create_simple_assy_with_drawings(c)
+    d._commit(c)
+
+    c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+    ca = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM DRAWINGS")
+    cd = c.fetchone()[0]
+
+    assert(cd > 0)
+    assert(ca > 0)
+
+    tmpfilename = tempfile.NamedTemporaryFile(delete=False).name+".zip"
+    try:
+        db.dump_tables(tmpfilename, d, quiet=True)
+        assert(os.path.exists(tmpfilename))
+
+        z = zipfile.ZipFile(tmpfilename)
+        fntables = [i[:-4] for i in z.namelist() if i.endswith(".csv")]
+        fntables.sort()
+        l = d.list_main_tables()
+        l.sort()
+        assert(l==fntables)
+
+        lines = z.open("drawings.csv").readlines()
+        assert(len(lines) == cd + 1) # +1 is for the header
+
+    finally:
+        if os.path.exists(tmpfilename):
+            os.unlink(tmpfilename)
+
+def test_restore_db():
     d, c = _create_db()
     rids = _create_simple_assy_with_drawings(c)
     d._commit(c)
@@ -1661,7 +1694,6 @@ def test_dump_new_restore_db():
     cd = c.fetchone()[0]
 
     assert(cd > 0)
-    assert(ca > 0)
 
     tmpfilename = tempfile.NamedTemporaryFile(delete=False).name+".zip"
     try:
@@ -1669,12 +1701,6 @@ def test_dump_new_restore_db():
         assert(os.path.exists(tmpfilename))
 
         d.create_db()
-        c.execute("SELECT COUNT(*) FROM ITEMS")
-        assert(0 == c.fetchone()[0])
-        c.execute("SELECT COUNT(*) FROM ITEM_REVISIONS")
-        assert(0 == c.fetchone()[0])
-        c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
-        assert(0 == c.fetchone()[0])
         c.execute("SELECT COUNT(*) FROM DRAWINGS")
         assert(0 == c.fetchone()[0])
 
