@@ -91,8 +91,22 @@ def main(args):
             _ = 1/0
         elif args[i] == "--manage-db":
             db.main("bombrowser --manage-db", args[i+1:])
+            sys.exit()
+        elif args[i] == "--help":
+            import version
+            print("bombrowser "+version.version)
+            print()
+            print("bombrowser --whereused <code>")
+            print("bombrowser --validwhereused <code>")
+            print("bombrowser --showassembly <code>")
+            print("bombrowser --editcode <code>")
+            print("bombrowser --manage-db <...>")
+            print("bombrowser --self-test")
+            sys.exit(0)
+
         else:
-            print("Ignore command '%s'"%(args[i]))
+            print("Ignore command '%s'; quit."%(args[i]))
+            sys.exit(0)
 
         i += 1
 

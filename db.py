@@ -1973,10 +1973,6 @@ def main(prgname, args):
         sys.exit(0)
 
 if __name__ == "__main__":
-    if len(sys.argv) == 2 and sys.argv[1] == "--selftest":
-        _test()
-        sys.exit(0)
-
     import cfg
     cfg.init()
     main(sys.argv[0], sys.argv[1:])
