@@ -1,3 +1,17 @@
+2021-12-12: v0.4.5
+- add export dialog in the asmgui window
+	- the dialog allows to select the BOM format
+	- the dialog allows to copy the link of the folder
+	- the dialog allows to zip all the files
+	- the dialog allows to export the files
+- programmatically select the number of gvals and gavals parameters
+- add the gavals values: values linked to the parent-child relation (i.e.
+  values that are in the assemblies)
+- in the tables allows the description to expand/shrink
+- allow to colorize the bom
+- add the clist, aka "closed list" of valies to gval
+- allow to search in the bom on the basis of many parameters (Advanced search)
+- add to possibility to make an export/import of the DB
 
 2021-05-11: v0.4.4
 - add command 'smart where used'
