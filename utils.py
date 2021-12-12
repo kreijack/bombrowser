@@ -163,22 +163,10 @@ def xunescape(s):
                 j += 1
                 break
         else:
-            # ignore it
+            # unknown sequence ignore it
             j += 1
                 
     return s        
-"""        
-        if s[j+1] == '\\':
-            s = s[:j] + s[j+1:]
-            j += 1
-        elif s[j+1] == "n":
-            s = s[:j] + "\n" + s[j+2:]
-            j += 1
-        elif s[j+1] == "t":
-            s = s[:j] + "\t" + s[j+2:]
-            j += 1
-"""
-
 
 def test_xescape():
     assert(xescape("abc") == "abc")
@@ -189,8 +177,8 @@ def test_xescape():
     assert(xescape("ab\\\ncxx") == "ab\\\\\\ncxx")
     assert(xescape(None) == "\\None")
     assert(xescape("\\n") == "\\\\n")
-    assert(xescape("\\n") == "\\\\n")    
-    assert(xescape("\\") == "\\\\")    
+    assert(xescape("\\n") == "\\\\n")
+    assert(xescape("\\") == "\\\\")
 
 def test_xunescape():
     assert("abc" == xunescape("abc"))
