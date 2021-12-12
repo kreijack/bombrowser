@@ -121,7 +121,7 @@ def split_with_escape(s, delimiter, escape_symbol='\\', quote=None):
 #       '\n'    '\\n'
 #       '\t'    '\\t'
 #       '\\'    '\\\\'
-#       None    '\\None'
+#       None    '\\None'    <- None is not a string, is None !
 #
 # Be aware that above are python strings so '\\' means single backslash
 
