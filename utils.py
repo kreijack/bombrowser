@@ -116,13 +116,23 @@ def split_with_escape(s, delimiter, escape_symbol='\\', quote=None):
 
     return ret
 
+#
+#   Table of conversion
+#       '\n'    '\\n'
+#       '\t'    '\\t'
+#       '\\'    '\\\\'
+#       None    '\\None'
+#
+# Be aware that above are python strings so '\\' means single backslash
+
+_escape_conversion_table = [("\\", "\\"), ("\n", "n"), ("\t", "t")]
 
 def xescape(s):
     if s is None:
         return "\\None"
 
     s = str(s)
-    for i, k in [("\\", "\\"), ("\n", "n"), ("\t", "t")]:
+    for i, k in _escape_conversion_table:
         j = 0
         while True:
             j = s.find(i, j)
@@ -143,6 +153,21 @@ def xunescape(s):
         j = s.find("\\", j)
         if j < 0:
             break
+        # last character is a single \, leave as is
+        if j + 1 >= len(s):
+            break
+        
+        for a,b in _escape_conversion_table:
+            if s[j+1] == b:
+                s = s[:j] + a + s[j+2:]
+                j += 1
+                break
+        else:
+            # ignore it
+            j += 1
+                
+    return s        
+"""        
         if s[j+1] == '\\':
             s = s[:j] + s[j+1:]
             j += 1
@@ -152,8 +177,8 @@ def xunescape(s):
         elif s[j+1] == "t":
             s = s[:j] + "\t" + s[j+2:]
             j += 1
+"""
 
-    return s
 
 def test_xescape():
     assert(xescape("abc") == "abc")
@@ -161,7 +186,11 @@ def test_xescape():
     assert(xescape("ab\ncxx") == "ab\\ncxx")
     assert(xescape("ab\tcxx") == "ab\\tcxx")
     assert(xescape("ab\\cxx") == "ab\\\\cxx")
+    assert(xescape("ab\\\ncxx") == "ab\\\\\\ncxx")
     assert(xescape(None) == "\\None")
+    assert(xescape("\\n") == "\\\\n")
+    assert(xescape("\\n") == "\\\\n")    
+    assert(xescape("\\") == "\\\\")    
 
 def test_xunescape():
     assert("abc" == xunescape("abc"))
@@ -169,7 +198,13 @@ def test_xunescape():
     assert("ab\ncxx" == xunescape("ab\\ncxx"))
     assert("ab\tcxx" == xunescape("ab\\tcxx"))
     assert("ab\\cxx" == xunescape("ab\\\\cxx"))
+    assert("ab\\\ncxx" == xunescape("ab\\\\\\ncxx"))
     assert(None is xunescape("\\None"))
+    assert("\\n" == xunescape("\\\\n"))
+    
+    # unammisible sequences
+    assert("abcd\\" == xunescape("abcd\\"))
+    assert("ab\\cd\\" == xunescape("ab\\cd\\"))
 
 def test_split_with_escape_escape():
     r = split_with_escape(r"abcd\,efg", ",")
