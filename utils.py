@@ -177,7 +177,6 @@ def test_xescape():
     assert(xescape("ab\\\ncxx") == "ab\\\\\\ncxx")
     assert(xescape(None) == "\\None")
     assert(xescape("\\n") == "\\\\n")
-    assert(xescape("\\n") == "\\\\n")
     assert(xescape("\\") == "\\\\")
 
 def test_xunescape():
@@ -189,6 +188,7 @@ def test_xunescape():
     assert("ab\\\ncxx" == xunescape("ab\\\\\\ncxx"))
     assert(None is xunescape("\\None"))
     assert("\\n" == xunescape("\\\\n"))
+    assert("\\" == xunescape("\\\\"))
     
     # unammisible sequences
     assert("abcd\\" == xunescape("abcd\\"))
