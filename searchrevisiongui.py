@@ -154,7 +154,7 @@ class RevisionListWidget(QWidget):
             fns[8 + idx -1] = gvalname
 
         for k, v in self._bom.items():
-            match = False
+            match = True
             for pk, pv in pattern.items():
                 if not pk in v.keys():
                     print("WARNING: key '%s' not found"%(pk))
@@ -164,8 +164,6 @@ class RevisionListWidget(QWidget):
 
                 if len(pv) < 1:
                     continue
-
-                match = True
 
                 if pv[0] in "=!<>":
                     mode = pv[0]
@@ -178,27 +176,31 @@ class RevisionListWidget(QWidget):
                     v1 = int(v1)
 
                 if mode == '=':
-                    if v1 == v[pk]:
+                    if v1 != v[pk]:
+                        match = False
                         break
                 elif mode == '!':
-                    if v1 != v[pk]:
+                    if v1 == v[pk]:
+                        match = False
                         break
                 elif mode == '>':
-                    if v1 < v[pk]:
+                    if v1 >= v[pk]:
+                        match = False
                         break
                 elif mode == '<':
-                    if v1 > v[pk]:
+                    if v1 <= v[pk]:
+                        match = False
                         break
                 else:
-                    if pk != "rid" and v1 in v[pk]:
+                    if pk != "rid" and not v1 in v[pk]:
+                        match = False
                         break
-                    elif pk == "rid" and v1 == v[pk]:
+                    elif pk == "rid" and v1 != v[pk]:
+                        match = False
                         break
-            else:
-                if match:
-                    continue
-
-            ret.append([v[kk] for kk in fns])
+        
+            if match:
+                ret.append([v[kk] for kk in fns])
 
         return ret
 
