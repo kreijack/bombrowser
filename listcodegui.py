@@ -115,8 +115,8 @@ class CodesListWidget(QWidget):
         if self._bom:
                 ret = []
                 for k, v in self._bom.items():
-                    if ((cs != "" and cs in v["code"]) or
-                        (ds != "" and cs in v["descr"])):
+                    if ((cs == "" or cs in v["code"]) and
+                        (ds == "" or ds in v["descr"])):
                             ret.append((v["id"], v["code"], v["ver"], v["iter"], v["descr"]))
         else:
                 d = db.DB()
