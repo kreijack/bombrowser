@@ -834,7 +834,7 @@ class EditWindow(bbwindow.BBMainWindow):
         for (row, (code, qty, each, unit, ref)) in enumerate(children):
 
             self._children_populate_row(row, "-", code, "-", qty,
-                                each, unit, ref, gavls)
+                                each, unit, ref, gavals)
 
         self._children_table.setSortingEnabled(True)
 
