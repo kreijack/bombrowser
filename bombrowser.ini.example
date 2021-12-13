@@ -15,6 +15,14 @@ importer_list=import_simple,importer_all
 
 # the name of gvalN (n=1..) fields separated by comma
 # it is allowed to not have all availables fields
+# between the square brackets, it can be inserted the type of the filed:
+# available types are:
+# - list: syntax [list:val1;val2;...] the field has a list of predefined
+#                                     values
+# - clist: syntax [clist:val1;val2;...] the field has a closed list of
+#                                       predefined values
+# - file: syntax [file] the field can be used to store a path
+
 gvalnames=
     gval2:Supplier#1 name
     gval1:Supplier#1 PN
@@ -58,9 +66,10 @@ gavalnames=
 #    transparent - representing the absence of a color.
 #    
 bomcolors=
-    gval9=1,*gaval1=1:italic
-    gval9=1,*gaval1=0:italic,fg=gray
-    gval9=0,*gaval1=0:fg=gray
+    gval10=:fg=red
+    gval9=T:italic
+    *gaval1=I:fg=gray
+    *gaval1=I,gval10=:fg=pink
 
 # increase the font size by a factor (default 1.0)
 scalefont=1.2
