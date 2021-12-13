@@ -1314,10 +1314,16 @@ class EditWindow(bbwindow.BBMainWindow):
             pass
 
         for c in range(1, self._children_table.columnCount()):
-            tmp = self._children_table.item(row, c).text()
-            self._children_table.item(row, c).setText(
-                self._children_table.item(target_row, c).text())
-            self._children_table.item(target_row, c).setText(tmp)
+            if c >= 8:
+                tmp = self._children_table.cellWidget(row, c).text()
+                self._children_table.cellWidget(row, c).setText(
+                    self._children_table.cellWidget(target_row, c).text())
+                self._children_table.cellWidget(target_row, c).setText(tmp)
+            else:
+                tmp = self._children_table.item(row, c).text()
+                self._children_table.item(row, c).setText(
+                    self._children_table.item(target_row, c).text())
+                self._children_table.item(target_row, c).setText(tmp)
 
         for row in range(self._children_table.rowCount()):
             self._children_table.item(row, 0).setText("%03d"%(row+1))
