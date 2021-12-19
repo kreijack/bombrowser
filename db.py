@@ -1267,6 +1267,12 @@ class _BaseServer:
         self._commit(c)
 
     def get_config(self):
+
+        # allow to start from an empty DB
+        tables = self._get_tables_list()
+        if not "database_props" in tables:
+            return dict()
+
         ret = dict()
         c = self._conn.cursor()
         self._sqlex(c, """
