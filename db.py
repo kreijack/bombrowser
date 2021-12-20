@@ -1930,6 +1930,30 @@ def main(prgname, args):
     elif len(args) == 1 and args[0] == "new-db":
         d = DB()
         d.create_db()
+        date_from = days_to_iso(0)
+        date_to = days_to_iso(end_of_the_world)
+
+        c = d._conn.cursor()
+        d._sqlex(c, "INSERT INTO items(code) VALUES (?)", (
+            '000000000000', )
+        )
+        d._sqlex(c, "SELECT MAX(id) FROM items")
+        mid = c.fetchone()[0]
+
+        d._sqlex(c, """INSERT INTO item_revisions(
+            descr, code_id, ver,
+            iter, default_unit,
+            date_from, date_from_days,
+            date_to, date_to_days) VALUES (
+            ?, ?, ?,
+            ?, ?,
+            ?, ?,
+            ?, ?)""",
+            ('FIRST CODE', mid, '0', 0, 'NR',
+             date_from, iso_to_days(date_from),
+             date_to, iso_to_days(date_to))
+        )
+        d._commit(c)
 
     elif len(args) == 2 and args[0] == "restore-tables":
         d = DB()
