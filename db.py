@@ -1921,48 +1921,80 @@ def dump_tables(nf, d, quiet=False):
             if os.path.exists(tmpfilename):
                 os.unlink(tmpfilename)
 
+def new_db(d):
+    d.create_db()
+    date_from = days_to_iso(0)
+    date_to = days_to_iso(end_of_the_world)
+
+    c = d._conn.cursor()
+    d._sqlex(c, "INSERT INTO items(code) VALUES (?)", (
+        '000000000000', )
+    )
+    d._sqlex(c, "SELECT MAX(id) FROM items")
+    mid = c.fetchone()[0]
+
+    d._sqlex(c, """INSERT INTO item_revisions(
+        descr, code_id, ver,
+        iter, default_unit,
+        date_from, date_from_days,
+        date_to, date_to_days) VALUES (
+        ?, ?, ?,
+        ?, ?,
+        ?, ?,
+        ?, ?)""",
+        ('FIRST CODE', mid, '0', 0, 'NR',
+         date_from, iso_to_days(date_from),
+         date_to, iso_to_days(date_to))
+    )
+    d._commit(c)
+
 def main(prgname, args):
 
-    if len(args) == 2 and args[0] == "dump-tables":
+    if len(args) == 2 and args[0] == "--dump-tables":
         d = DB()
         dump_tables(args[1], d)
+        print("DB dumped")
 
-    elif len(args) == 1 and args[0] == "new-db":
+    elif len(args) >= 1 and args[0] == "--new-db":
+        if len(args) == 2:
+            if args[1] == "--yes-really-i-know-what-i-want":
+                pass
+            else:
+                print("ERROR: exit")
+                return
+        else:
+            print("Enter 'yes-really-i-know-what-i-want' > ", end='')
+            s = input()
+            if s != 'yes-really-i-know-what-i-want':
+                print("ERROR: exit")
+                return
+
         d = DB()
-        d.create_db()
-        date_from = days_to_iso(0)
-        date_to = days_to_iso(end_of_the_world)
+        new_db(d)
+        print("DB created")
 
-        c = d._conn.cursor()
-        d._sqlex(c, "INSERT INTO items(code) VALUES (?)", (
-            '000000000000', )
-        )
-        d._sqlex(c, "SELECT MAX(id) FROM items")
-        mid = c.fetchone()[0]
+    elif len(args) >= 2 and args[0] == "--restore-tables":
+        if len(args) == 3:
+            if args[1] == "--yes-really-i-know-what-i-want":
+                args=[args[0], args[2]]
+            else:
+                print("ERROR: exit")
+                return
+        else:
+            print("Enter 'yes-really-i-know-what-i-want' > ", end='')
+            s = input()
+            if s != 'yes-really-i-know-what-i-want':
+                print("ERROR: exit")
+                return
 
-        d._sqlex(c, """INSERT INTO item_revisions(
-            descr, code_id, ver,
-            iter, default_unit,
-            date_from, date_from_days,
-            date_to, date_to_days) VALUES (
-            ?, ?, ?,
-            ?, ?,
-            ?, ?,
-            ?, ?)""",
-            ('FIRST CODE', mid, '0', 0, 'NR',
-             date_from, iso_to_days(date_from),
-             date_to, iso_to_days(date_to))
-        )
-        d._commit(c)
-
-    elif len(args) == 2 and args[0] == "restore-tables":
         d = DB()
         restore_tables(args[1], d)
+        print("DB restored")
 
     else:
-        print("usage: %s dump-tables <file.zip>"%(prgname))
-        print("usage: %s new-db"%(prgname))
-        print("usage: %s restore-tables <file.zip>"%(prgname))
+        print("usage: %s --dump-tables <file.zip>"%(prgname))
+        print("usage: %s --new-db"%(prgname))
+        print("usage: %s --restore-tables <file.zip>"%(prgname))
         sys.exit(0)
 
 if __name__ == "__main__":
