@@ -1718,6 +1718,28 @@ def test_restore_db():
         if os.path.exists(tmpfilename):
             os.unlink(tmpfilename)
 
+def test_new_db():
+    d, c = _create_db()
+    rids = _create_simple_assy_with_drawings(c)
+    d._commit(c)
+
+    c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+    ca = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM ITEMS")
+    ci = c.fetchone()[0]
+
+    assert(ca > 1)
+    assert(ci > 1)
+
+    db.new_db(d)
+
+    c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+    ca = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM ITEMS")
+    ci = c.fetchone()[0]
+
+    assert(ca == 0)
+    assert(ci == 1)
 #------
 
 def run_test(filters, modules, prefix=""):
