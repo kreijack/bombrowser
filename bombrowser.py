@@ -62,9 +62,6 @@ def main(args):
 
     cfg.update_cfg(data)
 
-    w = listcodegui.CodesWindow()
-    w.show()
-
     i = 1
     while i < len(args):
         if args[i] == "--whereused":
@@ -110,6 +107,9 @@ def main(args):
 
         i += 1
 
+
+    w = listcodegui.CodesWindow()
+    w.show()
 
     sys.exit(app.exec_())
 
