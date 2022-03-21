@@ -336,6 +336,8 @@ class DrawingTable(QTableWidget):
         self.customContextMenuRequested.connect(
             self._drawing_menu)
 
+        self.setSelectionMode(self.ContiguousSelection)
+
         self.doubleClicked.connect(self._view_drawing)
 
     def eventFilter(self, source, event):
@@ -362,8 +364,8 @@ class DrawingTable(QTableWidget):
         if len(idxs) == 0:
             return
 
-        for idx in idxs:
-            r = idx.row()
+        rows = list(set([idx.row() for idx in idxs]))
+        for r in rows:
             path = self.item(r, 1).text()
             QDesktopServices.openUrl(QUrl.fromLocalFile(path))
 
@@ -1192,7 +1194,6 @@ class EditWindow(bbwindow.BBMainWindow):
         self._drawings_table.setSortingEnabled(True)
         self._drawings_table.setSelectionBehavior(QTableView.SelectRows);
         self._drawings_table.setAlternatingRowColors(True)
-        self._drawings_table.setSelectionMode(self._drawings_table.SingleSelection)
         self._drawings_table.setColumnCount(2)
         self._drawings_table.setRowCount(len(drawings))
         self._drawings_table.setHorizontalHeaderLabels(["Name", "Path"])
