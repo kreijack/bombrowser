@@ -1172,7 +1172,7 @@ class EditWindow(bbwindow.BBMainWindow):
         self._children_table.setSortingEnabled(True)
         self._children_table.setSelectionBehavior(QTableView.SelectRows);
         self._children_table.setAlternatingRowColors(True)
-        self._children_table.setSelectionMode(self._drawings_table.ContiguousSelection)
+        self._children_table.setSelectionMode(QTableView.ContiguousSelection)
         self._children_table.setColumnCount(len(labels))
         self._children_table.setRowCount(len(children))
 
