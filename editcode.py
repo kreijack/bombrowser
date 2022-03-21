@@ -26,6 +26,7 @@ from PySide2.QtWidgets import QMessageBox, QAction, QLineEdit, QSplitter
 from PySide2.QtWidgets import QHBoxLayout, QPushButton, QDialog, QTabWidget
 from PySide2.QtWidgets import QHeaderView, QMenu, QGroupBox, QTableWidget
 from PySide2.QtGui import QColor, QDesktopServices
+from PySide2.QtCore import QItemSelection, QItemSelectionModel
 
 from PySide2.QtCore import Qt, QUrl, QEvent, Signal
 
@@ -1131,7 +1132,7 @@ class EditWindow(bbwindow.BBMainWindow):
         self._children_table.setSortingEnabled(True)
         self._children_table.setSelectionBehavior(QTableView.SelectRows);
         self._children_table.setAlternatingRowColors(True)
-        self._children_table.setSelectionMode(self._drawings_table.SingleSelection)
+        self._children_table.setSelectionMode(self._drawings_table.ContiguousSelection)
         self._children_table.setColumnCount(len(labels))
         self._children_table.setRowCount(len(children))
 
@@ -1292,20 +1293,6 @@ class EditWindow(bbwindow.BBMainWindow):
 
         nrow = self._children_table.rowCount()
 
-        row = idxs[0].row()
-
-        if where == "top":
-            target_row = 0
-        elif where == "bottom":
-            target_row = nrow - 1
-        elif where == "up":
-            target_row = row - 1
-        elif where == "down":
-            target_row = row + 1
-
-        if row == target_row or target_row < 0 or target_row >= nrow:
-            return
-
         self._children_table.setSortingEnabled(False)
 
         try:
@@ -1313,17 +1300,47 @@ class EditWindow(bbwindow.BBMainWindow):
         except:
             pass
 
-        for c in range(1, self._children_table.columnCount()):
-            if c >= 8:
-                tmp = self._children_table.cellWidget(row, c).text()
-                self._children_table.cellWidget(row, c).setText(
-                    self._children_table.cellWidget(target_row, c).text())
-                self._children_table.cellWidget(target_row, c).setText(tmp)
+        selected_rows = list(set([idx.row() for idx in idxs]))
+        max_row = max(selected_rows)
+        min_row = min(selected_rows)
+        selected_rows_count = len(selected_rows)
+
+        if where == "top":
+            target_row = 0
+        elif where == "bottom":
+            target_row = nrow
+        elif where == "up":
+            target_row = min_row - 1
+        elif where == "down":
+            target_row = max_row + 2
+
+        if target_row < 0:
+            return
+
+        data_after = []
+        data_before = []
+        data_moved = []
+        for r in range(0, nrow):
+            line = ['n/a']
+            for c in range(1, self._children_table.columnCount()):
+                    if c >= 8:
+                        line.append(self._children_table.cellWidget(r, c).text())
+                    else:
+                        line.append(self._children_table.item(r, c).text())
+            if r in selected_rows:
+                data_moved.append(line)
+            elif r < target_row:
+                data_before.append(line)
             else:
-                tmp = self._children_table.item(row, c).text()
-                self._children_table.item(row, c).setText(
-                    self._children_table.item(target_row, c).text())
-                self._children_table.item(target_row, c).setText(tmp)
+                data_after.append(line)
+
+        r = 0
+        for r, line in enumerate(data_before + data_moved + data_after):
+            for c in range(1, self._children_table.columnCount()):
+                    if c >= 8:
+                        self._children_table.cellWidget(r, c).setText(line[c])
+                    else:
+                        self._children_table.item(r, c).setText(line[c])
 
         for row in range(self._children_table.rowCount()):
             self._children_table.item(row, 0).setText("%03d"%(row+1))
@@ -1332,7 +1349,16 @@ class EditWindow(bbwindow.BBMainWindow):
 
         self._children_table.setSortingEnabled(True)
 
-        self._children_table.selectRow(target_row)
+        self._children_table.clearSelection()
+        selectionModel = self._children_table.selectionModel()
+        start_sel = len(data_before)
+        end_sel = start_sel + len(data_moved) - 1
+        index1 = self._children_table.model().index(start_sel, 0)
+        index2 = self._children_table.model().index(end_sel, 2)
+        itemSelection = QItemSelection(index1, index2)
+        selectionModel.select(itemSelection,
+                QItemSelectionModel.Rows | QItemSelectionModel.Select)
+
         self._children_table.cellChanged.connect(self._children_cell_changed)
 
     def _children_insert_before(self, offset=0):
@@ -1410,7 +1436,7 @@ def edit_code_by_code_id(code_id, dt=None):
 
 def test_edit():
     app = QApplication(sys.argv)
-    w = EditWindow(rid=2007) # top assembly
+    w = EditWindow(code_id=2007) # top assembly
     w.show()
     sys.exit(app.exec_())
 
@@ -1436,4 +1462,4 @@ def test_select_list2():
     print(w.getIndex())
 
 if __name__ == "__main__":
-    test_select_list2()
+    test_edit()
