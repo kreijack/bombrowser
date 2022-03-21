@@ -1364,20 +1364,26 @@ class EditWindow(bbwindow.BBMainWindow):
     def _children_insert_before(self, offset=0):
         self._children_modified = True
         idxs = self._children_table.selectedIndexes()
-        if len(idxs) < 1:
+        count = len(set([idx.row() for idx in idxs]))
+        if count < 1:
             row = 0
+            count = 1
         else:
-            row = idxs[0].row() + offset
+            row = idxs[0].row()
+            if offset > 0:
+                row += count
         if row < 0:
             row = 0
         elif row >= self._children_table.rowCount():
             row = self._children_table.rowCount()
         self._children_table.setSortingEnabled(False)
-        self._children_table.insertRow(row)
 
         gavals = ["" for x in range(db.gavals_count)]
-        self._children_populate_row(row, "", "", "", "1",
+        while count > 0:
+            self._children_table.insertRow(row)
+            self._children_populate_row(row, "", "", "", "1",
                                         "1", "NR", "", gavals)
+            count -= 1
 
         for row in range(self._children_table.rowCount()):
             self._children_table.item(row, 0).setText("%03d"%(row+1))
