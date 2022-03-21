@@ -463,6 +463,9 @@ class SelectFromList(QDialog):
 
 
 class EditWindow(bbwindow.BBMainWindow):
+
+    _clipboard = []
+
     def __init__(self, code_id, dt=None, parent=None):
         bbwindow.BBMainWindow.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -1257,32 +1260,98 @@ class EditWindow(bbwindow.BBMainWindow):
         m.triggered.connect(self._children_insert_before)
 
         idxs = self._children_table.selectedIndexes()
+
+        m = contextMenu.addAction("Insert row after")
+        m.triggered.connect(self._children_insert_after)
+        m.setEnabled(len(idxs) > 0)
+        m = contextMenu.addAction("Delete row")
+        m.triggered.connect(self._children_delete)
+        m.setEnabled(len(idxs) > 0)
+        contextMenu.addSeparator()
+        m = contextMenu.addAction("Search code ...")
+        m.triggered.connect(self._children_search_code)
+        m.setEnabled(len(idxs) > 0)
+        contextMenu.addSeparator()
+
+        m = contextMenu.addAction("Copy lines")
+        m.triggered.connect(self._children_copy)
+        m.setEnabled(len(idxs) > 0)
+        m = contextMenu.addAction("Paste lines")
+        m.triggered.connect(self._children_paste)
+        m.setEnabled(len(EditWindow._clipboard) >0)
+
+        contextMenu.addSeparator()
+
         if len(idxs) > 0:
             row = idxs[0].row()
-
             code_id = None
+            code = None
             try:
                 code_id = int(self._children_table.item(row, 1).text())
+                code = self._children_table.item(row, 2).text()
             except:
                 pass
 
-            code = self._children_table.item(row, 2).text()
-
-            m = contextMenu.addAction("Insert row after")
-            m.triggered.connect(self._children_insert_after)
-            m = contextMenu.addAction("Delete row")
-            m.triggered.connect(self._children_delete)
-            contextMenu.addSeparator()
-            m = contextMenu.addAction("Search code ...")
-            m.triggered.connect(self._children_search_code)
-            contextMenu.addSeparator()
-
-            if not code_id is None:
+            if not code_id is None and not code is None:
                 # sometime the code_id doesn't exist
                 codecontextmenu.generate_codes_context_menu(code_id=code_id,
                     menu = contextMenu, parent=self)
 
+
         contextMenu.exec_(self._children_table.viewport().mapToGlobal(point))
+
+    def _children_copy(self):
+        idxs = self._children_table.selectedIndexes()
+        selected_rows = list(set([idx.row() for idx in idxs]))
+        selected_rows.sort()
+        data = []
+        for row in selected_rows:
+            line = ['n/a']
+            for c in range(1, self._children_table.columnCount()):
+                    if c >= 8:
+                        line.append(self._children_table.cellWidget(row, c).text())
+                    else:
+                        line.append(self._children_table.item(row, c).text())
+            data.append(line)
+
+        EditWindow._clipboard = data
+
+    def _children_paste(self):
+
+        if len(EditWindow._clipboard) < 1:
+            return
+
+        self._children_modified = True
+        self._children_table.setSortingEnabled(False)
+
+        try:
+            self._children_table.cellChanged.disconnect()
+        except:
+            pass
+
+        idxs = self._children_table.selectedIndexes()
+        if len(idxs):
+            row = idxs[0].row()
+        else:
+            row = 0
+
+        gavals = ["" for x in range(db.gavals_count)]
+        for line in EditWindow._clipboard:
+            self._children_table.insertRow(row)
+            self._children_populate_row(row, "", "", "", "1",
+                                        "1", "NR", "", gavals)
+            for c in range(1, self._children_table.columnCount()):
+                    if c >= 8:
+                        self._children_table.cellWidget(row, c).setText(line[c])
+                    else:
+                        self._children_table.item(row, c).setText(line[c])
+            row += 1
+
+        for row in range(self._children_table.rowCount()):
+            self._children_table.item(row, 0).setText("%03d"%(row+1))
+
+        self._children_table.setSortingEnabled(True)
+        self._children_table.cellChanged.connect(self._children_cell_changed)
 
     def _children_move_row(self, where):
 
