@@ -1396,10 +1396,13 @@ class EditWindow(bbwindow.BBMainWindow):
         if len(idxs) < 1:
             return
 
-        row = idxs[0].row()
+        rows = list(set([idx.row() for idx in idxs]))
+        rows.sort(reverse=True)
 
         self._children_table.setSortingEnabled(False)
-        self._children_table.removeRow(row)
+        for row in rows:
+            self._children_table.removeRow(row)
+
         for row in range(self._children_table.rowCount()):
             self._children_table.item(row, 0).setText("%03d"%(row+1))
         self._children_table.sortByColumn(0,Qt.AscendingOrder)
