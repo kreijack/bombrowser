@@ -322,6 +322,8 @@ class DrawingTable(QTableWidget):
 
     rowChanged = Signal()
 
+    _clipboard = []
+
     def __init__(self):
         QTableWidget.__init__(self)
 
@@ -349,15 +351,48 @@ class DrawingTable(QTableWidget):
         return super().eventFilter(source, event)
 
     def _drawing_menu(self, point):
+        idxs = self.selectedIndexes()
+
         contextMenu = QMenu(self)
-        viewDrawing = contextMenu.addAction("View drawing")
-        viewDrawing.triggered.connect(self._view_drawing)
-        deleteDrawing = contextMenu.addAction("Delete drawing")
-        deleteDrawing.triggered.connect(self._delete_drawing)
-        deleteDrawing = contextMenu.addAction("Add drawing ...")
-        deleteDrawing.triggered.connect(self._add_drawing)
+        m = contextMenu.addAction("View drawing")
+        m.triggered.connect(self._view_drawing)
+        m.setEnabled(len(idxs) > 0)
+        m = contextMenu.addAction("Delete drawing")
+        m.triggered.connect(self._delete_drawing)
+        m.setEnabled(len(idxs) > 0)
+        m = contextMenu.addAction("Add drawing ...")
+        m.triggered.connect(self._add_drawing)
+
+        contextMenu.addSeparator()
+
+        m = contextMenu.addAction("Copy drawings lines")
+        m.triggered.connect(self._copy_drawing)
+        m.setEnabled(len(idxs) > 0)
+        m = contextMenu.addAction("Paste drawings lines")
+        m.triggered.connect(self._paste_drawing)
+        m.setEnabled(len(DrawingTable._clipboard) > 0)
 
         contextMenu.exec_(self.viewport().mapToGlobal(point))
+
+    def _copy_drawing(self):
+        idxs = self.selectedIndexes()
+        if len(idxs) == 0:
+            return
+
+        rows = list(set([idx.row() for idx in idxs]))
+
+        data = []
+        for row in rows:
+            data.append(self.item(row, 1).text())
+
+        DrawingTable._clipboard = data
+
+    def _paste_drawing(self):
+        if len(DrawingTable._clipboard) < 1:
+            return
+
+        for fn in DrawingTable._clipboard:
+            self._add_filename(fn)
 
     def _view_drawing(self):
         idxs = self.selectedIndexes()
@@ -383,8 +418,8 @@ class DrawingTable(QTableWidget):
         self.rowChanged.emit()
 
     def _add_drawing(self):
-        (fn, _) = QFileDialog.getOpenFileName(self, "Select a file")
-        if fn != "":
+        (fns, _) = QFileDialog.getOpenFileNames(self, "Select a file")
+        for fn in fns:
             self._add_filename(fn)
 
     def _add_filename(self, fn):
