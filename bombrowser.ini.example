@@ -13,9 +13,10 @@ code_force_uppercase=1
 templates_list=template_simple,template_all,template_dummy
 importer_list=import_simple,importer_all
 
-# the name of gvalN (n=1..) fields separated by comma
-# it is allowed to not have all availables fields
-# between the square brackets, it can be inserted the type of the filed:
+# The list below is the list name of gvalN (n=1..) fields separated by comma
+# or by a new line if indented. It is allowed to not have all availables
+# felds.
+# Between the square brackets, it can be inserted the type of the filed:
 # available types are:
 # - list: syntax [list:val1;val2;...] the field has a list of predefined
 #                                     values
@@ -34,7 +35,8 @@ gvalnames=
     gval8:Test2[list:prova1;prova2;pro, va3]
     gval9:Transparent[clist:0;1]
 
-# the name of gavalN (n=1..) fields separated by comma
+# the name of gavalN (n=1..) fields separated by comma or by a new line
+# if indented.
 # it is allowed to not have all availables fields
 gavalnames=
     gaval1:Planned[clist:1;0]
