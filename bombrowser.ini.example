@@ -32,7 +32,7 @@ gvalnames=
     gval6:Manufacturer#2 name
     gval5:Manufacturer#2 PN
     gval7:TestFile[file]
-    gval8:Test2[list:prova1;prova2;pro, va3]
+    gval8:Test2[list:T2V1;T2V2;T2V3,with space and comma]
     gval9:Transparent[clist:0;1]
 
 # the name of gavalN (n=1..) fields separated by comma or by a new line
