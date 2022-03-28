@@ -1,4 +1,4 @@
-2021-12-12: v0.4.5
+2022-03-28: v0.4.5
 - add export dialog in the asmgui window
 	- the dialog allows to select the BOM format
 	- the dialog allows to copy the link of the folder
@@ -12,6 +12,9 @@
 - add the clist, aka "closed list" of valies to gval
 - allow to search in the bom on the basis of many parameters (Advanced search)
 - add to possibility to make an export/import of the DB
+- allow to move multiple lines in the EditCode children/drawings lists
+- allow copy & paste between different EditCode children/drawings lists
+- allow to add/remove multiple lines in the EditCode children/drawings lists
 
 2021-05-11: v0.4.4
 - add command 'smart where used'
