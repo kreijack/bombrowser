@@ -429,6 +429,24 @@ class DrawingTable(QTableWidget):
         self.setItem(row, 1, QTableWidgetItem(fn))
         self.rowChanged.emit()
 
+class QComboBoxCList(QComboBox):
+    def __init__(self, parent_=None):
+        QComboBox.__init__(self, parent=parent_)
+        self._originalIndex = self.currentIndex()
+    def text(self):
+        i = self.currentIndex()
+        return self.itemText(i)
+    def setText(self, s):
+        i = self.findText(s)
+        if i >= 0:
+            self.setCurrentIndex(i)
+        self._originalIndex = self.currentIndex()
+    def isModified(self):
+        return self._originalIndex != self.currentIndex()
+    def addItem(self, v):
+        QComboBox.addItem(self, v)
+        self._originalIndex = self.currentIndex()
+
 class SelectFromList(QDialog):
     def __init__(self, parent, title, header, data):
         QDialog.__init__(self, parent)
@@ -528,7 +546,6 @@ class EditWindow(bbwindow.BBMainWindow):
                     break
                 i += 1
 
-
     def _populate_dates_list_info(self):
         d = db.DB()
         self._dates_list_info = d.get_dates_by_code_id3(self._code_id)
@@ -596,17 +613,7 @@ class EditWindow(bbwindow.BBMainWindow):
             b.currentIndexChanged.connect(Do(le, values))
             return PairLEWidget(le, b)
         elif type_.startswith("clist:"):
-            class CList(QComboBox):
-                def __init__(self, parent_=None):
-                    QComboBox.__init__(self, parent=parent_)
-                def text(self):
-                    i = self.currentIndex()
-                    return self.itemText(i)
-                def setText(self, s):
-                    i = self.findText(s)
-                    if i >= 0:
-                        self.setCurrentIndex(i)
-            b = CList()
+            b = QComboBoxCList()
             values =type_[6:].split(";")
             for i in values:
                 b.addItem(i)
@@ -750,6 +757,10 @@ class EditWindow(bbwindow.BBMainWindow):
 
         for qle in self.findChildren(QLineEdit):
             if qle.isModified():
+                return True
+
+        for qcb in self.findChildren(QComboBoxCList):
+            if qcb.isModified():
                 return True
 
     def closeEvent(self, event):
