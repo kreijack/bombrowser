@@ -21,11 +21,10 @@ import sys, html
 
 from PySide2.QtWidgets import QStatusBar
 from PySide2.QtWidgets import QTextEdit, QHBoxLayout, QCheckBox
-from PySide2.QtWidgets import QLabel, QLineEdit, QFileDialog
+from PySide2.QtWidgets import QLabel, QLineEdit
 from PySide2.QtWidgets import QGridLayout, QWidget, QApplication, QPushButton
 from PySide2.QtWidgets import QMessageBox, QAction, QDialog
 from PySide2.QtCore import Qt, Signal
-import pprint, traceback
 
 import db, utils, selectdategui, bbwindow, cfg, importer, editcode
 

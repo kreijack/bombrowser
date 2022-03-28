@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sys, configparser
+import sys
 
 from PySide2.QtWidgets import QScrollArea, QStatusBar, QActionGroup
 from PySide2.QtWidgets import QSplitter, QTableView, QLabel
@@ -28,7 +28,7 @@ from PySide2.QtWidgets import QHeaderView, QMenu, QTableWidget, QTableWidgetItem
 
 from PySide2.QtCore import Qt, Signal, QPoint
 
-import db, utils, codegui, bbwindow
+import db, codegui, bbwindow
 import cfg, searchrevisiongui, codecontextmenu
 
 class CodesListWidget(QWidget):

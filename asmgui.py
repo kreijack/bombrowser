@@ -38,7 +38,6 @@ import pprint, shutil
 import db, codegui, codecontextmenu, checker, customize
 import exporter, utils, selectdategui, bbwindow, importer, diffgui
 import cfg, listcodegui
-#from utils import catch_exception
 
 class ExportDialog(QDialog):
     def __init__(self, parent, top, data):

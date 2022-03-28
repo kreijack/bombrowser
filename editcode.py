@@ -17,22 +17,20 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sys, configparser, os, pprint, traceback
+import  sys, os
 
-from PySide2.QtWidgets import QComboBox, QAbstractItemView
-from PySide2.QtWidgets import QSplitter, QTableView, QLabel, QTableWidgetItem
-from PySide2.QtWidgets import QGridLayout, QWidget, QApplication, QFileDialog
-from PySide2.QtWidgets import QMessageBox, QAction, QLineEdit, QSplitter
-from PySide2.QtWidgets import QHBoxLayout, QPushButton, QDialog, QTabWidget
-from PySide2.QtWidgets import QHeaderView, QMenu, QGroupBox, QTableWidget
-from PySide2.QtGui import QColor, QDesktopServices
-from PySide2.QtCore import QItemSelection, QItemSelectionModel
+from PySide2.QtWidgets import  QComboBox
+from PySide2.QtWidgets import  QTableView, QTableWidgetItem, QLabel
+from PySide2.QtWidgets import  QGridLayout, QApplication, QWidget, QFileDialog
+from PySide2.QtWidgets import  QMessageBox, QAction, QLineEdit
+from PySide2.QtWidgets import  QPushButton, QHBoxLayout, QTabWidget, QDialog
+from PySide2.QtWidgets import  QHeaderView, QMenu, QGroupBox, QTableWidget
+from PySide2.QtGui import  QColor, QDesktopServices
+from PySide2.QtCore import  QItemSelectionModel, QItemSelection
+from PySide2.QtCore import  QUrl, Signal, Qt, QEvent
 
-from PySide2.QtCore import Qt, QUrl, QEvent, Signal
-
-import db, utils, listcodegui, jdutil, cfg
-import importer, customize, bbwindow, codecontextmenu
-#from utils import catch_exception
+import  utils, listcodegui, db, cfg
+import  importer, customize, bbwindow, codecontextmenu
 
 class SelectCode(QDialog):
     def __init__(self, parent):

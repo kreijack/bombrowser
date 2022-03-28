@@ -21,7 +21,6 @@ import db
 import sqlite3
 import os
 import datetime
-import pprint
 import cfg
 
 cfg.init()

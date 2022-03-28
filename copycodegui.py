@@ -17,17 +17,14 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sys, configparser
-
 from PySide2.QtWidgets import QGroupBox, QWidget
 from PySide2.QtWidgets import QLabel, QLineEdit, QCheckBox
 from PySide2.QtWidgets import QGridLayout, QWidget, QPushButton
-from PySide2.QtWidgets import QMessageBox, QDialog
+from PySide2.QtWidgets import QMessageBox
 from PySide2.QtCore import Qt
-import pprint
 
 import db, editcode, bbwindow
-import exporter, utils, selectdategui, cfg
+import utils, selectdategui, cfg
 
 class CopyCode(bbwindow.BBMainWindow):
     def __init__(self, rev_id, parent):

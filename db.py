@@ -35,9 +35,7 @@ PYTHON
 """
 
 import sys
-import pprint
 import datetime
-import configparser
 import time
 import traceback
 

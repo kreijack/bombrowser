@@ -17,17 +17,12 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sys
-
 from PySide2.QtWidgets import QTableWidget, QTableWidgetItem
 from PySide2.QtWidgets import QGridLayout, QPushButton
 from PySide2.QtWidgets import QDialog, QHeaderView, QApplication
 from PySide2.QtCore import Qt
-import pprint
 
 import db
-import utils
-
 
 class SelectDate(QDialog):
     def __init__(self, code_id, parent, only_data_code=False):
