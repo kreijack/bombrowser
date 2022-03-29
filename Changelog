@@ -6,7 +6,7 @@
 	- the dialog allows to export the files
 - programmatically select the number of gvals and gavals parameters
 - add the gavals values: values linked to the parent-child relation (i.e.
-  values that are in the assemblies)
+values that are in the assemblies)
 - in the tables allows the description to expand/shrink
 - allow to colorize the bom
 - add the clist, aka "closed list" of valies to gval
@@ -15,6 +15,7 @@
 - allow to move multiple lines in the EditCode children/drawings lists
 - allow copy & paste between different EditCode children/drawings lists
 - allow to add/remove multiple lines in the EditCode children/drawings lists
+- reconnect if the connection is lost
 
 2021-05-11: v0.4.4
 - add command 'smart where used'
