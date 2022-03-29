@@ -1555,9 +1555,9 @@ class DBSQLServer(_BaseServer):
     def _rollback(self, c):
         self._conn.rollback()
 
-    def _sqlex(self, c, query, *args, **kwargs):
+    def _sqlex_gen(self, method, c, query, *args, **kwargs):
         try:
-            _BaseServer._sqlex(self, c, query, *args, **kwargs)
+            method(self, c, query, *args, **kwargs)
         except self._mod.Error as er:
             errmsg = 'ODBC error: %s' % (' '.join(er.args)) + "\n"
             errmsg += "ODBC query:\n"
@@ -1569,27 +1569,24 @@ class DBSQLServer(_BaseServer):
             exc_type, exc_value, exc_tb = sys.exc_info()
             errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
 
+
+            if "08S01" in errmsg:
+                try:
+                    self._conn.close()
+                    self._open(self._path)
+                    errmsg += ">>>> The connection was restarted"
+                except Exception as e:
+                    errmsg += ">>>> Cannot restart the connection (%r)"%(e)
+
             print(errmsg)
 
             raise DBException(errmsg)
+
+    def _sqlex(self, c, query, *args, **kwargs):
+        self._sqlex_gen(_BaseServer._sqlex, c, query, *args, **kwargs)
 
     def _sqlexm(self, c, query, *args, **kwargs):
-        try:
-            _BaseServer._sqlexm(self, c, query, *args, **kwargs)
-        except self._mod.Error as er:
-            errmsg = 'ODBC error: %s' % (' '.join(er.args)) + "\n"
-            errmsg += "ODBC query:\n"
-            errmsg += "-"*30+"\n"
-            errmsg += query + "\n"
-            errmsg += "-"*30+"\n"
-            errmsg += "Exception class is: " + str(er.__class__) + "\n"
-            errmsg += 'ODBC traceback: \n'
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
-
-            print(errmsg)
-
-            raise DBException(errmsg)
+        self._sqlex_gen(_BaseServer._sqlexm, c, query, *args, **kwargs)
 
     def _sql_translate(self, s):
         def process(l):
