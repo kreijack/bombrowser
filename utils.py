@@ -28,7 +28,7 @@ def __show_exception(exc_type, exc_value, exc_traceback,
         title, msg):
 
     if exc_type is db.DBExceptionWithTraceback:
-        exc_type, exc_value, exc_traceback = exc_value.get_trackeback()
+        _, _, exc_traceback = exc_value.get_trackeback()
 
     excs = '\n'.join([''.join(traceback.format_tb(exc_traceback)),
                                  '{0}: {1}'.format(exc_type.__name__, exc_value)])
