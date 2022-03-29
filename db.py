@@ -79,6 +79,14 @@ connection="Server: <UNDEF>"
 class DBException(RuntimeError):
     pass
 
+class DBExceptionWithTraceback(DBException):
+    def __init__(self, *args, traceback=(None,None,None)):
+        DBException.__init__(self, *args)
+        self._mytraceback = traceback
+
+    def get_trackeback(self):
+        return self._mytraceback
+
 class _BaseServer:
 
     def __init__(self, path):
@@ -1627,30 +1635,9 @@ class DBSQLite(_BaseServer):
     def _begin(self, c):
         c.execute("BEGIN")
 
-    def _sqlex(self, c, query, *args, **kwargs):
+    def _sqlex_gen(self, method, c, query, *args, **kwargs):
         try:
-            _BaseServer._sqlex(self, c, query, *args, **kwargs)
-        except sqlite3.Error as er:
-            errmsg = 'SQLite error: %s' % (' '.join(er.args)) + "\n"
-            errmsg += "SQLite query:\n"
-            errmsg += "-"*30+"\n"
-            errmsg += query + "\n"
-            errmsg += "-"*30+"\n"
-            errmsg += "Exception class is: " + str(er.__class__) + "\n"
-            errmsg += 'SQLite traceback: \n'
-            errmsg += traceback.format_exc()
-            #exc_type, exc_value, exc_tb = sys.exc_info()
-            #errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
-            #print("e=",er)
-
-
-            print(errmsg)
-
-            raise DBException(errmsg)
-
-    def _sqlexm(self, c, query, *args, **kwargs):
-        try:
-            _BaseServer._sqlexm(self, c, query, *args, **kwargs)
+            method(self, c, query, *args, **kwargs)
         except sqlite3.Error as er:
             errmsg = 'SQLite error: %s' % (' '.join(er.args)) + "\n"
             errmsg += "SQLite query:\n"
@@ -1660,11 +1647,17 @@ class DBSQLite(_BaseServer):
             errmsg += "Exception class is: " + str(er.__class__) + "\n"
             errmsg += 'SQLite traceback: \n'
             exc_type, exc_value, exc_tb = sys.exc_info()
-            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+            tb = '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
 
-            print(errmsg)
+            print(errmsg+tb)
 
-            raise DBException(errmsg)
+            raise DBExceptionWithTraceback(errmsg, traceback=(exc_type, exc_value, exc_tb))
+
+    def _sqlex(self, c, query, *args, **kwargs):
+        self._sqlex_gen(_BaseServer._sqlex, c, query, *args, **kwargs)
+
+    def _sqlexm(self, c, query, *args, **kwargs):
+        self._sqlex_gen(_BaseServer._sqlexm, c, query, *args, **kwargs)
 
     def _sql_translate(self, stms):
         stms = stms.replace(" IDENTITY", "")
