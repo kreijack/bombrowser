@@ -1623,8 +1623,8 @@ class DBSQLServer(_BaseServer):
                 l = l.replace("ALTER TABLE ", "EXEC sp_rename '")
                 l = l.replace(" RENAME TO ", "', '")
                 l = l.replace(";", "';")
-            if "VARCHAR" in l:
-                l = l.replace("VARCHAR", "NVARCHAR")
+            if " VARCHAR" in l:
+                l = l.replace(" VARCHAR", " NVARCHAR")
             return l
         s = '\n'.join([process(line) for line in s.split("\n")])
         return s
