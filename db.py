@@ -104,11 +104,37 @@ class _BaseServer:
         else:
             self._ver = "empty"
 
-    def _sqlex(self, c, query, *args, **kwargs):
+    def __sqlex(self, c, query, *args, **kwargs):
         c.execute(query, *args, **kwargs)
 
-    def _sqlexm(self, c, query, *args, **kwargs):
+    def __sqlexm(self, c, query, *args, **kwargs):
         c.executemany(query, *args, **kwargs)
+
+    def _sqlex_gen(self, method, c, query, *args, **kwargs):
+        query = self._sql_translate(query)
+        try:
+            method(self, c, query, *args, **kwargs)
+        except:
+            self._exception_handler(query)
+
+    def _exception_handler(self, query):
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        errmsg = "SQL Generic error: %r\n"%(exc_value)
+        errmsg += "-"*30+"\n"
+        errmsg += query + "\n"
+        errmsg += "-"*30+"\n"
+        tb = 'Traceback: \n' + '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+
+        print(errmsg+tb)
+
+        raise DBExceptionWithTraceback(errmsg, traceback=(exc_type, exc_value, exc_tb))
+
+    def _sqlex(self, c, query, *args, **kwargs):
+        self._sqlex_gen(_BaseServer.__sqlex, c, query, *args, **kwargs)
+
+    def _sqlexm(self, c, query, *args, **kwargs):
+        self._sqlex_gen(_BaseServer.__sqlexm, c, query, *args, **kwargs)
+
 
     def _commit(self, c):
         c.commit()
@@ -1563,36 +1589,33 @@ class DBSQLServer(_BaseServer):
     def _rollback(self, c):
         self._conn.rollback()
 
-    def _sqlex_gen(self, method, c, query, *args, **kwargs):
-        try:
-            method(self, c, query, *args, **kwargs)
-        except self._mod.Error as er:
-            errmsg = 'ODBC error: %s' % (' '.join(er.args)) + "\n"
-            errmsg += "ODBC query:\n"
-            errmsg += "-"*30+"\n"
-            errmsg += query + "\n"
-            errmsg += "-"*30+"\n"
-            errmsg += "Exception class is: " + str(er.__class__) + "\n"
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            tb = 'Traceback: \n' + '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+    def _exception_handler(self, query):
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        print(exc_type, exc_value, exc_tb)
+        if not issubclass(exc_type, self._mod.Error):
+            return _BaseServer._exception_handler(self, query)
 
-            if "08S01" in errmsg:
-                try:
-                    self._conn.close()
-                    self._open(self._path)
-                    errmsg += ">>>> The connection was restarted"
-                except Exception as e:
-                    errmsg += ">>>> Cannot restart the connection (%r)"%(e)
+        errmsg = 'ODBC error: %s' % (' '.join(exc_value.args)) + "\n"
+        errmsg += "Exception class is: " + str(exc_value.__class__) + "\n"
+        errmsg += "ODBC query:\n"
+        errmsg += "-"*30+"\n"
+        errmsg += query + "\n"
+        tb = "-"*30+"\n"
+        tb += 'Traceback: \n'
+        tb += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
 
-            print(errmsg+tb)
 
-            raise DBExceptionWithTraceback(errmsg, traceback=(exc_type, exc_value, exc_tb))
+        if "08S01" in errmsg:
+            try:
+                self._conn.close()
+                self._open(self._path)
+                errmsg += ">>>> The connection was restarted"
+            except Exception as e:
+                errmsg += ">>>> Cannot restart the connection (%r)"%(e)
 
-    def _sqlex(self, c, query, *args, **kwargs):
-        self._sqlex_gen(_BaseServer._sqlex, c, query, *args, **kwargs)
+        print(errmsg+tb)
 
-    def _sqlexm(self, c, query, *args, **kwargs):
-        self._sqlex_gen(_BaseServer._sqlexm, c, query, *args, **kwargs)
+        raise DBExceptionWithTraceback(errmsg, traceback=(exc_type, exc_value, exc_tb))
 
     def _sql_translate(self, s):
         def process(l):
@@ -1633,28 +1656,23 @@ class DBSQLite(_BaseServer):
     def _begin(self, c):
         c.execute("BEGIN")
 
-    def _sqlex_gen(self, method, c, query, *args, **kwargs):
-        try:
-            method(self, c, query, *args, **kwargs)
-        except sqlite3.Error as er:
-            errmsg = 'SQLite error: %s' % (' '.join(er.args)) + "\n"
-            errmsg += "SQLite query:\n"
-            errmsg += "-"*30+"\n"
-            errmsg += query + "\n"
-            errmsg += "-"*30+"\n"
-            errmsg += "Exception class is: " + str(er.__class__) + "\n"
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            tb = 'SQLite traceback: \n' + '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+    def _exception_handler(self, query):
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        if not issubclass(exc_type, sqlite3.Error):
+            return _BaseServer._exception_handler(self)
 
-            print(errmsg+tb)
+        errmsg = 'SQLite error: %s' % (' '.join(exc_value.args)) + "\n"
+        errmsg += "Exception class is: " + str(exc_value.__class__) + "\n"
+        errmsg += "SQLite query:\n"
+        errmsg += "-"*30+"\n"
+        errmsg += query + "\n"
+        tb = "-"*30+"\n"
+        tb += 'Traceback: \n'
+        tb += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
 
-            raise DBExceptionWithTraceback(errmsg, traceback=(exc_type, exc_value, exc_tb))
+        print(errmsg+tb)
 
-    def _sqlex(self, c, query, *args, **kwargs):
-        self._sqlex_gen(_BaseServer._sqlex, c, query, *args, **kwargs)
-
-    def _sqlexm(self, c, query, *args, **kwargs):
-        self._sqlex_gen(_BaseServer._sqlexm, c, query, *args, **kwargs)
+        raise DBExceptionWithTraceback(errmsg, traceback=(exc_type, exc_value, exc_tb))
 
     def _sql_translate(self, stms):
         stms = stms.replace(" IDENTITY", "")
@@ -1673,7 +1691,6 @@ class DBSQLite(_BaseServer):
 class DBPG(_BaseServer):
     def __init__(self, path=None):
         import psycopg2
-        self._mod = psycopg2
         _BaseServer.__init__(self, path)
 
     def _commit(self, c):
@@ -1698,36 +1715,34 @@ class DBPG(_BaseServer):
             n = 100
         self._sqlex(c, "ALTER SEQUENCE " + tname + "_id_seq RESTART WITH %d"%(n) )
 
-    def _sqlex_gen(self, method, c, query, *args, **kwargs):
-        query = self._sql_translate(query)
-        try:
-            method(self, c, query, *args, **kwargs)
-        except self._mod.Error as e:
-            errmsg = "PGError: %s\n"%(e.pgerror)        # error number
-            errmsg += "PGCode: %s\n"%(e.pgcode)        # error number
-            errmsg += "-"*30+"\n"
-            errmsg += query + "\n"
-            errmsg += "-"*30+"\n"
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            tb = 'Traceback: \n' + '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+    def _exception_handler(self, query):
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        if not issubclass(exc_type, self._mod.Error):
 
-            if "closed unexpectedly" in errmsg:
-                try:
-                    self._conn.close()
-                    self._open(self._path)
-                    errmsg += ">>>> The connection was restarted"
-                except Exception as e:
-                    errmsg += ">>>> Cannot restart the connection (%r)"%(e)
+            return _BaseServer._exception_handler(self)
 
-            print(errmsg+tb)
+        errmsg = "PGError: %s\n"%(exc_value.pgerror)        # error number
+        errmsg += "PGCode: %s\n"%(exc_value.pgcode)        # error number
+        errmsg += "Exception class is: " + str(exc_value.__class__) + "\n"
+        errmsg += "SQL query:\n"
+        errmsg += "-"*30+"\n"
+        errmsg += query + "\n"
 
-            raise DBExceptionWithTraceback(errmsg, traceback=(exc_type, exc_value, exc_tb))
+        tb = "-"*30+"\n"
+        tb += 'Traceback: \n'
+        tb += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
 
-    def _sqlex(self, c, query, *args, **kwargs):
-        self._sqlex_gen(_BaseServer._sqlex, c, query, *args, **kwargs)
+        if "closed unexpectedly" in errmsg:
+            try:
+                self._conn.close()
+                self._open(self._path)
+                errmsg += ">>>> The connection was restarted"
+            except Exception as e:
+                errmsg += ">>>> Cannot restart the connection (%r)"%(e)
 
-    def _sqlexm(self, c, query, *args, **kwargs):
-        self._sqlex_gen(_BaseServer._sqlexm, c, query, *args, **kwargs)
+        print(errmsg+tb)
+
+        raise DBExceptionWithTraceback(errmsg, traceback=(exc_type, exc_value, exc_tb))
 
     def _sql_translate(self, s):
         def process(l):
@@ -1741,7 +1756,9 @@ class DBPG(_BaseServer):
         return s
 
     def _open(self, path):
-        self._conn = self._mod.connect(path)
+        import psycopg2
+        self._mod = psycopg2
+        self._conn = psycopg2.connect(path)
         self._conn.set_client_encoding("UNICODE")
 
     def _get_tables_list(self):
