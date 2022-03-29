@@ -1573,10 +1573,8 @@ class DBSQLServer(_BaseServer):
             errmsg += query + "\n"
             errmsg += "-"*30+"\n"
             errmsg += "Exception class is: " + str(er.__class__) + "\n"
-            errmsg += 'ODBC traceback: \n'
             exc_type, exc_value, exc_tb = sys.exc_info()
-            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
-
+            tb = 'Traceback: \n' + '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
 
             if "08S01" in errmsg:
                 try:
@@ -1586,9 +1584,9 @@ class DBSQLServer(_BaseServer):
                 except Exception as e:
                     errmsg += ">>>> Cannot restart the connection (%r)"%(e)
 
-            print(errmsg)
+            print(errmsg+tb)
 
-            raise DBException(errmsg)
+            raise DBExceptionWithTraceback(errmsg, traceback=(exc_type, exc_value, exc_tb))
 
     def _sqlex(self, c, query, *args, **kwargs):
         self._sqlex_gen(_BaseServer._sqlex, c, query, *args, **kwargs)
