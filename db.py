@@ -1711,9 +1711,8 @@ class DBPG(_BaseServer):
             errmsg += "-"*30+"\n"
             errmsg += query + "\n"
             errmsg += "-"*30+"\n"
-            errmsg += 'Traceback: \n'
             exc_type, exc_value, exc_tb = sys.exc_info()
-            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+            tb = 'Traceback: \n' + '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
 
             if "closed unexpectedly" in errmsg:
                 try:
@@ -1723,9 +1722,9 @@ class DBPG(_BaseServer):
                 except Exception as e:
                     errmsg += ">>>> Cannot restart the connection (%r)"%(e)
 
-            print(errmsg)
+            print(errmsg+tb)
 
-            raise DBException(errmsg)
+            raise DBExceptionWithTraceback(errmsg, traceback=(exc_type, exc_value, exc_tb))
 
     def _sqlex(self, c, query, *args, **kwargs):
         self._sqlex_gen(_BaseServer._sqlex, c, query, *args, **kwargs)
