@@ -82,8 +82,8 @@ class DBException(RuntimeError):
 class _BaseServer:
 
     def __init__(self, path):
+        self._path = path
         self._open(path)
-
 
         if "database_props" in self._get_tables_list():
             c = self._conn.cursor()
@@ -1711,13 +1711,13 @@ class DBPG(_BaseServer):
             n = 100
         self._sqlex(c, "ALTER SEQUENCE " + tname + "_id_seq RESTART WITH %d"%(n) )
 
-    def _sqlex(self, c, query, *args, **kwargs):
+    def _sqlex_gen(self, method, c, query, *args, **kwargs):
         query = self._sql_translate(query)
         try:
-            _BaseServer._sqlex(self, c, query, *args, **kwargs)
+            method(self, c, query, *args, **kwargs)
         except self._mod.Error as e:
             errmsg = "PGError: %s\n"%(e.pgerror)        # error number
-            errmsg = "PGCode: %s\n"%(e.pgcode)        # error number
+            errmsg += "PGCode: %s\n"%(e.pgcode)        # error number
             errmsg += "-"*30+"\n"
             errmsg += query + "\n"
             errmsg += "-"*30+"\n"
@@ -1725,28 +1725,23 @@ class DBPG(_BaseServer):
             exc_type, exc_value, exc_tb = sys.exc_info()
             errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
 
+            if "closed unexpectedly" in errmsg:
+                try:
+                    self._conn.close()
+                    self._open(self._path)
+                    errmsg += ">>>> The connection was restarted"
+                except Exception as e:
+                    errmsg += ">>>> Cannot restart the connection (%r)"%(e)
+
             print(errmsg)
 
             raise DBException(errmsg)
+
+    def _sqlex(self, c, query, *args, **kwargs):
+        self._sqlex_gen(_BaseServer._sqlex, c, query, *args, **kwargs)
 
     def _sqlexm(self, c, query, *args, **kwargs):
-        query = self._sql_translate(query)
-        try:
-            _BaseServer._sqlexm(self, c, query, *args, **kwargs)
-        except self._mod.Error as e:
-            errmsg = "PGError: %s\n"%(e.pgerror)        # error number
-            errmsg = "PGCode: %s\n"%(e.pgcode)        # error number
-            errmsg += "-"*30+"\n"
-            errmsg += query + "\n"
-            errmsg += "-"*30+"\n"
-            errmsg += 'Traceback: \n'
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            errmsg += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
-
-            print(errmsg)
-
-            raise DBException(errmsg)
-
+        self._sqlex_gen(_BaseServer._sqlexm, c, query, *args, **kwargs)
 
     def _sql_translate(self, s):
         def process(l):
@@ -1760,7 +1755,6 @@ class DBPG(_BaseServer):
         return s
 
     def _open(self, path):
-
         self._conn = self._mod.connect(path)
         self._conn.set_client_encoding("UNICODE")
 
