@@ -1643,9 +1643,8 @@ class DBSQLite(_BaseServer):
             errmsg += query + "\n"
             errmsg += "-"*30+"\n"
             errmsg += "Exception class is: " + str(er.__class__) + "\n"
-            errmsg += 'SQLite traceback: \n'
             exc_type, exc_value, exc_tb = sys.exc_info()
-            tb = '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+            tb = 'SQLite traceback: \n' + '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
 
             print(errmsg+tb)
 
