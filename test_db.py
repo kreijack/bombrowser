@@ -1740,19 +1740,23 @@ def test_new_db():
     assert(ci == 1)
 #------
 
-def run_test(filters, modules, prefix=""):
+
+def _list_tests(modules):
     import inspect
     from inspect import getmembers, isfunction
-
-    if prefix != "":
-        prefix += "."
 
     for (name, obj) in inspect.getmembers(modules):
         if not inspect.isfunction(obj):
             continue
         if not name.startswith("test_"):
             continue
+        yield name, obj
 
+def run_test(filters, modules, prefix=""):
+    if prefix != "":
+        prefix += "."
+
+    for (name, obj) in _list_tests(modules):
         skip = len(filters) > 0
         for f in filters:
             if f in prefix+name:
@@ -1771,18 +1775,26 @@ def run_test(filters, modules, prefix=""):
             print("FAIL !!!")
             raise
 
-if __name__ == "__main__":
+def main():
+    global _use_memory_sqlite
     last = 1
-    for i in range(1, len(sys.argv[1:])):
+    for i in range(1, len(sys.argv)):
+        last = i + 1
         if sys.argv[i] == "--create":
             d = getdb.DB()
             d.create_db()
             sys.exit()
         elif sys.argv[i] == "--use-ini-config":
             _use_memory_sqlite=False
+        elif sys.argv[i] == "--list-tests":
+            for name, obj in _list_tests(sys.modules[__name__]):
+                print(name)
+            return
         else:
             last = i
             break
 
     run_test(sys.argv[last:], sys.modules[__name__])
 
+if __name__ == "__main__":
+    main()
