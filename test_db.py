@@ -1818,11 +1818,17 @@ def run_test(filters, modules, prefix=""):
         prefix += "."
 
     for (name, obj) in _list_tests(modules):
-        skip = len(filters) > 0
+        skip = False
         for f in filters:
-            if f in prefix+name:
-                skip = False
-                break
+            if f.startswith("^"):
+                if f[1:] in prefix+name:
+                    skip = True
+                    break
+            else:
+                skip = True
+                if f in prefix+name:
+                    skip = False
+                    break
 
         if skip:
             continue
