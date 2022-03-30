@@ -16,6 +16,8 @@ values that are in the assemblies)
 - allow copy & paste between different EditCode children/drawings lists
 - allow to add/remove multiple lines in the EditCode children/drawings lists
 - reconnect if the connection is lost
+- chnage in db format: renamed the database_props.key in
+  database_props.name, to avoid problem with sqlserver
 
 2021-05-11: v0.4.4
 - add command 'smart where used'
