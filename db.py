@@ -91,10 +91,10 @@ class _BaseServer:
 
     def __init__(self, path):
         self._path = path
-        self._open(path)
+        self._conn = None
 
         if "database_props" in self._get_tables_list():
-            c = self._conn.cursor()
+            c = self._get_cursor()
             self._sqlex(c, """SELECT value FROM database_props WHERE name='ver' """)
             self._ver = c.fetchone()[0]
 
@@ -103,6 +103,20 @@ class _BaseServer:
 
         else:
             self._ver = "empty"
+
+    def _get_cursor(self):
+        if self._conn is None:
+            self._open(self._path)
+        try:
+            c = self._conn.cursor()
+        except:
+            if self._conn:
+                self._conn.close()
+            else:
+                self._conn = None
+            raise
+
+        return c
 
     def __sqlex(self, c, query, *args, **kwargs):
         c.execute(query, *args, **kwargs)
@@ -152,7 +166,7 @@ class _BaseServer:
         raise DBException("Cannot implemented")
 
     def _get_tables_list(self):
-        cursor = self._conn.cursor()
+        cursor = self._get_cursor()
         return [row.table_name for row in cursor.tables()]
 
     def _get_db_v0_4(self):
@@ -304,7 +318,7 @@ class _BaseServer:
     def create_db(self):
 
         stms = self._get_db_v0_4()
-        c = self._conn.cursor()
+        c = self._get_cursor()
         for s in stms.split(";"):
             s = s.strip()
             if len(s) == 0:
@@ -314,13 +328,13 @@ class _BaseServer:
         self._conn.commit()
 
     def dump_table(self, tname):
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._sqlex(c, "SELECT * FROM "+ tname)
         colnames = [desc[0] for desc in c.description]
         return (colnames, c.fetchall())
 
     def insert_table(self, tname, columns, data):
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._sqlex(c, "DELETE FROM " + tname)
         self._sqlex(c, "SELECT * FROM "+ tname)
         real_colnames = [desc[0] for desc in c.description]
@@ -359,7 +373,7 @@ class _BaseServer:
             yield (i, *self.dump_table(i))
 
     def get_code(self, id_code, date_from_days):
-        return self._get_code(self._conn.cursor(), id_code, date_from_days)
+        return self._get_code(self._get_cursor(), id_code, date_from_days)
 
     def _get_code(self, c, id_code, date_from_days):
 
@@ -415,7 +429,7 @@ class _BaseServer:
         return data
 
     def get_code_by_rid(self, rid):
-        return self._get_code_by_rid(self._conn.cursor(), rid)
+        return self._get_code_by_rid(self._get_cursor(), rid)
 
     def _get_code_by_rid(self, c, rid):
 
@@ -470,7 +484,7 @@ class _BaseServer:
         return data
 
     def get_codes_by_code(self, code):
-        c = self._conn.cursor()
+        c = self._get_cursor()
 
         self._sqlex(c, """
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
@@ -495,7 +509,7 @@ class _BaseServer:
             return res
 
     def get_codes_by_like_code(self, code):
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._sqlex(c, """
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
             FROM (
@@ -519,7 +533,7 @@ class _BaseServer:
             return res
 
     def get_codes_by_like_descr(self, descr):
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._sqlex(c, """
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
             FROM (
@@ -544,7 +558,7 @@ class _BaseServer:
             return res
 
     def get_codes_by_like_code_and_descr(self, code, descr):
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._sqlex(c, """
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
             FROM (
@@ -568,7 +582,7 @@ class _BaseServer:
             return res
 
     def get_dates_by_code_id3(self, id_code):
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._sqlex(c, """SELECT DISTINCT i.code, r.descr,
                                      r.date_from_days, r.date_to_days,
                                      r.id, r.ver, r.iter
@@ -581,7 +595,7 @@ class _BaseServer:
         return list(c.fetchall())
 
     def get_parent_dates_range_by_code_id(self, id_code):
-        c = self._conn.cursor()
+        c = self._get_cursor()
         return self._get_parent_dates_range_by_code_id(c, id_code)
 
     def _get_parent_dates_range_by_code_id(self, c, id_code):
@@ -599,7 +613,7 @@ class _BaseServer:
         return list(c.fetchall())
 
     def get_children_dates_range_by_rid(self, rid):
-        c = self._conn.cursor()
+        c = self._get_cursor()
         return self._get_children_dates_range_by_rid(c, rid)
 
     def _get_children_dates_range_by_rid(self, c, rid):
@@ -617,7 +631,7 @@ class _BaseServer:
         return list(c.fetchall())
 
     def is_assembly(self, id_code):
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._sqlex(c, """SELECT COUNT(*)
                      FROM assemblies AS a
                      LEFT JOIN item_revisions AS r
@@ -628,7 +642,7 @@ class _BaseServer:
         return c.fetchone()[0] > 0
 
     def is_child(self, id_code):
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._sqlex(c, """SELECT COUNT(*)
                      FROM assemblies AS a
                      WHERE  child_id = ?
@@ -640,7 +654,7 @@ class _BaseServer:
 
         data = dict()
 
-        c = self._conn.cursor()
+        c = self._get_cursor()
 
         self._sqlex(c, """SELECT i.code, r.date_from_days, r.date_to_days, r.id
                          FROM item_revisions AS r
@@ -768,7 +782,7 @@ class _BaseServer:
             return res
 
     def get_where_used_from_id_code(self, id_code, valid=False):
-        c = self._conn.cursor()
+        c = self._get_cursor()
 
         self._sqlex(c, """
             SELECT code FROM items WHERE id=?
@@ -835,7 +849,7 @@ class _BaseServer:
         return (top, data)
 
     def get_drawings_by_code_id(self, rev_id):
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._sqlex(c, """
             SELECT filename, fullpath
             FROM drawings
@@ -853,7 +867,7 @@ class _BaseServer:
         done = set()
         todo = [code_id]
 
-        c = self._conn.cursor()
+        c = self._get_cursor()
 
         self._sqlex(c, """
             SELECT MIN(date_from_days)
@@ -902,7 +916,7 @@ class _BaseServer:
         if new_date_from_days is None:
             new_date_from_days = now_to_days()
 
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._begin(c)
         try:
 
@@ -952,7 +966,7 @@ class _BaseServer:
             new_date_from_days = now_to_days()
         new_date_to_days = end_of_the_world
 
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._begin(c)
         try:
 
@@ -1124,7 +1138,7 @@ class _BaseServer:
         return new_rid
 
     def get_children_by_rid(self, rid):
-        c = self._conn.cursor()
+        c = self._get_cursor()
         gval_query = "".join([",a.gaval%d"%(i+1) for i in range(gavals_count)])
         self._sqlex(c, """
             SELECT a.child_id, i.code, r2.descr, a.qty, a.each, a.unit,
@@ -1149,7 +1163,7 @@ class _BaseServer:
     def update_by_rid2(self, rid, descr, ver, default_unit,
             gvals, drawings=[], children=[]):
 
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._begin(c)
         try:
             gval_query = ", ".join(["gval%d = ?"%(i+1) for i in range(gvals_count)])
@@ -1220,7 +1234,7 @@ class _BaseServer:
         for row in dates:
             assert(row[2] <= row[4])
 
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._begin(c)
         try:
 
@@ -1325,7 +1339,7 @@ class _BaseServer:
             return dict()
 
         ret = dict()
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._sqlex(c, """
             SELECT name, value FROM database_props
         """)
@@ -1343,7 +1357,7 @@ class _BaseServer:
         return ret
 
     def delete_code(self, code_id):
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._begin(c)
         try:
             self._sqlex(c,"""
@@ -1403,7 +1417,7 @@ class _BaseServer:
         return ""
 
     def delete_code_revision(self, rid):
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._begin(c)
         try:
             self._sqlex(c,"""
@@ -1575,7 +1589,7 @@ class _BaseServer:
 
         #print("query=", query)
         #print("args=", args)
-        c = self._conn.cursor()
+        c = self._get_cursor()
 
         self._sqlex(c, query, args)
 
@@ -1596,7 +1610,7 @@ class DBSQLServer(_BaseServer):
             i = cs.index("key")
             cs[i] = "[key]"
 
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._sqlex(c, "SET IDENTITY_INSERT " + tname +" ON" )
         _BaseServer.insert_table(self, tname, cs, data)
         self._sqlex(c, "SET IDENTITY_INSERT " + tname +" OFF" )
@@ -1627,9 +1641,9 @@ class DBSQLServer(_BaseServer):
         if ("Attempt to use a closed connection" in errmsg or
             "08S01" in errmsg):
             try:
-                #self._conn.close()
-                self._open(self._path)
-                errmsg += ">>>> The connection was restarted"
+                self._conn.close()
+                self._conn = None
+                errmsg += ">>>> The connection is restarting"
             except Exception as e:
                 errmsg += ">>>> Cannot restart the connection (%r)"%(e)
 
@@ -1703,7 +1717,7 @@ class DBSQLite(_BaseServer):
         return stms
 
     def _get_tables_list(self):
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._sqlex(c, "SELECT name FROM sqlite_master WHERE type='table';")
         return [x[0] for x in c.fetchall()]
 
@@ -1725,7 +1739,7 @@ class DBPG(_BaseServer):
     def insert_table(self, tname, columns, data):
         _BaseServer.insert_table(self, tname, columns, data)
 
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._sqlex(c, "SELECT COUNT(*) FROM " + tname)
         n = c.fetchone()[0]
         if n > 0:
@@ -1755,9 +1769,9 @@ class DBPG(_BaseServer):
         if ("Attempt to use a closed connection" in errmsg or
             "closed unexpectedly" in errmsg):
             try:
-                #self._conn.close()
-                self._open(self._path)
-                errmsg += ">>>> The connection was restarted"
+                self._conn.close()
+                self._conn = None
+                errmsg += ">>>> The connection is restarting"
             except Exception as e:
                 errmsg += ">>>> Cannot restart the connection (%r)"%(e)
 
@@ -1783,7 +1797,7 @@ class DBPG(_BaseServer):
         self._conn.set_client_encoding("UNICODE")
 
     def _get_tables_list(self):
-        c = self._conn.cursor()
+        c = self._get_cursor()
         self._sqlex(c, """
             SELECT tablename
                 FROM pg_catalog.pg_tables
@@ -1798,7 +1812,7 @@ class DBPG(_BaseServer):
         done = set()
         todo = [code_id]
 
-        c = self._conn.cursor()
+        c = self._get_cursor()
 
         self._sqlex(c, """
             SELECT MIN(date_from_days)
