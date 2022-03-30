@@ -520,7 +520,7 @@ def test_get_config():
     import cfg
 
     c.execute("""
-        INSERT INTO database_props("key", value)
+        INSERT INTO database_props(name, value)
         VALUES ('cfg.test_sect.test_key', 'test-value')
     """)
 

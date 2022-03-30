@@ -861,18 +861,18 @@ def insert_codes_with_date(c):
     insert_code(c, "TEST-ASS-A", "TEST-ASS-A", 0,
                 0, "NR", date='2020-01-01', date_to='2021-01-01')
     c.execute("""SELECT MAX(id) FROM item_revisions""")
-    aaid = c.fetchone()
+    aaid = c.fetchone()[0]
 
 
     insert_code(c, "TEST-A", "TEST-A", 0,
                 0, "NR", date='2020-01-01')
     c.execute("""SELECT MAX(id) FROM items""")
-    caid = c.fetchone()
+    caid = c.fetchone()[0]
 
     insert_code(c, "TEST-B", "TEST-B", 0,
                 0, "NR", date='2020-01-01', date_to='2021-01-01')
     c.execute("""SELECT MAX(id) FROM items""")
-    cbid = c.fetchone()
+    cbid = c.fetchone()[0]
 
     for child_id in [caid, cbid]:
         c.execute("""
@@ -891,18 +891,18 @@ def insert_codes_with_date(c):
     insert_code(c, "TEST-ASS-A", "TEST-ASS-A", 0,
                 0, "NR", date='2020-01-01', date_to='2021-01-01')
     c.execute("""SELECT MAX(id) FROM item_revisions""")
-    aaid = c.fetchone()
+    aaid = c.fetchone()[0]
 
 
     insert_code(c, "TEST-A", "TEST-A", 0,
                 0, "NR", date='2020-01-01')
     c.execute("""SELECT MAX(id) FROM items""")
-    caid = c.fetchone()
+    caid = c.fetchone()[0]
 
     insert_code(c, "TEST-B", "TEST-B", 0,
                 0, "NR", date='2020-01-01', date_to='2021-01-01')
     c.execute("""SELECT MAX(id) FROM items""")
-    cbid = c.fetchone()
+    cbid = c.fetchone()[0]
 
     for child_id in [caid, cbid]:
         c.execute("""
@@ -920,21 +920,21 @@ def insert_codes_with_loop(c):
 
     insert_code(c, "TEST-LOOP-A", "TEST-LOOP-A")
     c.execute("""SELECT MAX(id) FROM item_revisions""")
-    car = c.fetchone()
+    car = c.fetchone()[0]
     c.execute("""SELECT MAX(id) FROM items""")
-    cai = c.fetchone()
+    cai = c.fetchone()[0]
 
     insert_code(c, "TEST-LOOP-B", "TEST-LOOP-B")
     c.execute("""SELECT MAX(id) FROM item_revisions""")
-    cbr = c.fetchone()
+    cbr = c.fetchone()[0]
     c.execute("""SELECT MAX(id) FROM items""")
-    cbi = c.fetchone()
+    cbi = c.fetchone()[0]
 
     insert_code(c, "TEST-LOOP-C", "TEST-LOOP-C")
     c.execute("""SELECT MAX(id) FROM item_revisions""")
-    ccr = c.fetchone()
+    ccr = c.fetchone()[0]
     c.execute("""SELECT MAX(id) FROM items""")
-    cci = c.fetchone()
+    cci = c.fetchone()[0]
 
     c.execute("""
         INSERT INTO assemblies(
@@ -1052,7 +1052,7 @@ def create_db():
 
     if False:
         c.executemany("""
-            INSERT INTO database_props("key", value)
+            INSERT INTO database_props(name, value)
             VALUES (?, ?)
         """,(
                 ("cfg.template_simple.name", "Simple table"),

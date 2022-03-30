@@ -95,7 +95,7 @@ class _BaseServer:
 
         if "database_props" in self._get_tables_list():
             c = self._conn.cursor()
-            self._sqlex(c, """SELECT value FROM database_props WHERE "key"='ver'""")
+            self._sqlex(c, """SELECT value FROM database_props WHERE name='ver' """)
             self._ver = c.fetchone()[0]
 
             # for now v0.3 and v0.4 are equal
@@ -245,11 +245,11 @@ class _BaseServer:
 
             CREATE TABLE database_props (
                 id          INTEGER NOT NULL IDENTITY PRIMARY KEY,
-                "key"       VARCHAR(255),
+                name        VARCHAR(255),
                 value       VARCHAR(500)
             );
 
-            INSERT INTO database_props ("key", value) VALUES ('ver', '0.4');
+            INSERT INTO database_props (name, value) VALUES ('ver', '0.4');
 
             CREATE TABLE drawings (
                 id          INTEGER NOT NULL IDENTITY PRIMARY KEY,
@@ -1327,7 +1327,7 @@ class _BaseServer:
         ret = dict()
         c = self._conn.cursor()
         self._sqlex(c, """
-            SELECT "key", value FROM database_props
+            SELECT name, value FROM database_props
         """)
         for (key, value) in c.fetchall():
             if not key.startswith("cfg."):
