@@ -1624,9 +1624,10 @@ class DBSQLServer(_BaseServer):
         tb += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
 
 
-        if "08S01" in errmsg:
+        if ("Attempt to use a closed connection" in errmsg or
+            "08S01" in errmsg):
             try:
-                self._conn.close()
+                #self._conn.close()
                 self._open(self._path)
                 errmsg += ">>>> The connection was restarted"
             except Exception as e:
@@ -1751,9 +1752,10 @@ class DBPG(_BaseServer):
         tb += 'Traceback: \n'
         tb += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
 
-        if "closed unexpectedly" in errmsg:
+        if ("Attempt to use a closed connection" in errmsg or
+            "closed unexpectedly" in errmsg):
             try:
-                self._conn.close()
+                #self._conn.close()
                 self._open(self._path)
                 errmsg += ">>>> The connection was restarted"
             except Exception as e:
