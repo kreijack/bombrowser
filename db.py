@@ -322,11 +322,30 @@ class _BaseServer:
     def insert_table(self, tname, columns, data):
         c = self._conn.cursor()
         self._sqlex(c, "DELETE FROM " + tname)
+        self._sqlex(c, "SELECT * FROM "+ tname)
+        real_colnames = [desc[0] for desc in c.description]
+        c.fetchall()
+
+        # handle the case where the columns from the backup are
+        # differents to the databases ones (i.e. different gaval values)
+        final_colnames = []
+        final_colnames_idx = []
+        for col in real_colnames:
+            if not col in columns:
+                continue
+            i = columns.index(col)
+            assert(i >= 0)
+            final_colnames.append(col)
+            final_colnames_idx.append(i)
+
         for row in data:
+            row2 = []
+            for idx in  final_colnames_idx:
+                row2.append(row[idx])
             self._sqlex(c, ("INSERT INTO " + tname +
-                " (" + ",".join(columns) + ") VALUES " +
-                " (" + ",".join(["?" for i in columns]) + ")"),
-                row)
+                " (" + ",".join(final_colnames) + ") VALUES " +
+                " (" + ",".join(["?" for i in final_colnames]) + ")"),
+                row2)
         self._commit(c)
 
     def list_main_tables(self):

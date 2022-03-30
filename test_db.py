@@ -1749,6 +1749,56 @@ def test_new_db():
 
     assert(ca == 0)
     assert(ci == 1)
+
+
+def test_dump_more_column_than_db():
+    old_gval_count = db.gvals_count
+    old_gaval_count = db.gavals_count
+
+    db.gvals_count += 1
+    db.gavals_count += 1
+
+    d, c = _create_db()
+    (colnames1, _) = d.dump_table("assemblies")
+    rids = _create_simple_assy_with_drawings(c)
+    d._commit(c)
+
+    tmpfilename = tempfile.NamedTemporaryFile(delete=False).name+".zip"
+    db.dump_tables(tmpfilename, d, quiet=True)
+
+    db.gvals_count -= 1
+    db.gavals_count -= 1
+
+    d.create_db()
+    (colnames2, _) = d.dump_table("assemblies")
+
+    assert(len(colnames2) == len(colnames1) - 1)
+    db.restore_tables(tmpfilename, d, quiet=True)
+
+def test_dump_less_column_than_db():
+    old_gval_count = db.gvals_count
+    old_gaval_count = db.gavals_count
+
+    db.gvals_count -= 1
+    db.gavals_count -= 1
+
+    d, c = _create_db()
+    (colnames1, _) = d.dump_table("assemblies")
+    rids = _create_simple_assy_with_drawings(c)
+    d._commit(c)
+
+    tmpfilename = tempfile.NamedTemporaryFile(delete=False).name+".zip"
+    db.dump_tables(tmpfilename, d, quiet=True)
+
+    db.gvals_count += 1
+    db.gavals_count += 1
+
+    d.create_db()
+    (colnames2, _) = d.dump_table("assemblies")
+
+    assert(len(colnames2) == len(colnames1) + 1)
+    db.restore_tables(tmpfilename, d, quiet=True)
+
 #------
 
 
