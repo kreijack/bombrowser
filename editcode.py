@@ -27,7 +27,7 @@ from PySide2.QtWidgets import  QPushButton, QHBoxLayout, QTabWidget, QDialog
 from PySide2.QtWidgets import  QHeaderView, QMenu, QGroupBox, QTableWidget
 from PySide2.QtGui import  QColor, QDesktopServices
 from PySide2.QtCore import  QItemSelectionModel, QItemSelection
-from PySide2.QtCore import  QUrl, Signal, Qt, QEvent
+from PySide2.QtCore import  QUrl, Signal, Qt, QEvent, QPoint
 
 import  utils, listcodegui, db, cfg
 import  importer, customize, bbwindow, codecontextmenu
@@ -1472,6 +1472,9 @@ class EditWindow(bbwindow.BBMainWindow):
         itemSelection = QItemSelection(index1, index2)
         selectionModel.select(itemSelection,
                 QItemSelectionModel.Rows | QItemSelectionModel.Select)
+
+        self._children_table.scrollTo(index2)
+        self._children_table.scrollTo(index1)
 
         self._children_table.cellChanged.connect(self._children_cell_changed)
 
