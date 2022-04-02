@@ -106,9 +106,13 @@ class _BaseServer:
         try:
             c = self._conn.cursor()
         except:
-            if self._conn:
-                self._conn.close()
-            else:
+            print("self._conn=",self._conn)
+            try:
+                if self._conn:
+                    self._conn.close()
+            except:
+                pass
+            finally:
                 self._conn = None
             raise
 
@@ -1644,10 +1648,11 @@ class DBSQLServer(_BaseServer):
             "08S01" in errmsg):
             try:
                 self._conn.close()
-                self._conn = None
                 errmsg += ">>>> The connection is restarting"
             except Exception as e:
                 errmsg += ">>>> Cannot restart the connection (%r)"%(e)
+            finally:
+                self._conn = None
 
         raise DBExceptionWithTraceback(errmsg+tb)
 
@@ -1767,15 +1772,6 @@ class DBPG(_BaseServer):
             traceback.extract_tb(exc_tb)) +
             traceback.format_exception_only(exc_type, exc_value)
         )
-
-        if ("Attempt to use a closed connection" in errmsg or
-            "closed unexpectedly" in errmsg):
-            try:
-                self._conn.close()
-                self._conn = None
-                errmsg += ">>>> The connection is restarting"
-            except Exception as e:
-                errmsg += ">>>> Cannot restart the connection (%r)"%(e)
 
         raise DBExceptionWithTraceback(errmsg+tb)
 
