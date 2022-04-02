@@ -80,12 +80,8 @@ class DBException(RuntimeError):
     pass
 
 class DBExceptionWithTraceback(DBException):
-    def __init__(self, *args, traceback=(None,None,None)):
-        DBException.__init__(self, *args)
-        self._mytraceback = traceback
-
-    def get_trackeback(self):
-        return self._mytraceback
+    def __init__(self, arg):
+        DBException.__init__(self, arg)
 
 class _BaseServer:
 
@@ -129,17 +125,21 @@ class _BaseServer:
         try:
             method(self, c, query, *args, **kwargs)
         except:
-            self._exception_handler(query)
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            stack = traceback.extract_stack()
+            self._exception_handler(query,
+                exc_type, exc_value, exc_tb, stack)
 
-    def _exception_handler(self, query):
-        exc_type, exc_value, exc_tb = sys.exc_info()
+    def _exception_handler(self, query, exc_type, exc_value, exc_tb, stack):
         errmsg = "SQL Generic error: %r\n"%(exc_value)
         errmsg += "-"*30+"\n"
         errmsg += query + "\n"
         errmsg += "-"*30+"\n"
-        tb = 'Traceback: \n' + '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
-
-        print(errmsg+tb)
+        tb = 'Traceback: \n' + "".join(
+            traceback.format_list(stack[:-1] +
+            traceback.extract_tb(exc_tb)) +
+            traceback.format_exception_only(exc_type, exc_value)
+        )
 
         raise DBExceptionWithTraceback(errmsg, traceback=(exc_type, exc_value, exc_tb))
 
@@ -1622,11 +1622,11 @@ class DBSQLServer(_BaseServer):
     def _rollback(self, c):
         self._conn.rollback()
 
-    def _exception_handler(self, query):
-        exc_type, exc_value, exc_tb = sys.exc_info()
-        print(exc_type, exc_value, exc_tb)
+    def _exception_handler(self, query, exc_type, exc_value, exc_tb, stack):
+
         if not issubclass(exc_type, self._mod.Error):
-            return _BaseServer._exception_handler(self, query)
+            return _BaseServer._exception_handler(self, exc_type,
+                exc_value, exc_tb, stack)
 
         errmsg = 'ODBC error: %s' % (' '.join(exc_value.args)) + "\n"
         errmsg += "Exception class is: " + str(exc_value.__class__) + "\n"
@@ -1634,9 +1634,11 @@ class DBSQLServer(_BaseServer):
         errmsg += "-"*30+"\n"
         errmsg += query + "\n"
         tb = "-"*30+"\n"
-        tb += 'Traceback: \n'
-        tb += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
-
+        tb += 'Traceback: \n' + "".join(
+            traceback.format_list(stack[:-1] +
+            traceback.extract_tb(exc_tb)) +
+            traceback.format_exception_only(exc_type, exc_value)
+        )
 
         if ("Attempt to use a closed connection" in errmsg or
             "08S01" in errmsg):
@@ -1647,9 +1649,7 @@ class DBSQLServer(_BaseServer):
             except Exception as e:
                 errmsg += ">>>> Cannot restart the connection (%r)"%(e)
 
-        print(errmsg+tb)
-
-        raise DBExceptionWithTraceback(errmsg, traceback=(exc_type, exc_value, exc_tb))
+        raise DBExceptionWithTraceback(errmsg+tb)
 
     def _sql_translate(self, s):
         def process(l):
@@ -1671,15 +1671,12 @@ class DBSQLServer(_BaseServer):
 
 class DBSQLite(_BaseServer):
     def __init__(self, path=None):
+        if path == "" or path is None:
+            path = _db_path
         _BaseServer.__init__(self, path)
 
     def _open(self, path):
-        if path != "":
-            self._db_path = path
-        else:
-            self._db_path = _db_path
-
-        self._conn = sqlite3.connect(self._db_path)
+        self._conn = sqlite3.connect(self._path)
 
     def _commit(self, c):
         self._conn.commit()
@@ -1690,10 +1687,11 @@ class DBSQLite(_BaseServer):
     def _begin(self, c):
         c.execute("BEGIN")
 
-    def _exception_handler(self, query):
-        exc_type, exc_value, exc_tb = sys.exc_info()
+    def _exception_handler(self, query, exc_type, exc_value, exc_tb, stack):
+
         if not issubclass(exc_type, sqlite3.Error):
-            return _BaseServer._exception_handler(self)
+            return _BaseServer._exception_handler(self, exc_type,
+                exc_value, exc_tb, stack)
 
         errmsg = 'SQLite error: %s' % (' '.join(exc_value.args)) + "\n"
         errmsg += "Exception class is: " + str(exc_value.__class__) + "\n"
@@ -1701,12 +1699,13 @@ class DBSQLite(_BaseServer):
         errmsg += "-"*30+"\n"
         errmsg += query + "\n"
         tb = "-"*30+"\n"
-        tb += 'Traceback: \n'
-        tb += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+        tb += 'Traceback: \n' + "".join(
+            traceback.format_list(stack[:-1] +
+            traceback.extract_tb(exc_tb)) +
+            traceback.format_exception_only(exc_type, exc_value)
+        )
 
-        print(errmsg+tb)
-
-        raise DBExceptionWithTraceback(errmsg, traceback=(exc_type, exc_value, exc_tb))
+        raise DBExceptionWithTraceback(errmsg+tb)
 
     def _sql_translate(self, stms):
         stms = stms.replace(" IDENTITY", "")
@@ -1749,11 +1748,11 @@ class DBPG(_BaseServer):
             n = 100
         self._sqlex(c, "ALTER SEQUENCE " + tname + "_id_seq RESTART WITH %d"%(n) )
 
-    def _exception_handler(self, query):
-        exc_type, exc_value, exc_tb = sys.exc_info()
+    def _exception_handler(self, query, exc_type, exc_value, exc_tb, stack):
         if not issubclass(exc_type, self._mod.Error):
 
-            return _BaseServer._exception_handler(self)
+            return _BaseServer._exception_handler(self, exc_type,
+                exc_value, exc_tb, stack)
 
         errmsg = "PGError: %s\n"%(exc_value.pgerror)        # error number
         errmsg += "PGCode: %s\n"%(exc_value.pgcode)        # error number
@@ -1763,8 +1762,11 @@ class DBPG(_BaseServer):
         errmsg += query + "\n"
 
         tb = "-"*30+"\n"
-        tb += 'Traceback: \n'
-        tb += '\n'.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+        tb += 'Traceback: \n' + "".join(
+            traceback.format_list(stack[:-1] +
+            traceback.extract_tb(exc_tb)) +
+            traceback.format_exception_only(exc_type, exc_value)
+        )
 
         if ("Attempt to use a closed connection" in errmsg or
             "closed unexpectedly" in errmsg):
@@ -1775,9 +1777,7 @@ class DBPG(_BaseServer):
             except Exception as e:
                 errmsg += ">>>> Cannot restart the connection (%r)"%(e)
 
-        print(errmsg+tb)
-
-        raise DBExceptionWithTraceback(errmsg, traceback=(exc_type, exc_value, exc_tb))
+        raise DBExceptionWithTraceback(errmsg+tb)
 
     def _sql_translate(self, s):
         def process(l):
