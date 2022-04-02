@@ -106,7 +106,6 @@ class _BaseServer:
         try:
             c = self._conn.cursor()
         except:
-            print("self._conn=",self._conn)
             try:
                 if self._conn:
                     self._conn.close()
