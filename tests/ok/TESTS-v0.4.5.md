@@ -17,12 +17,17 @@
 - 13 - Generic test
 - 14 - Export test
 - 15 - Import test
+- 16 - Window menu test
+- 17 - Advanced search in the BOM
+- 18 - Export data from assemblies
+- 19 - Create/Dump/Restore database
+
 
 ## 2 - Preface
 
 This tests list assumes that you are working with the test database generated
 by mkdb.py.
-This tests list is related to the v0.4.
+This tests list is related to the v0.4.x code
 
 ## 3 - BOMBrowser - Codes list
 
@@ -540,7 +545,7 @@ Expected results #3:
 
 Passed: [X]
 
-### 3.46 - RMB menu
+### 3.46 - RMB menu 2222
 
 Test description:
 - select from the menu "Search mode->advanced"
@@ -679,7 +684,7 @@ Expected results:
 
 Passed: [X]
 
-## 4 - 2 - 'Code gui' panel
+## 4 - 'Code gui' panel
 
 ### 4.1 - general
 
@@ -2044,7 +2049,7 @@ the "generic property" field is like the one changed
 
 Passed: [X]
 
-### 11.5 - add drawing
+### 11.5 - Add/Del/View a drawing
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2078,15 +2083,20 @@ the added drawing is still present
 
 Passed: [X]
 
-### 11.7 - del drawing
+Test description #3:
+- click with the RMB on the drawing list panel
+- execute the command "add drawing", selecting MULTIPLE files
+- press "save..." button
+- press "ok"
+- press "close"
+- reopen the edit window on the same code as described in the "preparatory steps"
 
-Preparatory steps:
-- insert code 820001 in the "BOMBrowser codes list" window
-- press search
-- press the right mouse button on the first entry and select "Edit code..." command
-- The Edit code windows appears
+Expected results #3:
+the added drawings are present
 
-Test description:
+Passed: [X]
+
+Test description #4:
 - click with the RMB on the drawing list panel
 - execute the command "delete drawing" on a drawing
 - press "save..." button
@@ -2094,45 +2104,79 @@ Test description:
 - press "close"
 - reopen the edit window on the same code as described in the "preparatory steps"
 
-Expected results:
+Expected results #4:
 the removed drawing is not present
 
 Passed: [X]
 
-### 11.8 - view drawing
+Test description #5:
+- click with the RMB on the drawing list panel
+- execute the command "delete drawing" on mutiple drawings
+- press "save..." button
+- press "ok"
+- press "close"
+- reopen the edit window on the same code as described in the "preparatory steps"
+
+Expected results #5:
+the removed drawings are not present
+
+Passed: [X]
+
+Test description #6:
+- click with the RMB on the drawing list panel
+- execute the command "view drawing" on a drawing
+
+Expected results #6:
+the selected drawing is showed
+
+Passed: [X]
+
+Test description #7:
+- doubleclick on a drawing in the drawing list panel
+
+Expected results #7:
+the selected drawing is showed
+
+Passed: [X]
+
+Test description #8:
+- select multiple drawings
+- click with the RMB on the drawing list panel
+- execute the command "view drawing" on a drawing
+
+Expected results #8:
+the selected drawings are showed
+
+Passed: [X]
+
+### 11.13 - Copy multiple drawings
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
 - press search
 - press the right mouse button on the first entry and select "Edit code..." command
 - The Edit code windows appears
+- insert code 820002 in the "BOMBrowser codes list" window
+- press search
+- press the right mouse button on the first entry and select "Edit code..." command
+- A second Edit code windows appears
 
 Test description:
-- click with the RMB on the drawing list panel
-- execute the command "view drawing" on a drawing
+- In the first edit window select multiple drawings
+- click with the RMB on the drawings list
+- execute the command "copy drawings lines"
+- In the second edit window click with the RMB on the drawings list
+- execute the command "paste drawings lines"
+- press "save..." button
+- press "close"
+- reopen the edit window on the 2n code as described in the "preparatory steps"
 
 Expected results:
-the selected drawing is showed
+the copied drawings are present
 
 Passed: [X]
 
 Test description #2:
-- doubleclick on a drawing in the drawing list panel
-
-Expected results #2:
-the selected drawing is showed
-
-Passed: [X]
-
-### 11.10 - del a child
-
-Preparatory steps:
-- insert code 820001 in the "BOMBrowser codes list" window
-- press search
-- press the right mouse button on the first entry and select "Edit code..." command
-- The Edit code windows appears
-
-Test description:
 - click with the RMB on the children list panel
 - execute the command "delete row" on a line
 - press "save..." button
@@ -2140,12 +2184,54 @@ Test description:
 - press "close"
 - reopen the edit window on the same code as described in the "preparatory steps"
 
-Expected results:
+Expected results #2:
 the removed item is not present
 
 Passed: [X]
 
-### 11.11 - add a child
+### 11.15 - del multiple children
+
+Test description:
+- click with the RMB on the children list panel
+- execute the command "delete row" on multiple lines
+- press "save..." button
+- press "ok"
+- press "close"
+- reopen the edit window on the same code as described in the "preparatory steps"
+
+Expected results:
+the removed items are not present
+
+Passed: [X]
+
+### 11.16 - Copy multiple children
+
+Preparatory steps:
+- insert code 820001 in the "BOMBrowser codes list" window
+- press search
+- press the right mouse button on the first entry and select "Edit code..." command
+- The Edit code windows appears
+- insert code 820002 in the "BOMBrowser codes list" window
+- press search
+- press the right mouse button on the first entry and select "Edit code..." command
+- A second Edit code windows appears
+
+Test description:
+- In the first edit window select multiple children
+- click with the RMB on the children list
+- execute the command "copy lines"
+- In the second edit window click with the RMB on the children list
+- execute the command "paste lines"
+- press "save..." button
+- press "close"
+- reopen the edit window on the 2n code as described in the "preparatory steps"
+
+Expected results:
+the copied children are present
+
+Passed: [X]
+
+### 11.17 - add a child
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2168,7 +2254,7 @@ the added item is present
 
 Passed: [X]
 
-### 11.12 - add a child
+### 11.18 - add a child
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2191,7 +2277,27 @@ the added item is present
 
 Passed: [X]
 
-### 11.13 - non existant code
+### 11.19 - add multiple child
+
+Preparatory steps:
+- insert code 820001 in the "BOMBrowser codes list" window
+- press search
+- press the right mouse button on the first entry and select "Edit code..." command
+- The Edit code windows appears
+
+Test description:
+- click with the RMB on the children list panel
+- select multiple lines
+- execute the command "insert row before" on a line
+
+
+Expected results:
+Multiple lines are inserted. The number of lines are equal
+to the selected ones.
+
+Passed: [X]
+
+### 11.20 - non existant code
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2215,7 +2321,7 @@ an error dialog appears saying that there is an error in "...the code '...' in r
 
 Passed: [X]
 
-### 11.15 - duplicate code
+### 11.22 - duplicate code
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2232,7 +2338,7 @@ an error dialog is showed, saying that there is a duplicate code
 
 Passed: [X]
 
-### 11.16 - wrong qty
+### 11.23 - wrong qty
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2256,7 +2362,7 @@ an error dialog appears saying that the value is incorrect
 
 Passed: [X]
 
-### 11.18 - wrong each
+### 11.25 - wrong each
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2280,7 +2386,7 @@ an error dialog appears saying that the value is incorrect
 
 Passed: [X]
 
-### 11.20 - sorting
+### 11.27 - sorting
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2298,7 +2404,7 @@ the seq values are reordered on the basis of the current sequence.
 
 Passed: [X]
 
-### 11.21 - sorting
+### 11.28 - sorting
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2316,10 +2422,13 @@ the seq values are reordered on the basis of the current sequence.
 
 Passed: [X]
 
-### 11.22 - sorting
+### 11.29 - sorting
 
 Preparatory steps:
-
+- insert code 820001 in the "BOMBrowser codes list" window
+- press search
+- press the right mouse button on the first entry and select "Edit code..." command
+- The Edit code windows appears
 
 Test description:
 - in the children panel, change the row sequence sort by code (click on the "code" column header)
@@ -2331,7 +2440,183 @@ the seq values are reordered on the basis of the current sequence.
 
 Passed: [X]
 
-### 11.23 - Edit code / File -> close
+### 11.30 - Move the children UP
+
+Preparatory steps:
+- insert code 820001 in the "BOMBrowser codes list" window
+- press search
+- press the right mouse button on the first entry and select "Edit code..." command
+- The Edit code windows appears
+
+Test description:
+- in the children panel select one line in the middle
+- press UP button
+
+Expected results:
+the selected line is moved up of one line
+
+Passed: [X]
+
+Test description #2:
+- in the children panel select the first line
+- press UP button
+
+Expected results #2:
+nothing is changed
+
+Passed: [X]
+
+Test description #3:
+- in the children panel select the first lineS
+- press UP button
+
+Expected results #3:
+nothing is changed
+
+Passed: [X]
+
+Test description #4:
+- in the children panel select some lines in the middle
+- press UP button
+
+Expected results #4:
+the lines are moved up of one line
+
+Passed: [X]
+
+### 11.34 - Move the children DOWN
+
+Preparatory steps:
+- insert code 820001 in the "BOMBrowser codes list" window
+- press search
+- press the right mouse button on the first entry and select "Edit code..." command
+- The Edit code windows appears
+
+Test description:
+- in the children panel select one line in the middle
+- press DOWN button
+
+Expected results:
+the selected line is moved down of one line
+
+Passed: [X]
+
+Test description #2:
+- in the children panel select the last line
+- press DOWN button
+
+Expected results #2:
+nothing is changed
+
+Passed: [X]
+
+Test description #3:
+- in the children panel select the last lines
+- press DOWN button
+
+Expected results #3:
+nothing is changed
+
+Passed: [X]
+
+Test description #4:
+- in the children panel select some lines in the middle
+- press DOWN button
+
+Expected results #4:
+the lines are moved down of one line
+
+Passed: [X]
+
+### 11.38 - Move the children to the TOP
+
+Preparatory steps:
+- insert code 820001 in the "BOMBrowser codes list" window
+- press search
+- press the right mouse button on the first entry and select "Edit code..." command
+- The Edit code windows appears
+
+Test description:
+- in the children panel select one line in the middle
+- press TOP button
+
+Expected results:
+the selected line is moved to the TOP
+
+Passed: [X]
+
+Test description #2:
+- in the children panel select the first line
+- press TOP button
+
+Expected results #2:
+nothing is changed
+
+Passed: [X]
+
+Test description #3:
+- in the children panel select the first lines
+- press TOP button
+
+Expected results #3:
+nothing is changed
+
+Passed: [X]
+
+Test description #4:
+- in the children panel select some lines in the middle
+- press TOP button
+
+Expected results #4:
+the lines are moved to the TOP
+
+Passed: [X]
+
+### 11.42 - Move the children BOTTOM
+
+Preparatory steps:
+- insert code 820001 in the "BOMBrowser codes list" window
+- press search
+- press the right mouse button on the first entry and select "Edit code..." command
+- The Edit code windows appears
+
+Test description:
+- in the children panel select one line in the middle
+- press BOTTOM button
+
+Expected results:
+the selected line is to the bottom
+
+Passed: [X]
+
+Test description #2:
+- in the children panel select the last line
+- press BOTTOM button
+
+Expected results #2:
+nothing is changed
+
+Passed: [X]
+
+Test description #3:
+- in the children panel select the last lines
+- press BOTTOM button
+
+Expected results #3:
+nothing is changed
+
+Passed: [X]
+
+Test description #4:
+- in the children panel select some lines in the middle
+- press BOTTOM button
+
+Expected results #4:
+the lines are moved to the bottom
+
+Passed: [X]
+
+### 11.46 - Edit code / File -> close
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2347,7 +2632,7 @@ the edit window is closed
 
 Passed: [X]
 
-### 11.24 - Edit code / File -> exit
+### 11.47 - Edit code / File -> exit
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2379,7 +2664,7 @@ the application is closed, no window is opened
 
 Passed: [X]
 
-### 11.27 - Edit code / CTRL-Q
+### 11.50 - Edit code / CTRL-Q
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2395,7 +2680,7 @@ the edit window is closed
 
 Passed: [X]
 
-### 11.28 - Edit code / Windows
+### 11.51 - Edit code / Windows
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2411,7 +2696,7 @@ the opened windows are showed
 
 Passed: [X]
 
-### 11.29 - Edit code / Help->about
+### 11.52 - Edit code / Help->about
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2427,7 +2712,7 @@ the about dialog is showed
 
 Passed: [X]
 
-### 11.30 - search code
+### 11.53 - search code
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2444,7 +2729,7 @@ The "BOMBrowser - Search code" dialog appears
 
 Passed: [X]
 
-### 11.31 - search code
+### 11.54 - search code
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2465,7 +2750,7 @@ the dialog is closed and the new code replaces the old one
 
 Passed: [X]
 
-### 11.32 - search code
+### 11.55 - search code
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2486,7 +2771,7 @@ Expected results:
 
 Passed: [X]
 
-### 11.33 - delete revision
+### 11.56 - delete revision
 
 Preparatory steps:
 - Take a code from the code list gui, copy it (to avoid problem about the parent dates)
@@ -2520,7 +2805,7 @@ Expected results #3:
 
 Passed: [X]
 
-### 11.36 - delete revision
+### 11.59 - delete revision
 
 Preparatory steps:
 - Take a code from the code list gui, copy it (to avoid problem about the parent dates)
@@ -2538,7 +2823,7 @@ an error dialog box is showed saying that it is not possible to delete the last 
 
 Passed: [X]
 
-### 11.37 - delete revision
+### 11.60 - delete revision
 
 Preparatory steps:
 
@@ -2554,7 +2839,7 @@ Expected results:
 
 Passed: [X]
 
-### 11.38 - delete code
+### 11.61 - delete code
 
 Preparatory steps:
 - Take a code from the code list gui, copy it (to avoid problem about the parent dates)
@@ -2572,7 +2857,7 @@ a confirmation dialog appears
 
 Passed: [X]
 
-### 11.39 - delete code
+### 11.62 - delete code
 
 Preparatory steps:
 - Take a code from the code list gui, copy it (to avoid problem about the parent dates)
@@ -2591,7 +2876,7 @@ nothing happened
 
 Passed: [X]
 
-### 11.40 - delete code
+### 11.63 - delete code
 
 Preparatory steps:
 - Take a code from the code list gui, copy it (to avoid problem about the parent dates)
@@ -2619,7 +2904,7 @@ Expected results #2:
 
 Passed: [X]
 
-### 11.42 - change revision
+### 11.65 - change revision
 
 Preparatory steps:
 - Take a code from the code list gui with multiple revision
@@ -2637,7 +2922,7 @@ Expected results:
 
 Passed: [X]
 
-### 11.43 - change revision without saving
+### 11.66 - change revision without saving
 
 Preparatory steps:
 - Take a code from the code list gui with multiple revision
@@ -2670,7 +2955,7 @@ Expected results #3:
 
 Passed: [X]
 
-### 11.46 - change revision without saving
+### 11.69 - change revision without saving
 
 Preparatory steps:
 - Take a code from the code list gui with multiple revision
@@ -2704,7 +2989,7 @@ Expected results #3:
 
 Passed: [X]
 
-### 11.49 - remove a child without saving
+### 11.72 - remove a child without saving
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2721,7 +3006,7 @@ Expected results:
 
 Passed: [X]
 
-### 11.50 - insert a child without saving
+### 11.73 - insert a child without saving
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2738,7 +3023,7 @@ Expected results:
 
 Passed: [X]
 
-### 11.51 - insert a child  without saving
+### 11.74 - insert a child  without saving
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2755,7 +3040,7 @@ Expected results:
 
 Passed: [X]
 
-### 11.52 - change child without saving
+### 11.75 - change child without saving
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2772,7 +3057,7 @@ Expected results:
 
 Passed: [X]
 
-### 11.53 - add drawing without saving
+### 11.76 - add drawing without saving
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2789,7 +3074,7 @@ Expected results:
 
 Passed: [X]
 
-### 11.54 - remove a drawing without saving
+### 11.77 - remove a drawing without saving
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2806,7 +3091,7 @@ Expected results:
 
 Passed: [X]
 
-### 11.55 - add a duplicated code
+### 11.78 - add a duplicated code
 
 Preparatory steps:
 - insert code 820001 in the "BOMBrowser codes list" window
@@ -2823,7 +3108,7 @@ Expected results:
 
 Passed: [X]
 
-### 11.56 - add a code to an empty children list
+### 11.79 - add a code to an empty children list
 
 Preparatory steps:
 - Take a code from the code list gui without children (eg an 8100xx code)
@@ -2838,7 +3123,7 @@ Expected results:
 
 Passed: [X]
 
-### 11.57 - exit without saving
+### 11.80 - exit without saving
 
 Preparatory steps:
 - Take a code from the code list gui without children (eg an 8100xx code)
@@ -2853,7 +3138,7 @@ Expected results:
 
 Passed: [X]
 
-### 11.58 - exit without saving
+### 11.81 - exit without saving
 
 Preparatory steps:
 - Take a code from the code list gui without children (eg an 8100xx code)
@@ -2884,6 +3169,231 @@ Test description #3:
 
 Expected results #3:
 - the edit window closes itself
+
+Passed: [X]
+
+### 11.84 - Code Properties (file)
+
+Preparatory steps:
+For the following tests it is assumed that the following
+fields are present in bombrowser.ini
+gvalnames=
+     [...]
+     gval7:TestFile[file]
+     gval8:Test2[list:T2V1;T2V2;T2V3,with space and comma]
+     gval9:Transparent[clist:0;1]
+[...]
+gavalnames=
+    [...]
+    gaval1:Planned[clist:1;0]
+
+
+Test description:
+- Open the edit window on the code 810001
+- Locate the field "TestFile"
+- Press the "..." button
+
+Expected results:
+- The Open file dialog opens
+
+Passed: [X]
+
+Test description #2:
+- press cancel
+
+Expected results #2:
+- The Open file dialog closes
+- The fields remains empty
+
+Passed: [X]
+
+Test description #3:
+- press "..." button again
+- Select a file then press Open
+
+
+Expected results #3:
+- The Open file dialog closes
+- The fields contains the file path
+
+Passed: [X]
+
+Test description #4:
+- press the Save button
+- press the close button
+- re-open the edit window on the same code
+
+
+Expected results #4:
+- The fields still contains the value selected
+
+Passed: [X]
+
+Test description #5:
+- change the value of the field typing directly in the line edit widget
+- press the Save button
+- press the close button
+- re-open the edit window on the same code
+
+
+Expected results #5:
+- The fields still contains the value selected
+
+Passed: [X]
+
+Test description #6:
+- change the value of the field 
+- press the close button
+
+
+Expected results #6:
+- A dialog point out that the data is changed but not saved
+
+Passed: [X]
+
+### 11.90 - Code Properties (list)
+
+Preparatory steps:
+For the following tests it is assumed that the following
+fields are present in bombrowser.ini
+gvalnames=
+     [...]
+     gval7:TestFile[file]
+     gval8:Test2[list:T2V1;T2V2;T2V3,with space and comma]
+     gval9:Transparent[clist:0;1]
+[...]
+gavalnames=
+    [...]
+    gaval1:Planned[clist:1;0]
+
+
+Test description:
+- Open the edit window on the code 810001
+- Locate the field "Test2"
+- Press the "..." button
+
+Expected results:
+- The list box dialog opens
+
+Passed: [X]
+
+Test description #2:
+- press in the text field (NOT in the list box)
+- Press the "..." button
+- press in the text field (NOT in the list box)
+
+Expected results #2:
+- The dialog closes
+- The fields remains empty
+
+Passed: [X]
+
+Test description #3:
+- press "..." button again
+- Select a value
+
+
+Expected results #3:
+- The fields contains the value selected
+
+Passed: [X]
+
+Test description #4:
+- press the Save button
+- press the close button
+- re-open the edit window on the same code
+
+
+Expected results #4:
+- The fields still contains the value selected
+
+Passed: [X]
+
+Test description #5:
+- change the value of the field typing directly in the line edit widget
+- press the Save button
+- press the close button
+- re-open the edit window on the same code
+
+
+Expected results #5:
+- The fields still contains the value selected
+
+Passed: [X]
+
+Test description #6:
+- change the value of the field 
+- press the close button
+
+
+Expected results #6:
+- A dialog point out that the data is changed but not saved
+
+Passed: [X]
+
+### 11.96 - Code Properties (clist)
+
+Preparatory steps:
+For the following tests it is assumed that the following
+fields are present in bombrowser.ini
+gvalnames=
+     [...]
+     gval7:TestFile[file]
+     gval8:Test2[list:T2V1;T2V2;T2V3,with space and comma]
+     gval9:Transparent[clist:0;1]
+[...]
+gavalnames=
+    [...]
+    gaval1:Planned[clist:1;0]
+
+
+Test description:
+- Open the edit window on the code 810001
+- Locate the field "Transparent"
+- Press the "..." button
+
+Expected results:
+- The list box dialog opens
+
+Passed: [X]
+
+Test description #2:
+- press in the text field (NOT in the list box)
+
+Expected results #2:
+- The Open file dialog closes
+- The fields remains empty
+
+Passed: [X]
+
+Test description #3:
+- press "..." button again
+- Select a value
+
+
+Expected results #3:
+- The fields contains the value selected
+
+Passed: [X]
+
+Test description #4:
+- press the Save button
+- press the close button
+- re-open the edit window on the same code
+
+
+Expected results #4:
+- The fields still contains the value selected
+
+Passed: [X]
+
+Test description #5:
+- change the value of the field 
+- press the close button
+
+
+Expected results #5:
+- A dialog point out that the data is changed but not saved
 
 Passed: [X]
 
@@ -3499,7 +4009,39 @@ at start up time, an error dialog is showed saying that it is imposible to acces
 
 Passed: [X]
 
-### 13.3 - Config test
+### 13.3 - test re-connection after an sql server disconnection
+
+Test description:
+- perform a query looking for the code 100001 in code list window
+- shutdown the server
+- re-do the same query and check that an error is showed
+
+Expected results:
+a dialog error is showed
+
+Passed: [X]
+
+Test description #2:
+- startup the server
+- wait few seconds
+- re-do the same query and check that an error is showed
+- re-do *again* the same query
+
+Expected results #2:
+the query results is showed
+
+Passed: [X]
+
+Test description #3:
+- re-do the same test on a different db
+
+
+Expected results #3:
+the previous tests were passed
+
+Passed: [X]
+
+### 13.6 - Config test
 
 TBD: test the configuration:
 - force_*_uppercase
@@ -3560,8 +4102,443 @@ a 3rd 'Codes list' window is opened
 
 Passed: [X]
 
+## 17 - Advanced search in the BOM
+
+### 17.1 - Advanced search in the BOM
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open an assembly window
+
+
+Test description:
+From the 'Search' menu select 'Advanced search'
+
+Expected results:
+A 'Search in BOM window' is showed
+
+Passed: [X]
+
+### 17.2 - Advanced search in the BOM - search by code
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open an assembly window
+- from the 'Search' menu select 'Advanced search'
+
+Test description:
+Insert '17' in the code field and press 'Search'
+
+Expected results:
+Only codes containg '17' are showed
+
+Passed: [X]
+
+### 17.3 - Advanced search in the BOM - search by descr
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open an assembly window
+- from the 'Search' menu select 'Advanced search'
+
+Test description:
+Insert '17' in the Description field and press 'Search'
+
+Expected results:
+Only the code description containg '17' are showed
+
+Passed: [X]
+
+Test description #2:
+Select a code and check that the codegui panel changes accordling
+
+
+Expected results #2:
+The codegui panel changes accordling
+
+Passed: [X]
+
+Test description #3:
+- Select with a row and click the RMB
+- Press edit code
+
+Expected results #3:
+The edit code window is opened
+
+Passed: [X]
+
+### 17.6 - Advanced search in the BOM - search by descr and code
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open an assembly window
+- from the 'Search' menu select 'Advanced search'
+
+Test description:
+- Insert '7' in the Description field
+- Insert '7' in the Code field
+- Press 'Search'
+
+Expected results:
+Only the code containg '7' with description containg '7' are showed
+
+Passed: [X]
+
+### 17.7 - Advanced search in the BOM search w/multiple fields
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open an assembly window
+- from the 'Search' menu select 'Advanced search'
+- from the 'Search mode' menu select 'Advanced'
+
+
+Test description:
+Insert 17 in the code field, then press Search
+
+Expected results:
+Only codes containing 17 are showed
+
+Passed: [X]
+
+Test description #2:
+- Clean all the fields
+- Insert 17 in the description field, then press Search
+
+Expected results #2:
+Only codes containing '17' in description are showed
+
+Passed: [X]
+
+Test description #3:
+- Clean all the fields
+- Insert 17 in the description field, then insert 17 in the 'Supplier#1 PN' field, then press Search
+
+Expected results #3:
+Only codes containing 17 with PN containing 17 are showed
+
+Passed: [X]
+
+Test description #4:
+- Clean all the fields
+- Insert >7 in the code field, then press Search
+
+Expected results #4:
+Only codes which starts from 8 are showed
+
+Passed: [X]
+
+Test description #5:
+- Clean all the fields
+- Insert >7 in the code field
+- Insert 7 in the description field
+then press Search
+
+Expected results #5:
+Only codes which start from 8 and contains 7 in the description are showed
+
+Passed: [X]
+
+Test description #6:
+- Clean all the fields
+- Insert <6 in the code field
+- Insert 7 in the description field
+then press Search
+
+Expected results #6:
+Only codes which start from 5 and contains 7 in the description are showed
+
+Passed: [X]
+
+Test description #7:
+- Clean all the fields
+- Insert !820007 in the code field
+- Insert 7 in the description field
+then press Search
+
+Expected results #7:
+Only codes different from 820007 and contains 7 in the description are showed
+
+Passed: [X]
+
+Test description #8:
+- Clean all the fields
+- Insert >800 in the rid field
+- Insert 7 in the description field
+then press Search
+
+Expected results #8:
+Only codes with rid greather than 800 and contains 7 in the description are showed
+
+Passed: [X]
+
+Test description #9:
+- Clean all the fields
+- Insert <800 in the rid field
+- Insert 7 in the description field
+then press Search
+
+Expected results #9:
+Only codes with rid less than 800 and contains 7 in the description are showed
+
+Passed: [X]
+
+### 17.16 - Advanced search in the BOM - where used
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open an where used window
+- from the 'Search' menu select 'Advanced search'
+
+Test description:
+Insert '17' in the code field and press 'Search'
+
+Expected results:
+Only codes containg '17' are showed
+
+Passed: [X]
+
+### 17.17 - Advanced search in the BOM - smart where used
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open an smart where used window
+- from the 'Search' menu select 'Advanced search'
+
+Test description:
+Insert '17' in the code field and press 'Search'
+
+Expected results:
+Only codes containg '17' are showed
+
+Passed: [X]
+
+## 18 - Export data from assembly
+
+### 18.1 - Export data
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open an assembly window
+
+
+Test description:
+From the 'File' menu select 'Export data...'
+
+Expected results:
+A 'Export' dialog is showed
+
+Passed: [X]
+
+### 18.2 - Export data
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open an assembly window
+- from the 'File' menu select 'Export data...'
+
+Test description:
+Check that the data showed in the window title is the greatest one of the code
+
+Expected results:
+The data is the greatest one
+
+Passed: [X]
+
+### 18.3 - Export data
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open an assembly window
+- from the 'File' menu select 'Export data...'
+
+Test description:
+Press the Close button
+
+Expected results:
+The dialog disappear
+
+Passed: [X]
+
+### 18.4 - Export data
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open an assembly window
+- from the 'File' menu select 'Export data...'
+
+Test description:
+Press the Export button
+
+Expected results:
+- The successful dialog appeared (maybe below other window)
+- A folder containing all the files appeared
+- In the folder there is a zip file containing all the files
+- In the folder there is a BOM in the same format specified in the dialog
+- Doing a 'paste' command in a folder, the zip file is copied
+
+Passed: [X]
+
+### 18.5 - Export data
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open an assembly window
+- from the 'File' menu select 'Export data...'
+
+Test description:
+Umark the 'zip' option; press the Export button
+
+Expected results:
+- The successful dialog appeared (maybe below other window)
+- A folder containing all the files appeared
+- In the folder there NO a zip file containing all the files
+- Doing a 'paste' command in a folder, the folder with all the files is copied
+
+Passed: [X]
+
+### 18.6 - Export data
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open an assembly window
+- from the 'File' menu select 'Export data...'
+
+Test description:
+Umark the 'export files' option; press the Export button
+
+Expected results:
+- The successful dialog appeared (maybe below other window)
+- A folder containing only the zip file and the bom appeared
+
+
+Passed: [X]
+
+### 18.7 - Export data
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open an assembly window
+- from the 'File' menu select 'Export data...'
+
+Test description:
+Umark the 'open destination folder' option; press the Export button
+
+Expected results:
+The successful dialog appeared
+
+
+Passed: [X]
+
+### 18.8 - Export data
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open an assembly window
+- from the 'File' menu select 'Export data...'
+
+Test description:
+Change the destination directory; press the Export button
+
+Expected results:
+The selected destination directopry is showed
+
+
+Passed: [X]
+
+### 18.9 - Export data - where used
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open the Where used window
+- from the 'File' menu select 'Export data...'
+
+Test description:
+Change the destination directory; press the Export button
+
+Expected results:
+- The successful dialog appeared (maybe below other window)
+- A folder containing all the files appeared
+
+
+Passed: [X]
+
+### 18.10 - Export data - where used
+
+Preparatory steps:
+From codes list window:
+- search a code (eg. 820007)
+- open the Smart where used window
+- from the 'File' menu select 'Export data...'
+
+Test description:
+Change the destination directory; press the Export button
+
+Expected results:
+- The successful dialog appeared (maybe below other window)
+- A folder containing all the files appeared
+
+
+Passed: [X]
+
+## 19 - Dump/Restore/Create a new database
+
+### 19.1 - Dump the database
+
+Test description:
+- run "[python] bombrowser[.py] --manage-db --dump-tables <namefile>
+
+
+Expected results:
+- the <namefile> file is created
+
+
+Passed: [X]
+
+### 19.2 - Restore the database
+
+Test description:
+- edit the code 100001
+- select Edit->Delete code. The code is now deleted
+- run "[python] bombrowser[.py] --manage-db --restore-tables --yes-really-i-know-what-i-want <namefile>
+- search the code 100001 again
+
+Expected results:
+- the 100001 exists
+
+
+Passed: [X]
+
+### 19.3 - Create a new (empty) database
+
+Test description:
+- run "[python] bombrowser[.py] --manage-db --new-db --yes-really-i-know-what-i-want
+- search for "%"
+
+Expected results:
+- only the code "000000000000" is returned
+
+
+Passed: [X]
+
 #  - RESULTS:
 
-2020-05-12 v0.4.4b3
-Failed tests list: 0
+2022-04-02 v0.4.5
+Failed tests: 0
 
