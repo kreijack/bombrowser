@@ -376,7 +376,6 @@ class _BaseServer:
 
     def insert_table(self, tname, columns, data):
         with Transaction(self) as c:
-            c = self._get_cursor()
             c.execute("DELETE FROM " + tname)
             c.execute("SELECT * FROM "+ tname)
             real_colnames = [desc[0] for desc in c.description]
