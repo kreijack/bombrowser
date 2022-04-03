@@ -377,8 +377,8 @@ class _BaseServer:
     def insert_table(self, tname, columns, data):
         with Transaction(self) as c:
             c = self._get_cursor()
-            self._sqlex(c, "DELETE FROM " + tname)
-            self._sqlex(c, "SELECT * FROM "+ tname)
+            c.execute("DELETE FROM " + tname)
+            c.execute("SELECT * FROM "+ tname)
             real_colnames = [desc[0] for desc in c.description]
             c.fetchall()
 
@@ -398,7 +398,7 @@ class _BaseServer:
                 row2 = []
                 for idx in  final_colnames_idx:
                     row2.append(row[idx])
-                self._sqlex(c, ("INSERT INTO " + tname +
+                c.execute(("INSERT INTO " + tname +
                     " (" + ",".join(final_colnames) + ") VALUES " +
                     " (" + ",".join(["?" for i in final_colnames]) + ")"),
                     row2)
@@ -958,7 +958,7 @@ class _BaseServer:
             new_date_from_days = now_to_days()
 
         with Transaction(self) as c:
-            self._sqlex(c, """
+            c.execute("""
                 SELECT COUNT(*)
                 FROM items
                 WHERE code = ?
@@ -974,11 +974,11 @@ class _BaseServer:
                 if cdate_to_days < new_date_to_days:
                     raise DBException("Children %d is earlier than new code"%(cid))
 
-            self._sqlex(c, """
+            c.execute("""
                 INSERT INTO items(code) VALUES (?)
             """, (new_code, ))
 
-            self._sqlex(c, """SELECT MAX(id) FROM items""")
+            c.execute("""SELECT MAX(id) FROM items""")
             new_code_id = c.fetchone()[0]
 
             if new_date_from_days == prototype_date:
@@ -1000,7 +1000,7 @@ class _BaseServer:
         new_date_to_days = end_of_the_world
 
         with Transaction(self) as c:
-            self._sqlex(c, """
+            c.execute("""
                     SELECT id, date_from_days, iter, code_id
                     FROM item_revisions AS r
                     WHERE r.code_id = (
@@ -1076,7 +1076,7 @@ class _BaseServer:
 
         gval_query = ", ".join(["gval%d"%(i+1) for i in range(gvals_count)])
 
-        self._sqlex(c, """
+        c.execute("""
             INSERT INTO item_revisions(
                 code_id,
                 date_from, date_from_days,
@@ -1105,12 +1105,12 @@ class _BaseServer:
             rev, new_iter,
             descr, old_rid))
 
-        self._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
+        c.execute("""SELECT MAX(id) FROM item_revisions""")
         new_rid = c.fetchone()[0]
 
         #self._revise_code_copy_others(c, new_rid, rid, copy_docs, copy_props)
 
-        self._sqlex(c, """
+        c.execute("""
             INSERT INTO assemblies (
                 unit,
                 child_id,
@@ -1130,7 +1130,7 @@ class _BaseServer:
         """, (new_rid, old_rid))
 
         if copy_docs:
-            self._sqlex(c, """
+            c.execute("""
                 INSERT INTO drawings (
                     code,
                     revision_id,
@@ -1146,7 +1146,7 @@ class _BaseServer:
             """, (new_rid, old_rid))
 
         if copy_props:
-            self._sqlex(c, """
+            c.execute("""
                 INSERT INTO item_properties (
                     descr,
                     value,
@@ -1189,7 +1189,7 @@ class _BaseServer:
 
         with Transaction(self) as c:
             gval_query = ", ".join(["gval%d = ?"%(i+1) for i in range(gvals_count)])
-            self._sqlex(c, """
+            c.execute("""
                 UPDATE item_revisions SET
                     descr=?, ver=?, default_unit=?,
                     """ + gval_query + """
@@ -1197,19 +1197,19 @@ class _BaseServer:
                 """,(descr, ver, default_unit,
                      *gvals, rid))
 
-            self._sqlex(c, """
+            c.execute("""
                 DELETE FROM drawings
                 WHERE revision_id = ?
             """, (rid, ))
 
             if len(drawings) > 0:
 
-                self._sqlexm(c, """
-                        INSERT INTxxO drawings(revision_id, filename, fullpath)
+                c.executemany("""
+                        INSERT INTO drawings(revision_id, filename, fullpath)
                         VALUES (?, ?, ?)
                     """, [(rid, name, path) for (name, path) in drawings])
 
-            self._sqlex(c, """
+            c.execute("""
                 DELETE FROM assemblies
                 WHERE revision_id = ?
             """, (rid, ))
@@ -1223,7 +1223,7 @@ class _BaseServer:
                     "".join([",? " for x in range(gavals_count)]),
                 )
                 # (code_id, qty, each, unit)
-                self._sqlexm(c, q, [(rid, code_id, qty, each, ref, unit, *gvs)
+                c.executemany(q, [(rid, code_id, qty, each, ref, unit, *gvs)
                         for (code_id, qty, each, unit, ref, gvs) in children])
 
     def update_dates(self, dates):
@@ -1252,14 +1252,14 @@ class _BaseServer:
 
         with Transaction(self) as c:
 
-            self._sqlex(c, """
+            c.execute("""
                 SELECT code_id
                 FROM item_revisions
                 WHERE id = ?
             """,(dates[0][0],))
             code_id = c.fetchone()[0]
 
-            self._sqlex(c, """
+            c.execute("""
                 SELECT id, iter
                 FROM item_revisions
                 WHERE code_id = ?
@@ -1298,7 +1298,7 @@ class _BaseServer:
 
             # ok insert the data
             for (rid, date_from, date_from_days, date_to, date_to_days) in dates:
-                self._sqlex(c, """
+                c.execute("""
                     UPDATE item_revisions SET
                         date_from=?, date_from_days=?,
                         date_to=?, date_to_days=?
@@ -1310,7 +1310,7 @@ class _BaseServer:
 
             #  reset the iter
             if was_proto:
-                self._sqlex(c, """
+                c.execute("""
                     SELECT MAX(iter)
                     FROM item_revisions
                     WHERE code_id = ?
@@ -1323,7 +1323,7 @@ class _BaseServer:
                 else:
                     new_iter = ret[0] + 1
 
-                self._sqlex(c, """
+                c.execute("""
                     UPDATE item_revisions
                     SET iter = ?
                     WHERE iter = ?
@@ -1332,7 +1332,7 @@ class _BaseServer:
 
             # update the iter if there is a prototype
             if will_be_proto:
-                self._sqlex(c, """
+                c.execute("""
                     UPDATE item_revisions
                     SET iter = ?
                     WHERE date_from_days = ?
@@ -1366,7 +1366,7 @@ class _BaseServer:
 
     def delete_code(self, code_id):
         with Transaction(self) as c:
-            self._sqlex(c,"""
+            c.execute("""
                 SELECT COUNT(*)
                 FROM assemblies
                 WHERE child_id = ?
@@ -1377,7 +1377,7 @@ class _BaseServer:
                 c.rollback()
                 return "HASPARENTS"
 
-            self._sqlex(c,"""
+            c.execute("""
                 DELETE FROM drawings
                 WHERE revision_id IN
                 (SELECT id
@@ -1386,7 +1386,7 @@ class _BaseServer:
                 )
                 """, (code_id,))
 
-            self._sqlex(c,"""
+            c.execute("""
                 DELETE FROM assemblies
                 WHERE revision_id IN
                 (SELECT id
@@ -1395,7 +1395,7 @@ class _BaseServer:
                 )
                 """, (code_id,))
 
-            self._sqlex(c,"""
+            c.execute("""
                 DELETE FROM item_properties
                 WHERE revision_id IN
                 (SELECT id
@@ -1404,12 +1404,12 @@ class _BaseServer:
                 )
                 """, (code_id,))
 
-            self._sqlex(c,"""
+            c.execute("""
                 DELETE FROM item_revisions
                 WHERE code_id = ?
                 """, (code_id,))
 
-            self._sqlex(c,"""
+            c.execute("""
                 DELETE FROM items
                 WHERE id = ?
                 """, (code_id,))
@@ -1418,7 +1418,7 @@ class _BaseServer:
 
     def delete_code_revision(self, rid):
         with Transaction(self) as c:
-            self._sqlex(c,"""
+            c.execute("""
                 SELECT COUNT(*)
                 FROM item_revisions
                 WHERE code_id = (
@@ -1433,14 +1433,14 @@ class _BaseServer:
                 c.rollback()
                 return "ISALONE"
 
-            self._sqlex(c,"""
+            c.execute("""
                 SELECT code_id, iter
                 FROM item_revisions
                 WHERE id = ?
             """, (rid,))
             code_id, iter_ = c.fetchone()
 
-            self._sqlex(c,"""
+            c.execute("""
                 SELECT COUNT(*)
                 FROM item_revisions
                 WHERE code_id = ?
@@ -1451,7 +1451,7 @@ class _BaseServer:
 
             # adjust the date of the adiajenct item_revision
             if cnt > 0:
-                self._sqlex(c,"""
+                c.execute("""
                     SELECT MAX(iter)
                     FROM item_revisions
                     WHERE code_id = ?
@@ -1459,21 +1459,21 @@ class _BaseServer:
                 """, (code_id, iter_))
                 prev_iter = c.fetchone()[0]
 
-                self._sqlex(c,"""
+                c.execute("""
                     SELECT date_to, date_to_days
                     FROM item_revisions
                     WHERE id = ?
                 """, (rid,))
                 date_to, date_to_days = c.fetchone()
 
-                self._sqlex(c,"""
+                c.execute("""
                     UPDATE item_revisions
                     SET date_to = ?, date_to_days = ?
                     WHERE code_id = ?
                       AND iter = ?
                 """, (date_to, date_to_days, code_id, prev_iter))
             else:
-                self._sqlex(c,"""
+                c.execute("""
                     SELECT MIN(iter)
                     FROM item_revisions
                     WHERE code_id = ?
@@ -1485,14 +1485,14 @@ class _BaseServer:
                     c.rollback()
                     return "ONLYPROTOTYPE"
 
-                self._sqlex(c,"""
+                c.execute("""
                     SELECT date_from, date_from_days
                     FROM item_revisions
                     WHERE id = ?
                 """, (rid,))
                 date_from, date_from_days = c.fetchone()
 
-                self._sqlex(c,"""
+                c.execute("""
                     UPDATE item_revisions
                     SET date_from = ?, date_from_days = ?
                     WHERE code_id = ?
@@ -1501,22 +1501,22 @@ class _BaseServer:
 
             # drop all the children
 
-            self._sqlex(c,"""
+            c.execute("""
                 DELETE FROM drawings
                 WHERE revision_id = ?
                 """, (rid,))
 
-            self._sqlex(c,"""
+            c.execute("""
                 DELETE FROM assemblies
                 WHERE revision_id = ?
                 """, (rid,))
 
-            self._sqlex(c,"""
+            c.execute("""
                 DELETE FROM item_properties
                 WHERE revision_id = ?
                 """, (rid,))
 
-            self._sqlex(c,"""
+            c.execute("""
                 DELETE FROM item_revisions
                 WHERE id = ?
                 """, (rid,))
@@ -2039,13 +2039,13 @@ def new_db(d):
     date_to = days_to_iso(end_of_the_world)
 
     with Transaction(d) as c:
-        d._sqlex(c, "INSERT INTO items(code) VALUES (?)", (
+        c.execute("INSERT INTO items(code) VALUES (?)", (
             '000000000000', )
         )
-        d._sqlex(c, "SELECT MAX(id) FROM items")
+        c.execute("SELECT MAX(id) FROM items")
         mid = c.fetchone()[0]
 
-        d._sqlex(c, """INSERT INTO item_revisions(
+        c.execute("""INSERT INTO item_revisions(
             descr, code_id, ver,
             iter, default_unit,
             date_from, date_from_days,
