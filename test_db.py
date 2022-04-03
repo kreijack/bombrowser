@@ -1799,6 +1799,251 @@ def test_dump_less_column_than_db():
     assert(len(colnames2) == len(colnames1) + 1)
     db.restore_tables(tmpfilename, d, quiet=True)
 
+def test_constraint_items_code_unique():
+
+    d, c = _create_db()
+    d._sqlex(c, """
+        INSERT INTO items (code) VALUES ('a')
+    """)
+
+    try:
+        d._sqlex(c, """
+            INSERT INTO items (code) VALUES ('a')
+        """)
+    except Exception as e:
+        d._rollback(c)
+        pass
+    else:
+        assert("contraint items.code unique failed")
+
+def test_constraint_item_rev_reference_code_id():
+
+    d, c = _create_db()
+    d._sqlex(c, """
+        INSERT INTO items (code) VALUES ('a')
+    """)
+    d._sqlex(c, """SELECT MAX(id) FROM items""")
+    id_ = c.fetchone()[0]
+    d._sqlex(c, """
+        INSERT INTO item_revisions (code_id, ver, descr, default_unit)
+        VALUES (?, '0', 'pp', 'oo')
+    """, (id_,))
+
+    try:
+        d._sqlex(c, """
+            DELETE FROM items WHERE id=?
+        """, (id_,))
+    except Exception as e:
+        d._rollback(c)
+        pass
+    else:
+        assert("contraint items_revisions references code_id unique failed")
+
+def test_constraint_item_rev_iter_code_id_unique():
+
+    d, c = _create_db()
+    d._sqlex(c, """
+        INSERT INTO items (code) VALUES ('a')
+    """)
+    d._sqlex(c, """SELECT MAX(id) FROM items""")
+    id_ = c.fetchone()[0]
+    d._sqlex(c, """
+        INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
+        VALUES (?, 0, '0', 'pp', 'oo')
+    """, (id_,))
+
+    d._sqlex(c, """
+        INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
+        VALUES (?, 1, '0', 'pp', 'oo')
+    """, (id_,))
+
+    try:
+        d._sqlex(c, """
+            INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
+            VALUES (?, 1, '0', 'pp', 'oo')
+        """, (id_,))
+    except Exception as e:
+        d._rollback(c)
+        pass
+    else:
+        assert("contraint items_revisions iter,code_id unique")
+
+def test_constraint_item_prop_references_rev_id():
+
+    d, c = _create_db()
+    d._sqlex(c, """
+        INSERT INTO items (code) VALUES ('a')
+    """)
+    d._sqlex(c, """SELECT MAX(id) FROM items""")
+    id_ = c.fetchone()[0]
+    d._sqlex(c, """
+        INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
+        VALUES (?, 0, '0', 'pp', 'oo')
+    """, (id_,))
+    d._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
+    id2 = c.fetchone()[0]
+
+    d._sqlex(c, """
+        INSERT INTO item_properties (revision_id)
+        VALUES (?)
+    """, (id2,))
+
+    try:
+        d._sqlex(c, """
+            DELETE FROM item_revisions WHERE id=?
+        """, (id2,))
+    except Exception as e:
+        d._rollback(c)
+        pass
+    else:
+        assert("contraint items_properties references item_rev")
+
+def test_constraint_item_prop_rev_id_descr_unique():
+
+    d, c = _create_db()
+    d._sqlex(c, """
+        INSERT INTO items (code) VALUES ('a')
+    """)
+    d._sqlex(c, """SELECT MAX(id) FROM items""")
+    id_ = c.fetchone()[0]
+    d._sqlex(c, """
+        INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
+        VALUES (?, 0, '0', 'pp', 'oo')
+    """, (id_,))
+    d._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
+    id2 = c.fetchone()[0]
+
+    d._sqlex(c, """
+        INSERT INTO item_properties (revision_id, descr)
+        VALUES (?, 'x')
+    """, (id2,))
+
+    d._sqlex(c, """
+        INSERT INTO item_properties (revision_id, descr)
+        VALUES (?, 'y')
+    """, (id2,))
+
+
+    try:
+        d._sqlex(c, """
+            INSERT INTO item_properties (revision_id, descr)
+            VALUES (?, 'y')
+        """, (id2,))
+    except Exception as e:
+        pass
+        d._rollback(c)
+    else:
+        assert("contraint items_properties rev_id,descr unique")
+
+def test_constraint_assemblies_references_code_id():
+
+    d, c = _create_db()
+    d._sqlex(c, """
+        INSERT INTO items (code) VALUES ('a')
+    """)
+    d._sqlex(c, """SELECT MAX(id) FROM items""")
+    id_ = c.fetchone()[0]
+    d._sqlex(c, """
+        INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
+        VALUES (?, 0, '0', 'pp', 'oo')
+    """, (id_,))
+    d._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
+    id2 = c.fetchone()[0]
+
+    d._sqlex(c, """
+        INSERT INTO items (code) VALUES ('b')
+    """)
+    d._sqlex(c, """SELECT MAX(id) FROM items""")
+    id3 = c.fetchone()[0]
+
+    d._sqlex(c, """
+        INSERT INTO assemblies (child_id, revision_id)
+        VALUES (?, ?)
+    """, (id3, id2))
+
+
+    try:
+        d._sqlex(c, """
+            DELETE FROM items WHERE id=?
+        """, (id3,))
+    except Exception as e:
+        #print(e)
+        d._rollback(c)
+        pass
+    else:
+        assert("contraint assemblies references code_id")
+
+def test_constraint_assemblies_references_rev_id():
+
+    d, c = _create_db()
+    d._sqlex(c, """
+        INSERT INTO items (code) VALUES ('a')
+    """)
+    d._sqlex(c, """SELECT MAX(id) FROM items""")
+    id_ = c.fetchone()[0]
+    d._sqlex(c, """
+        INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
+        VALUES (?, 0, '0', 'pp', 'oo')
+    """, (id_,))
+    d._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
+    id2 = c.fetchone()[0]
+
+    d._sqlex(c, """
+        INSERT INTO items (code) VALUES ('b')
+    """)
+    d._sqlex(c, """SELECT MAX(id) FROM items""")
+    id3 = c.fetchone()[0]
+
+    d._sqlex(c, """
+        INSERT INTO assemblies (child_id, revision_id)
+        VALUES (?, ?)
+    """, (id3, id2))
+
+
+    try:
+        d._sqlex(c, """
+            DELETE FROM item_revisions WHERE id=?
+        """, (id2,))
+    except Exception as e:
+        #print(e)
+        d._rollback(c)
+        pass
+    else:
+        assert("contraint assemblies references rev_id")
+
+def test_constraint_drawings_references_rev_id():
+
+    d, c = _create_db()
+    d._sqlex(c, """
+        INSERT INTO items (code) VALUES ('a')
+    """)
+    d._sqlex(c, """SELECT MAX(id) FROM items""")
+    id_ = c.fetchone()[0]
+    d._sqlex(c, """
+        INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
+        VALUES (?, 0, '0', 'pp', 'oo')
+    """, (id_,))
+    d._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
+    id2 = c.fetchone()[0]
+
+    d._sqlex(c, """
+        INSERT INTO drawings (fullpath, filename, revision_id)
+        VALUES ('b', 'b', ?)
+    """, (id2,))
+    d._sqlex(c, """SELECT MAX(id) FROM drawings""")
+    id3 = c.fetchone()[0]
+
+    try:
+        d._sqlex(c, """
+            DELETE FROM item_revisions WHERE id=?
+        """, (id2,))
+    except Exception as e:
+        #print(e)
+        d._rollback(c)
+        pass
+    else:
+        assert("contraint drawings references rev_id")
+
 #------
 
 
