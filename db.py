@@ -127,24 +127,26 @@ class _BaseServer:
         query = self._sql_translate(query)
         try:
             method(self, c, query, *args, **kwargs)
-        except:
+        except Exception as e:
             exc_type, exc_value, exc_tb = sys.exc_info()
             stack = traceback.extract_stack()
-            self._exception_handler(query,
-                exc_type, exc_value, exc_tb, stack)
+            e._orig_exc_type = exc_type
+            e._orig_exc_value = exc_value
+            e._orig_exc_tb = exc_tb
+            tb = 'Traceback: \n' + "".join(
+                traceback.format_list(stack[:-1] +
+                traceback.extract_tb(exc_tb)) +
+                traceback.format_exception_only(exc_type, exc_value)
+            )
+            e._orig_traceback = tb
+            e._orig_query = query
 
-    def _exception_handler(self, query, exc_type, exc_value, exc_tb, stack):
-        errmsg = "SQL Generic error: %r\n"%(exc_value)
-        errmsg += "-"*30+"\n"
-        errmsg += query + "\n"
-        errmsg += "-"*30+"\n"
-        tb = 'Traceback: \n' + "".join(
-            traceback.format_list(stack[:-1] +
-            traceback.extract_tb(exc_tb)) +
-            traceback.format_exception_only(exc_type, exc_value)
-        )
+            self._exception_handler(exc_value)
 
-        raise DBExceptionWithTraceback(errmsg+tb)
+            raise e
+
+    def _exception_handler(self, exc_value):
+        pass
 
     def _sqlex(self, c, query, *args, **kwargs):
         self._sqlex_gen(_BaseServer.__sqlex, c, query, *args, **kwargs)
@@ -1186,7 +1188,7 @@ class _BaseServer:
             if len(drawings) > 0:
 
                 self._sqlexm(c, """
-                        INSERT INTO drawings(revision_id, filename, fullpath)
+                        INSERT INTxxO drawings(revision_id, filename, fullpath)
                         VALUES (?, ?, ?)
                     """, [(rid, name, path) for (name, path) in drawings])
 
@@ -1625,35 +1627,16 @@ class DBSQLServer(_BaseServer):
     def _rollback(self, c):
         self._conn.rollback()
 
-    def _exception_handler(self, query, exc_type, exc_value, exc_tb, stack):
-
-        if not issubclass(exc_type, self._mod.Error):
-            return _BaseServer._exception_handler(self, exc_type,
-                exc_value, exc_tb, stack)
-
-        errmsg = 'ODBC error: %s' % (' '.join(exc_value.args)) + "\n"
-        errmsg += "Exception class is: " + str(exc_value.__class__) + "\n"
-        errmsg += "ODBC query:\n"
-        errmsg += "-"*30+"\n"
-        errmsg += query + "\n"
-        tb = "-"*30+"\n"
-        tb += 'Traceback: \n' + "".join(
-            traceback.format_list(stack[:-1] +
-            traceback.extract_tb(exc_tb)) +
-            traceback.format_exception_only(exc_type, exc_value)
-        )
-
-        if ("Attempt to use a closed connection" in errmsg or
-            "08S01" in errmsg):
-            try:
-                self._conn.close()
-                errmsg += ">>>> The connection is restarting"
-            except Exception as e:
-                errmsg += ">>>> Cannot restart the connection (%r)"%(e)
-            finally:
-                self._conn = None
-
-        raise DBExceptionWithTraceback(errmsg+tb)
+    def _exception_handler(self, exc_value):
+        msg = str(exc_value)
+        if ("Attempt to use a closed connection" in msg or
+            "08S01" in msg):
+                try:
+                    self._conn.close()
+                except:
+                    pass
+                finally:
+                    self._conn = None
 
     def _sql_translate(self, s):
         def process(l):
@@ -1671,7 +1654,6 @@ class DBSQLServer(_BaseServer):
         import pyodbc
         self._mod = pyodbc
         self._conn = pyodbc.connect(connection_string)
-
 
 
 class DBOracleServer(_BaseServer):
@@ -1697,35 +1679,16 @@ class DBOracleServer(_BaseServer):
     def _rollback(self, c):
         self._conn.rollback()
 
-    def _exception_handler(self, query, exc_type, exc_value, exc_tb, stack):
-
-        if not issubclass(exc_type, self._mod.Error):
-            return _BaseServer._exception_handler(self, query, exc_type,
-                exc_value, exc_tb, stack)
-
-        errmsg = 'ORACLE error: %r' % (exc_value.args) + "\n"
-        errmsg += "Exception class is: " + str(exc_value.__class__) + "\n"
-        errmsg += "ORACLE query:\n"
-        errmsg += "-"*30+"\n"
-        errmsg += query + "\n"
-        tb = "-"*30+"\n"
-        tb += 'Traceback: \n' + "".join(
-            traceback.format_list(stack[:-1] +
-            traceback.extract_tb(exc_tb)) +
-            traceback.format_exception_only(exc_type, exc_value)
-        )
-
-        if ("Attempt to use a closed connection" in errmsg or
-            "08S01" in errmsg):
-            try:
-                self._conn.close()
-                errmsg += ">>>> The connection is restarting"
-            except Exception as e:
-                errmsg += ">>>> Cannot restart the connection (%r)"%(e)
-            finally:
-                self._conn = None
-
-        raise DBExceptionWithTraceback(errmsg+tb)
+    def _exception_handler(self, exc_value):
+        msg = str(exc_value)
+        if ("DPI-1080:" in msg or
+            "DPI-1010:" in msg):
+                try:
+                    self._conn.close()
+                except:
+                    pass
+                finally:
+                    self._conn = None
 
     def _sql_translate(self, s):
         def process(l):
@@ -1841,6 +1804,7 @@ class DBOracleServer(_BaseServer):
 
         return [x[0].lower() for x in c.fetchall()]
 
+
 class DBSQLite(_BaseServer):
     def __init__(self, path=None):
         if path == "" or path is None:
@@ -1849,6 +1813,8 @@ class DBSQLite(_BaseServer):
 
     def _open(self, path):
         self._conn = sqlite3.connect(self._path)
+        self._conn.execute("""PRAGMA foreign_keys = ON""")
+        self._mod = sqlite3
 
     def _commit(self, c):
         self._conn.commit()
@@ -1858,26 +1824,6 @@ class DBSQLite(_BaseServer):
 
     def _begin(self, c):
         c.execute("BEGIN")
-
-    def _exception_handler(self, query, exc_type, exc_value, exc_tb, stack):
-
-        if not issubclass(exc_type, sqlite3.Error):
-            return _BaseServer._exception_handler(self, exc_type,
-                exc_value, exc_tb, stack)
-
-        errmsg = 'SQLite error: %s' % (' '.join(exc_value.args)) + "\n"
-        errmsg += "Exception class is: " + str(exc_value.__class__) + "\n"
-        errmsg += "SQLite query:\n"
-        errmsg += "-"*30+"\n"
-        errmsg += query + "\n"
-        tb = "-"*30+"\n"
-        tb += 'Traceback: \n' + "".join(
-            traceback.format_list(stack[:-1] +
-            traceback.extract_tb(exc_tb)) +
-            traceback.format_exception_only(exc_type, exc_value)
-        )
-
-        raise DBExceptionWithTraceback(errmsg+tb)
 
     def _sql_translate(self, stms):
         stms = stms.replace(" IDENTITY", "")
@@ -1919,28 +1865,6 @@ class DBPG(_BaseServer):
         else:
             n = 100
         self._sqlex(c, "ALTER SEQUENCE " + tname + "_id_seq RESTART WITH %d"%(n) )
-
-    def _exception_handler(self, query, exc_type, exc_value, exc_tb, stack):
-        if not issubclass(exc_type, self._mod.Error):
-
-            return _BaseServer._exception_handler(self, exc_type,
-                exc_value, exc_tb, stack)
-
-        errmsg = "PGError: %s\n"%(exc_value.pgerror)        # error number
-        errmsg += "PGCode: %s\n"%(exc_value.pgcode)        # error number
-        errmsg += "Exception class is: " + str(exc_value.__class__) + "\n"
-        errmsg += "SQL query:\n"
-        errmsg += "-"*30+"\n"
-        errmsg += query + "\n"
-
-        tb = "-"*30+"\n"
-        tb += 'Traceback: \n' + "".join(
-            traceback.format_list(stack[:-1] +
-            traceback.extract_tb(exc_tb)) +
-            traceback.format_exception_only(exc_type, exc_value)
-        )
-
-        raise DBExceptionWithTraceback(errmsg+tb)
 
     def _sql_translate(self, s):
         def process(l):
@@ -2010,7 +1934,6 @@ class DBPG(_BaseServer):
         dates = [x[0] for x in c.fetchall()]
 
         return dates
-
 
 _globaDBInstance = None
 def DB(path=None):
