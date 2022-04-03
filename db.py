@@ -83,6 +83,42 @@ class DBExceptionWithTraceback(DBException):
     def __init__(self, arg):
         DBException.__init__(self, arg)
 
+class Transaction:
+    def __init__(self, d):
+        self._db = d
+        self._cursor = None
+        self._to_commit = False
+
+    def execute(self, query, *args):
+        return self._db._sqlex(self._cursor, query, *args)
+    def executemany(self, query, *args):
+        return self._db._sqlexm(self._cursor, query, *args)
+    def fetchone(self):
+        return self._cursor.fetchone()
+    def fetchall(self):
+        return self._cursor.fetchall()
+
+    def commit(self):
+        self._to_commit = False
+        return self._db._commit(self._cursor)
+    def rollback(self):
+        self._to_commit = False
+        return self._db._rollback(self._cursor)
+
+    def __enter__(self):
+        self._cursor = self._db._get_cursor()
+        self._to_commit = True
+        self._db._begin(self._cursor)
+        return self
+
+    def __exit__(self, type_, value, traceback):
+        if not self._to_commit:
+            return
+        if value is None:
+            self.commit()
+        else:
+            self.rollback()
+
 class _BaseServer:
 
     def __init__(self, path):
@@ -339,33 +375,33 @@ class _BaseServer:
         return (colnames, c.fetchall())
 
     def insert_table(self, tname, columns, data):
-        c = self._get_cursor()
-        self._sqlex(c, "DELETE FROM " + tname)
-        self._sqlex(c, "SELECT * FROM "+ tname)
-        real_colnames = [desc[0] for desc in c.description]
-        c.fetchall()
+        with Transaction(self) as c:
+            c = self._get_cursor()
+            self._sqlex(c, "DELETE FROM " + tname)
+            self._sqlex(c, "SELECT * FROM "+ tname)
+            real_colnames = [desc[0] for desc in c.description]
+            c.fetchall()
 
-        # handle the case where the columns from the backup are
-        # differents to the databases ones (i.e. different gaval values)
-        final_colnames = []
-        final_colnames_idx = []
-        for col in real_colnames:
-            if not col in columns:
-                continue
-            i = columns.index(col)
-            assert(i >= 0)
-            final_colnames.append(col)
-            final_colnames_idx.append(i)
+            # handle the case where the columns from the backup are
+            # differents to the databases ones (i.e. different gaval values)
+            final_colnames = []
+            final_colnames_idx = []
+            for col in real_colnames:
+                if not col in columns:
+                    continue
+                i = columns.index(col)
+                assert(i >= 0)
+                final_colnames.append(col)
+                final_colnames_idx.append(i)
 
-        for row in data:
-            row2 = []
-            for idx in  final_colnames_idx:
-                row2.append(row[idx])
-            self._sqlex(c, ("INSERT INTO " + tname +
-                " (" + ",".join(final_colnames) + ") VALUES " +
-                " (" + ",".join(["?" for i in final_colnames]) + ")"),
-                row2)
-        self._commit(c)
+            for row in data:
+                row2 = []
+                for idx in  final_colnames_idx:
+                    row2.append(row[idx])
+                self._sqlex(c, ("INSERT INTO " + tname +
+                    " (" + ",".join(final_colnames) + ") VALUES " +
+                    " (" + ",".join(["?" for i in final_colnames]) + ")"),
+                    row2)
 
     def list_main_tables(self):
         # maintains in the correct order by reference
@@ -921,10 +957,7 @@ class _BaseServer:
         if new_date_from_days is None:
             new_date_from_days = now_to_days()
 
-        c = self._get_cursor()
-        self._begin(c)
-        try:
-
+        with Transaction(self) as c:
             self._sqlex(c, """
                 SELECT COUNT(*)
                 FROM items
@@ -956,11 +989,6 @@ class _BaseServer:
             new_rid = self._copy_revision(c, new_code_id,
                 new_date_from_days, new_date_to_days,
                 rev, new_iter, descr, rid, copy_docs, copy_props)
-        except:
-            self._rollback(c)
-            raise
-
-        self._commit(c)
 
         return new_rid
 
@@ -971,10 +999,7 @@ class _BaseServer:
             new_date_from_days = now_to_days()
         new_date_to_days = end_of_the_world
 
-        c = self._get_cursor()
-        self._begin(c)
-        try:
-
+        with Transaction(self) as c:
             self._sqlex(c, """
                     SELECT id, date_from_days, iter, code_id
                     FROM item_revisions AS r
@@ -1043,12 +1068,6 @@ class _BaseServer:
                     WHERE id = ?
                 """, (days_to_iso(old_date_to_days),
                     old_date_to_days, latest_rid))
-
-        except:
-            self._rollback(c)
-            raise
-
-        self._commit(c)
 
         return new_rid
 
@@ -1168,9 +1187,7 @@ class _BaseServer:
     def update_by_rid2(self, rid, descr, ver, default_unit,
             gvals, drawings=[], children=[]):
 
-        c = self._get_cursor()
-        self._begin(c)
-        try:
+        with Transaction(self) as c:
             gval_query = ", ".join(["gval%d = ?"%(i+1) for i in range(gvals_count)])
             self._sqlex(c, """
                 UPDATE item_revisions SET
@@ -1209,12 +1226,6 @@ class _BaseServer:
                 self._sqlexm(c, q, [(rid, code_id, qty, each, ref, unit, *gvs)
                         for (code_id, qty, each, unit, ref, gvs) in children])
 
-        except:
-            self._rollback(c)
-            raise
-
-        self._commit(c)
-
     def update_dates(self, dates):
         # check that the date_from are in order
         l = [x[2] for x in dates]
@@ -1239,9 +1250,7 @@ class _BaseServer:
         for row in dates:
             assert(row[2] <= row[4])
 
-        c = self._get_cursor()
-        self._begin(c)
-        try:
+        with Transaction(self) as c:
 
             self._sqlex(c, """
                 SELECT code_id
@@ -1330,12 +1339,6 @@ class _BaseServer:
                       AND code_id = ?
                 """, (prototype_iter, prototype_date, code_id))
 
-        except:
-            self._rollback(c)
-            raise
-
-        self._commit(c)
-
     def get_config(self):
 
         # allow to start from an empty DB
@@ -1362,9 +1365,7 @@ class _BaseServer:
         return ret
 
     def delete_code(self, code_id):
-        c = self._get_cursor()
-        self._begin(c)
-        try:
+        with Transaction(self) as c:
             self._sqlex(c,"""
                 SELECT COUNT(*)
                 FROM assemblies
@@ -1373,7 +1374,7 @@ class _BaseServer:
             cnt = c.fetchone()[0]
 
             if cnt > 0:
-                self._rollback(c)
+                c.rollback()
                 return "HASPARENTS"
 
             self._sqlex(c,"""
@@ -1413,18 +1414,10 @@ class _BaseServer:
                 WHERE id = ?
                 """, (code_id,))
 
-        except:
-            self._rollback(c)
-            raise
-        finally:
-            self._commit(c)
-
         return ""
 
     def delete_code_revision(self, rid):
-        c = self._get_cursor()
-        self._begin(c)
-        try:
+        with Transaction(self) as c:
             self._sqlex(c,"""
                 SELECT COUNT(*)
                 FROM item_revisions
@@ -1437,7 +1430,7 @@ class _BaseServer:
             cnt = c.fetchone()[0]
 
             if cnt < 2:
-                self._rollback(c)
+                c.rollback()
                 return "ISALONE"
 
             self._sqlex(c,"""
@@ -1489,7 +1482,7 @@ class _BaseServer:
                 next_iter = c.fetchone()[0]
 
                 if next_iter == prototype_iter:
-                    self._rollback(c)
+                    c.rollback()
                     return "ONLYPROTOTYPE"
 
                 self._sqlex(c,"""
@@ -1527,12 +1520,6 @@ class _BaseServer:
                 DELETE FROM item_revisions
                 WHERE id = ?
                 """, (rid,))
-
-        except:
-            self._rollback(c)
-            raise
-        finally:
-            self._commit(c)
 
         return ""
 
@@ -2051,27 +2038,26 @@ def new_db(d):
     date_from = days_to_iso(0)
     date_to = days_to_iso(end_of_the_world)
 
-    c = d._conn.cursor()
-    d._sqlex(c, "INSERT INTO items(code) VALUES (?)", (
-        '000000000000', )
-    )
-    d._sqlex(c, "SELECT MAX(id) FROM items")
-    mid = c.fetchone()[0]
+    with Transaction(d) as c:
+        d._sqlex(c, "INSERT INTO items(code) VALUES (?)", (
+            '000000000000', )
+        )
+        d._sqlex(c, "SELECT MAX(id) FROM items")
+        mid = c.fetchone()[0]
 
-    d._sqlex(c, """INSERT INTO item_revisions(
-        descr, code_id, ver,
-        iter, default_unit,
-        date_from, date_from_days,
-        date_to, date_to_days) VALUES (
-        ?, ?, ?,
-        ?, ?,
-        ?, ?,
-        ?, ?)""",
-        ('FIRST CODE', mid, '0', 0, 'NR',
-         date_from, iso_to_days(date_from),
-         date_to, iso_to_days(date_to))
-    )
-    d._commit(c)
+        d._sqlex(c, """INSERT INTO item_revisions(
+            descr, code_id, ver,
+            iter, default_unit,
+            date_from, date_from_days,
+            date_to, date_to_days) VALUES (
+            ?, ?, ?,
+            ?, ?,
+            ?, ?,
+            ?, ?)""",
+            ('FIRST CODE', mid, '0', 0, 'NR',
+             date_from, iso_to_days(date_from),
+             date_to, iso_to_days(date_to))
+        )
 
 def main(prgname, args):
 
