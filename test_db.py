@@ -1810,11 +1810,11 @@ def test_constraint_items_code_unique():
         d._sqlex(c, """
             INSERT INTO items (code) VALUES ('a')
         """)
-    except Exception as e:
+    except d._mod.IntegrityError as e:
         d._rollback(c)
-        pass
-    else:
-        assert("contraint items.code unique failed")
+        return
+
+    assert(False)
 
 def test_constraint_item_rev_reference_code_id():
 
@@ -1833,11 +1833,11 @@ def test_constraint_item_rev_reference_code_id():
         d._sqlex(c, """
             DELETE FROM items WHERE id=?
         """, (id_,))
-    except Exception as e:
+    except d._mod.IntegrityError as e:
         d._rollback(c)
-        pass
-    else:
-        assert("contraint items_revisions references code_id unique failed")
+        return
+
+    assert(False)
 
 def test_constraint_item_rev_iter_code_id_unique():
 
@@ -1862,11 +1862,11 @@ def test_constraint_item_rev_iter_code_id_unique():
             INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
             VALUES (?, 1, '0', 'pp', 'oo')
         """, (id_,))
-    except Exception as e:
+    except d._mod.IntegrityError as e:
         d._rollback(c)
-        pass
-    else:
-        assert("contraint items_revisions iter,code_id unique")
+        return
+
+    assert(False)
 
 def test_constraint_item_prop_references_rev_id():
 
@@ -1892,11 +1892,11 @@ def test_constraint_item_prop_references_rev_id():
         d._sqlex(c, """
             DELETE FROM item_revisions WHERE id=?
         """, (id2,))
-    except Exception as e:
+    except d._mod.IntegrityError as e:
         d._rollback(c)
-        pass
-    else:
-        assert("contraint items_properties references item_rev")
+        return
+
+    assert(False)
 
 def test_constraint_item_prop_rev_id_descr_unique():
 
@@ -1929,11 +1929,11 @@ def test_constraint_item_prop_rev_id_descr_unique():
             INSERT INTO item_properties (revision_id, descr)
             VALUES (?, 'y')
         """, (id2,))
-    except Exception as e:
-        pass
+    except d._mod.IntegrityError as e:
         d._rollback(c)
-    else:
-        assert("contraint items_properties rev_id,descr unique")
+        return
+
+    assert(False)
 
 def test_constraint_assemblies_references_code_id():
 
@@ -1961,17 +1961,15 @@ def test_constraint_assemblies_references_code_id():
         VALUES (?, ?)
     """, (id3, id2))
 
-
     try:
         d._sqlex(c, """
             DELETE FROM items WHERE id=?
         """, (id3,))
-    except Exception as e:
-        #print(e)
+    except d._mod.IntegrityError as e:
         d._rollback(c)
-        pass
-    else:
-        assert("contraint assemblies references code_id")
+        return
+
+    assert(False)
 
 def test_constraint_assemblies_references_rev_id():
 
@@ -2004,12 +2002,11 @@ def test_constraint_assemblies_references_rev_id():
         d._sqlex(c, """
             DELETE FROM item_revisions WHERE id=?
         """, (id2,))
-    except Exception as e:
-        #print(e)
+    except d._mod.IntegrityError as e:
         d._rollback(c)
-        pass
-    else:
-        assert("contraint assemblies references rev_id")
+        return
+
+    assert(False)
 
 def test_constraint_drawings_references_rev_id():
 
@@ -2037,12 +2034,12 @@ def test_constraint_drawings_references_rev_id():
         d._sqlex(c, """
             DELETE FROM item_revisions WHERE id=?
         """, (id2,))
-    except Exception as e:
-        #print(e)
+    except d._mod.IntegrityError as e:
         d._rollback(c)
-        pass
-    else:
-        assert("contraint drawings references rev_id")
+        return
+
+    assert(False)
+
 
 #------
 
