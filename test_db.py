@@ -2092,6 +2092,62 @@ def test_context_manager():
         assert(n == 1)
 
 
+def test_restore_db_with_different_endline():
+    d, c = _create_db()
+    rids = _create_simple_assy_with_drawings(c)
+    d._commit(c)
+
+    c.execute("SELECT COUNT(*) FROM ITEMS")
+    ci = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM ITEM_REVISIONS")
+    cr = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+    ca = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM DRAWINGS")
+    cd = c.fetchone()[0]
+
+    assert(cd > 0)
+
+    tmpfilename = tempfile.NamedTemporaryFile(delete=False).name+".zip"
+    tmpfilename2 = tempfile.NamedTemporaryFile(delete=False).name+".zip"
+
+    db.dump_tables(tmpfilename, d, quiet=True)
+    assert(os.path.exists(tmpfilename))
+
+    # change the endlines
+    z = zipfile.ZipFile(tmpfilename)
+    z2 = zipfile.ZipFile(tmpfilename2, "w")
+
+    for fn in z.namelist():
+        data = z.read(fn)
+        data = "\r\n".join([x.rstrip("\r\n") for x in
+                            data.decode('utf-8').split("\n")])
+        z2.writestr(fn, data.encode("utf-8"))
+
+    z2.close()
+
+    d.create_db()
+    c.execute("SELECT COUNT(*) FROM DRAWINGS")
+    assert(0 == c.fetchone()[0])
+
+    try:
+        db.restore_tables(tmpfilename2, d, quiet=True)
+        c.execute("SELECT COUNT(*) FROM ITEMS")
+        assert(ci == c.fetchone()[0])
+        c.execute("SELECT COUNT(*) FROM ITEM_REVISIONS")
+        assert(cr == c.fetchone()[0])
+        c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+        assert(ca == c.fetchone()[0])
+        c.execute("SELECT COUNT(*) FROM DRAWINGS")
+        assert(cd == c.fetchone()[0])
+
+    finally:
+        if os.path.exists(tmpfilename):
+            os.unlink(tmpfilename)
+        if os.path.exists(tmpfilename2):
+            os.unlink(tmpfilename2)
+
+
 #------
 
 
