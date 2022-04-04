@@ -67,7 +67,7 @@ def _init_db():
         cfg.init()
         d = db.DB() #_connection_string)
     d.create_db()
-    return
+    return d
 
 def _get_cursor(d):
     cursor = d._conn.cursor()
