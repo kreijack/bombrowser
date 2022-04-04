@@ -23,6 +23,7 @@ import tempfile
 import os
 import zipfile
 from db import Transaction, ROCursor
+import cfg
 
 def _test_insert_items(c):
     codes = [('code123', "descr456", 0), ('code124', "descr457", 0),
@@ -63,8 +64,6 @@ def _init_db():
         d = db.DBSQLite(":memory:")
         db._globaDBInstance = d
     else:
-        import cfg
-        cfg.init()
         d = db.DB() #_connection_string)
     d.create_db()
     return d
@@ -534,7 +533,6 @@ def test_get_config():
         VALUES ('cfg.test_sect.test_key', 'test-value')
     """)
 
-    cfg.init()
     ret = d.get_config()
     cfg.update_cfg(ret)
 
@@ -2391,10 +2389,11 @@ def run_test(filters, modules, prefix=""):
             raise
 
 def main():
+    cfg.init()
     global _use_memory_sqlite
-    last = 1
-    for i in range(1, len(sys.argv)):
-        last = i + 1
+
+    i = 1
+    while i < len(sys.argv):
         if sys.argv[i] == "--create":
             d = getdb.DB()
             d.create_db()
@@ -2405,11 +2404,22 @@ def main():
             for name, obj in _list_tests(sys.modules[__name__]):
                 print(name)
             return
-        else:
-            last = i
-            break
+        elif sys.argv[i] == "--cfg":
+            i += 1
+            arg = sys.argv[i]
+            j = arg.find(".")
+            sec = arg[:j]
+            arg = arg[j+1:]
+            j = arg.find("=")
+            name = arg[:j]
+            arg = arg[j+1:]
+            cfg.update_cfg({sec:{name:arg}})
 
-    run_test(sys.argv[last:], sys.modules[__name__])
+        else:
+            break
+        i += 1
+
+    run_test(sys.argv[i:], sys.modules[__name__])
 
 if __name__ == "__main__":
     main()
