@@ -1914,9 +1914,11 @@ def restore_tables(nf, d, quiet=False):
         for table in d.list_main_tables():
             tablefn = table+".csv"
             with z.open(tablefn) as f:
-                columns = f.readline()[:-1].decode("utf-8").split("\t")
+                columns = f.readline().decode("utf-8").rstrip("\n\r").split("\t")
                 d.insert_table(table, columns,
-                    [list(map(xunescape, x[:-1].decode("utf-8").split("\t"))) for x in f.readlines()]
+                    [list(map(xunescape,
+                              x[:-1].decode("utf-8").rstrip("\n\r").split("\t")))
+                     for x in f.readlines()]
                 )
                 if not quiet:
                      print("\r%s                                 "%(table), end="")
