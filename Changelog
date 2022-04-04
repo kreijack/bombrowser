@@ -1,3 +1,9 @@
+2022-04-04: v0.4.6
+- add support for oracle db
+- increase the number of tests
+- introduce helper like Transaction/ROCursor to simplify the exception
+  handling during the SQL query/update/insert
+
 2022-03-28: v0.4.5
 - add export dialog in the asmgui window
 	- the dialog allows to select the BOM format
