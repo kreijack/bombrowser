@@ -408,11 +408,11 @@ class _BaseServer:
             colnames = [desc[0] for desc in c.description]
             return (colnames, c.fetchall())
 
-    def insert_table(self, tname, columns, data):
+    def _insert_table(self, tname, columns, data):
         with Transaction(self) as c:
-            self._insert_table(c, tname, columns, data)
+            self._insert_table_(c, tname, columns, data)
 
-    def _insert_table(self, c, tname, columns, data):
+    def _insert_table_(self, c, tname, columns, data):
         c.execute("DELETE FROM " + tname)
         c.execute("SELECT * FROM "+ tname)
         real_colnames = [desc[0] for desc in c.description]
@@ -1625,8 +1625,7 @@ class DBSQLServer(_BaseServer):
     def __init__(self, path=None):
         _BaseServer.__init__(self, path)
 
-    def insert_table(self, tname, columns, data):
-
+    def _insert_table(self, tname, columns, data):
         cs = columns[:]
         while "key" in cs:
             i = cs.index("key")
@@ -1634,7 +1633,7 @@ class DBSQLServer(_BaseServer):
 
         with Transaction(self) as c:
             c.execute("SET IDENTITY_INSERT " + tname +" ON" )
-            _BaseServer.insert_table(self, tname, cs, data)
+            self._insert_table_(c, tname, cs, data)
             c.execute("SET IDENTITY_INSERT " + tname +" OFF" )
 
     def _begin(self, c):
@@ -1859,9 +1858,9 @@ class DBPG(_BaseServer):
     def _begin(self, c):
         c.execute("BEGIN")
 
-    def insert_table(self, tname, columns, data):
+    def _insert_table(self, tname, columns, data):
         with Transaction(self) as c:
-            _BaseServer._insert_table(self, c, tname, columns, data)
+            self._insert_table_(c, tname, columns, data)
 
             c.execute("SELECT COUNT(*) FROM " + tname)
             n = c.fetchone()[0]
@@ -2020,7 +2019,7 @@ def restore_tables(nf, d, quiet=False):
             tablefn = table+".csv"
             with z.open(tablefn) as f:
                 columns = f.readline().decode("utf-8").rstrip("\n\r").split("\t")
-                d.insert_table(table, columns,
+                d._insert_table(table, columns,
                     [list(map(xunescape,
                               x[:-1].decode("utf-8").rstrip("\n\r").split("\t")))
                      for x in f.readlines()]
