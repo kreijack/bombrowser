@@ -1465,6 +1465,33 @@ def test_update_by_rid2_with_children():
     for i in range(db.gavals_count):
         assert(children[0][7+i] == gavals[i])
 
+def test_update_by_rid2_with_drawings():
+
+    d, c = _create_db()
+    code = "TEST-CODE"
+    code_id, dates = _create_code_revision(c, code, 1)
+    d._commit(c)
+
+    rid = dates[0][0]
+
+    gvals = ["2-new gval %d"%(i) for i in range(db.gvals_count)]
+
+    d.update_by_rid2(rid, "new descr", "new ver", "new-unit",
+            gvals, drawings = [
+                ("filea", "dira/filea"),
+                ("fileb", "dirb/fileb"),
+            ]
+    )
+
+    dwgs = d.get_drawings_by_code_id(rid)
+    assert(len(dwgs) == 2)
+
+    dwgs.sort()
+    assert("filea" in dwgs[0][0])
+    assert("fileb" in dwgs[1][0])
+    assert("dira/filea" in dwgs[0][1])
+    assert("dirb/fileb" in dwgs[1][1])
+
 def _create_data_for_search_revisions(c, d):
     code1 = "TEST-CODE-1"
     code2 = "TEST-CODE-2"
