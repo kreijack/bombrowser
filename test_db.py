@@ -2116,6 +2116,27 @@ def test_context_manager_many_fail_constraint():
         c.execute("SELECT COUNT(*) FROM items")
         assert(c.fetchone()[0] == 0)
 
+def test_context_manager_many_fail_constraint2():
+    d = _init_db()
+
+    try:
+        with Transaction(d) as c:
+            c.executemany("INSERT INTO items (code) VALUES (?)",[
+                ('ab',),
+                ('cd',),
+            ])
+            c.executemany("INSERT INTO items (code) VALUES (?)",[
+                ('ab',),
+            ])
+    except d._mod.IntegrityError:
+        pass
+    else:
+        assert(False)
+
+    with ROCursor(d) as c:
+        c.execute("SELECT COUNT(*) FROM items")
+        assert(c.fetchone()[0] == 0)
+
 def test_context_manager_constraint_fail():
     d = _init_db()
 
