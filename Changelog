@@ -1,3 +1,9 @@
+2022-04-04: v0.4.5.1
+- bugfix: handle different endline encoding during the db restore
+- bugfix: ignore the error if it is not possible to get
+          database_props[ver] value
+- bugfix: add a missed import QMessageBox
+
 2022-03-28: v0.4.5
 - add export dialog in the asmgui window
 	- the dialog allows to select the BOM format
