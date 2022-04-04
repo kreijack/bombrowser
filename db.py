@@ -89,16 +89,17 @@ class _BaseServer:
         self._path = path
         self._conn = None
 
+        self._ver = "empty"
         if "database_props" in self._get_tables_list():
-            c = self._get_cursor()
-            self._sqlex(c, """SELECT value FROM database_props WHERE name='ver' """)
-            self._ver = c.fetchone()[0]
+            try:
+                c = self._get_cursor()
+                self._sqlex(c, """SELECT value FROM database_props WHERE name='ver' """)
+                self._ver = c.fetchone()[0]
+            except:
+                return
 
             # for now v0.3 and v0.4 are equal
             assert(self._ver == "0.4" or self._ver == "0.3")
-
-        else:
-            self._ver = "empty"
 
     def _get_cursor(self):
         if self._conn is None:
