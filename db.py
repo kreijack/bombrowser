@@ -90,13 +90,20 @@ class Transaction:
         self._to_commit = False
 
     def execute(self, query, *args):
-        return self._db._sqlex(self._cursor, query, *args)
+        r = self._db._sqlex(self._cursor, query, *args)
+        self.description = self._cursor.description
+        return r
     def executemany(self, query, *args):
-        return self._db._sqlexm(self._cursor, query, *args)
+        r = self._db._sqlexm(self._cursor, query, *args)
+        self.description = self._cursor.description
+        return r
     def fetchone(self):
         return self._cursor.fetchone()
     def fetchall(self):
         return self._cursor.fetchall()
+
+    def tables(self):
+        return self._cursor.tables()
 
     def commit(self):
         self._to_commit = False
@@ -118,6 +125,39 @@ class Transaction:
             self.commit()
         else:
             self.rollback()
+
+class ROCursor:
+    def __init__(self, d):
+        self._db = d
+        self._cursor = None
+
+    def _check_query(self, query):
+        assert(not "INSERT" in query)
+        assert(not "UPDATE" in query)
+        assert(not "DELETE" in query)
+        assert(not "DROP" in query)
+
+    def execute(self, query, *args):
+        self._check_query(query)
+        r = self._db._sqlex(self._cursor, query, *args)
+        self.description = self._cursor.description
+        return r
+    def executemany(self, query, *args):
+        self._check_query(query)
+        r = self._db._sqlexm(self._cursor, query, *args)
+        self.description = self._cursor.description
+        return r
+    def fetchone(self):
+        return self._cursor.fetchone()
+    def fetchall(self):
+        return self._cursor.fetchall()
+
+    def __enter__(self):
+        self._cursor = self._db._get_cursor()
+        return self
+
+    def __exit__(self, type_, value, traceback):
+        pass
 
 class _BaseServer:
 
@@ -205,10 +245,6 @@ class _BaseServer:
 
     def _open(self, connection_string):
         raise DBException("Cannot implemented")
-
-    def _get_tables_list(self):
-        cursor = self._get_cursor()
-        return [row.table_name for row in cursor.tables()]
 
     def _get_db_v0_4(self):
         stms = """
@@ -357,50 +393,50 @@ class _BaseServer:
         return stms
 
     def create_db(self):
-
         stms = self._get_db_v0_4()
-        c = self._get_cursor()
-        for s in stms.split(";"):
-            s = s.strip()
-            if len(s) == 0:
-                continue
-            self._sqlex(c, s)
-
-        self._conn.commit()
+        with Transaction(self) as c:
+            for s in stms.split(";"):
+                s = s.strip()
+                if len(s) == 0:
+                    continue
+                c.execute(s)
 
     def dump_table(self, tname):
-        c = self._get_cursor()
-        self._sqlex(c, "SELECT * FROM "+ tname)
-        colnames = [desc[0] for desc in c.description]
-        return (colnames, c.fetchall())
+        with ROCursor(self) as c:
+            c.execute("SELECT * FROM "+ tname)
+            colnames = [desc[0] for desc in c.description]
+            return (colnames, c.fetchall())
 
     def insert_table(self, tname, columns, data):
         with Transaction(self) as c:
-            c.execute("DELETE FROM " + tname)
-            c.execute("SELECT * FROM "+ tname)
-            real_colnames = [desc[0] for desc in c.description]
-            c.fetchall()
+            self._insert_table(c, tname, columns, data)
 
-            # handle the case where the columns from the backup are
-            # differents to the databases ones (i.e. different gaval values)
-            final_colnames = []
-            final_colnames_idx = []
-            for col in real_colnames:
-                if not col in columns:
-                    continue
-                i = columns.index(col)
-                assert(i >= 0)
-                final_colnames.append(col)
-                final_colnames_idx.append(i)
+    def _insert_table(self, c, tname, columns, data):
+        c.execute("DELETE FROM " + tname)
+        c.execute("SELECT * FROM "+ tname)
+        real_colnames = [desc[0] for desc in c.description]
+        c.fetchall()
 
-            for row in data:
-                row2 = []
-                for idx in  final_colnames_idx:
-                    row2.append(row[idx])
-                c.execute(("INSERT INTO " + tname +
-                    " (" + ",".join(final_colnames) + ") VALUES " +
-                    " (" + ",".join(["?" for i in final_colnames]) + ")"),
-                    row2)
+        # handle the case where the columns from the backup are
+        # differents to the databases ones (i.e. different gaval values)
+        final_colnames = []
+        final_colnames_idx = []
+        for col in real_colnames:
+            if not col in columns:
+                continue
+            i = columns.index(col)
+            assert(i >= 0)
+            final_colnames.append(col)
+            final_colnames_idx.append(i)
+
+        for row in data:
+            row2 = []
+            for idx in  final_colnames_idx:
+                row2.append(row[idx])
+            c.execute(("INSERT INTO " + tname +
+                " (" + ",".join(final_colnames) + ") VALUES " +
+                " (" + ",".join(["?" for i in final_colnames]) + ")"),
+                row2)
 
     def list_main_tables(self):
         # maintains in the correct order by reference
@@ -413,14 +449,13 @@ class _BaseServer:
             yield (i, *self.dump_table(i))
 
     def get_code(self, id_code, date_from_days):
-        return self._get_code(self._get_cursor(), id_code, date_from_days)
+        with ROCursor(self) as c:
+            return self._get_code(c, id_code, date_from_days)
 
     def _get_code(self, c, id_code, date_from_days):
-
-
         gval_query = ", ".join(["r.gval%d"%(i+1) for i in range(gvals_count)])
 
-        self._sqlex(c, """
+        c.execute("""
             SELECT i.code, r.descr, r.ver, r.iter, r.default_unit,
                    r.date_from_days, r.date_to_days, r.id,
                    """ + gval_query + """
@@ -469,7 +504,8 @@ class _BaseServer:
         return data
 
     def get_code_by_rid(self, rid):
-        return self._get_code_by_rid(self._get_cursor(), rid)
+        with ROCursor(self) as c:
+            return self._get_code_by_rid(c, rid)
 
     def _get_code_by_rid(self, c, rid):
 
@@ -507,7 +543,6 @@ class _BaseServer:
 
         data["rid"] = rid
 
-
         data["properties"] = dict()
 
         self._sqlex(c, """
@@ -524,9 +559,8 @@ class _BaseServer:
         return data
 
     def get_codes_by_code(self, code):
-        c = self._get_cursor()
-
-        self._sqlex(c, """
+        with ROCursor(self) as c:
+            c.execute("""
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
             FROM (
                     SELECT i.id, MAX(iter) AS iter
@@ -542,15 +576,15 @@ class _BaseServer:
                 ON r.code_id = i.id
             ORDER BY r.iter DESC
             """, (code,))
-        res = c.fetchall()
-        if not res:
-            return None
-        else:
-            return res
+            res = c.fetchall()
+            if not res:
+                return None
+            else:
+                return res
 
     def get_codes_by_like_code(self, code):
-        c = self._get_cursor()
-        self._sqlex(c, """
+        with ROCursor(self) as c:
+            c.execute("""
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
             FROM (
                     SELECT i.id, MAX(iter) AS iter
@@ -566,15 +600,15 @@ class _BaseServer:
                 ON r.code_id = i.id
             ORDER BY i.code, r.iter DESC
             """, (code,))
-        res = c.fetchall()
-        if not res:
-            return None
-        else:
-            return res
+            res = c.fetchall()
+            if not res:
+                return None
+            else:
+                return res
 
     def get_codes_by_like_descr(self, descr):
-        c = self._get_cursor()
-        self._sqlex(c, """
+        with ROCursor(self) as c:
+            c.execute("""
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
             FROM (
                     SELECT i.id, MAX(iter) AS iter
@@ -591,15 +625,15 @@ class _BaseServer:
             ORDER BY i.code, r.iter DESC
 
             """, (descr, ))
-        res = c.fetchall()
-        if not res:
-            return None
-        else:
-            return res
+            res = c.fetchall()
+            if not res:
+                return None
+            else:
+                return res
 
     def get_codes_by_like_code_and_descr(self, code, descr):
-        c = self._get_cursor()
-        self._sqlex(c, """
+        with ROCursor(self) as c:
+            c.execute("""
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
             FROM (
                     SELECT i.id, MAX(iter) AS iter
@@ -615,15 +649,15 @@ class _BaseServer:
                 ON r.code_id = i.id
             ORDER BY i.code, r.iter DESC
             """, (code, descr))
-        res = c.fetchall()
-        if not res:
-            return None
-        else:
-            return res
+            res = c.fetchall()
+            if not res:
+                return None
+            else:
+                return res
 
     def get_dates_by_code_id3(self, id_code):
-        c = self._get_cursor()
-        self._sqlex(c, """SELECT DISTINCT i.code, r.descr,
+        with ROCursor(self) as c:
+            c.execute("""SELECT DISTINCT i.code, r.descr,
                                      r.date_from_days, r.date_to_days,
                                      r.id, r.ver, r.iter
                      FROM  item_revisions AS r
@@ -632,14 +666,14 @@ class _BaseServer:
                      ORDER BY        r.date_from_days DESC
                   """, (id_code, ))
 
-        return list(c.fetchall())
+            return list(c.fetchall())
 
     def get_parent_dates_range_by_code_id(self, id_code):
-        c = self._get_cursor()
-        return self._get_parent_dates_range_by_code_id(c, id_code)
+        with ROCursor(self) as c:
+            return self._get_parent_dates_range_by_code_id(c, id_code)
 
     def _get_parent_dates_range_by_code_id(self, c, id_code):
-        self._sqlex(c, """
+        c.execute("""
                 SELECT r.code_id AS pid,
                        MIN(r.date_from_days) AS dfrom,
                        MAX(r.date_to_days) AS dto
@@ -653,8 +687,8 @@ class _BaseServer:
         return list(c.fetchall())
 
     def get_children_dates_range_by_rid(self, rid):
-        c = self._get_cursor()
-        return self._get_children_dates_range_by_rid(c, rid)
+        with ROCursor(self) as c:
+            return self._get_children_dates_range_by_rid(c, rid)
 
     def _get_children_dates_range_by_rid(self, c, rid):
         self._sqlex(c, """
@@ -671,32 +705,31 @@ class _BaseServer:
         return list(c.fetchall())
 
     def is_assembly(self, id_code):
-        c = self._get_cursor()
-        self._sqlex(c, """SELECT COUNT(*)
+        with ROCursor(self) as c:
+            c.execute("""SELECT COUNT(*)
                      FROM assemblies AS a
                      LEFT JOIN item_revisions AS r
                        ON r.id = a.revision_id
                      WHERE  r.code_id = ?
                   """, (id_code, ))
 
-        return c.fetchone()[0] > 0
+            return c.fetchone()[0] > 0
 
     def is_child(self, id_code):
-        c = self._get_cursor()
-        self._sqlex(c, """SELECT COUNT(*)
+        with ROCursor(self) as c:
+            c.execute("""SELECT COUNT(*)
                      FROM assemblies AS a
                      WHERE  child_id = ?
                   """, (id_code, ))
 
-        return c.fetchone()[0] > 0
+            return c.fetchone()[0] > 0
 
     def get_bom_by_code_id3(self, code_id0, date_from_days_ref):
 
         data = dict()
 
-        c = self._get_cursor()
-
-        self._sqlex(c, """SELECT i.code, r.date_from_days, r.date_to_days, r.id
+        with ROCursor(self) as c:
+            c.execute("""SELECT i.code, r.date_from_days, r.date_to_days, r.id
                          FROM item_revisions AS r
                          LEFT JOIN items AS i
                            ON i.id = r.code_id
@@ -707,74 +740,74 @@ class _BaseServer:
                      """,
                      (code_id0, date_from_days_ref, date_from_days_ref) )
 
-        data2 = list(c.fetchall())
+            data2 = list(c.fetchall())
 
-        (code0, date_from_days, date_to_days, rid) = data2[0]
-        date_from_days0 = date_from_days
-        todo = [rid]
-        done = []
+            (code0, date_from_days, date_to_days, rid) = data2[0]
+            date_from_days0 = date_from_days
+            todo = [rid]
+            done = []
 
-        while len(todo):
-            rid = todo.pop()
+            while len(todo):
+                rid = todo.pop()
 
-            done.append(rid)
-            d2 = self._get_code_by_rid(c, rid)
-            d = d2["properties"]
-            d2.pop("properties")
-            d.update(d2)
-            d["deps"] = dict()
+                done.append(rid)
+                d2 = self._get_code_by_rid(c, rid)
+                d = d2["properties"]
+                d2.pop("properties")
+                d.update(d2)
+                d["deps"] = dict()
 
-            gavals = ""
-            for i in range(gavals_count):
-                gavals += ", a.gaval%d"%(i+1)
-            self._sqlex(c, """
-                SELECT a.unit, a.qty, a.each,
-                        rc.iter, a.child_id, rc.code_id, rc.date_from_days,
-                        rc.date_to_days, a.ref,
-                        rc.id %s
-                FROM assemblies AS a
-                LEFT JOIN item_revisions AS rc
-                  ON a.child_id = rc.code_id
-                WHERE   a.revision_id = ?
-                  AND   rc.date_from_days <= ?
-                  AND   ? <= rc.date_to_days
-                ORDER BY a.child_id
-                """%(gavals), (rid, date_from_days_ref, date_from_days_ref))
-
-            children = c.fetchall()
-
-            if children is None or len(children) == 0:
-                data[d["id"]] = d
-                continue
-
-            for line in children:
-                (unit, qty, each, it, child_id,parent_id,
-                 date_from_days_, date_to_days_, ref, crid) = line[:10]
-                gavalues = line[10:]
-                d["deps"][child_id] = {
-                    "code_id": child_id,
-                    "unit": unit,
-                    "qty": qty,
-                    "each": each,
-                    "iter": it,
-                    "ref": ref,
-                }
+                gavals = ""
                 for i in range(gavals_count):
-                    d["deps"][child_id]["gaval%d"%(i+1)] = gavalues[i]
+                    gavals += ", a.gaval%d"%(i+1)
+                c.execute("""
+                    SELECT a.unit, a.qty, a.each,
+                            rc.iter, a.child_id, rc.code_id, rc.date_from_days,
+                            rc.date_to_days, a.ref,
+                            rc.id %s
+                    FROM assemblies AS a
+                    LEFT JOIN item_revisions AS rc
+                      ON a.child_id = rc.code_id
+                    WHERE   a.revision_id = ?
+                      AND   rc.date_from_days <= ?
+                      AND   ? <= rc.date_to_days
+                    ORDER BY a.child_id
+                    """%(gavals), (rid, date_from_days_ref, date_from_days_ref))
 
-                if not crid in done:
-                    todo.append(crid)
+                children = c.fetchall()
 
-            data[d["id"]] = d
+                if children is None or len(children) == 0:
+                    data[d["id"]] = d
+                    continue
 
-        #mindt = "N/A"
-        #for k in data[code_id0]["deps"]:
-        #    cid = data[code_id0]["deps"][k]["code_id"]
-        #    if mindt == "N/A" or mindt > data[cid]["date_to"]:
-        #        mindt = data[cid]["date_to"]
-        #data[code_id0]["date_to"] = mindt
+                for line in children:
+                    (unit, qty, each, it, child_id,parent_id,
+                     date_from_days_, date_to_days_, ref, crid) = line[:10]
+                    gavalues = line[10:]
+                    d["deps"][child_id] = {
+                        "code_id": child_id,
+                        "unit": unit,
+                        "qty": qty,
+                        "each": each,
+                        "iter": it,
+                        "ref": ref,
+                    }
+                    for i in range(gavals_count):
+                        d["deps"][child_id]["gaval%d"%(i+1)] = gavalues[i]
 
-        return (code_id0, data)
+                    if not crid in done:
+                        todo.append(crid)
+
+                data[d["id"]] = d
+
+            #mindt = "N/A"
+            #for k in data[code_id0]["deps"]:
+            #    cid = data[code_id0]["deps"][k]["code_id"]
+            #    if mindt == "N/A" or mindt > data[cid]["date_to"]:
+            #        mindt = data[cid]["date_to"]
+            #data[code_id0]["date_to"] = mindt
+
+            return (code_id0, data)
 
     def _get_parents(self, c, id_code, date_from_days, date_to_days):
         self._sqlex(c, """
@@ -822,132 +855,130 @@ class _BaseServer:
             return res
 
     def get_where_used_from_id_code(self, id_code, valid=False):
-        c = self._get_cursor()
+        with ROCursor(self) as c:
+            c.execute("""
+                SELECT code FROM items WHERE id=?
+            """, (id_code,))
+            code0 = c.fetchone()[0]
 
-        self._sqlex(c, """
-            SELECT code FROM items WHERE id=?
-        """, (id_code,))
-        code0 = c.fetchone()[0]
+            self._sqlex(c, """
+                SELECT MIN(date_from_days)
+                FROM item_revisions
+                WHERE code_id = ?
+            """, (id_code, ))
+            (xdate_from_days0, ) = c.fetchone()
 
-        self._sqlex(c, """
-            SELECT MIN(date_from_days)
-            FROM item_revisions
-            WHERE code_id = ?
-        """, (id_code, ))
-        (xdate_from_days0, ) = c.fetchone()
+            self._sqlex(c, """
+                SELECT MAX(date_to_days)
+                FROM item_revisions
+                WHERE code_id = ?
+            """, (id_code,))
+            (xdate_to_days0, ) = c.fetchone()
 
-        self._sqlex(c, """
-            SELECT MAX(date_to_days)
-            FROM item_revisions
-            WHERE code_id = ?
-        """, (id_code,))
-        (xdate_to_days0, ) = c.fetchone()
+            todo = [(id_code, xdate_from_days0, xdate_to_days0 )]
+            data = dict()
+            done = set()
 
-        todo = [(id_code, xdate_from_days0, xdate_to_days0 )]
-        data = dict()
-        done = set()
+            while len(todo):
+                (id_, xdate_from_days, xdate_to_days) = todo.pop()
+                done.add((id_, xdate_from_days))
 
-        while len(todo):
-            (id_, xdate_from_days, xdate_to_days) = todo.pop()
-            done.add((id_, xdate_from_days))
+                d2 = self._get_code(c, id_, xdate_from_days)
+                d = d2["properties"]
+                d2.pop("properties")
+                d.update(d2)
+                d["deps"] = dict()
 
-            d2 = self._get_code(c, id_, xdate_from_days)
-            d = d2["properties"]
-            d2.pop("properties")
-            d.update(d2)
-            d["deps"] = dict()
-
-            if valid:
-                parents = self._get_valid_parents(c, id_)
-            else:
-                parents = self._get_parents(c, id_, xdate_from_days, xdate_to_days)
-            if parents is None or len(parents) == 0:
-                data[(d["code"], xdate_from_days)] = d
-                continue
-
-            for (unit, cc, def_unit, qty, each, it,
-                    parent_id, date_from_days_, date_to_days_) in parents:
-                if cc == code0:
+                if valid:
+                    parents = self._get_valid_parents(c, id_)
+                else:
+                    parents = self._get_parents(c, id_, xdate_from_days, xdate_to_days)
+                if parents is None or len(parents) == 0:
+                    data[(d["code"], xdate_from_days)] = d
                     continue
-                if unit is None:
-                   unit = def_unit
-                d["deps"][(cc, date_from_days_)] = {
-                    "code": cc,
-                    "unit": unit,
-                    "qty": qty,
-                    "each": each,
-                    "iter": it,
-                    "ref": "",
-                }
 
-                if not (parent_id, date_from_days_) in done:
-                    todo.append((parent_id, date_from_days_, date_to_days_))
+                for (unit, cc, def_unit, qty, each, it,
+                        parent_id, date_from_days_, date_to_days_) in parents:
+                    if cc == code0:
+                        continue
+                    if unit is None:
+                       unit = def_unit
+                    d["deps"][(cc, date_from_days_)] = {
+                        "code": cc,
+                        "unit": unit,
+                        "qty": qty,
+                        "each": each,
+                        "iter": it,
+                        "ref": "",
+                    }
 
-            data[(d["code"], xdate_from_days)] = d
+                    if not (parent_id, date_from_days_) in done:
+                        todo.append((parent_id, date_from_days_, date_to_days_))
 
-        top = (code0, xdate_from_days0)
-        return (top, data)
+                data[(d["code"], xdate_from_days)] = d
+
+            top = (code0, xdate_from_days0)
+            return (top, data)
 
     def get_drawings_by_code_id(self, rev_id):
-        c = self._get_cursor()
-        self._sqlex(c, """
-            SELECT filename, fullpath
-            FROM drawings
-            WHERE revision_id = ?
-            """, (rev_id,))
+        with ROCursor(self) as c:
+            c.execute("""
+                SELECT filename, fullpath
+                FROM drawings
+                WHERE revision_id = ?
+                """, (rev_id,))
 
-        res = c.fetchall()
-        if not res:
-            return []
-        else:
-            return res
+            res = c.fetchall()
+            if not res:
+                return []
+            else:
+                return res
 
     def get_bom_dates_by_code_id(self, code_id):
         sdates = set()
         done = set()
         todo = [code_id]
 
-        c = self._get_cursor()
+        with ROCursor(self) as c:
+            c.execute("""
+                SELECT MIN(date_from_days)
+                FROM item_revisions
+                WHERE code_id = ?
+                """, (code_id,))
 
-        self._sqlex(c, """
-            SELECT MIN(date_from_days)
-            FROM item_revisions
-            WHERE code_id = ?
-            """, (code_id,))
+            date_from_min = c.fetchone()[0]
+            while len(todo):
 
-        date_from_min = c.fetchone()[0]
-        while len(todo):
+                cid = todo.pop()
+                done.add(cid)
+                self._sqlex(c, """
+                        SELECT r.date_from_days
+                        FROM item_revisions AS r
+                        WHERE r.code_id = ?
+                          AND date_from_days >= ?
+                    """, (cid, date_from_min))
 
-            cid = todo.pop()
-            done.add(cid)
-            self._sqlex(c, """
-                    SELECT r.date_from_days
-                    FROM item_revisions AS r
-                    WHERE r.code_id = ?
-                      AND date_from_days >= ?
-                """, (cid, date_from_min))
+                for (date_from_days,) in c.fetchall():
+                    if not date_from_days in sdates:
+                        sdates.add(date_from_days)
 
-            for (date_from_days,) in c.fetchall():
-                if not date_from_days in sdates:
-                    sdates.add(date_from_days)
+                self._sqlex(c, """
+                        SELECT DISTINCT child_id
+                        FROM assemblies
+                        WHERE revision_id IN (
+                            SELECT id
+                            FROM item_revisions
+                            WHERE code_id = ?
+                        )
+                    """, (cid,))
 
-            self._sqlex(c, """
-                    SELECT DISTINCT child_id
-                    FROM assemblies
-                    WHERE revision_id IN (
-                        SELECT id
-                        FROM item_revisions
-                        WHERE code_id = ?
-                    )
-                """, (cid,))
+                l = set([x[0] for x in c.fetchall()])
+                l = l.difference(done)
+                todo += list(l)
 
-            l = set([x[0] for x in c.fetchall()])
-            l = l.difference(done)
-            todo += list(l)
-
-        dates = list(sdates)
-        dates.sort(reverse=True)
-        return dates
+            dates = list(sdates)
+            dates.sort(reverse=True)
+            return dates
 
     def copy_code(self, new_code, rid, descr, rev, copy_props=True,
                   copy_docs=True, new_date_from_days=None,
@@ -1161,27 +1192,27 @@ class _BaseServer:
         return new_rid
 
     def get_children_by_rid(self, rid):
-        c = self._get_cursor()
-        gval_query = "".join([",a.gaval%d"%(i+1) for i in range(gavals_count)])
-        self._sqlex(c, """
-            SELECT a.child_id, i.code, r2.descr, a.qty, a.each, a.unit,
-                   a.ref %s
-            FROM assemblies AS a
-            LEFT JOIN (
-                SELECT code_id, MAX(iter) AS iter
-                FROM item_revisions
-                GROUP BY code_id
-            ) AS r
-              ON r.code_id = a.child_id
-            LEFT JOIN items AS i
-              ON a.child_id = i.id
-            LEFT JOIN item_revisions AS r2
-              ON r2.code_id = a.child_id AND r2.iter = r.iter
-            WHERE a.revision_id = ?
-            ORDER BY a.id
-        """%(gval_query), (rid,))
+        with ROCursor(self) as c:
+            gval_query = "".join([",a.gaval%d"%(i+1) for i in range(gavals_count)])
+            c.execute("""
+                SELECT a.child_id, i.code, r2.descr, a.qty, a.each, a.unit,
+                       a.ref %s
+                FROM assemblies AS a
+                LEFT JOIN (
+                    SELECT code_id, MAX(iter) AS iter
+                    FROM item_revisions
+                    GROUP BY code_id
+                ) AS r
+                  ON r.code_id = a.child_id
+                LEFT JOIN items AS i
+                  ON a.child_id = i.id
+                LEFT JOIN item_revisions AS r2
+                  ON r2.code_id = a.child_id AND r2.iter = r.iter
+                WHERE a.revision_id = ?
+                ORDER BY a.id
+            """%(gval_query), (rid,))
 
-        return c.fetchall()
+            return c.fetchall()
 
     def update_by_rid2(self, rid, descr, ver, default_unit,
             gvals, drawings=[], children=[]):
@@ -1346,22 +1377,22 @@ class _BaseServer:
             return dict()
 
         ret = dict()
-        c = self._get_cursor()
-        self._sqlex(c, """
-            SELECT name, value FROM database_props
-        """)
-        for (key, value) in c.fetchall():
-            if not key.startswith("cfg."):
-                continue
-            key = key[4:] # skip cfg.
-            key1,key2 = key.split(".")
+        with ROCursor(self) as c:
+            c.execute("""
+                SELECT name, value FROM database_props
+            """)
+            for (key, value) in c.fetchall():
+                if not key.startswith("cfg."):
+                    continue
+                key = key[4:] # skip cfg.
+                key1,key2 = key.split(".")
 
-            if not key1 in ret:
-                ret[key1] = dict()
+                if not key1 in ret:
+                    ret[key1] = dict()
 
-            ret[key1][key2] = value
+                ret[key1][key2] = value
 
-        return ret
+            return ret
 
     def delete_code(self, code_id):
         with Transaction(self) as c:
@@ -1580,11 +1611,10 @@ class _BaseServer:
 
         #print("query=", query)
         #print("args=", args)
-        c = self._get_cursor()
+        with ROCursor(self) as c:
+            c.execute(query, args)
 
-        self._sqlex(c, query, args)
-
-        return c.fetchall()
+            return c.fetchall()
 
 
 import sqlite3
@@ -1601,10 +1631,10 @@ class DBSQLServer(_BaseServer):
             i = cs.index("key")
             cs[i] = "[key]"
 
-        c = self._get_cursor()
-        self._sqlex(c, "SET IDENTITY_INSERT " + tname +" ON" )
-        _BaseServer.insert_table(self, tname, cs, data)
-        self._sqlex(c, "SET IDENTITY_INSERT " + tname +" OFF" )
+        with Transaction(self) as c:
+            c.execute("SET IDENTITY_INSERT " + tname +" ON" )
+            _BaseServer.insert_table(self, tname, cs, data)
+            c.execute("SET IDENTITY_INSERT " + tname +" OFF" )
 
     def _begin(self, c):
         pass
@@ -1641,22 +1671,13 @@ class DBSQLServer(_BaseServer):
         self._mod = pyodbc
         self._conn = pyodbc.connect(connection_string)
 
+    def _get_tables_list(self):
+        cursor = self._get_cursor()
+        return [row.table_name for row in cursor.tables()]
 
 class DBOracleServer(_BaseServer):
     def __init__(self, path=None):
         _BaseServer.__init__(self, path)
-
-    def insert_table___(self, tname, columns, data):
-
-        cs = columns[:]
-        while "key" in cs:
-            i = cs.index("key")
-            cs[i] = "[key]"
-
-        c = self._get_cursor()
-        self._sqlex(c, "SET IDENTITY_INSERT " + tname +" ON" )
-        _BaseServer.insert_table(self, tname, cs, data)
-        self._sqlex(c, "SET IDENTITY_INSERT " + tname +" OFF" )
 
     def _begin(self, c):
         pass
@@ -1736,29 +1757,27 @@ class DBOracleServer(_BaseServer):
     def create_db(self):
 
         stms = self._get_db_v0_4()
-        c = self._get_cursor()
+        with Transaction(self) as c:
 
-        while len(stms):
-            stms = stms.strip()
-            if stms.upper().startswith("DECLARE"):
-                i = stms.upper().find("END")
-                s = stms[:i+3] + ";"
-                stms = stms[i+3:]
-                self._sqlex(c, s)
-            elif stms.upper().startswith(";"):
-                stms = stms[1:]
-                continue
-            else:
-                i = stms.find(";")
-                if i >= 0:
-                    s = stms[:i]
-                    stms = stms[i+1:]
+            while len(stms):
+                stms = stms.strip()
+                if stms.upper().startswith("DECLARE"):
+                    i = stms.upper().find("END")
+                    s = stms[:i+3] + ";"
+                    stms = stms[i+3:]
+                    self._sqlex(c, s)
+                elif stms.upper().startswith(";"):
+                    stms = stms[1:]
+                    continue
                 else:
-                    s = stms
-                    stms = ""
-                self._sqlex(c, s)
-
-        self._conn.commit()
+                    i = stms.find(";")
+                    if i >= 0:
+                        s = stms[:i]
+                        stms = stms[i+1:]
+                    else:
+                        s = stms
+                        stms = ""
+                    c.execute(s)
 
     def _open(self, connection_string):
         import cx_Oracle
@@ -1782,13 +1801,13 @@ class DBOracleServer(_BaseServer):
         self._conn = cx_Oracle.connect(user, pwd, host)
 
     def _get_tables_list(self):
-        c = self._get_cursor()
-        self._sqlex(c, """
-                SELECT table_name
-                FROM user_tables
-            """)
+        with ROCursor(self) as c:
+            c.execute("""
+                    SELECT table_name
+                    FROM user_tables
+                """)
 
-        return [x[0].lower() for x in c.fetchall()]
+            return [x[0].lower() for x in c.fetchall()]
 
 
 class DBSQLite(_BaseServer):
@@ -1820,9 +1839,9 @@ class DBSQLite(_BaseServer):
         return stms
 
     def _get_tables_list(self):
-        c = self._get_cursor()
-        self._sqlex(c, "SELECT name FROM sqlite_master WHERE type='table';")
-        return [x[0] for x in c.fetchall()]
+        with ROCursor(self) as c:
+            c.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            return [x[0] for x in c.fetchall()]
 
 
 class DBPG(_BaseServer):
@@ -1840,17 +1859,17 @@ class DBPG(_BaseServer):
         c.execute("BEGIN")
 
     def insert_table(self, tname, columns, data):
-        _BaseServer.insert_table(self, tname, columns, data)
+        with Transaction(self) as c:
+            _BaseServer._insert_table(self, c, tname, columns, data)
 
-        c = self._get_cursor()
-        self._sqlex(c, "SELECT COUNT(*) FROM " + tname)
-        n = c.fetchone()[0]
-        if n > 0:
-            self._sqlex(c, "SELECT MAX(id) FROM " + tname)
-            n = c.fetchone()[0] + 10
-        else:
-            n = 100
-        self._sqlex(c, "ALTER SEQUENCE " + tname + "_id_seq RESTART WITH %d"%(n) )
+            c.execute("SELECT COUNT(*) FROM " + tname)
+            n = c.fetchone()[0]
+            if n > 0:
+                self._sqlex(c, "SELECT MAX(id) FROM " + tname)
+                n = c.fetchone()[0] + 10
+            else:
+                n = 100
+            c.execute("ALTER SEQUENCE " + tname + "_id_seq RESTART WITH %d"%(n) )
 
     def _sql_translate(self, s):
         def process(l):
@@ -1870,56 +1889,56 @@ class DBPG(_BaseServer):
         self._conn.set_client_encoding("UNICODE")
 
     def _get_tables_list(self):
-        c = self._get_cursor()
-        self._sqlex(c, """
+        with ROCursor(self) as c:
+            c.execute("""
             SELECT tablename
                 FROM pg_catalog.pg_tables
                 WHERE schemaname != 'pg_catalog' AND
                     schemaname != 'information_schema';
             """)
 
-        return [x[0] for x in c.fetchall()]
+            return [x[0] for x in c.fetchall()]
 
     def get_bom_dates_by_code_id(self, code_id):
         sdates = set()
         done = set()
         todo = [code_id]
 
-        c = self._get_cursor()
+        with ROCursor(self) as c:
 
-        self._sqlex(c, """
-            SELECT MIN(date_from_days)
-            FROM item_revisions
-            WHERE code_id = ?
-            """, (code_id,))
+            c.execute("""
+                SELECT MIN(date_from_days)
+                FROM item_revisions
+                WHERE code_id = ?
+                """, (code_id,))
 
-        date_from_min = c.fetchone()[0]
+            date_from_min = c.fetchone()[0]
 
-        self._sqlex(c, """
+            c.execute("""
 
-            SELECT DISTINCT r.date_from_days
-            FROM item_revisions AS r
-            WHERE r.code_id IN (
+                SELECT DISTINCT r.date_from_days
+                FROM item_revisions AS r
+                WHERE r.code_id IN (
 
-                WITH RECURSIVE child_of(child_id) AS (
-                    SELECT  ?
-                    UNION
-                    SELECT a.child_id
-                    FROM child_of AS co
-                    LEFT JOIN item_revisions AS r
-                       ON r.code_id = co.child_id
-                    LEFT JOIN assemblies AS a
-                       ON a.revision_id = r.id
-                )
-                SELECT  child_id
-                FROM child_of
-            )  AND date_from_days >= ?
+                    WITH RECURSIVE child_of(child_id) AS (
+                        SELECT  ?
+                        UNION
+                        SELECT a.child_id
+                        FROM child_of AS co
+                        LEFT JOIN item_revisions AS r
+                           ON r.code_id = co.child_id
+                        LEFT JOIN assemblies AS a
+                           ON a.revision_id = r.id
+                    )
+                    SELECT  child_id
+                    FROM child_of
+                )  AND date_from_days >= ?
 
-        """,(code_id, date_from_min))
+            """,(code_id, date_from_min))
 
-        dates = [x[0] for x in c.fetchall()]
+            dates = [x[0] for x in c.fetchall()]
 
-        return dates
+            return dates
 
 _globaDBInstance = None
 def DB(path=None):
