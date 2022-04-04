@@ -2091,10 +2091,10 @@ def test_context_manager_basic_many():
     d = _init_db()
 
     with Transaction(d) as c:
-        c.executemany("INSERT INTO items (code) VALUES (?)",(
+        c.executemany("INSERT INTO items (code) VALUES (?)",[
             ('ab',),
             ('cd',),
-        ))
+        ])
         c.execute("SELECT COUNT(*) FROM items")
         assert(c.fetchone()[0] == 2)
 
@@ -2103,10 +2103,10 @@ def test_context_manager_many_fail_constraint():
 
     try:
         with Transaction(d) as c:
-            c.executemany("INSERT INTO items (code) VALUES (?)",(
+            c.executemany("INSERT INTO items (code) VALUES (?)",[
                 ('ab',),
                 ('ab',),
-            ))
+            ])
     except d._mod.IntegrityError:
         pass
     else:
