@@ -5,6 +5,7 @@
 #db=sqlite
 db=sqlserver
 #db=postgresql
+#db=oracle
 
 # force uppercase for code and description
 description_force_uppercase=1
@@ -88,6 +89,8 @@ database = bombrowser
 username = bombrowser
 password = bombrowser1
 
+[ORACLE]
+conn = user=bombrowser;pw=bombrowser;host=127.0.0.1
 
 # this appears in the menu as "copy" or as "export as csv"
 [template_simple]
