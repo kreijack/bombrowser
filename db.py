@@ -106,9 +106,11 @@ class Transaction:
         return self._cursor.tables()
 
     def commit(self):
+        assert(self._cursor)
         self._to_commit = False
         return self._db._commit(self._cursor)
     def rollback(self):
+        assert(self._cursor)
         self._to_commit = False
         return self._db._rollback(self._cursor)
 
@@ -126,6 +128,9 @@ class Transaction:
         else:
             self.rollback()
 
+        self._cursor = None
+        self._to_commit = False
+
 class ROCursor:
     def __init__(self, d):
         self._db = d
@@ -142,11 +147,6 @@ class ROCursor:
         r = self._db._sqlex(self._cursor, query, *args)
         self.description = self._cursor.description
         return r
-    def executemany(self, query, *args):
-        self._check_query(query)
-        r = self._db._sqlexm(self._cursor, query, *args)
-        self.description = self._cursor.description
-        return r
     def fetchone(self):
         return self._cursor.fetchone()
     def fetchall(self):
@@ -157,7 +157,7 @@ class ROCursor:
         return self
 
     def __exit__(self, type_, value, traceback):
-        pass
+        self._cursor = None
 
 class _BaseServer:
 
