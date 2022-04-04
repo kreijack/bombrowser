@@ -22,7 +22,7 @@ import sys
 import tempfile
 import os
 import zipfile
-from db import Transaction
+from db import Transaction, ROCursor
 
 def _test_insert_items(c):
     codes = [('code123', "descr456", 0), ('code124', "descr457", 0),
@@ -2052,7 +2052,44 @@ def test_constraint_drawings_references_rev_id():
 
         assert(False)
 
-def test_context_manager():
+def test_context_manager_basic():
+    d = _init_db()
+
+    with Transaction(d) as c:
+        c.execute("INSERT INTO items (code) VALUES ('xxx')")
+        c.execute("SELECT COUNT(*) FROM items")
+        assert(c.fetchone()[0] == 1)
+
+def test_context_manager_basic_many():
+    d = _init_db()
+
+    with Transaction(d) as c:
+        c.executemany("INSERT INTO items (code) VALUES (?)",(
+            ('ab',),
+            ('cd',),
+        ))
+        c.execute("SELECT COUNT(*) FROM items")
+        assert(c.fetchone()[0] == 2)
+
+def test_context_manager_many_fail_constraint():
+    d = _init_db()
+
+    try:
+        with Transaction(d) as c:
+            c.executemany("INSERT INTO items (code) VALUES (?)",(
+                ('ab',),
+                ('ab',),
+            ))
+    except d._mod.IntegrityError:
+        pass
+    else:
+        assert(False)
+
+    with ROCursor(d) as c:
+        c.execute("SELECT COUNT(*) FROM items")
+        assert(c.fetchone()[0] == 0)
+
+def test_context_manager_constraint_fail():
     d = _init_db()
 
     with Transaction(d) as c:
@@ -2065,19 +2102,23 @@ def test_context_manager():
             c.execute("INSERT INTO items (code) VALUES ('123')")
             # constraint fails
             c.execute("INSERT INTO items (code) VALUES ('123')")
-    except:
+    except d._mod.IntegrityError:
         pass
+    else:
+        assert(False)
 
     with Transaction(d) as c:
         c.execute("SELECT COUNT(*) FROM items")
-        n = c.fetchone()[0]
-        assert(n == 1)
+        assert(c.fetchone()[0] == 1)
 
+def test_context_manager_syntax_error():
     d = _init_db()
+
     with Transaction(d) as c:
         c.execute("INSERT INTO items (code) VALUES ('xxx')")
         c.execute("SELECT COUNT(*) FROM items")
         assert(c.fetchone()[0] == 1)
+
     try:
         with Transaction(d) as c:
             c.execute("INSERT INTO items (code) VALUES ('123')")
@@ -2085,12 +2126,122 @@ def test_context_manager():
             c.execute("INafdasdfaffSERT INTO items (code) VALUES ('123')")
     except:
         pass
+    else:
+        assert(False)
 
     with Transaction(d) as c:
         c.execute("SELECT COUNT(*) FROM items")
         n = c.fetchone()[0]
         assert(n == 1)
 
+def test_context_manager_rollback_after_block():
+    d = _init_db()
+
+    with Transaction(d) as c:
+        c.execute("INSERT INTO items (code) VALUES ('xxx')")
+        c.execute("SELECT COUNT(*) FROM items")
+
+    try:
+        c.rollback()
+    except:
+        pass
+    else:
+        assert(False)
+
+    with Transaction(d) as c:
+        c.execute("SELECT COUNT(*) FROM items")
+        n = c.fetchone()[0]
+        assert(n == 1)
+
+def test_context_manager_commit_after_block():
+    d = _init_db()
+
+    with Transaction(d) as c:
+        c.execute("INSERT INTO items (code) VALUES ('xxx')")
+        c.execute("SELECT COUNT(*) FROM items")
+
+    try:
+        c.commit()
+    except:
+        pass
+    else:
+        assert(False)
+
+    with Transaction(d) as c:
+        c.execute("SELECT COUNT(*) FROM items")
+        n = c.fetchone()[0]
+        assert(n == 1)
+
+def test_context_manager_rocursor_basic():
+    d = _init_db()
+
+    with Transaction(d) as c:
+        c.execute("INSERT INTO items (code) VALUES ('xxx')")
+
+    with ROCursor(d) as c:
+        c.execute("SELECT COUNT(*) FROM items")
+        assert(c.fetchone()[0] == 1)
+
+def test_context_manager_rocursor_after_block():
+    d = _init_db()
+
+    with Transaction(d) as c:
+        c.execute("INSERT INTO items (code) VALUES ('xxx')")
+
+    with ROCursor(d) as c:
+        c.execute("SELECT COUNT(*) FROM items")
+        assert(c.fetchone()[0] == 1)
+
+    try:
+        c.execute("SELECT COUNT(*) FROM items")
+    except:
+        pass
+    else:
+        assert(False)
+
+def test_context_manager_rocursor_error_on_insert():
+    d = _init_db()
+
+    try:
+        with ROCursor(d) as c:
+            c.execute("INSERT INTO items (code) VALUES ('xxx')")
+    except:
+        pass
+    else:
+        assert(False)
+
+def test_context_manager_rocursor_error_on_update():
+    d = _init_db()
+
+    try:
+        with ROCursor(d) as c:
+            c.execute("UPDATE items set code='xxx'")
+    except:
+        pass
+    else:
+        assert(False)
+
+def test_context_manager_rocursor_error_on_delete():
+    d = _init_db()
+
+    try:
+        with ROCursor(d) as c:
+            c.execute("DELETE items")
+    except:
+        pass
+    else:
+        assert(False)
+
+def test_context_manager_rocursor_error_on_drop():
+    d = _init_db()
+
+    try:
+        with ROCursor(d) as c:
+            c.execute("DROP TABLE items")
+    except:
+        pass
+    else:
+        assert(False)
 
 def test_restore_db_with_different_endline():
     d, c = _create_db()
