@@ -175,7 +175,7 @@ class ExportDialog(QDialog):
                     ret = QMessageBox.question(self, "BOMBrowser",
                         "Error during the copy of '%s'\nEnd the copy ?"%(fname))
                     if ret == QMessageBox.Yes:
-                        print(er)
+                        print(e)
                         QApplication.restoreOverrideCursor()
             progress.setValue(len(fnl))
         
@@ -192,7 +192,9 @@ class ExportDialog(QDialog):
                 z.write(bom_file, arcname=os.path.basename(bom_file))
             for i in fnl:
                 nf2 = os.path.join(dest, os.path.basename(i))
-                z.write(nf2, arcname = os.path.basename(i))
+                # if shutil.copy fails, we will not have a file
+                if os.path.exists(i):
+                    z.write(nf2, arcname = os.path.basename(i))
             link = nf
         QApplication.restoreOverrideCursor()
         
