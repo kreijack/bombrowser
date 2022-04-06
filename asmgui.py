@@ -175,7 +175,6 @@ class ExportDialog(QDialog):
                     ret = QMessageBox.question(self, "BOMBrowser",
                         "Error during the copy of '%s'\nEnd the copy ?"%(fname))
                     if ret == QMessageBox.Yes:
-                        print(e)
                         QApplication.restoreOverrideCursor()
             progress.setValue(len(fnl))
         
