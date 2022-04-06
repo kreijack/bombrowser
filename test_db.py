@@ -98,9 +98,10 @@ def test_double_recreate_db():
     d, c = _create_db()
 
 def test_get_code():
-    d, c = _create_db()
+    d = _init_db()
 
-    _test_insert_items(c)
+    with Transaction(d) as c:
+        _test_insert_items(c)
 
     data = d.get_code(1, 0)
     assert(data["code"] == "code123")
@@ -129,9 +130,10 @@ def test_get_code():
 
 
 def test_get_code_by_rid():
-    d, c = _create_db()
+    d = _init_db()
 
-    _test_insert_items(c)
+    with Transaction(d) as c:
+        _test_insert_items(c)
 
     data = d.get_code_by_rid(1)
     assert(data["code"] == "code123")
@@ -139,9 +141,10 @@ def test_get_code_by_rid():
 
 
 def test_get_code_by_descr():
-    d, c = _create_db()
+    d = _init_db()
 
-    _test_insert_items(c)
+    with Transaction(d) as c:
+        _test_insert_items(c)
 
     data = d.get_codes_by_like_descr("descr46%")
     assert(len(data) == 2)
@@ -153,9 +156,10 @@ def test_get_code_by_descr():
     assert(data[1][2] == "descr469")
 
 def test_get_code_by_code_and_descr():
-    d, c = _create_db()
+    d = _init_db()
 
-    _test_insert_items(c)
+    with Transaction(d) as c:
+        _test_insert_items(c)
 
     data = d.get_codes_by_like_code_and_descr("code13%", "descr%9")
     assert(len(data) == 1)
@@ -284,95 +288,103 @@ def _build_assembly(c, ass):
                     )
 
 def test_get_parent_dates_range_by_code_id():
-    d, c = _create_db()
+    d = _init_db()
 
-    _test_insert_assembly(c)
+    with Transaction(d) as c:
+        _test_insert_assembly(c)
 
-    c.execute("SELECT id FROM items WHERE code=?", ("I",))
-    i_id = c.fetchone()[0]
+    with ROCursor(d) as c:
 
-    data = d.get_parent_dates_range_by_code_id(i_id)
+        c.execute("SELECT id FROM items WHERE code=?", ("I",))
+        i_id = c.fetchone()[0]
 
-    c.execute("SELECT id FROM items WHERE code=?", ("M",))
-    m_id = c.fetchone()[0]
-    c.execute("SELECT id FROM items WHERE code=?", ("C",))
-    c_id = c.fetchone()[0]
+        data = d.get_parent_dates_range_by_code_id(i_id)
 
-    for row in data:
-        if row[0] == m_id:
-            break
+        c.execute("SELECT id FROM items WHERE code=?", ("M",))
+        m_id = c.fetchone()[0]
+        c.execute("SELECT id FROM items WHERE code=?", ("C",))
+        c_id = c.fetchone()[0]
 
-    assert(row[0] == m_id)
-    assert(row[1] == db.iso_to_days("2020-01-25"))
-    assert(row[2] == db.end_of_the_world)
+        for row in data:
+            if row[0] == m_id:
+                break
 
-    for row in data:
-        if row[0] == c_id:
-            break
+        assert(row[0] == m_id)
+        assert(row[1] == db.iso_to_days("2020-01-25"))
+        assert(row[2] == db.end_of_the_world)
 
-    assert(row[0] == c_id)
-    assert(row[1] == db.iso_to_days("2020-01-15"))
-    assert(row[2] == db.end_of_the_world)
+        for row in data:
+            if row[0] == c_id:
+                break
+
+        assert(row[0] == c_id)
+        assert(row[1] == db.iso_to_days("2020-01-15"))
+        assert(row[2] == db.end_of_the_world)
 
 def test_get_children_dates_range_by_rid():
-    d, c = _create_db()
+    d = _init_db()
 
-    _test_insert_assembly(c)
+    with Transaction(d) as c:
+        _test_insert_assembly(c)
 
-    c.execute("""
-        SELECT MAX(r.id)
-        FROM item_revisions AS r
-        LEFT JOIN items AS i
-          ON r.code_id = i.id
-        WHERE i.code=?""", ("A",))
-    a_rid = c.fetchone()[0]
+    with ROCursor(d) as c:
+        c.execute("""
+            SELECT MAX(r.id)
+            FROM item_revisions AS r
+            LEFT JOIN items AS i
+              ON r.code_id = i.id
+            WHERE i.code=?""", ("A",))
+        a_rid = c.fetchone()[0]
 
-    data = d.get_children_dates_range_by_rid(a_rid)
+        data = d.get_children_dates_range_by_rid(a_rid)
 
-    assert(len(data) == 2)
+        assert(len(data) == 2)
 
-    c.execute("SELECT id FROM items WHERE code=?", ("B",))
-    b_id = c.fetchone()[0]
-    c.execute("SELECT id FROM items WHERE code=?", ("M",))
-    m_id = c.fetchone()[0]
+        c.execute("SELECT id FROM items WHERE code=?", ("B",))
+        b_id = c.fetchone()[0]
+        c.execute("SELECT id FROM items WHERE code=?", ("M",))
+        m_id = c.fetchone()[0]
 
-    for row in data:
-        if row[0] == b_id:
-            break
+        for row in data:
+            if row[0] == b_id:
+                break
 
-    assert(row[0] == b_id)
-    assert(row[1] == db.iso_to_days("2020-01-10"))
-    assert(row[2] == db.end_of_the_world)
+        assert(row[0] == b_id)
+        assert(row[1] == db.iso_to_days("2020-01-10"))
+        assert(row[2] == db.end_of_the_world)
 
-    for row in data:
-        if row[0] == m_id:
-            break
+        for row in data:
+            if row[0] == m_id:
+                break
 
-    assert(row[0] == m_id)
-    assert(row[1] == db.iso_to_days("2020-01-25"))
-    assert(row[2] == db.end_of_the_world)
+        assert(row[0] == m_id)
+        assert(row[1] == db.iso_to_days("2020-01-25"))
+        assert(row[2] == db.end_of_the_world)
 
 def test_is_child():
-    d, c = _create_db()
+    d = _init_db()
 
-    _test_insert_assembly(c)
+    with Transaction(d) as c:
+        _test_insert_assembly(c)
 
     assert(d.is_child(d.get_codes_by_code("A")[0][0]))
     assert(d.is_child(d.get_codes_by_code("L")[0][0]))
     assert(not d.is_child(d.get_codes_by_code("O")[0][0]))
 
 def test_is_assembly():
-    d, c = _create_db()
+    d = _init_db()
 
-    _test_insert_assembly(c)
+    with Transaction(d) as c:
+        _test_insert_assembly(c)
 
     assert(d.is_assembly(d.get_codes_by_code("A")[0][0]))
     assert(not d.is_assembly(d.get_codes_by_code("L")[0][0]))
 
 def test_get_dates():
-    d, c = _create_db()
+    d = _init_db()
 
-    _test_insert_assembly(c)
+    with Transaction(d) as c:
+        _test_insert_assembly(c)
 
     id_ = d.get_codes_by_code("A")[0][0]
 
@@ -382,9 +394,10 @@ def test_get_dates():
     assert("2020-01-25" in dates)
 
 def test_get_bom():
-    d, c = _create_db()
+    d = _init_db()
 
-    _test_insert_assembly(c)
+    with Transaction(d) as c:
+        _test_insert_assembly(c)
 
     id_ = d.get_codes_by_code("O")[0][0]
 
@@ -408,9 +421,10 @@ def test_get_bom():
     assert(find_in_bom("O"))
 
 def test_get_bom_dates_by_code_id():
-    d, c = _create_db()
+    d = _init_db()
 
-    _test_insert_assembly(c)
+    with Transaction(d) as c:
+        _test_insert_assembly(c)
 
     id_ = d.get_codes_by_code("O")[0][0]
 
@@ -438,9 +452,10 @@ def test_get_bom_dates_by_code_id():
     assert(not "2020-01-25" in [db.days_to_iso(x) for x in dates])
 
 def test_get_children_by_rid():
-    d, c = _create_db()
+    d = _init_db()
 
-    _test_insert_assembly(c)
+    with Transaction(d) as c:
+        _test_insert_assembly(c)
 
     id_ = d.get_codes_by_code("A")[0][0]
     rid = d.get_code(id_, db.iso_to_days("2020-01-10"))["rid"]
@@ -470,9 +485,10 @@ def test_get_children_by_rid():
     assert("L" in [x[1] for x in children])
 
 def test_where_used():
-    d, c = _create_db()
+    d = _init_db()
 
-    _test_insert_assembly(c)
+    with Transaction(d) as c:
+        _test_insert_assembly(c)
 
     def find_in_bom(code):
         for k in bom:
@@ -496,9 +512,10 @@ def test_where_used():
     assert(find_in_bom("O"))
 
 def test_valid_where_used():
-    d, c = _create_db()
+    d = _init_db()
 
-    _test_insert_assembly(c)
+    with Transaction(d) as c:
+        _test_insert_assembly(c)
 
     def find_in_bom(code):
         for k in bom:
@@ -522,16 +539,14 @@ def test_valid_where_used():
     assert(find_in_bom("H"))
     assert(find_in_bom("O"))
 
-
 def test_get_config():
-    d, c = _create_db()
+    d = _init_db()
 
-    import cfg
-
-    c.execute("""
-        INSERT INTO database_props(name, value)
-        VALUES ('cfg.test_sect.test_key', 'test-value')
-    """)
+    with Transaction(d) as c:
+        c.execute("""
+            INSERT INTO database_props(name, value)
+            VALUES ('cfg.test_sect.test_key', 'test-value')
+        """)
 
     ret = d.get_config()
     cfg.update_cfg(ret)
@@ -1625,81 +1640,81 @@ def test_search_revisions_all_values():
     # TBD dates
 
 def test_gvals():
-    d, c = _create_db()
-    _test_insert_assembly(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        _test_insert_assembly(c)
 
-    # these two queries should not raise
-    c.execute("SELECT COUNT(gval1) FROM item_revisions")
-    c.fetchone()
-
-    c.execute("SELECT COUNT(gval%d) FROM item_revisions"%(db.gvals_count))
-    c.fetchone()
-
-    # these two queries should raise
-    # due to this kind of query, perform a rollback in case of exception
-    # otherwise postgresql complains
-    ret = False
-    try:
-        c.execute("SELECT COUNT(gval0) FROM item_revisions")
+    with ROCursor(d) as c:
+        # these two queries should not raise
+        c.execute("SELECT COUNT(gval1) FROM item_revisions")
         c.fetchone()
-    except:
-        d._rollback(c)
-        ret = True
-    assert(ret)
 
-    ret = False
-    try:
-        c.execute("SELECT COUNT(gval%d) FROM item_revisions"%(db.gvals_count+1))
+        c.execute("SELECT COUNT(gval%d) FROM item_revisions"%(db.gvals_count))
         c.fetchone()
-    except:
-        d._rollback(c)
-        ret = True
-    assert(ret)
+
+        # these two queries should raise
+        # due to this kind of query, perform a rollback in case of exception
+        # otherwise postgresql complains
+        ret = False
+        try:
+            c.execute("SELECT COUNT(gval0) FROM item_revisions")
+            c.fetchone()
+        except:
+            ret = True
+        assert(ret)
+
+        ret = False
+        try:
+            c.execute("SELECT COUNT(gval%d) FROM item_revisions"%(db.gvals_count+1))
+            c.fetchone()
+        except:
+            ret = True
+        assert(ret)
 
 def test_gavals():
-    d, c = _create_db()
-    _test_insert_assembly(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        _test_insert_assembly(c)
 
-    # these two queries should not raise
-    c.execute("SELECT COUNT(gaval1) FROM assemblies")
-    c.fetchone()
-
-    c.execute("SELECT COUNT(gaval%d) FROM assemblies"%(db.gavals_count))
-    c.fetchone()
-
-    # these two queries should raise
-    # due to this kind of query, perform a rollback in case of exception
-    # otherwise postgresql complains
-    ret = False
-    try:
-        c.execute("SELECT COUNT(gaval0) FROM assemblies")
+    with ROCursor(d) as c:
+        # these two queries should not raise
+        c.execute("SELECT COUNT(gaval1) FROM assemblies")
         c.fetchone()
-    except:
-        ret = True
-        d._rollback(c)
-    assert(ret)
 
-    c.execute("SELECT COUNT(gaval%d) FROM assemblies"%(db.gavals_count))
-    c.fetchone()
-
-    ret = False
-    try:
-        c.execute("SELECT COUNT(gaval%d) FROM assemblies"%(db.gavals_count+1))
+        c.execute("SELECT COUNT(gaval%d) FROM assemblies"%(db.gavals_count))
         c.fetchone()
-    except:
-        d._rollback(c)
-        ret = True
-    assert(ret)
+
+        ret = False
+        try:
+            with ROCursor(d) as c2:
+                c2.execute("SELECT COUNT(gaval0) FROM assemblies")
+                c2.fetchone()
+        except:
+            ret = True
+        assert(ret)
+
+        c.execute("SELECT COUNT(gaval%d) FROM assemblies"%(db.gavals_count))
+        c.fetchone()
+
+        ret = False
+        try:
+            with ROCursor(d) as c2:
+                c2.execute("SELECT COUNT(gaval%d) FROM assemblies"%(db.gavals_count+1))
+                c2.fetchone()
+        except:
+            ret = True
+        assert(ret)
 
 def test_dump_db():
-    d, c = _create_db()
-    rids = _create_simple_assy_with_drawings(c)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        rids = _create_simple_assy_with_drawings(c)
 
-    c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
-    ca = c.fetchone()[0]
-    c.execute("SELECT COUNT(*) FROM DRAWINGS")
-    cd = c.fetchone()[0]
+    with ROCursor(d) as c:
+        c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+        ca = c.fetchone()[0]
+        c.execute("SELECT COUNT(*) FROM DRAWINGS")
+        cd = c.fetchone()[0]
 
     assert(cd > 0)
     assert(ca > 0)
@@ -1724,18 +1739,19 @@ def test_dump_db():
             os.unlink(tmpfilename)
 
 def test_restore_db():
-    d, c = _create_db()
-    rids = _create_simple_assy_with_drawings(c)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        rids = _create_simple_assy_with_drawings(c)
 
-    c.execute("SELECT COUNT(*) FROM ITEMS")
-    ci = c.fetchone()[0]
-    c.execute("SELECT COUNT(*) FROM ITEM_REVISIONS")
-    cr = c.fetchone()[0]
-    c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
-    ca = c.fetchone()[0]
-    c.execute("SELECT COUNT(*) FROM DRAWINGS")
-    cd = c.fetchone()[0]
+    with ROCursor(d) as c:
+        c.execute("SELECT COUNT(*) FROM ITEMS")
+        ci = c.fetchone()[0]
+        c.execute("SELECT COUNT(*) FROM ITEM_REVISIONS")
+        cr = c.fetchone()[0]
+        c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+        ca = c.fetchone()[0]
+        c.execute("SELECT COUNT(*) FROM DRAWINGS")
+        cd = c.fetchone()[0]
 
     assert(cd > 0)
 
@@ -1745,46 +1761,49 @@ def test_restore_db():
         assert(os.path.exists(tmpfilename))
 
         d.create_db()
-        c.execute("SELECT COUNT(*) FROM DRAWINGS")
-        assert(0 == c.fetchone()[0])
+        with ROCursor(d) as c:
+            c.execute("SELECT COUNT(*) FROM DRAWINGS")
+            assert(0 == c.fetchone()[0])
 
         db.restore_tables(tmpfilename, d, quiet=True)
-        c.execute("SELECT COUNT(*) FROM ITEMS")
-        assert(ci == c.fetchone()[0])
-        c.execute("SELECT COUNT(*) FROM ITEM_REVISIONS")
-        assert(cr == c.fetchone()[0])
-        c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
-        assert(ca == c.fetchone()[0])
-        c.execute("SELECT COUNT(*) FROM DRAWINGS")
-        assert(cd == c.fetchone()[0])
+        with ROCursor(d) as c:
+            c.execute("SELECT COUNT(*) FROM ITEMS")
+            assert(ci == c.fetchone()[0])
+            c.execute("SELECT COUNT(*) FROM ITEM_REVISIONS")
+            assert(cr == c.fetchone()[0])
+            c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+            assert(ca == c.fetchone()[0])
+            c.execute("SELECT COUNT(*) FROM DRAWINGS")
+            assert(cd == c.fetchone()[0])
 
     finally:
         if os.path.exists(tmpfilename):
             os.unlink(tmpfilename)
 
 def test_new_db():
-    d, c = _create_db()
-    rids = _create_simple_assy_with_drawings(c)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        rids = _create_simple_assy_with_drawings(c)
 
-    c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
-    ca = c.fetchone()[0]
-    c.execute("SELECT COUNT(*) FROM ITEMS")
-    ci = c.fetchone()[0]
+    with ROCursor(d) as c:
+        c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+        ca = c.fetchone()[0]
+        c.execute("SELECT COUNT(*) FROM ITEMS")
+        ci = c.fetchone()[0]
 
     assert(ca > 1)
     assert(ci > 1)
 
     db.new_db(d)
 
-    c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
-    ca = c.fetchone()[0]
-    c.execute("SELECT COUNT(*) FROM ITEMS")
-    ci = c.fetchone()[0]
+    with ROCursor(d) as c:
+        c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+        ca = c.fetchone()[0]
+        c.execute("SELECT COUNT(*) FROM ITEMS")
+        ci = c.fetchone()[0]
 
     assert(ca == 0)
     assert(ci == 1)
-
 
 def test_dump_more_column_than_db():
     old_gval_count = db.gvals_count
@@ -1793,10 +1812,11 @@ def test_dump_more_column_than_db():
     db.gvals_count += 1
     db.gavals_count += 1
 
-    d, c = _create_db()
+    d = _init_db()
     (colnames1, _) = d.dump_table("assemblies")
-    rids = _create_simple_assy_with_drawings(c)
-    d._commit(c)
+
+    with Transaction(d) as c:
+        rids = _create_simple_assy_with_drawings(c)
 
     tmpfilename = tempfile.NamedTemporaryFile(delete=False).name+".zip"
     db.dump_tables(tmpfilename, d, quiet=True)
@@ -1817,10 +1837,10 @@ def test_dump_less_column_than_db():
     db.gvals_count -= 1
     db.gavals_count -= 1
 
-    d, c = _create_db()
+    d = _init_db()
     (colnames1, _) = d.dump_table("assemblies")
-    rids = _create_simple_assy_with_drawings(c)
-    d._commit(c)
+    with Transaction(d) as c:
+        rids = _create_simple_assy_with_drawings(c)
 
     tmpfilename = tempfile.NamedTemporaryFile(delete=False).name+".zip"
     db.dump_tables(tmpfilename, d, quiet=True)
@@ -2045,8 +2065,6 @@ def test_constraint_assemblies_references_rev_id():
     assert(False)
 
 def test_constraint_drawings_references_rev_id():
-
-    #d, c = _create_db()
     d = _init_db()
     with Transaction(d) as c:
         d._sqlex(c, """
@@ -2345,6 +2363,30 @@ def test_restore_db_with_different_endline():
             os.unlink(tmpfilename2)
 
 
+#
+# Postgres complains if a exception is raised (e.g. you try a query 
+# with a wrong field name), and then you want to start a transaction
+# The error is:
+# psycopg2.errors.InFailedSqlTransaction: current transaction is
+#    aborted, commands ignored until end of transaction block
+#
+# To avoid that we add a rollback() after a ROCursor block end
+# this test is to check the effectiveness
+#
+def test_postgres_screws():
+
+    d = _init_db()
+
+    try:
+        with ROCursor(d) as c:
+            c.execute("SELECT COUNT(gval0) FROM item_revisions")
+            c.fetchone()
+    except:
+        pass
+
+    with Transaction(d) as c:
+        _test_insert_assembly(c)
+
 #------
 
 
@@ -2386,7 +2428,7 @@ def run_test(filters, modules, prefix=""):
             print("OK")
         except:
             print("FAIL !!!")
-            raise
+            sys.exit(100)
 
 def main():
     cfg.init()
@@ -2420,6 +2462,7 @@ def main():
         i += 1
 
     run_test(sys.argv[i:], sys.modules[__name__])
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()
