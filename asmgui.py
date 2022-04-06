@@ -178,6 +178,7 @@ class ExportDialog(QDialog):
                         print(e)
                         QApplication.restoreOverrideCursor()
             progress.setValue(len(fnl))
+            progress.close()
         
         (cmd, name) = self._exporter[self._bom_format.currentIndex()]
         bom_file = None
