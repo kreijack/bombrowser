@@ -157,6 +157,9 @@ class ROCursor:
         return self
 
     def __exit__(self, type_, value, traceback):
+        # do a rollback otherwise postgresql screws
+        self._db._rollback(self._cursor)
+        self._db = None
         self._cursor = None
 
 class _BaseServer:
