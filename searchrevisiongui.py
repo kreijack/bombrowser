@@ -25,10 +25,66 @@ from PySide2.QtWidgets import  QGridLayout, QApplication, QWidget
 from PySide2.QtWidgets import  QLineEdit
 from PySide2.QtWidgets import  QPushButton, QVBoxLayout
 from PySide2.QtWidgets import  QHeaderView, QTableWidgetItem, QTableWidget
-from PySide2.QtCore import  QPoint, Signal, Qt
+from PySide2.QtCore import  QPoint, Signal, Qt, QRegExp
+from PySide2.QtGui import QRegExpValidator, QValidator
 
 import db, codegui, utils
 import cfg
+
+class _DateValidator(QValidator):
+    def __init__(self, parent=None):
+        super().__init__()
+        self._intermediate = QRegExp("^\d{0,4}-?\d{0,2}-?\d{0,2}$")
+        self._ok = QRegExp("^\d{4,4}-\d{2,2}-\d{2,2}$")
+
+    def validate(self, input_, pos):
+        if len(input_) == 0:
+            return QValidator.Acceptable
+
+        if not (input_[0] in "!=<>") and not input_[0].isdigit():
+            return (QValidator.Invalid, input_, pos)
+
+        print(1, input_, pos)
+
+        if input_[0] in "!=<>":
+            s = input_[1:]
+        else:
+            s = input_
+
+        if len(s) == 0:
+            return (QValidator.Intermediate, input_, pos)
+
+        print(2, s, pos)
+
+        if self._intermediate.indexIn(s) == -1:
+            return (QValidator.Invalid, input_, pos)
+
+        if self._ok.indexIn(s) == -1:
+            return (QValidator.Intermediate, input_, pos)
+        print(3, s, pos)
+
+        try:
+            db.iso_to_days(s)
+        except:
+            return (QValidator.Intermediate, input_, pos)
+        print(4, s, pos)
+
+        return (QValidator.Acceptable, input_, pos)
+
+class _Validator:
+    def __init__(self, w, v):
+        self._validator = v
+        self._widget = w
+
+    def __call__(self, s):
+        r, _, _ = self._validator.validate(s, len(s))
+        if r == QValidator.Invalid:
+            colour = 'red'
+        elif r == QValidator.Intermediate:
+            colour = 'gold'
+        else:
+            colour = 'lime'
+        self._widget.setStyleSheet('border: 3px solid %s' % colour)
 
 class RevisionListWidget(QWidget):
     #tableCustomContextMenuRequested = Signal(QPoint)
@@ -91,6 +147,14 @@ class RevisionListWidget(QWidget):
                 grid.addWidget(l, row, col)
                 col += 1
                 w = QLineEdit()
+                if "date_" in key:
+                    w.setValidator(_DateValidator())
+                    w.textChanged.connect(_Validator(w, _DateValidator()))
+                elif key == 'id' or key == 'rid' or key == "iter_":
+                    w.textChanged.connect(_Validator(w,
+                        QRegExpValidator(QRegExp("[!=<>]?[0-9]+"))))
+                    w.setValidator(QRegExpValidator(QRegExp("[!=<>]?[0-9]+")))
+
                 self._line_edit_widgets[key] = w
                 grid.addWidget(w, row, col, 1 , span)
                 col += span
