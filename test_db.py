@@ -2401,7 +2401,7 @@ def _list_tests(modules):
             continue
         yield name, obj
 
-def run_test(filters, modules, prefix=""):
+def run_test(filters, modules, prefix="", print_exc=False):
     if prefix != "":
         prefix += "."
 
@@ -2426,13 +2426,18 @@ def run_test(filters, modules, prefix=""):
         try:
             obj()
             print("OK")
-        except:
+        except Exception as e:
             print("FAIL !!!")
+            if print_exc:
+                print("-"*30)
+                print(e)
+                print("-"*30)
             sys.exit(100)
 
 def main():
     cfg.init()
     global _use_memory_sqlite
+    print_exc = False
 
     i = 1
     while i < len(sys.argv):
@@ -2446,6 +2451,8 @@ def main():
             for name, obj in _list_tests(sys.modules[__name__]):
                 print(name)
             return
+        elif sys.argv[i] == "--print-exception":
+            print_exc = True
         elif sys.argv[i] == "--cfg":
             i += 1
             arg = sys.argv[i]
@@ -2461,7 +2468,7 @@ def main():
             break
         i += 1
 
-    run_test(sys.argv[i:], sys.modules[__name__])
+    run_test(sys.argv[i:], sys.modules[__name__], print_exc=print_exc)
     sys.exit(0)
 
 if __name__ == "__main__":
