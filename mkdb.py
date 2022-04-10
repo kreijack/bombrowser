@@ -23,6 +23,25 @@ import os
 import datetime
 import cfg
 
+
+board_count = 40
+board_components_count_max = 200
+
+mech_number_of_components = 1000
+
+mech_num_assemblies = 200
+mech_assy_components_count_max = 50
+mech_num_level = 10
+
+top_code_count = 120
+top_code_components_count_max = 12
+
+spare_part_count = 120
+spare_part_components_count_max = 12
+
+prototype_count = 200
+changes_count = 200
+
 cfg.init()
 
 date0 = "2000-01-01"
@@ -271,9 +290,10 @@ def insert_board(c):
     # TODO build revision
 
     # make 15 boards
-    for cnt in range(1, 15):
+    for cnt in range(1, board_count):
 
-        ncomponents = rnd.get() % 120 + 5
+        ncomponents = rnd.get() % board_components_count_max + \
+            board_components_count_max / 10
 
         code = "610%03d"%(cnt)
 
@@ -301,10 +321,10 @@ def insert_board(c):
         #resistor
         did = set()
         for i in range(rnd.get() % 120 + 5):
-            cid = rnd.get() % (max_id - min_id) + min_id
-
-            if cid in did:
-                continue
+            while True:
+                cid = rnd.get() % (max_id - min_id) + min_id
+                if not cid in did:
+                    break
             did.add(cid)
 
             ts = datetime.date.fromisoformat(date0).toordinal()
@@ -328,7 +348,7 @@ def insert_board(c):
 
 def insert_mechanical_components(c):
     cnt=1
-    for d in range(300):
+    for d in range(mech_number_of_components):
         code = "810%03d"%(cnt)
         insert_code(c,
                 "MECHANICAL COMPONENT NR.%d"%(d, ), "810%03d"%(cnt), 0,
@@ -354,19 +374,17 @@ def insert_mechanical_assemblies(c):
 
     # TODO build revision
 
-    num_assemblies = 50
-    num_level = 5
-
     # make 120 assemblies
-    for cnt in range(num_assemblies):
+    for cnt in range(mech_num_assemblies):
 
-        if (cnt % (num_assemblies / num_level)) == 0:
+        if (cnt % (mech_num_assemblies / mech_num_level)) == 0:
             old_mech_max_id = get_max_by_code(c, '8%')
 
         # each components between [boards_min_id, old_mech_max_id] are a
         # valid child
 
-        ncomponents = rnd.get() % 127 + 10
+        ncomponents = rnd.get() % mech_assy_components_count_max + \
+            mech_assy_components_count_max // 10
 
         code = "820%03d"%(cnt)
 
@@ -379,7 +397,7 @@ def insert_mechanical_assemblies(c):
 
         insert_code(c,
                 "MECHANICAL ASSEMBLIES %d - LEVEL %d"%(cnt,
-                    cnt/(num_assemblies / num_level) + 1), code, 0,
+                    cnt/(mech_num_assemblies / mech_num_level) + 1), code, 0,
                 0, "NR", "", "INTERNAL SUPPLIER"
         )
 
@@ -401,11 +419,11 @@ def insert_mechanical_assemblies(c):
         #up to 127 sub assemblies
         did =set()
         for i in range(ncomponents):
-            cid = (rnd.get() %
-                (old_mech_max_id - boards_min_id) + boards_min_id)
-
-            if cid in did:
-                continue
+            while True:
+                cid = (rnd.get() %
+                    (old_mech_max_id - boards_min_id) + boards_min_id)
+                if not cid in did:
+                    break
             did.add(cid)
 
             ts = datetime.date.fromisoformat(date0).toordinal()
@@ -435,11 +453,10 @@ def insert_top_codes(c):
 
     # TODO build revision
 
-    # make 120 top code
-    for cnt in range(120):
+    for cnt in range(top_code_count):
 
-
-        ncomponents = rnd.get() % 7 + 2
+        ncomponents = rnd.get() % top_code_components_count_max + \
+            top_code_components_count_max // 10
 
         code = "100%03d"%(cnt)
 
@@ -463,9 +480,14 @@ def insert_top_codes(c):
         )
 
         #up to 127 sub assemblies
+        did = set()
         for i in range(ncomponents):
-            cid = (rnd.get() %
-                (mech_max - mech_min + 1) + mech_min)
+            while True:
+                cid = (rnd.get() %
+                    (mech_max - mech_min + 1) + mech_min)
+                if not cid in did:
+                    break
+            did.add(cid)
 
             ts = datetime.date.fromisoformat(date0).toordinal()
 
@@ -494,10 +516,11 @@ def insert_spare_parts(c):
     # TODO build revision
 
     # make 120 top code
-    for cnt in range(120):
+    for cnt in range(spare_part_count):
 
 
-        ncomponents = rnd.get() % 7 + 2
+        ncomponents = rnd.get() % spare_part_components_count_max + \
+            spare_part_components_count_max // 10
 
         code = "101%03d"%(cnt)
 
@@ -521,9 +544,14 @@ def insert_spare_parts(c):
         )
 
         ts = datetime.date.fromisoformat(date0).toordinal()
+        did = set()
         for i in range(ncomponents):
-            cid = (rnd.get() %
-                (mech_max - mech_min + 1) + mech_min)
+            while True:
+                cid = (rnd.get() %
+                    (mech_max - mech_min + 1) + mech_min)
+                if not cid in did:
+                    break
+            did.add(cid)
 
             c.execute("""INSERT INTO assemblies (
                 unit,
@@ -656,7 +684,7 @@ def make_changes(c):
 
     print("Make few changes")
 
-    for cnt in range(200):
+    for cnt in range(changes_count):
 
         date0 = db.increase_date(date0, 10)
 
@@ -746,7 +774,7 @@ def make_prototype(c):
     max_id = get_max_by_code(c, '82%')
 
     code_ids = set()
-    for cnt in range(200):
+    for cnt in range(prototype_count):
         code_id = rnd.get() % (max_id - min_id + 1) + min_id
         code_ids.add(code_id)
 
