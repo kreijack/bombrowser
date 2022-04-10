@@ -775,7 +775,7 @@ class _BaseServer:
                     WHERE   a.revision_id = ?
                       AND   rc.date_from_days <= ?
                       AND   ? <= rc.date_to_days
-                    ORDER BY a.child_id
+                    ORDER BY a.id
                     """%(gavals), (rid, date_from_days_ref, date_from_days_ref))
 
                 children = c.fetchall()
@@ -1142,17 +1142,11 @@ class _BaseServer:
         c.execute("""SELECT MAX(id) FROM item_revisions""")
         new_rid = c.fetchone()[0]
 
-        #self._revise_code_copy_others(c, new_rid, rid, copy_docs, copy_props)
-
-        c.execute("""
-            INSERT INTO assemblies (
-                unit,
-                child_id,
-                revision_id,
-                qty,
-                each,
-                ref
-            ) SELECT
+        # ORACLE DB complains (constraint violation) if we put this in
+        # a single query like:
+        #     INSERT ... SELECT ... FROM .. ORDER BY
+        # It doesn't like ORDER BY. So split it in two query
+        c.execute("""SELECT
                 unit,
                 child_id,
                 ?,
@@ -1161,7 +1155,20 @@ class _BaseServer:
                 ref
             FROM assemblies
             WHERE revision_id = ?
+            ORDER BY id
         """, (new_rid, old_rid))
+        res = c.fetchall()
+        if len(res) > 0:
+            c.executemany("""
+                INSERT INTO assemblies (
+                    unit,
+                    child_id,
+                    revision_id,
+                    qty,
+                    each,
+                    ref
+                ) VALUES (?, ?, ?, ?, ?, ?)
+            """, res)
 
         if copy_docs:
             c.execute("""
