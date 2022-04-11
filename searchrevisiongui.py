@@ -39,12 +39,10 @@ class _DateValidator(QValidator):
 
     def validate(self, input_, pos):
         if len(input_) == 0:
-            return QValidator.Acceptable
+            return (QValidator.Acceptable, input_, pos)
 
         if not (input_[0] in "!=<>") and not input_[0].isdigit():
             return (QValidator.Invalid, input_, pos)
-
-        print(1, input_, pos)
 
         if input_[0] in "!=<>":
             s = input_[1:]
@@ -54,20 +52,16 @@ class _DateValidator(QValidator):
         if len(s) == 0:
             return (QValidator.Intermediate, input_, pos)
 
-        print(2, s, pos)
-
         if self._intermediate.indexIn(s) == -1:
             return (QValidator.Invalid, input_, pos)
 
         if self._ok.indexIn(s) == -1:
             return (QValidator.Intermediate, input_, pos)
-        print(3, s, pos)
 
         try:
             db.iso_to_days(s)
         except:
             return (QValidator.Intermediate, input_, pos)
-        print(4, s, pos)
 
         return (QValidator.Acceptable, input_, pos)
 
@@ -152,8 +146,8 @@ class RevisionListWidget(QWidget):
                     w.textChanged.connect(_Validator(w, _DateValidator()))
                 elif key == 'id' or key == 'rid' or key == "iter_":
                     w.textChanged.connect(_Validator(w,
-                        QRegExpValidator(QRegExp("[!=<>]?[0-9]+"))))
-                    w.setValidator(QRegExpValidator(QRegExp("[!=<>]?[0-9]+")))
+                        QRegExpValidator(QRegExp("^[!=<>]?[0-9]*$"))))
+                    w.setValidator(QRegExpValidator(QRegExp("^[!=<>]?[0-9]*$")))
 
                 self._line_edit_widgets[key] = w
                 grid.addWidget(w, row, col, 1 , span)
@@ -284,7 +278,7 @@ class RevisionListWidget(QWidget):
                     if v[0] in "<>=!":
                         v = v[0] + str(db.iso_to_days(v[1:]))
                     else:
-                        v = db.iso_to_days(v)
+                        v = str(db.iso_to_days(v))
                 elif self._descr_force_uppercase == "1" and k == "descr":
                         v = v.upper()
                 elif self._code_force_uppercase == "1" and k == "code":
