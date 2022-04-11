@@ -4,6 +4,7 @@
 - introduce helper like Transaction/ROCursor to simplify the exception
   handling during the SQL query/update/insert
 - add colorized validator for the search-revision date/rid/id/iter fields
+- show assembly components in the same ored as edit window
 
 2022-03-28: v0.4.5
 - add export dialog in the asmgui window
