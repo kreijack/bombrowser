@@ -1009,103 +1009,75 @@ def create_db():
     os.mkdir("documents/assembling-procedures")
     os.mkdir("documents/packaging-procedure")
 
-    #conn = sqlite3.connect(dbname)
-    conn = d._conn
-    cursor = d._conn.cursor()
+    with db.Transaction(d) as c:
+        # 510xxx
+        print("Insert resistor 510xxx")
+        insert_resistor(c)
+        # 520xxx
+        print("Insert capacitor 520xxx")
+        insert_capacitor(c)
+        # 530xxx
+        print("Insert uprocessor 530xxx")
+        insert_microprocessor(c)
 
-    class MyCursor:
-        def __init__(self, c, d):
-            self._cursor = c
-            self._db = d
-        def execute(self, query, *args):
-            q2=self._db._sql_translate(query)
-            return self._cursor.execute(q2, *args)
-        def executemany(self, query, *args):
-            q2=self._db._sql_translate(query)
-            return self._cursor.executemany(q2, *args)
-        def fetchone(self):
-            return self._cursor.fetchone()
-        def fetchall(self):
-            return self._cursor.fetchall()
+        # 710xxx
+        print("Insert screws 710xxx")
+        insert_screws(c)
+        # 720xxx
+        print("Insert washer 720xxx")
+        insert_washer(c)
+        # 730xxx
+        print("Insert elastic washer 730xxx")
+        insert_elastic_washer(c)
 
-    c = MyCursor(cursor, d)
+        # 610xxx
+        print("Insert boards 610xxx")
+        insert_board(c)
 
-    # 510xxx
-    print("Insert resistor 510xxx")
-    insert_resistor(c)
-    # 520xxx
-    print("Insert capacitor 520xxx")
-    insert_capacitor(c)
-    # 530xxx
-    print("Insert uprocessor 530xxx")
-    insert_microprocessor(c)
+        # 810###
+        print("Insert mechanical componets 810xxx")
+        insert_mechanical_components(c)
 
-    # 710xxx
-    print("Insert screws 710xxx")
-    insert_screws(c)
-    # 720xxx
-    print("Insert washer 720xxx")
-    insert_washer(c)
-    # 730xxx
-    print("Insert elastic washer 730xxx")
-    insert_elastic_washer(c)
+        # 820 #
+        print("Insert mechanical assemblies 820xxx")
+        insert_mechanical_assemblies(c)
 
-    # 610xxx
-    print("Insert boards 610xxx")
-    insert_board(c)
+        # 100xxx
+        print("Insert top codes 100xxx")
+        insert_top_codes(c)
 
-    # 810###
-    print("Insert mechanical componets 810xxx")
-    insert_mechanical_components(c)
+        # 101xxx
+        print("Insert spare parts 101xxx")
+        insert_spare_parts(c)
 
-    # 820 #
-    print("Insert mechanical assemblies 820xxx")
-    insert_mechanical_assemblies(c)
-
-    # 100xxx
-    print("Insert top codes 100xxx")
-    insert_top_codes(c)
-
-    # 101xxx
-    print("Insert spare parts 101xxx")
-    insert_spare_parts(c)
-
-    conn.commit()
-
-    try:
         make_changes(c)
         make_prototype(c)
-    finally:
-        conn.commit()
 
-    if False:
-        c.executemany("""
-            INSERT INTO database_props(name, value)
-            VALUES (?, ?)
-        """,(
-                ("cfg.template_simple.name", "Simple table"),
-                ("cfg.template_simple.columns", "seq,level,code,indented_code,descr,qty,each,unit,ref,rev,iter,date_from,date_to"),
-                ("cfg.template_simple.captions", "Seq,Level,Code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date"),
+        if False:
+            c.executemany("""
+                INSERT INTO database_props(name, value)
+                VALUES (?, ?)
+            """,(
+                    ("cfg.template_simple.name", "Simple table"),
+                    ("cfg.template_simple.columns", "seq,level,code,indented_code,descr,qty,each,unit,ref,rev,iter,date_from,date_to"),
+                    ("cfg.template_simple.captions", "Seq,Level,Code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date"),
 
-                ("cfg.template_all.name", "Full table"),
-                ("cfg.template_all.columns", "seq,level,parent,parent_descr,\"-\",code,indented_code,descr,qty,each,unit,ref,rev,iter,date_from,date_to,gval1,gval2,gval3,gval4,gval5,gval6"),
-                ("cfg.template_all.captions", "Seq,Level,Parent code,Parent descritpion,-,Code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date,Supplier#1 PN,Supplier#1 name,Manufacturer#1 PN,Manufacturer#1 name,Manufacturer#2 PN,Manufacturer#2 name"),
+                    ("cfg.template_all.name", "Full table"),
+                    ("cfg.template_all.columns", "seq,level,parent,parent_descr,\"-\",code,indented_code,descr,qty,each,unit,ref,rev,iter,date_from,date_to,gval1,gval2,gval3,gval4,gval5,gval6"),
+                    ("cfg.template_all.captions", "Seq,Level,Parent code,Parent descritpion,-,Code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date,Supplier#1 PN,Supplier#1 name,Manufacturer#1 PN,Manufacturer#1 name,Manufacturer#2 PN,Manufacturer#2 name"),
 
-                ("cfg.template_dummy.name", "Dummy table"),
-                ("cfg.template_dummy.columns", "seq,parent,code,descr,qty,each,unit,ref,rev,iter,date_from,date_to"),
-                ("cfg.template_dummy.captions", "Seq,Parent code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date")
+                    ("cfg.template_dummy.name", "Dummy table"),
+                    ("cfg.template_dummy.columns", "seq,parent,code,descr,qty,each,unit,ref,rev,iter,date_from,date_to"),
+                    ("cfg.template_dummy.captions", "Seq,Parent code,Code,Description,Q.ty,Each,Unit,Reference,Rev,Iter,From date,To date")
 
-        ))
-        conn.commit()
+            ))
 
-    print("Insert unicode codes")
-    insert_unicode_code(c)
-    print("Insert code with date")
-    insert_codes_with_date(c)
-    print("Insert assembly with a loop")
-    insert_codes_with_loop(c)
-
-    conn.commit()
+        print("Insert unicode codes")
+        insert_unicode_code(c)
+        print("Insert code with date")
+        insert_codes_with_date(c)
+        print("Insert assembly with a loop")
+        insert_codes_with_loop(c)
 
 create_db()
 
