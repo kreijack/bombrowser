@@ -37,7 +37,7 @@ def _test_insert_items(c):
             code_id = map_code_id[code]
         else:
             c.execute("""INSERT INTO items(code) VALUES (?)""",( code,))
-            c.execute("""SELECT MAX (id) FROM items""")
+            c.execute("""SELECT MAX(id) FROM items""")
             code_id = c.fetchone()[0]
             map_code_id[code] = code_id
 
@@ -222,7 +222,7 @@ def _build_assembly(c, ass):
     for code in ass:
 
         c.execute("""INSERT INTO items(code) VALUES (?)""", (code,))
-        c.execute("""SELECT MAX (id) FROM items""")
+        c.execute("""SELECT MAX(id) FROM items""")
         code_id = c.fetchone()[0]
 
         map_code_id[code] = code_id
@@ -265,7 +265,7 @@ def _build_assembly(c, ass):
             iter_[code] += 1
 
             for child in children:
-                c.execute("""SELECT MAX (id) FROM item_revisions""")
+                c.execute("""SELECT MAX(id) FROM item_revisions""")
                 rid = c.fetchone()[0]
                 c.execute("""INSERT INTO assemblies (
                         unit,
@@ -556,7 +556,7 @@ def test_get_config():
 def _create_code_revision(c, code, nr=10):
 
     c.execute("""INSERT INTO items(code) VALUES (?)""",( code,))
-    c.execute("""SELECT MAX (id) FROM items""")
+    c.execute("""SELECT MAX(id) FROM items""")
     code_id = c.fetchone()[0]
 
     dates = ["%04d-06-10"%(2001+i) for i in range(nr, 0, -1)]
@@ -1711,9 +1711,9 @@ def test_dump_db():
         rids = _create_simple_assy_with_drawings(c)
 
     with ROCursor(d) as c:
-        c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+        c.execute("SELECT COUNT(*) FROM assemblies")
         ca = c.fetchone()[0]
-        c.execute("SELECT COUNT(*) FROM DRAWINGS")
+        c.execute("SELECT COUNT(*) FROM drawings")
         cd = c.fetchone()[0]
 
     assert(cd > 0)
@@ -1744,13 +1744,13 @@ def test_restore_db():
         rids = _create_simple_assy_with_drawings(c)
 
     with ROCursor(d) as c:
-        c.execute("SELECT COUNT(*) FROM ITEMS")
+        c.execute("SELECT COUNT(*) FROM items")
         ci = c.fetchone()[0]
-        c.execute("SELECT COUNT(*) FROM ITEM_REVISIONS")
+        c.execute("SELECT COUNT(*) FROM item_revisions")
         cr = c.fetchone()[0]
-        c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+        c.execute("SELECT COUNT(*) FROM assemblies")
         ca = c.fetchone()[0]
-        c.execute("SELECT COUNT(*) FROM DRAWINGS")
+        c.execute("SELECT COUNT(*) FROM drawings")
         cd = c.fetchone()[0]
 
     assert(cd > 0)
@@ -1762,18 +1762,18 @@ def test_restore_db():
 
         d.create_db()
         with ROCursor(d) as c:
-            c.execute("SELECT COUNT(*) FROM DRAWINGS")
+            c.execute("SELECT COUNT(*) FROM drawings")
             assert(0 == c.fetchone()[0])
 
         db.restore_tables(tmpfilename, d, quiet=True)
         with ROCursor(d) as c:
-            c.execute("SELECT COUNT(*) FROM ITEMS")
+            c.execute("SELECT COUNT(*) FROM items")
             assert(ci == c.fetchone()[0])
-            c.execute("SELECT COUNT(*) FROM ITEM_REVISIONS")
+            c.execute("SELECT COUNT(*) FROM item_revisions")
             assert(cr == c.fetchone()[0])
-            c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+            c.execute("SELECT COUNT(*) FROM assemblies")
             assert(ca == c.fetchone()[0])
-            c.execute("SELECT COUNT(*) FROM DRAWINGS")
+            c.execute("SELECT COUNT(*) FROM drawings")
             assert(cd == c.fetchone()[0])
 
     finally:
@@ -1786,9 +1786,9 @@ def test_new_db():
         rids = _create_simple_assy_with_drawings(c)
 
     with ROCursor(d) as c:
-        c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+        c.execute("SELECT COUNT(*) FROM assemblies")
         ca = c.fetchone()[0]
-        c.execute("SELECT COUNT(*) FROM ITEMS")
+        c.execute("SELECT COUNT(*) FROM items")
         ci = c.fetchone()[0]
 
     assert(ca > 1)
@@ -1797,9 +1797,9 @@ def test_new_db():
     db.new_db(d)
 
     with ROCursor(d) as c:
-        c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+        c.execute("SELECT COUNT(*) FROM assemblies")
         ca = c.fetchone()[0]
-        c.execute("SELECT COUNT(*) FROM ITEMS")
+        c.execute("SELECT COUNT(*) FROM items")
         ci = c.fetchone()[0]
 
     assert(ca == 0)
@@ -2343,13 +2343,13 @@ def test_restore_db_with_different_endline():
     rids = _create_simple_assy_with_drawings(c)
     d._commit(c)
 
-    c.execute("SELECT COUNT(*) FROM ITEMS")
+    c.execute("SELECT COUNT(*) FROM items")
     ci = c.fetchone()[0]
-    c.execute("SELECT COUNT(*) FROM ITEM_REVISIONS")
+    c.execute("SELECT COUNT(*) FROM item_revisions")
     cr = c.fetchone()[0]
-    c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+    c.execute("SELECT COUNT(*) FROM assemblies")
     ca = c.fetchone()[0]
-    c.execute("SELECT COUNT(*) FROM DRAWINGS")
+    c.execute("SELECT COUNT(*) FROM drawings")
     cd = c.fetchone()[0]
 
     assert(cd > 0)
@@ -2373,18 +2373,18 @@ def test_restore_db_with_different_endline():
     z2.close()
 
     d.create_db()
-    c.execute("SELECT COUNT(*) FROM DRAWINGS")
+    c.execute("SELECT COUNT(*) FROM drawings")
     assert(0 == c.fetchone()[0])
 
     try:
         db.restore_tables(tmpfilename2, d, quiet=True)
-        c.execute("SELECT COUNT(*) FROM ITEMS")
+        c.execute("SELECT COUNT(*) FROM items")
         assert(ci == c.fetchone()[0])
-        c.execute("SELECT COUNT(*) FROM ITEM_REVISIONS")
+        c.execute("SELECT COUNT(*) FROM item_revisions")
         assert(cr == c.fetchone()[0])
-        c.execute("SELECT COUNT(*) FROM ASSEMBLIES")
+        c.execute("SELECT COUNT(*) FROM assemblies")
         assert(ca == c.fetchone()[0])
-        c.execute("SELECT COUNT(*) FROM DRAWINGS")
+        c.execute("SELECT COUNT(*) FROM drawings")
         assert(cd == c.fetchone()[0])
 
     finally:
@@ -2425,7 +2425,7 @@ def test_oracle_empty_string():
     d = _init_db()
     with Transaction(d) as c:
         c.execute("""INSERT INTO items(code) VALUES (?)""",( 'code',))
-        c.execute("""SELECT MAX (id) FROM items""")
+        c.execute("""SELECT MAX(id) FROM items""")
         code_id = c.fetchone()[0]
 
         c.execute("""INSERT INTO item_revisions(
