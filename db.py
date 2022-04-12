@@ -90,11 +90,11 @@ class Transaction:
         self._to_commit = False
 
     def execute(self, query, *args):
-        r = self._db._sqlex(self._cursor, query, *args)
+        r = self._db._execute(self._cursor, query, *args)
         self.description = self._cursor.description
         return r
     def executemany(self, query, *args):
-        r = self._db._sqlexm(self._cursor, query, *args)
+        r = self._db._executemany(self._cursor, query, *args)
         self.description = self._cursor.description
         return r
 
@@ -152,7 +152,7 @@ class ROCursor:
 
     def execute(self, query, *args):
         self._check_query(query)
-        r = self._db._sqlex(self._cursor, query, *args)
+        r = self._db._execute(self._cursor, query, *args)
         self.description = self._cursor.description
         return r
 
@@ -185,9 +185,9 @@ class _BaseServer:
         self._ver = "empty"
         if "database_props" in self._get_tables_list():
             try:
-                c = self._get_cursor()
-                self._sqlex(c, """SELECT value FROM database_props WHERE name='ver' """)
-                self._ver = c.fetchone()[0]
+                with ROCursor(d) as c:
+                    c.execute("SELECT value FROM database_props WHERE name='ver' ")
+                    self._ver = c.fetchone()[0]
             except:
                 return
 
@@ -219,16 +219,10 @@ class _BaseServer:
 
         return c
 
-    def __sqlex(self, c, query, *args, **kwargs):
-        c.execute(query, *args, **kwargs)
-
-    def __sqlexm(self, c, query, *args, **kwargs):
-        c.executemany(query, *args, **kwargs)
-
-    def _sqlex_gen(self, method, c, query, *args, **kwargs):
+    def _execute_gen(self, method, query, *args, **kwargs):
         query = self._sql_translate(query)
         try:
-            method(self, c, query, *args, **kwargs)
+            method(query, *args, **kwargs)
         except Exception as e:
             exc_type, exc_value, exc_tb = sys.exc_info()
             stack = traceback.extract_stack()
@@ -250,11 +244,11 @@ class _BaseServer:
     def _exception_handler(self, exc_value):
         pass
 
-    def _sqlex(self, c, query, *args, **kwargs):
-        self._sqlex_gen(_BaseServer.__sqlex, c, query, *args, **kwargs)
+    def _execute(self, c, query, *args, **kwargs):
+        self._execute_gen(c.execute, query, *args, **kwargs)
 
-    def _sqlexm(self, c, query, *args, **kwargs):
-        self._sqlex_gen(_BaseServer.__sqlexm, c, query, *args, **kwargs)
+    def _executemany(self, c, query, *args, **kwargs):
+        self._execute_gen(c.executemany, query, *args, **kwargs)
 
     def _commit(self, c):
         c.commit()
@@ -2013,16 +2007,7 @@ class DBMySQL(_BaseServer):
     def _insert_table(self, tname, columns, data):
         with Transaction(self) as c:
             self._insert_table_(c, tname, columns, data)
-        """
-            c.execute("SELECT COUNT(*) FROM " + tname)
-            n = c.fetchone()[0]
-            if n > 0:
-                self._sqlex(c, "SELECT MAX(id) FROM " + tname)
-                n = c.fetchone()[0] + 10
-            else:
-                n = 100
-            c.execute("ALTER SEQUENCE " + tname + "_id_seq RESTART WITH %d"%(n) )
-        """
+
     def _sql_translate(self, s):
         def process(l):
             if "DROP INDEX IF EXISTS" in l:

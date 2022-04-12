@@ -1858,12 +1858,12 @@ def test_constraint_items_code_unique():
 
     d = _init_db()
     with Transaction(d) as c:
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO items (code) VALUES ('a')
         """)
 
         try:
-            d._sqlex(c, """
+            d._execute(c, """
                 INSERT INTO items (code) VALUES ('a')
             """)
         except d._mod.IntegrityError as e:
@@ -1875,18 +1875,18 @@ def test_constraint_item_rev_reference_code_id():
 
     d = _init_db()
     with Transaction(d) as c:
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO items (code) VALUES ('a')
         """)
-        d._sqlex(c, """SELECT MAX(id) FROM items""")
+        d._execute(c, """SELECT MAX(id) FROM items""")
         id_ = c.fetchone()[0]
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO item_revisions (code_id, ver, descr, default_unit)
             VALUES (?, '0', 'pp', 'oo')
         """, (id_,))
 
         try:
-            d._sqlex(c, """
+            d._execute(c, """
                 DELETE FROM items WHERE id=?
             """, (id_,))
         except d._mod.IntegrityError as e:
@@ -1898,23 +1898,23 @@ def test_constraint_item_rev_iter_code_id_unique():
 
     d = _init_db()
     with Transaction(d) as c:
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO items (code) VALUES ('a')
         """)
-        d._sqlex(c, """SELECT MAX(id) FROM items""")
+        d._execute(c, """SELECT MAX(id) FROM items""")
         id_ = c.fetchone()[0]
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
             VALUES (?, 0, '0', 'pp', 'oo')
         """, (id_,))
 
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
             VALUES (?, 1, '0', 'pp', 'oo')
         """, (id_,))
 
         try:
-            d._sqlex(c, """
+            d._execute(c, """
                 INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
                 VALUES (?, 1, '0', 'pp', 'oo')
             """, (id_,))
@@ -1927,25 +1927,25 @@ def test_constraint_item_prop_references_rev_id():
 
     d = _init_db()
     with Transaction(d) as c:
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO items (code) VALUES ('a')
         """)
-        d._sqlex(c, """SELECT MAX(id) FROM items""")
+        d._execute(c, """SELECT MAX(id) FROM items""")
         id_ = c.fetchone()[0]
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
             VALUES (?, 0, '0', 'pp', 'oo')
         """, (id_,))
-        d._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
+        d._execute(c, """SELECT MAX(id) FROM item_revisions""")
         id2 = c.fetchone()[0]
 
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO item_properties (revision_id)
             VALUES (?)
         """, (id2,))
 
         try:
-            d._sqlex(c, """
+            d._execute(c, """
                 DELETE FROM item_revisions WHERE id=?
             """, (id2,))
         except d._mod.IntegrityError as e:
@@ -1958,31 +1958,31 @@ def test_constraint_item_prop_rev_id_descr_unique():
 
     d = _init_db()
     with Transaction(d) as c:
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO items (code) VALUES ('a')
         """)
-        d._sqlex(c, """SELECT MAX(id) FROM items""")
+        d._execute(c, """SELECT MAX(id) FROM items""")
         id_ = c.fetchone()[0]
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
             VALUES (?, 0, '0', 'pp', 'oo')
         """, (id_,))
-        d._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
+        d._execute(c, """SELECT MAX(id) FROM item_revisions""")
         id2 = c.fetchone()[0]
 
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO item_properties (revision_id, descr)
             VALUES (?, 'x')
         """, (id2,))
 
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO item_properties (revision_id, descr)
             VALUES (?, 'y')
         """, (id2,))
 
 
         try:
-            d._sqlex(c, """
+            d._execute(c, """
                 INSERT INTO item_properties (revision_id, descr)
                 VALUES (?, 'y')
             """, (id2,))
@@ -1995,31 +1995,31 @@ def test_constraint_assemblies_references_code_id():
 
     d = _init_db()
     with Transaction(d) as c:
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO items (code) VALUES ('a')
         """)
-        d._sqlex(c, """SELECT MAX(id) FROM items""")
+        d._execute(c, """SELECT MAX(id) FROM items""")
         id_ = c.fetchone()[0]
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
             VALUES (?, 0, '0', 'pp', 'oo')
         """, (id_,))
-        d._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
+        d._execute(c, """SELECT MAX(id) FROM item_revisions""")
         id2 = c.fetchone()[0]
 
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO items (code) VALUES ('b')
         """)
-        d._sqlex(c, """SELECT MAX(id) FROM items""")
+        d._execute(c, """SELECT MAX(id) FROM items""")
         id3 = c.fetchone()[0]
 
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO assemblies (child_id, revision_id)
             VALUES (?, ?)
         """, (id3, id2))
 
         try:
-            d._sqlex(c, """
+            d._execute(c, """
                 DELETE FROM items WHERE id=?
             """, (id3,))
         except d._mod.IntegrityError as e:
@@ -2031,32 +2031,32 @@ def test_constraint_assemblies_references_rev_id():
 
     d = _init_db()
     with Transaction(d) as c:
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO items (code) VALUES ('a')
         """)
-        d._sqlex(c, """SELECT MAX(id) FROM items""")
+        d._execute(c, """SELECT MAX(id) FROM items""")
         id_ = c.fetchone()[0]
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
             VALUES (?, 0, '0', 'pp', 'oo')
         """, (id_,))
-        d._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
+        d._execute(c, """SELECT MAX(id) FROM item_revisions""")
         id2 = c.fetchone()[0]
 
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO items (code) VALUES ('b')
         """)
-        d._sqlex(c, """SELECT MAX(id) FROM items""")
+        d._execute(c, """SELECT MAX(id) FROM items""")
         id3 = c.fetchone()[0]
 
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO assemblies (child_id, revision_id)
             VALUES (?, ?)
         """, (id3, id2))
 
 
         try:
-            d._sqlex(c, """
+            d._execute(c, """
                 DELETE FROM item_revisions WHERE id=?
             """, (id2,))
         except d._mod.IntegrityError as e:
@@ -2068,25 +2068,25 @@ def test_constraint_assemblies_unique_revision_id_code_id():
 
     d = _init_db()
     with Transaction(d) as c:
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO items (code) VALUES ('a')
         """)
-        d._sqlex(c, """SELECT MAX(id) FROM items""")
+        d._execute(c, """SELECT MAX(id) FROM items""")
         id_ = c.fetchone()[0]
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
             VALUES (?, 0, '0', 'pp', 'oo')
         """, (id_,))
-        d._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
+        d._execute(c, """SELECT MAX(id) FROM item_revisions""")
         id2 = c.fetchone()[0]
 
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO assemblies (child_id, revision_id)
             VALUES (?, ?)
         """, (id_, id2))
 
         try:
-            d._sqlex(c, """
+            d._execute(c, """
                 INSERT INTO assemblies (child_id, revision_id)
                 VALUES (?, ?)
             """, (id_, id2))
@@ -2098,27 +2098,27 @@ def test_constraint_assemblies_unique_revision_id_code_id():
 def test_constraint_drawings_references_rev_id():
     d = _init_db()
     with Transaction(d) as c:
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO items (code) VALUES ('a')
         """)
-        d._sqlex(c, """SELECT MAX(id) FROM items""")
+        d._execute(c, """SELECT MAX(id) FROM items""")
         id_ = c.fetchone()[0]
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
             VALUES (?, 0, '0', 'pp', 'oo')
         """, (id_,))
-        d._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
+        d._execute(c, """SELECT MAX(id) FROM item_revisions""")
         id2 = c.fetchone()[0]
 
-        d._sqlex(c, """
+        d._execute(c, """
             INSERT INTO drawings (fullpath, filename, revision_id)
             VALUES ('b', 'b', ?)
         """, (id2,))
-        d._sqlex(c, """SELECT MAX(id) FROM drawings""")
+        d._execute(c, """SELECT MAX(id) FROM drawings""")
         id3 = c.fetchone()[0]
 
         try:
-            d._sqlex(c, """
+            d._execute(c, """
                 DELETE FROM item_revisions WHERE id=?
             """, (id2,))
         except d._mod.IntegrityError as e:
