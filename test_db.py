@@ -2387,6 +2387,40 @@ def test_postgres_screws():
     with Transaction(d) as c:
         _test_insert_assembly(c)
 
+# oracle db treats an empty string as Null/None
+# we had to implement a workaround in Transaction/ROCursor
+# that blindly translate None in ''
+def test_oracle_empty_string():
+    d = _init_db()
+    with Transaction(d) as c:
+        c.execute("""INSERT INTO items(code) VALUES (?)""",( 'code',))
+        c.execute("""SELECT MAX (id) FROM items""")
+        code_id = c.fetchone()[0]
+
+        c.execute("""INSERT INTO item_revisions(
+            code_id, ver, descr, default_unit) VALUES (
+            ?, ?, ?, ?)""", (
+                code_id, '0', 'descr', "nr"
+            ))
+
+    with ROCursor(d) as c:
+        c.execute("""SELECT gval1 FROM item_revisions""")
+        s = c.fetchone()
+        assert(s[0] == '')
+
+        c.execute("""SELECT gval1 FROM item_revisions""")
+        s = c.fetchall()
+        assert(s[0][0] == '')
+
+    with Transaction(d) as c:
+        c.execute("""SELECT gval1 FROM item_revisions""")
+        s = c.fetchone()
+        assert(s[0] == '')
+
+        c.execute("""SELECT gval1 FROM item_revisions""")
+        s = c.fetchall()
+        assert(s[0][0] == '')
+
 #------
 
 
