@@ -97,10 +97,16 @@ class Transaction:
         r = self._db._sqlexm(self._cursor, query, *args)
         self.description = self._cursor.description
         return r
+
     def fetchone(self):
-        return self._cursor.fetchone()
+        return self._db._translate_fetchone_(
+            self._cursor,
+            self._cursor.fetchone())
+
     def fetchall(self):
-        return self._cursor.fetchall()
+        return self._db._translate_fetchall_(
+            self._cursor,
+            self._cursor.fetchall())
 
     def tables(self):
         return self._cursor.tables()
@@ -109,6 +115,7 @@ class Transaction:
         assert(self._cursor)
         self._to_commit = False
         return self._db._commit(self._cursor)
+
     def rollback(self):
         assert(self._cursor)
         self._to_commit = False
@@ -131,6 +138,7 @@ class Transaction:
         self._cursor = None
         self._to_commit = False
 
+
 class ROCursor:
     def __init__(self, d):
         self._db = d
@@ -147,10 +155,16 @@ class ROCursor:
         r = self._db._sqlex(self._cursor, query, *args)
         self.description = self._cursor.description
         return r
+
     def fetchone(self):
-        return self._cursor.fetchone()
+        return self._db._translate_fetchone_(
+            self._cursor,
+            self._cursor.fetchone())
+
     def fetchall(self):
-        return self._cursor.fetchall()
+        return self._db._translate_fetchall_(
+            self._cursor,
+            self._cursor.fetchall())
 
     def __enter__(self):
         self._cursor = self._db._get_cursor()
@@ -179,6 +193,14 @@ class _BaseServer:
 
             # for now v0.3 and v0.4 are equal
             assert(self._ver == "0.4" or self._ver == "0.3")
+
+    # these two methods can be overrided to tweak the data returned by
+    # fetchone/fetchall
+    def _translate_fetchone_(self, c, x):
+        return x
+
+    def _translate_fetchall_(self, c, x):
+        return x
 
     def _get_cursor(self):
         if self._conn is None:
@@ -233,7 +255,6 @@ class _BaseServer:
 
     def _sqlexm(self, c, query, *args, **kwargs):
         self._sqlex_gen(_BaseServer.__sqlexm, c, query, *args, **kwargs)
-
 
     def _commit(self, c):
         c.commit()
@@ -1819,6 +1840,25 @@ class DBOracleServer(_BaseServer):
 
             return [x[0].lower() for x in c.fetchall()]
 
+    def _translate_fetchone_(self, c, row):
+        tr = [("VARCHAR" in str(x[1])) for x in c.description]
+
+        def f(y, i):
+            if tr[i] and y is None:
+                return ''
+            return y
+
+        return list([f(x, i) for (i, x) in enumerate(row)])
+
+    def _translate_fetchall_(self, c, rows):
+        tr = [("VARCHAR" in str(x[1])) for x in c.description]
+
+        def f(y, i):
+            if tr[i] and y is None:
+                return ''
+            return y
+
+        return [list([f(x, i) for (i, x) in enumerate(row)]) for row in rows]
 
 class DBSQLite(_BaseServer):
     def __init__(self, path=None):
