@@ -2486,7 +2486,7 @@ def run_test(filters, modules, prefix="", print_exc=False):
         if skip:
             continue
 
-        print(prefix+name, end="...")
+        print(prefix+name, end=" ... ")
         sys.stdout.flush()
         try:
             obj()
