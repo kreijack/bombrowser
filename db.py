@@ -514,7 +514,7 @@ class _BaseServer:
 
         data["properties"] = dict()
 
-        self._sqlex(c, """
+        c.execute("""
             SELECT descr, value
             FROM item_properties
             WHERE revision_id=?
@@ -535,7 +535,7 @@ class _BaseServer:
 
         gval_query = ", ".join(["r.gval%d"%(i+1) for i in range(gvals_count)])
 
-        self._sqlex(c, """
+        c.execute("""
             SELECT i.code, r.descr, r.ver, r.iter, r.default_unit,
                 r.date_from_days, r.date_to_days, i.id,
                 """ + gval_query + """
@@ -569,7 +569,7 @@ class _BaseServer:
 
         data["properties"] = dict()
 
-        self._sqlex(c, """
+        c.execute("""
             SELECT descr, value
             FROM item_properties
             WHERE revision_id=?
@@ -715,7 +715,7 @@ class _BaseServer:
             return self._get_children_dates_range_by_rid(c, rid)
 
     def _get_children_dates_range_by_rid(self, c, rid):
-        self._sqlex(c, """
+        c.execute("""
                 SELECT a.child_id AS c_id,
                        MIN(r.date_from_days) AS dfrom,
                        MAX(r.date_to_days) AS dto
@@ -885,14 +885,14 @@ class _BaseServer:
             """, (id_code,))
             code0 = c.fetchone()[0]
 
-            self._sqlex(c, """
+            c.execute("""
                 SELECT MIN(date_from_days)
                 FROM item_revisions
                 WHERE code_id = ?
             """, (id_code, ))
             (xdate_from_days0, ) = c.fetchone()
 
-            self._sqlex(c, """
+            c.execute("""
                 SELECT MAX(date_to_days)
                 FROM item_revisions
                 WHERE code_id = ?
@@ -975,7 +975,7 @@ class _BaseServer:
 
                 cid = todo.pop()
                 done.add(cid)
-                self._sqlex(c, """
+                c.execute("""
                         SELECT r.date_from_days
                         FROM item_revisions AS r
                         WHERE r.code_id = ?
@@ -986,7 +986,7 @@ class _BaseServer:
                     if not date_from_days in sdates:
                         sdates.add(date_from_days)
 
-                self._sqlex(c, """
+                c.execute("""
                         SELECT DISTINCT child_id
                         FROM assemblies
                         WHERE revision_id IN (
@@ -1116,7 +1116,7 @@ class _BaseServer:
 
             if latest_rid >= 0:
                 old_date_to_days = new_date_from_days - 1
-                self._sqlex(c, """
+                c.execute("""
                     UPDATE item_revisions
                     SET date_to = ?, date_to_days = ?
                     WHERE id = ?
@@ -1801,7 +1801,7 @@ class DBOracleServer(_BaseServer):
                     i = stms.upper().find("END")
                     s = stms[:i+3] + ";"
                     stms = stms[i+3:]
-                    self._sqlex(c, s)
+                    c.execute(s)
                 elif stms.upper().startswith(";"):
                     stms = stms[1:]
                     continue
@@ -1921,7 +1921,7 @@ class DBPG(_BaseServer):
             c.execute("SELECT COUNT(*) FROM " + tname)
             n = c.fetchone()[0]
             if n > 0:
-                self._sqlex(c, "SELECT MAX(id) FROM " + tname)
+                c.execute("SELECT MAX(id) FROM " + tname)
                 n = c.fetchone()[0] + 10
             else:
                 n = 100
