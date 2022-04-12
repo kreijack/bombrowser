@@ -2460,11 +2460,12 @@ def run_test(filters, modules, prefix="", print_exc=False):
         try:
             obj()
             print("OK")
-        except Exception as e:
+        except Exception:
             print("FAIL !!!")
             if print_exc:
+                import traceback
                 print("-"*30)
-                print(e)
+                print(traceback.format_exc())
                 print("-"*30)
             sys.exit(100)
 
