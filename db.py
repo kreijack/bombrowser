@@ -414,8 +414,6 @@ class _BaseServer:
         stms += '\n'
         stms += '\n'.join(t[i+1:])
 
-        stms = self._sql_translate(stms)
-
         return stms
 
     def create_db(self):
@@ -836,7 +834,7 @@ class _BaseServer:
             return (code_id0, data)
 
     def _get_parents(self, c, id_code, date_from_days, date_to_days):
-        self._sqlex(c, """
+        c.execute("""
             SELECT a.unit, c.code, r.default_unit, a.qty, a.each,
                     r.iter, r.code_id, r.date_from_days, r.date_to_days
             FROM assemblies AS a
@@ -860,7 +858,7 @@ class _BaseServer:
             return res
 
     def _get_valid_parents(self, c, id_code):
-        self._sqlex(c, """
+        c.execute("""
             SELECT a.unit, c.code, r.default_unit, a.qty, a.each,
                     r.iter, r.code_id, r.date_from_days, r.date_to_days
             FROM assemblies AS a
@@ -1707,6 +1705,7 @@ class DBSQLServer(_BaseServer):
         cursor = self._get_cursor()
         return [row.table_name for row in cursor.tables()]
 
+
 class DBOracleServer(_BaseServer):
     def __init__(self, path=None):
         _BaseServer.__init__(self, path)
@@ -1789,6 +1788,11 @@ class DBOracleServer(_BaseServer):
     def create_db(self):
 
         stms = self._get_db_v0_4()
+
+        # due to the expansion of DROP TABLE IF EXISTS,
+        # we need to do the _sql_translate at this level
+        stms = self._sql_translate(stms)
+
         with Transaction(self) as c:
 
             while len(stms):
@@ -1860,6 +1864,7 @@ class DBOracleServer(_BaseServer):
             return y
 
         return [list([f(x, i) for (i, x) in enumerate(row)]) for row in rows]
+
 
 class DBSQLite(_BaseServer):
     def __init__(self, path=None):
@@ -1991,6 +1996,120 @@ class DBPG(_BaseServer):
 
             return dates
 
+
+class DBMySQL(_BaseServer):
+    def __init__(self, path=None):
+        _BaseServer.__init__(self, path)
+
+    def _commit(self, c):
+        self._conn.commit()
+
+    def _rollback(self, c):
+        self._conn.rollback()
+
+    def _begin(self, c):
+        c.execute("BEGIN")
+
+    def _insert_table(self, tname, columns, data):
+        with Transaction(self) as c:
+            self._insert_table_(c, tname, columns, data)
+        """
+            c.execute("SELECT COUNT(*) FROM " + tname)
+            n = c.fetchone()[0]
+            if n > 0:
+                self._sqlex(c, "SELECT MAX(id) FROM " + tname)
+                n = c.fetchone()[0] + 10
+            else:
+                n = 100
+            c.execute("ALTER SEQUENCE " + tname + "_id_seq RESTART WITH %d"%(n) )
+        """
+    def _sql_translate(self, s):
+        def process(l):
+            if "DROP INDEX IF EXISTS" in l:
+                i = l.find(".")
+                j = l.rfind(" ", 0, i)
+                k = l.find(";")
+                if k < 0:
+                    k = len(l)+ 10
+                tbname = l[j+1:i]
+                l = l[:j] + " " + l[i+1:k] + " ON " + tbname + l[k:]
+            if " IDENTITY " in l:
+                i = l.find(" IDENTITY ")
+                l = l[:i] + " AUTO_INCREMENT " + l[i+10:]
+            if "each" in l:
+                l = l.replace("each", "`each`")
+            if "?" in l:
+                l = l.replace("?", "%s")
+            #print(l)
+            return l
+        s = '\n'.join([process(line) for line in s.split("\n")])
+        return s
+
+    def _translate_fetchall_(self, c, rows):
+        # MySQL return tuple, sometime we need list
+        return list(_BaseServer._translate_fetchall_(self, c, rows))
+
+    def create_db(self):
+        # this to avoid error when dropping the index
+        with Transaction(self) as c:
+            for tbname in self.list_main_tables():
+                query = "CREATE TABLE IF NOT EXISTS %s (a INTEGER)"%(tbname)
+                c.execute(query)
+        _BaseServer.create_db(self)
+
+    def _open(self, path):
+        import MySQLdb
+        self._mod = MySQLdb
+        self._conn = MySQLdb.connect(*path.split(";"))
+        #self._conn.set_client_encoding("UNICODE")
+
+    def _get_tables_list(self):
+        with ROCursor(self) as c:
+            c.execute("""SHOW TABLES""")
+            return [x[0] for x in c.fetchall()]
+
+    def get_bom_dates_by_code_id(self, code_id):
+        sdates = set()
+        done = set()
+        todo = [code_id]
+
+        with ROCursor(self) as c:
+
+            c.execute("""
+                SELECT MIN(date_from_days)
+                FROM item_revisions
+                WHERE code_id = ?
+                """, (code_id,))
+
+            date_from_min = c.fetchone()[0]
+
+            c.execute("""
+
+                SELECT DISTINCT r.date_from_days
+                FROM item_revisions AS r
+                WHERE r.code_id IN (
+
+                    WITH RECURSIVE child_of(child_id) AS (
+                        SELECT  ?
+                        UNION
+                        SELECT a.child_id
+                        FROM child_of AS co
+                        LEFT JOIN item_revisions AS r
+                           ON r.code_id = co.child_id
+                        LEFT JOIN assemblies AS a
+                           ON a.revision_id = r.id
+                    )
+                    SELECT  child_id
+                    FROM child_of
+                )  AND date_from_days >= ?
+
+            """,(code_id, date_from_min))
+
+            dates = [x[0] for x in c.fetchall()]
+
+            return dates
+
+
 _globaDBInstance = None
 def DB(path=None):
 
@@ -2052,6 +2171,21 @@ def DB(path=None):
         connection="Server: PostgreSQL/" + connection_string
         _globaDBInstance = DBPG(connection_string)
         return _globaDBInstance
+    elif dbtype == "mysql":
+        import customize
+        d = {
+            "server": cfg.config().get("MYSQL", "server"),
+            "database": cfg.config().get("MYSQL", "database"),
+            "username": cfg.config().get("MYSQL", "username"),
+            "password": cfg.config().get("MYSQL", "password"),
+        }
+        d["password"] = customize.database_password(d["password"])
+        connection_string = ";".join([d["server"], d["username"],
+            d["password"], d["database"]])
+        connection="Server: MySQL/" + connection_string
+        _globaDBInstance = DBMySQL(connection_string)
+        return _globaDBInstance
+
 
     assert(False)
 
