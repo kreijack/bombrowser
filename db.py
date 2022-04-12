@@ -1688,10 +1688,10 @@ class DBSQLServer(_BaseServer):
 
     def _sql_translate(self, s):
         def process(l):
-            if " RENAME TO " in l:
-                l = l.replace("ALTER TABLE ", "EXEC sp_rename '")
-                l = l.replace(" RENAME TO ", "', '")
-                l = l.replace(";", "';")
+            #if " RENAME TO " in l:
+            #    l = l.replace("ALTER TABLE ", "EXEC sp_rename '")
+            #    l = l.replace(" RENAME TO ", "', '")
+            #    l = l.replace(";", "';")
             if " VARCHAR" in l:
                 l = l.replace(" VARCHAR", " NVARCHAR")
             return l
@@ -1883,9 +1883,9 @@ class DBSQLite(_BaseServer):
 
     def _sql_translate(self, stms):
         stms = stms.replace(" IDENTITY", "")
-        stms = stms.replace(" ON items;", ";")
-        stms = stms.replace(" ON drawings;", ";")
-        stms = stms.replace(" ON assemblies;", ";")
+        #stms = stms.replace(" ON items;", ";")
+        #stms = stms.replace(" ON drawings;", ";")
+        #stms = stms.replace(" ON assemblies;", ";")
 
         return stms
 
