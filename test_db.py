@@ -2064,6 +2064,37 @@ def test_constraint_assemblies_references_rev_id():
 
     assert(False)
 
+def test_constraint_assemblies_unique_revision_id_code_id():
+
+    d = _init_db()
+    with Transaction(d) as c:
+        d._sqlex(c, """
+            INSERT INTO items (code) VALUES ('a')
+        """)
+        d._sqlex(c, """SELECT MAX(id) FROM items""")
+        id_ = c.fetchone()[0]
+        d._sqlex(c, """
+            INSERT INTO item_revisions (code_id, iter, ver, descr, default_unit)
+            VALUES (?, 0, '0', 'pp', 'oo')
+        """, (id_,))
+        d._sqlex(c, """SELECT MAX(id) FROM item_revisions""")
+        id2 = c.fetchone()[0]
+
+        d._sqlex(c, """
+            INSERT INTO assemblies (child_id, revision_id)
+            VALUES (?, ?)
+        """, (id_, id2))
+
+        try:
+            d._sqlex(c, """
+                INSERT INTO assemblies (child_id, revision_id)
+                VALUES (?, ?)
+            """, (id_, id2))
+        except d._mod.IntegrityError as e:
+            return
+
+    assert(False)
+
 def test_constraint_drawings_references_rev_id():
     d = _init_db()
     with Transaction(d) as c:

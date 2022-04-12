@@ -358,6 +358,7 @@ class _BaseServer:
 
             CREATE INDEX assemblies_child_idx ON assemblies(child_id);
             CREATE INDEX assemblies_revision_idx ON assemblies(revision_id);
+            CREATE UNIQUE INDEX assemblies_child_revision_unique ON assemblies(revision_id, child_id);
 
             CREATE TABLE database_props (
                 id          INTEGER NOT NULL IDENTITY PRIMARY KEY,
