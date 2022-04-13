@@ -6,6 +6,7 @@
 db=sqlserver
 #db=postgresql
 #db=oracle
+#db=mysql
 
 # force uppercase for code and description
 description_force_uppercase=1
@@ -91,6 +92,12 @@ password = bombrowser1
 
 [ORACLE]
 conn = user=bombrowser;pw=bombrowser;host=127.0.0.1
+
+[MYSQL]
+server   = 127.0.0.1
+database = bombrowser
+username = bombrowser
+password = bombrowserPassword1.
 
 # this appears in the menu as "copy" or as "export as csv"
 [template_simple]
