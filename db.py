@@ -457,7 +457,7 @@ class _BaseServer:
                 row2)
 
     def list_main_tables(self):
-        # maintains in the correct order by reference
+        # maintain in the correct order by dependecies/foreign keys
         return ["items", "item_revisions", "assemblies",
             "item_properties", "drawings",
             "database_props"]
