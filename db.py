@@ -149,6 +149,7 @@ class ROCursor:
         assert(not "UPDATE" in query)
         assert(not "DELETE" in query)
         assert(not "DROP" in query)
+        assert(not "CREATE" in query)
 
     def execute(self, query, *args):
         self._check_query(query)
