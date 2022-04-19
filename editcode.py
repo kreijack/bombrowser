@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import  sys, os
+import  sys, os, re, shutil
 
 from PySide2.QtWidgets import  QComboBox
 from PySide2.QtWidgets import  QTableView, QTableWidgetItem, QLabel
@@ -31,6 +31,7 @@ from PySide2.QtCore import  QUrl, Signal, Qt, QEvent
 
 import  utils, listcodegui, db, cfg
 import  importer, customize, bbwindow, codecontextmenu
+
 
 class SelectCode(QDialog):
     def __init__(self, parent):
@@ -63,6 +64,7 @@ class SelectCode(QDialog):
 
     def getCode(self):
         return self._search_widget.getCode()
+
 
 class EditDates(QDialog):
     def __init__(self, code_id, parent):
@@ -316,6 +318,82 @@ class EditDates(QDialog):
             to_date = db.days_to_iso(to_date)
             self._table.item(row+1, col+1).setText(to_date)
 
+
+class CopyFilesDialog(QDialog):
+    def __init__(self,files, parent=None):
+        super().__init__(parent=parent)
+
+        l = QGridLayout()
+        self.setLayout(l)
+
+        self._table = QTableWidget()
+
+        self._table.clear()
+        self._table.horizontalHeader().setStretchLastSection(True)
+        self._table.setSortingEnabled(True)
+        #self._table.setSelectionBehavior(QTableView.SelectRows);
+        self._table.setAlternatingRowColors(True)
+        #self._table.setSelectionMode(self._table.SingleSelection)
+
+        self._table.setColumnCount(3)
+        self._table.setRowCount(len(files))
+        self._table.setHorizontalHeaderLabels(["Action", "Source", "Destination"])
+
+        r = 0
+        for act, src, dst in files:
+            """i = QTableWidgetItem(act)
+            i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+            self._table.setItem(r, 0, i)"""
+            w = QComboBoxCList()
+            w.addItem("Copy")
+            w.addItem("Link")
+            w.addItem("Ignore")
+            w.setText(act)
+            self._table.setCellWidget(r, 0, w)
+
+            i = QTableWidgetItem(src)
+            i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+            self._table.setItem(r, 1, i)
+
+            i = QTableWidgetItem(dst)
+            if act == "Link":
+                i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+            self._table.setItem(r, 2, i)
+
+            w.currentTextChanged.connect(utils.Callable(
+                lambda x, y, z: self._change_dest(y, z), w, i))
+
+            r += 1
+
+        l.addWidget(self._table, 1, 1, 1, 2)
+
+        b = QPushButton("Ok")
+        l.addWidget(b, 10, 1)
+        b.clicked.connect(self.accept)
+
+        b = QPushButton("Cancel")
+        l.addWidget(b, 10, 2)
+        b.clicked.connect(self.reject)
+
+        self.setWindowTitle("Upload files window")
+
+    def _change_dest(self, w, i):
+        if w.text() == "Link":
+            i.setFlags(Qt.NoItemFlags)
+        else:
+            i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsEditable)
+
+    def get_results(self):
+        res = []
+        for r in range(self._table.rowCount()):
+            line = []
+            line.append(self._table.cellWidget(r, 0).text())
+            line.append(self._table.item(r, 1).text())
+            line.append(self._table.item(r, 2).text())
+            res.append(line)
+        return res
+
+
 class DrawingTable(QTableWidget):
 
     rowChanged = Signal()
@@ -343,10 +421,88 @@ class DrawingTable(QTableWidget):
     def eventFilter(self, source, event):
         if (event.type() == QEvent.Drop and
             event.mimeData().hasUrls()):
+            files = []
             for url in event.mimeData().urls():
-                self._add_filename(url.toLocalFile())
+                files.append(url.toLocalFile())
+            self._finish_add_drawings(files)
             return True
         return super().eventFilter(source, event)
+
+    def _finish_add_drawings(self, files):
+        method = "none"
+        if cfg.config().has_section("FILES_UPLOAD"):
+            method = cfg.config()["FILES_UPLOAD"]["method"]
+
+        if method == "simple":
+            t = [("Copy", x, cfg.config()["FILES_UPLOAD"]["simple_destination_dir"])
+                for x in files]
+            d = CopyFilesDialog(t, parent=self)
+            if not d.exec_():
+                return
+
+            self._copy_link_files(d.get_results())
+        elif method == "regexp":
+            sep = cfg.config()["FILES_UPLOAD"]["regexpmap_separator"]
+            casesens = int(cfg.config()["FILES_UPLOAD"]["regexpmap_case_sensitive"])
+            regtable = [x.strip().split(sep)
+                      for x in cfg.config()["FILES_UPLOAD"]["regexpmap_table"].split("\n")
+                      if len(x.strip().split(sep)) in [2,3]]
+            res = []
+            flags = 0
+            if not casesens:
+                flags |= re.IGNORECASE
+            for fn in files:
+                for reg in regtable:
+                    if re.search(reg[0], fn, flags):
+                        if reg[1] == "Link":
+                            res.append(("Link", fn, ""))
+                        else:
+                            dst = ""
+                            if len(reg) > 2:
+                                dst = reg[2]
+                            res.append(("Copy", fn, dst))
+                        break
+                else:
+                    res.append(("Link", fn, ""))
+            d = CopyFilesDialog(res, parent=self)
+            if not d.exec_():
+                return
+
+            self._copy_link_files(d.get_results())
+        else:
+            for f in files:
+                self._add_filename(f)
+
+    def _copy_link_files(self, files):
+        files_to_link = []
+        for act, src, destdir in files:
+            if act == "Ignore":
+                continue
+            if not os.path.exists(src):
+                QMessageBox.critical(self, "BOMBrowser - error",
+                        "File '" + src + "' doesn't exists.\nAbort.\n")
+                return
+            if act == "Link":
+                files_to_link.append(src)
+                continue
+            try:
+                if not os.path.exists(destdir):
+                    os.makedirs(destdir)
+                newdest = shutil.copy(src, destdir)
+                files_to_link.append(newdest)
+
+            except Exception as e:
+                QMessageBox.critical(self, "BOMBrowser - error",
+                        "Cannot copy\n" +
+                        "   " + src + " -> \n" +
+                        "   " + destdir + "\nAbort.\n" +
+                        "-"*30 + "\n" +
+                        str(e) + "\n" +
+                        "-"*30)
+                return
+
+        for fn in files_to_link:
+            self._add_filename(fn)
 
     def _drawing_menu(self, point):
         idxs = self.selectedIndexes()
@@ -358,7 +514,10 @@ class DrawingTable(QTableWidget):
         m = contextMenu.addAction("Delete drawing")
         m.triggered.connect(self._delete_drawing)
         m.setEnabled(len(idxs) > 0)
-        m = contextMenu.addAction("Add drawing ...")
+
+        m = contextMenu.addAction("Add drawings link...")
+        m.triggered.connect(self._link_drawing)
+        m = contextMenu.addAction("Add drawings...")
         m.triggered.connect(self._add_drawing)
 
         contextMenu.addSeparator()
@@ -417,6 +576,11 @@ class DrawingTable(QTableWidget):
 
     def _add_drawing(self):
         (fns, _) = QFileDialog.getOpenFileNames(self, "Select a file")
+        if len(fns):
+            self._finish_add_drawings(fns)
+
+    def _link_drawing(self):
+        (fns, _) = QFileDialog.getOpenFileNames(self, "Select a file")
         for fn in fns:
             self._add_filename(fn)
 
@@ -426,6 +590,7 @@ class DrawingTable(QTableWidget):
         self.setItem(row, 0, QTableWidgetItem(os.path.basename(fn)))
         self.setItem(row, 1, QTableWidgetItem(fn))
         self.rowChanged.emit()
+
 
 class QComboBoxCList(QComboBox):
     def __init__(self, parent_=None):
@@ -444,6 +609,7 @@ class QComboBoxCList(QComboBox):
     def addItem(self, v):
         QComboBox.addItem(self, v)
         self._originalIndex = self.currentIndex()
+
 
 class SelectFromList(QDialog):
     def __init__(self, parent, title, header, data):
@@ -1552,13 +1718,11 @@ class EditWindow(bbwindow.BBMainWindow):
         self._qtab.setTabText(1, "Drawings list (%d)"%(self._drawings_table.rowCount()))
         self._drawing_modified = True
 
+
 def edit_code_by_code_id(code_id, dt=None):
     w = EditWindow(code_id, dt)
     w.show()
     return w
-
-
-
 
 def test_edit():
     app = QApplication(sys.argv)
@@ -1587,5 +1751,15 @@ def test_select_list2():
 
     print(w.getIndex())
 
+def test_upload_files():
+    app = QApplication(sys.argv)
+    d = CopyFilesDialog([
+        ("Copy", "src-1", "dst-1"),
+        ("Copy", "src-2", "dst-2"),
+        ("Link", "src-2", ""),
+    ])
+    r = d.exec_()
+    print(d.get_results())
+
 if __name__ == "__main__":
-    test_edit()
+    test_upload_files()
