@@ -22,7 +22,6 @@ import sys, traceback
 from PySide2.QtWidgets import QMessageBox
 
 from version import version
-import db
 
 def __show_exception(exc_type, exc_value, exc_traceback,
         title, msg):
