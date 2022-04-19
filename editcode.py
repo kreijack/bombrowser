@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import  sys, os, re, shutil
 
-from PySide2.QtWidgets import  QComboBox
+from PySide2.QtWidgets import  QComboBox, QAbstractScrollArea
 from PySide2.QtWidgets import  QTableView, QTableWidgetItem, QLabel
 from PySide2.QtWidgets import  QGridLayout, QApplication, QWidget, QFileDialog
 from PySide2.QtWidgets import  QMessageBox, QAction, QLineEdit
@@ -364,6 +364,10 @@ class CopyFilesDialog(QDialog):
                 lambda x, y, z: self._change_dest(y, z), w, i))
 
             r += 1
+
+        self._table.setSizeAdjustPolicy(
+            QAbstractScrollArea.AdjustToContents)
+        self._table.resizeColumnsToContents()
 
         l.addWidget(self._table, 1, 1, 1, 2)
 
