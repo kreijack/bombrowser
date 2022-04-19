@@ -62,27 +62,33 @@ def main(args):
     cfg.update_cfg(data)
 
     i = 1
+    dontshowmain = False
     while i < len(args):
         if args[i] == "--whereused":
             import asmgui
             i += 1
             asmgui.where_used(int(args[i]))
+            dontshowmain = True
         elif args[i] == "--validwhereused":
             import asmgui
             i += 1
             asmgui.valid_where_used(int(args[i]))
+            dontshowmain = True
         elif args[i] == "--showassembly":
             import asmgui
             i += 1
             asmgui.show_assembly(int(args[i]), None)
+            dontshowmain = True
         elif args[i] == "--showlatestassembly":
             import asmgui
             i += 1
             asmgui.show_latest_assembly(int(args[i]))
+            dontshowmain = True
         elif args[i] == "--editcode":
             import editcode
             i += 1
             editcode.edit_code_by_code_id(int(args[i]))
+            dontshowmain = True
         elif args[i] == "--test-exception":
             _ = 1/0
         elif args[i] == "--manage-db":
@@ -106,9 +112,9 @@ def main(args):
 
         i += 1
 
-
-    w = listcodegui.CodesWindow()
-    w.show()
+    if not dontshowmain:
+        w = listcodegui.CodesWindow()
+        w.show()
 
     sys.exit(app.exec_())
 
