@@ -41,6 +41,7 @@ import traceback
 
 import jdutil
 from utils import xescape, xunescape
+import cfg
 
 def increase_date(d, inc=+1):
     return (datetime.date.fromisoformat(d) +
@@ -75,6 +76,7 @@ prototype_iter = 999999
 gvals_count = 20
 gavals_count = 3
 connection="Server: <UNDEF>"
+_globaDBInstance = None
 
 class DBException(RuntimeError):
     pass
@@ -2097,11 +2099,7 @@ class DBMySQL(_BaseServer):
             return dates
 
 
-_globaDBInstance = None
 def DB(path=None):
-
-    # don't do in the module to avoid circular reference
-    import cfg
 
     global _globaDBInstance
     global connection
@@ -2109,42 +2107,46 @@ def DB(path=None):
     if _globaDBInstance:
         return _globaDBInstance
 
-    if not path is None:
-        if path.upper().startswith("SQLITE:"):
-            _globaDBInstance = DBSQLite(path[7:])
-            connection = "Server: SQLITE/" + path[7:][-30:]
-            return _globaDBInstance
-        elif path.upper().startswith("SQLSERVER:"):
-            _globaDBInstance = DBSQLServer(path[10:])
-            connection = "Server: SQLSERVER/" + path[10:]
-            return _globaDBInstance
-        elif path.upper().startswith("ORACLE:"):
-            _globaDBInstance = DBOracleServer(path[7:])
-            connection = "Server: ORACLE/" + path[7:]
-            return _globaDBInstance
-        elif path.upper().startswith("DBPG:"):
-            _globaDBInstance = DBPG(path[5:])
-            connection = "Server: PostgreSQL/" + path[5:]
-            return _globaDBInstance
+    if path is None:
+        dbtype = cfg.config().get("BOMBROWSER", "db")
+    else:
+        dbtype = path
+    connection, _globaDBInstance = _create_db(dbtype)
+    return _globaDBInstance
 
-        assert (False)
+def _create_db(dbtype):
 
-    dbtype = cfg.config().get("BOMBROWSER", "db")
-    if dbtype == "sqlite":
+    if dbtype.upper().startswith("SQLITE:"):
+        instance = DBSQLite(path[7:])
+        connection = "Server: SQLITE/" + path[7:][-30:]
+
+    elif dbtype.upper().startswith("SQLSERVER:"):
+        instance = DBSQLServer(path[10:])
+        connection = "Server: SQLSERVER/" + path[10:]
+
+    elif dbtype.upper().startswith("ORACLE:"):
+        instance = DBOracleServer(path[7:])
+        connection = "Server: ORACLE/" + path[7:]
+
+    elif dbtype.upper().startswith("DBPG:"):
+        instance = DBPG(path[5:])
+        connection = "Server: PostgreSQL/" + path[5:]
+
+    elif dbtype == "sqlite":
         path = cfg.config().get("SQLITE", "path")
-        _globaDBInstance = DBSQLite(path)
+        instance = DBSQLite(path)
         connection="Server: SQLITE/"+path[-30:]
-        return _globaDBInstance
+
     elif dbtype == "oracle":
         connection_string = cfg.config().get("ORACLE", "conn")
-        _globaDBInstance = DBOracleServer(connection_string)
+        instance = DBOracleServer(connection_string)
         connection = "Server: ORACLE/" + connection_string
-        return _globaDBInstance
+
     elif dbtype == "sqlserver":
         connection_string = cfg.config().get("SQLSERVER", "conn")
-        _globaDBInstance = DBSQLServer(connection_string)
+        instance = DBSQLServer(connection_string)
         connection="Server: SQLSERVER/"+connection_string
-        return _globaDBInstance
+
     elif dbtype == "postgresql":
         import customize
         d = {
@@ -2156,8 +2158,8 @@ def DB(path=None):
         d["password"] = customize.database_password(d["password"])
         connection_string = "host={server} dbname={database} user={username} password={password}".format(**d)
         connection="Server: PostgreSQL/" + connection_string
-        _globaDBInstance = DBPG(connection_string)
-        return _globaDBInstance
+        instance = DBPG(connection_string)
+
     elif dbtype == "mysql":
         import customize
         d = {
@@ -2170,11 +2172,9 @@ def DB(path=None):
         connection_string = ";".join([d["server"], d["username"],
             d["password"], d["database"]])
         connection="Server: MySQL/" + connection_string
-        _globaDBInstance = DBMySQL(connection_string)
-        return _globaDBInstance
+        instance = DBMySQL(connection_string)
 
-
-    assert(False)
+    return connection,instance
 
 def restore_tables(nf, d, quiet=False):
     import zipfile
