@@ -30,6 +30,8 @@ class RemoteSQLClient:
     def __init__(self, addr='127.0.0.1', port=8765):
         self._port = port
         self._addr = addr
+        self._username = None
+        self._password = None
         self._format = "!bbhl"
         self._sock = None
 
@@ -38,13 +40,21 @@ class RemoteSQLClient:
             self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._sock.connect((self._addr, self._port))
 
+            if self._username and self._password:
+                self.remote_server_do_auth(self._username, self._password)
+
         data = pickle.dumps((func_name, args, kwargs))
         header = struct.pack(self._format, 0, # rev
             0, # unused
             0, # unused
             len(data))
-        
-        self._sock.sendall(header)
+
+        try:
+            self._sock.sendall(header)
+        except:
+            self._sock.close()
+            self._sock = None
+            raise
         self._sock.sendall(data)
 
         header = bytes([])
@@ -69,6 +79,10 @@ class RemoteSQLClient:
         ret, excp = pickle.loads(data)
         if excp:
             raise Exception(excp)
+        if func_name == "remote_server_do_auth" and ret:
+            self._username = args[0]
+            self._password = args[1]
+
         return ret
 
     def __getattr__(self, name):
@@ -82,9 +96,6 @@ class RemoteSQLClient:
 
 
 class _ServerHandler(socketserver.BaseRequestHandler):
-    def __init__(self, *args):
-        super().__init__(*args)
-        
     """
     The request handler class for our server.
 
@@ -93,7 +104,16 @@ class _ServerHandler(socketserver.BaseRequestHandler):
     client.
     """
     def handle(self):
-        db_instance = RemoteSQLServer(self.server._args)
+
+        remote_db_instance = \
+            RemoteSQLServer(self.server._server_data["db_instance"])
+        self.server._server_data["clients_count"] += 1
+        self.server._server_data["client_seq"] += 1
+        if self.server._server_data["verbose"]:
+            print("Got connection:",
+                "id=", self.server._server_data["client_seq"],
+                "count=", self.server._server_data["clients_count"]
+            )
         format_ = "!bbhl"
         while True:
             header = self.request.recv(struct.calcsize(format_))
@@ -108,9 +128,18 @@ class _ServerHandler(socketserver.BaseRequestHandler):
                 data += d        
             
             name, args, kwargs = pickle.loads(data)
-            if hasattr(db_instance, name):
+            if name == "remote_server_get_info":
+                excp = None
+                ret = {
+                    "clients_count": self.server._server_data["clients_count"],
+                    "id": self.server._server_data["client_seq"],
+                }
+            elif name == "remote_server_get_id":
+                excp = None
+                ret = self.server._server_data["client_seq"]
+            elif hasattr(remote_db_instance, name):
                 try:
-                    ret = getattr(db_instance, name)(*args, **kwargs)
+                    ret = getattr(remote_db_instance, name)(*args, **kwargs)
                     excp = None
                 except Exception as e:
                     excp = e
@@ -123,6 +152,13 @@ class _ServerHandler(socketserver.BaseRequestHandler):
                 len(data))
             self.request.sendall(header)
             self.request.sendall(data)
+
+        self.server._server_data["clients_count"] -= 1
+        if self.server._server_data["verbose"]:
+            print("End connection:",
+                "id=", self.server._server_data["client_seq"],
+                "count=", self.server._server_data["clients_count"]
+            )
 
 
 class RemoteSQLServer:
@@ -169,9 +205,6 @@ class RemoteSQLServer:
         self._read_only = False       
         return True
 
-    def remote_server_get_id(self):
-        return str(self)
-
     def __getattr__(self, name):
         if not self._allow_access:
             raise Exception("You have to authenticate")
@@ -189,34 +222,55 @@ class RemoteSQLServer:
         return getattr(self._db, name)
 
 
-def start_server(args, addr='0.0.0.0', port=8765):
+def _start_server(db_instance, addr='0.0.0.0', port=8765, verbose=False):
     class Server_(socketserver.ThreadingTCPServer):
         allow_reuse_address = True
+
+        def __init__(self, *args):
+            super().__init__(*args)
+            self._server_data = {
+                "verbose": verbose,
+                "clients_count": 0,
+                "db_instance": db_instance,
+                "client_seq": 1000,
+            }
+
+            if (verbose):
+                print("Start server: %s@%d"%(args[0]))
+
     with Server_((addr, port), _ServerHandler) as server:
         # Activate the server; this will keep running until you
         # interrupt the program with Ctrl-C
-        server._args = args
         server.serve_forever()
 
-if sys.argv[1] == "--client":
-    r = RemoteSQLClient()
-    r.remote_server_do_auth("foo", "bar")
-    print("r.remote_server_get_id:", r.remote_server_get_id())
-    print("list_main_tables: ", r.list_main_tables())
-    print("r.remote_server_get_id:", r.remote_server_get_id())
-    #print("get_codes_by_like_code:", r.get_codes_by_like_code("%"))
-    print("r.remote_server_get_id:", r.remote_server_get_id())
+def main():
+    if sys.argv[1] == "--client-test":
+        r = RemoteSQLClient()
+        r.remote_server_do_auth("foo", "bar")
+        print("r.remote_server_get_id:", r.remote_server_get_id())
+        print("list_main_tables: ", r.list_main_tables())
+        print("r.remote_server_get_id:", r.remote_server_get_id())
+        #print("get_codes_by_like_code:", r.get_codes_by_like_code("%"))
+        print("r.remote_server_get_id:", r.remote_server_get_id())
 
-    r2 = RemoteSQLClient()
-    r2.remote_server_do_auth("foo", "bar")
-    print("r.remote_server_get_id:", r2.remote_server_get_id())
-    print("list_main_tables: ", r2.list_main_tables())
-    print("r.remote_server_get_id:", r2.remote_server_get_id())
-    #print("get_codes_by_like_code:", r2.get_codes_by_like_code("%"))
-    print("r.remote_server_get_id:", r2.remote_server_get_id())
+        r2 = RemoteSQLClient()
+        r2.remote_server_do_auth("foo", "bar")
+        print("r.remote_server_get_id:", r2.remote_server_get_id())
+        print("list_main_tables: ", r2.list_main_tables())
+        print("r.remote_server_get_id:", r2.remote_server_get_id())
+        #print("get_codes_by_like_code:", r2.get_codes_by_like_code("%"))
+        print("r.remote_server_get_id:", r2.remote_server_get_id())
 
-    
-else:
-    import cfg
-    cfg.init()
-    start_server(db.DB())
+    elif sys.argv[1] == "--server":
+        import cfg
+        cfg.init()
+
+        dbtype = cfg.config().get("LOCALBBSERVER", "db")
+        host = cfg.config().get("LOCALBBSERVER", "host")
+        port = int(cfg.config().get("LOCALBBSERVER", "port"))
+        verbose = int(cfg.config().get("LOCALBBSERVER", "verbose"))
+        connection,instance = db._create_db(dbtype)
+        _start_server(instance, host, port, verbose)
+
+if __name__ == "__main__":
+    main()
