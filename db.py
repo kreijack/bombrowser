@@ -2174,6 +2174,20 @@ def _create_db(dbtype):
         connection="Server: MySQL/" + connection_string
         instance = DBMySQL(connection_string)
 
+    elif dbtype == "bbserver":
+        import customize
+
+        host = cfg.config().get("REMOTEBBSERVER", "host")
+        port = int(cfg.config().get("REMOTEBBSERVER", "port"))
+        username = cfg.config().get("REMOTEBBSERVER", "username")
+        password = cfg.config().get("REMOTEBBSERVER", "password")
+        password = customize.database_password(password)
+
+        import proxyserver
+        instance = proxyserver.RemoteSQLClient(host, port)
+        connection="Server: RemoteBBServer:%s@%d"%(host, port)
+        instance.remote_server_do_auth(username, password)
+
     return connection,instance
 
 def restore_tables(nf, d, quiet=False):
