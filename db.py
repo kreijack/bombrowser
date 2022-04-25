@@ -2183,7 +2183,7 @@ def _create_db(dbtype):
         password = cfg.config().get("REMOTEBBSERVER", "password")
         password = customize.database_password(password)
 
-        import proxyserver
+        import bbserver
         instance = proxyserver.RemoteSQLClient(host, port)
         connection="Server: RemoteBBServer:%s@%d"%(host, port)
         instance.remote_server_do_auth(username, password)
