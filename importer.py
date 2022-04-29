@@ -148,6 +148,13 @@ def _import_csv_parent_child2(data, keyword_map, options):
         s1, s2 = v.split(":")
         map1[s2] = s1
 
+    # check that each mapped keyword is present in header
+    for k in map1.keys():
+        if not k in headers:
+            raise Exception(
+                "import: cannot find column '%s' in the file to be imported"%(
+                k))
+
     for i, name in enumerate(headers):
         if name in map1:
             name = map1[name]
@@ -499,6 +506,25 @@ def test_import_csv_parent_child2_qty_each_conversion():
     assert( bom[0]["deps"]["2"]["each"] == 3.1) #  '3.1' -> 3.1
     assert( bom[0]["deps"]["3"]["qty"] == 0)    #  '' -> 0.0
     assert( bom[0]["deps"]["4"]["qty"] == 1.5)  #   '1,5' -> '1.5' -> 1.5
+
+def test_check_presence_of_columns():
+    s = """code\tdescr\tqty2\teach\tunit\tgval1
+1\t1-descr\t1\t2\tnr\tgval-1
+2\t2-descr\t2.0\t3.1\tnr\tgval-2
+3\t3-descr\t\t9\tnr\tgval-7
+4\t4-descr\t1,5\t3\tgr\tgval-4"""
+
+    data = [x.split("\t") for x in s.split("\n")]
+    bom = _import_csv_parent_child2(data,["qty:qty2"], {})
+
+    excp = False
+    try:
+        bom = _import_csv_parent_child2(data,["qty:qty3"], {})
+    except Exception as e:
+        assert("import: cannot find column" in str(e))
+        assert("qty3" in str(e))
+        excp = True
+    assert(excp)
 
 
 if __name__ == "__main__":
