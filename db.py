@@ -2184,7 +2184,7 @@ def _create_db(dbtype):
         password = customize.database_password(password)
 
         import bbserver
-        instance = proxyserver.RemoteSQLClient(host, port)
+        instance = bbserver.RemoteSQLClient(host, port)
         connection="Server: RemoteBBServer:%s@%d"%(host, port)
         instance.remote_server_do_auth(username, password)
 
