@@ -407,13 +407,6 @@ class DrawingTable(QTableWidget):
     def __init__(self):
         QTableWidget.__init__(self)
 
-        # from https://stackoverflow.com/questions/59005081/how-to-drop-a-file-into-a-qtablewidget-in-pyqt5
-        self.setAcceptDrops(True)
-        self.viewport().installEventFilter(self)
-        types = ['text/uri-list']
-        types.extend(self.mimeTypes())
-        self.mimeTypes = lambda: types
-
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(
             self._drawing_menu)
@@ -421,16 +414,6 @@ class DrawingTable(QTableWidget):
         self.setSelectionMode(self.ContiguousSelection)
 
         self.doubleClicked.connect(self._view_drawing)
-
-    def eventFilter(self, source, event):
-        if (event.type() == QEvent.Drop and
-            event.mimeData().hasUrls()):
-            files = []
-            for url in event.mimeData().urls():
-                files.append(url.toLocalFile())
-            self._finish_add_drawings(files)
-            return True
-        return super().eventFilter(source, event)
 
     def _finish_add_drawings(self, files):
         method = "none"
@@ -595,6 +578,9 @@ class DrawingTable(QTableWidget):
         self.setItem(row, 1, QTableWidgetItem(fn))
         self.rowChanged.emit()
 
+    def add_drawings(self, fns):
+        if len(fns):
+            self._finish_add_drawings(fns)
 
 class QComboBoxCList(QComboBox):
     def __init__(self, parent_=None):
@@ -713,6 +699,19 @@ class EditWindow(bbwindow.BBMainWindow):
                     self._dates_list.setCurrentIndex(i)
                     break
                 i += 1
+
+        self.setAcceptDrops(True)
+
+    def dragEnterEvent(self, e):
+        if e.mimeData().hasUrls():
+            e.acceptProposedAction()
+
+    def dropEvent(self, e):
+        for url in e.mimeData().urls():
+            files = []
+            for url in e.mimeData().urls():
+                files.append(url.toLocalFile())
+            self._drawings_table.add_drawings(files)
 
     def _populate_dates_list_info(self):
         d = db.DB()
