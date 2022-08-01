@@ -1645,6 +1645,29 @@ class _BaseServer:
 
             return c.fetchall()
 
+    def create_first_code(self):
+        date_from = days_to_iso(0)
+        date_to = days_to_iso(end_of_the_world)
+        with Transaction(self) as c:
+            c.execute("INSERT INTO items(code) VALUES (?)", (
+                '000000000000', )
+            )
+            c.execute("SELECT MAX(id) FROM items")
+            mid = c.fetchone()[0]
+
+            c.execute("""INSERT INTO item_revisions(
+                descr, code_id, ver,
+                iter, default_unit,
+                date_from, date_from_days,
+                date_to, date_to_days) VALUES (
+                ?, ?, ?,
+                ?, ?,
+                ?, ?,
+                ?, ?)""",
+                ('FIRST CODE', mid, '0', 0, 'NR',
+                 date_from, iso_to_days(date_from),
+                 date_to, iso_to_days(date_to))
+            )
 
 import sqlite3
 import traceback
@@ -2241,29 +2264,8 @@ def dump_tables(nf, d, quiet=False):
 
 def new_db(d):
     d.create_db()
-    date_from = days_to_iso(0)
-    date_to = days_to_iso(end_of_the_world)
+    d.create_first_code()
 
-    with Transaction(d) as c:
-        c.execute("INSERT INTO items(code) VALUES (?)", (
-            '000000000000', )
-        )
-        c.execute("SELECT MAX(id) FROM items")
-        mid = c.fetchone()[0]
-
-        c.execute("""INSERT INTO item_revisions(
-            descr, code_id, ver,
-            iter, default_unit,
-            date_from, date_from_days,
-            date_to, date_to_days) VALUES (
-            ?, ?, ?,
-            ?, ?,
-            ?, ?,
-            ?, ?)""",
-            ('FIRST CODE', mid, '0', 0, 'NR',
-             date_from, iso_to_days(date_from),
-             date_to, iso_to_days(date_to))
-        )
 
 def main(prgname, args):
 
