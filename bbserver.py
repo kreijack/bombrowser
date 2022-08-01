@@ -254,6 +254,10 @@ def _start_server(db_instance, addr='0.0.0.0', port=8765, verbose=False):
         # interrupt the program with Ctrl-C
         server.serve_forever()
 
+# These tests are for checking that all the function may
+# called by the client. It is not checked the functionality of
+# the methods
+
 def _test_get_conn():
     r = RemoteSQLClient()
     r.remote_server_do_auth("foo", "bar")
@@ -312,7 +316,6 @@ def test_050_copy_code():
     res = r.get_codes_by_like_code('%')
     assert(len(res) == 2)
 
-
 def test_050_delete_code():
     r = _test_get_conn()
     r.create_db()
@@ -336,7 +339,6 @@ def test_050_delete_code():
 
     res = r.get_codes_by_like_code('%')
     assert(len(res) == 1)
-
 
 def test_050_update_by_rid2():
     r = _test_get_conn()
@@ -426,23 +428,179 @@ def test_050_get_config():
     res = r.get_config()
     # check only that no exception is raised
 
+def test_050_get_codes_by_like_code_and_descr():
+    r = _test_get_conn()
+    r.create_db()
+    r.create_first_code()
+
+    res = r.get_codes_by_like_code_and_descr('0%', '%')
+    assert(len(res) == 1)
+
+def test_050_get_codes_by_like_descr():
+    r = _test_get_conn()
+    r.create_db()
+    r.create_first_code()
+
+    res = r.get_codes_by_like_descr('FIRST%')
+    assert(len(res) == 1)
+
+def test_060_get_drawings_by_rid():
+    r = _test_get_conn()
+    r.create_db()
+    r.create_first_code()
+
+    res = r.get_codes_by_like_code('%')
+    code_id = res[0][0]
+    res = r.get_dates_by_code_id3(code_id)
+    rid = res[0][4]
+
+    r.update_by_rid2(rid, "new-descr", 0, "NR",
+        ['x' for x in range(db.gvals_count)],
+        drawings=[("a", "b"), ("a", "b")],
+        children=[])
+
+    res = r.get_drawings_by_rid(rid)
+    assert(len(res) == 2)
+
+def test_050_get_code():
+    r = _test_get_conn()
+    r.create_db()
+    r.create_first_code()
+
+    res = r.get_codes_by_like_code('%')
+    code_id = res[0][0]
+    res = r.get_dates_by_code_id3(code_id)
+    date_from_days = res[0][2]
+
+    res = r.get_code(code_id, date_from_days)
+    assert(len(res) > 3)
+
+def test_050_get_code_by_rid():
+    r = _test_get_conn()
+    r.create_db()
+    r.create_first_code()
+
+    res = r.get_codes_by_like_code('%')
+    code_id = res[0][0]
+    res = r.get_dates_by_code_id3(code_id)
+    rid = res[0][4]
+
+    res = r.get_code_by_rid(rid)
+    assert(len(res) > 3)
+
+def test_050_search_revision():
+    r = _test_get_conn()
+    r.create_db()
+    r.create_first_code()
+
+    res = r.get_codes_by_like_code('%')
+    code_id = res[0][0]
+    res = r.get_dates_by_code_id3(code_id)
+    rid = res[0][4]
+
+    res = r.search_revisions(rid=rid)
+    assert(len(res) ==1)
+
+def _test_make_assembly():
+    r = _test_get_conn()
+    r.create_db()
+    r.create_first_code()
+
+    res = r.get_codes_by_like_code('%')
+    pcode_id = res[0][0]
+    res = r.get_dates_by_code_id3(pcode_id)
+    prid = res[0][4]
+
+    r.copy_code('1', prid, "new-descr", 0)
+    res = r.get_codes_by_like_code('1')
+    ccode_id = res[0][0]
+    res = r.get_dates_by_code_id3(ccode_id)
+    dates = [[x[4], '', 0, '', x[3]] for x in res]
+    # format rid, date_from, date_from_days, date_to, date_to_days
+    r.update_dates(dates)
+
+    r.update_by_rid2(prid, "first code", 0, "NR",
+        ['x' for x in range(db.gvals_count)],
+        drawings=[],
+        children=[(
+            ccode_id, 1, 1, "NR", 0, ["y" for i in range(db.gavals_count)]
+        )])
+
+    return r
+
+def test_070_is_child():
+    r = _test_make_assembly()
+
+    res = r.get_codes_by_like_code('1')
+    ccode_id = res[0][0]
+
+    assert(r.is_child(ccode_id))
+    assert(not r.is_assembly(ccode_id))
+
+def test_070_is_parent():
+    r = _test_make_assembly()
+
+    res = r.get_codes_by_like_code('0%')
+    pcode_id = res[0][0]
+
+    assert(not r.is_child(pcode_id))
+    assert(r.is_assembly(pcode_id))
+
+def test_070_get_children_by_rid():
+    r = _test_make_assembly()
+
+    res = r.get_codes_by_like_code('0%')
+    pcode_id = res[0][0]
+    res = r.get_dates_by_code_id3(pcode_id)
+    prid = res[0][4]
+
+    res = r.get_children_by_rid(prid)
+
+    assert(len(res) == 1)
+
+def test_070_get_where_used_from_id_code():
+    r = _test_make_assembly()
+
+    res = r.get_codes_by_like_code('1')
+    ccode_id = res[0][0]
+
+    res = r.get_where_used_from_id_code(ccode_id)
+    assert(len(res[1]) == 2)
+
+    res = r.get_codes_by_like_code('0%')
+    pcode_id = res[0][0]
+
+    res = r.get_where_used_from_id_code(pcode_id)
+    assert(len(res[1]) == 1)
+
+def test_070_get_bom_by_code_id3():
+    r = _test_make_assembly()
+
+    res = r.get_codes_by_like_code('1')
+    ccode_id = res[0][0]
+    res = r.get_dates_by_code_id3(ccode_id)
+    crid = res[0][4]
+    cdate_from_days = res[0][2]
+
+    res = r.get_bom_by_code_id3(ccode_id, cdate_from_days)
+    assert(len(res[1]) == 1)
+
+    res = r.get_codes_by_like_code('0%')
+    pcode_id = res[0][0]
+    res = r.get_dates_by_code_id3(pcode_id)
+    prid = res[0][4]
+    pdate_from_days = res[0][2]
+
+    res = r.get_bom_by_code_id3(pcode_id, pdate_from_days)
+    assert(len(res[1]) == 2)
+
+
 """
     read method
-            "search_revisions",
-            "get_children_by_rid",
             "get_bom_dates_by_code_id",
-            "get_drawings_by_rid",
-            "get_where_used_from_id_code",
-            "get_bom_by_code_id3",
-            "is_child",
-            "is_assembly",
             "get_children_dates_range_by_rid",
             "get_parent_dates_range_by_code_id",
-            "get_codes_by_like_code_and_descr",
-            "get_codes_by_like_descr",
-            "get_codes_by_like_code",
-            "get_code_by_rid",
-            "get_code",
+
             "dump_tables",
             "list_main_tables",
             "dump_table",
