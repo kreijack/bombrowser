@@ -467,8 +467,8 @@ class _BaseServer:
             "database_props"]
 
     def dump_tables(self):
-        for i in self.list_main_tables():
-            yield (i, *self.dump_table(i))
+        return [(i, *self.dump_table(i))
+            for i in self.list_main_tables()]
 
     def get_code(self, id_code, date_from_days):
         with ROCursor(self) as c:
