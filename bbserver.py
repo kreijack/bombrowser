@@ -26,6 +26,8 @@ import time
 
 import db
 
+_server_istance = None
+
 class RemoteSQLClient:
     def __init__(self, addr='127.0.0.1', port=8765):
         self._port = port
@@ -231,7 +233,8 @@ class RemoteSQLServer:
                     raise self._e
             return Caller(e)
 
-def _start_server(db_instance, addr='0.0.0.0', port=8765, verbose=False):
+def _start_server(db_instance, addr='0.0.0.0', port=8765,
+        verbose=False, allow_exit_server=False):
     class Server_(socketserver.ThreadingTCPServer):
         allow_reuse_address = True
 
@@ -250,6 +253,8 @@ def _start_server(db_instance, addr='0.0.0.0', port=8765, verbose=False):
     with Server_((addr, port), _ServerHandler) as server:
         # Activate the server; this will keep running until you
         # interrupt the program with Ctrl-C
+        global _server_istance
+        _server_istance = server
         server.serve_forever()
 
 # These tests are for checking that all the function may
@@ -629,41 +634,36 @@ def test_020_dump_tables():
 
     assert(len(res) == len(l))
 
+def _run_server():
+    import cfg
+    cfg.init()
+
+    dbtype = cfg.config().get("LOCALBBSERVER", "db")
+    host = cfg.config().get("LOCALBBSERVER", "host")
+    port = int(cfg.config().get("LOCALBBSERVER", "port"))
+    verbose = int(cfg.config().get("LOCALBBSERVER", "verbose"))
+    connection,instance = db._create_db(dbtype)
+    _start_server(instance, host, port, verbose)
+
+def start_tests(args):
+    import test_db
+    import threading
+    server = threading.Thread(target=_run_server, args=())
+    server.start()
+    try:
+        time.sleep(0.5)
+        test_db.run_test(args, sys.modules[__name__],
+            print_exc=True)
+    finally:
+        if _server_istance:
+            _server_istance.shutdown()
+        server.join()
 
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == "--client-test":
-        """
-        r = RemoteSQLClient()
-        r.remote_server_do_auth("foo", "bar")
-        print("r.remote_server_get_id:", r.remote_server_get_id())
-        print("list_main_tables: ", r.list_main_tables())
-        print("r.remote_server_get_id:", r.remote_server_get_id())
-        #print("get_codes_by_like_code:", r.get_codes_by_like_code("%"))
-        print("r.remote_server_get_id:", r.remote_server_get_id())
-
-        r2 = RemoteSQLClient()
-        r2.remote_server_do_auth("foo", "bar")
-        print("r.remote_server_get_id:", r2.remote_server_get_id())
-        print("list_main_tables: ", r2.list_main_tables())
-        print("r.remote_server_get_id:", r2.remote_server_get_id())
-        #print("get_codes_by_like_code:", r2.get_codes_by_like_code("%"))
-        print("r.remote_server_get_id:", r2.remote_server_get_id())
-        """
-        last = 2
-        import test_db
-        test_db.run_test(sys.argv[last:], sys.modules[__name__],
-            print_exc=True)
-
+        start_tests(sys.argv[2:])
     elif len(sys.argv) > 1 and sys.argv[1] == "--server":
-        import cfg
-        cfg.init()
-
-        dbtype = cfg.config().get("LOCALBBSERVER", "db")
-        host = cfg.config().get("LOCALBBSERVER", "host")
-        port = int(cfg.config().get("LOCALBBSERVER", "port"))
-        verbose = int(cfg.config().get("LOCALBBSERVER", "verbose"))
-        connection,instance = db._create_db(dbtype)
-        _start_server(instance, host, port, verbose)
+        _run_server()
 
 if __name__ == "__main__":
     main()

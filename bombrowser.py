@@ -31,9 +31,11 @@ def main(args):
         import exporter
         import importer
         import test_db
+        import bbserver
 
         for m in ["exporter", "importer", "test_db", "utils", "db"]:
             test_db.run_test(sys.argv[2:], sys.modules[m], m)
+        bbserver.start_tests(sys.argv[2:])
         return
 
 
