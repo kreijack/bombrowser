@@ -528,24 +528,6 @@ def _test_make_assembly():
 
     return r
 
-def test_070_is_child():
-    r = _test_make_assembly()
-
-    res = r.get_codes_by_like_code('1')
-    ccode_id = res[0][0]
-
-    assert(r.is_child(ccode_id))
-    assert(not r.is_assembly(ccode_id))
-
-def test_070_is_parent():
-    r = _test_make_assembly()
-
-    res = r.get_codes_by_like_code('0%')
-    pcode_id = res[0][0]
-
-    assert(not r.is_child(pcode_id))
-    assert(r.is_assembly(pcode_id))
-
 def test_070_get_children_by_rid():
     r = _test_make_assembly()
 

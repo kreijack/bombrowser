@@ -726,26 +726,6 @@ class _BaseServer:
 
         return list(c.fetchall())
 
-    def is_assembly(self, id_code):
-        with ROCursor(self) as c:
-            c.execute("""SELECT COUNT(*)
-                     FROM assemblies AS a
-                     LEFT JOIN item_revisions AS r
-                       ON r.id = a.revision_id
-                     WHERE  r.code_id = ?
-                  """, (id_code, ))
-
-            return c.fetchone()[0] > 0
-
-    def is_child(self, id_code):
-        with ROCursor(self) as c:
-            c.execute("""SELECT COUNT(*)
-                     FROM assemblies AS a
-                     WHERE  child_id = ?
-                  """, (id_code, ))
-
-            return c.fetchone()[0] > 0
-
     def get_bom_by_code_id3(self, code_id0, date_from_days_ref):
 
         data = dict()
