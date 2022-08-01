@@ -283,7 +283,7 @@ def test_030_get_codes_by_code():
 
     res = r.get_codes_by_like_code('%')
     code = res[0][1]
-    
+
     res = r.get_codes_by_code(code)
     assert(len(res) == 1)
 
@@ -296,7 +296,7 @@ def test_040_get_dates_by_code_id3():
     code_id = res[0][0]
     res = r.get_dates_by_code_id3(code_id)
     assert(len(res) == 1)
-    
+
 def test_050_copy_code():
     r = _test_get_conn()
     r.create_db()
@@ -306,7 +306,7 @@ def test_050_copy_code():
     code_id = res[0][0]
     res = r.get_dates_by_code_id3(code_id)
     rid = res[0][4]
-    
+
     r.copy_code('1', rid, "new-descr", 0)
 
     res = r.get_codes_by_like_code('%')
@@ -322,7 +322,7 @@ def test_050_delete_code():
     code_id = res[0][0]
     res = r.get_dates_by_code_id3(code_id)
     rid = res[0][4]
-    
+
     r.copy_code('1', rid, "new-descr", 0)
 
     code_id = None
@@ -348,9 +348,9 @@ def test_050_update_by_rid2():
     res = r.get_dates_by_code_id3(code_id)
     rid = res[0][4]
 
-    r.update_by_rid2(rid, "new-descr", 0, "NR", 
+    r.update_by_rid2(rid, "new-descr", 0, "NR",
         ['x' for x in range(db.gvals_count)])
-    
+
     res = r.get_codes_by_like_code('%')
     assert(res[0][2] == "new-descr")
 
@@ -388,7 +388,7 @@ def test_060_delete_code_revision():
     for line in res:
         if line[1] == 'new-descr':
             rid = line[4]
-    
+
     r.delete_code_revision(rid)
 
     res = r.get_dates_by_code_id3(code_id)
@@ -422,7 +422,7 @@ def test_050_get_config():
     r = _test_get_conn()
     r.create_db()
     r.create_first_code()
-    
+
     res = r.get_config()
     # check only that no exception is raised
 
