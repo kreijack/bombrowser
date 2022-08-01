@@ -172,8 +172,6 @@ class RemoteSQLServer:
             "get_drawings_by_rid",
             "get_where_used_from_id_code",
             "get_bom_by_code_id3",
-            "is_child",
-            "is_assembly",
             "get_children_dates_range_by_rid",
             "get_parent_dates_range_by_code_id",
             "get_dates_by_code_id3",
@@ -263,7 +261,7 @@ def _test_get_conn():
     r.remote_server_do_auth("foo", "bar")
     return r
 
-def test_000_init_db():
+def test_000_create_db():
     r = _test_get_conn()
     r.create_db()
 
@@ -576,18 +574,61 @@ def test_070_get_bom_by_code_id3():
     res = r.get_bom_by_code_id3(pcode_id, pdate_from_days)
     assert(len(res[1]) == 2)
 
+def test_070_get_bom_dates_by_code_id():
+    r = _test_make_assembly()
 
-"""
-    read method
-            "get_bom_dates_by_code_id",
-            "get_children_dates_range_by_rid",
-            "get_parent_dates_range_by_code_id",
+    res = r.get_codes_by_like_code('0%')
+    pcode_id = res[0][0]
+    res = r.get_dates_by_code_id3(pcode_id)
 
-            "dump_tables",
-            "list_main_tables",
-            "dump_table",
+    res = r.get_bom_dates_by_code_id(pcode_id)
+    assert(len(res) == 1)
 
-"""
+def test_070_get_children_dates_range_by_rid():
+    r = _test_make_assembly()
+
+    res = r.get_codes_by_like_code('0%')
+    pcode_id = res[0][0]
+    res = r.get_dates_by_code_id3(pcode_id)
+    prid = res[0][4]
+
+    res = r.get_children_dates_range_by_rid(prid)
+    assert(len(res) == 1)
+
+def test_070_get_parent_dates_range_by_code_id():
+    r = _test_make_assembly()
+
+    res = r.get_codes_by_like_code('1')
+    ccode_id = res[0][0]
+
+    res = r.get_parent_dates_range_by_code_id(ccode_id)
+    assert(len(res) == 1)
+
+def test_010_list_main_tables():
+    r = _test_get_conn()
+    r.create_db()
+
+    res = r.list_main_tables()
+    assert(len(res) > 5)
+
+def test_020_dump_table():
+    r = _test_get_conn()
+    r.create_db()
+
+    l = r.list_main_tables()
+    res = r.dump_table(l[0])
+
+    assert(len(res) == 2)
+
+def test_020_dump_tables():
+    r = _test_get_conn()
+    r.create_db()
+
+    l = r.list_main_tables()
+    res = r.dump_tables()
+
+    assert(len(res) == len(l))
+
 
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == "--client-test":
