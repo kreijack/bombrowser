@@ -942,7 +942,7 @@ class _BaseServer:
             top = (code0, xdate_from_days0)
             return (top, data)
 
-    def get_drawings_by_code_id(self, rev_id):
+    def get_drawings_by_rid(self, rev_id):
         with ROCursor(self) as c:
             c.execute("""
                 SELECT filename, fullpath

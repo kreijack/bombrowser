@@ -1496,7 +1496,7 @@ def test_update_by_rid2_with_drawings():
             ]
     )
 
-    dwgs = d.get_drawings_by_code_id(rid)
+    dwgs = d.get_drawings_by_rid(rid)
     assert(len(dwgs) == 2)
 
     dwgs.sort()

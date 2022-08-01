@@ -1401,7 +1401,7 @@ class EditWindow(bbwindow.BBMainWindow):
         self._populate_children(children)
         # drawings
 
-        drawings = list(d.get_drawings_by_code_id(self._rid))
+        drawings = list(d.get_drawings_by_rid(self._rid))
         self._drawings_table.clear()
         self._drawings_table.horizontalHeader().setStretchLastSection(True)
         self._drawings_table.setSortingEnabled(True)

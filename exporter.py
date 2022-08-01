@@ -172,7 +172,7 @@ class Exporter:
             fnl = []
             for k, v in self._data.items():
                 rid = v["rid"]
-                l = d.get_drawings_by_code_id(rid)
+                l = d.get_drawings_by_rid(rid)
                 if len(l):
                     self._drawings[rid] = [os.path.basename(x[1]) for x in l]
 

@@ -3,11 +3,10 @@
 - introduce helper like Transaction/ROCursor to simplify the exception
   handling during the SQL query/update/insert
 - add support for a remote server capable to handle auth
-- increase the number of tests
+- increase the number of self tests
 - add colorized validator for the search-revision date/rid/id/iter fields
 - show assembly components in the same order as edit window
-- improve the date validator in search revision dialog
-- initial attempt to upload of the files in the right directories
+- initial attempt to upload of the files in the specific directories
 - editcode, allow drag & drop in all window
 - bug: don't copy a non existant files during export
 - bug: import: more tolerant abut line ending (CR/LN)

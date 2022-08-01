@@ -151,7 +151,7 @@ class ExportDialog(QDialog):
             d = db.DB()
             for k in self._data:
                 rid = self._data[k]["rid"]
-                drawings = d.get_drawings_by_code_id(rid)
+                drawings = d.get_drawings_by_rid(rid)
                 fnl += [x[1] for x in drawings]
 
             fname = ''

@@ -74,7 +74,7 @@ class CodeWidget(QWidget):
         for (seq, idx, gavalname, caption, type_) in gavalnames:
             self._gavalnames.append((caption, gavalname))
 
-        self._drawings = d.get_drawings_by_code_id(self._data["rid"])
+        self._drawings = d.get_drawings_by_rid(self._data["rid"])
 
         self._update_widget()
 
