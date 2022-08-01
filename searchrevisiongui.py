@@ -71,6 +71,10 @@ class _Validator:
         self._widget = w
 
     def __call__(self, s):
+        if s == '':
+            self._widget.setStyleSheet('')
+            return
+
         r, _, _ = self._validator.validate(s, len(s))
         if r == QValidator.Invalid:
             colour = 'red'
