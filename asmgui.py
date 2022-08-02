@@ -707,6 +707,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         model = QStandardItemModel()
         self._tree.setModel(model)
         model.setHorizontalHeaderLabels(["Code", "Description"])
+        recursive_error = set()
 
         def rec_update(n, path):
             d = data[n]
@@ -723,14 +724,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                 self._set_bom_colors(path, colors_filter, i2)
             for c in data[n]["deps"]:
                 if c in path:
-                    # ERROR: a recursive path
-                    i3 = QStandardItem("<REC-ERROR>")
-                    i3.setData(-1)
-                    i3.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-                    i.appendRow((
-                        i3,
-                        QStandardItem("<REC-ERROR>"))
-                    )
+                    recursive_error.add((d["code"], d["descr"]))
                     continue
                 ci = rec_update(c, path+[c])
                 if not ci is None:
@@ -755,6 +749,17 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         for i in range(self._tree.header().count()):
             self._tree.header().resizeSection(i, sizes[i])
         self._update_metadata([top])
+
+        if len(recursive_error):
+            QMessageBox.critical(self, "BOMBrowser",
+                "ERROR: loop detected after the following code(s):\n\n"+
+                "\n".join(
+                    "%d) %s - %s"%(x[0] + 1, x[1][0], x[1][1]) for x
+                                    in enumerate(recursive_error)
+                ) + "\n\n" +
+                "Execute Menu->Tool->Check bom in the assembly window\n" +
+                "for further information."
+            )
 
     def _get_path(self):
         idxs = self._tree.selectionModel().selectedIndexes()
@@ -787,13 +792,19 @@ class AssemblyWindow(bbwindow.BBMainWindow):
 
     def _update_metadata(self, path):
         data_key = path[-1]
-        #pprint.pprint(self._data[data_key])
 
+        qty = ""
+        each = ""
+        unit = ""
+        ref = ""
+        gavals = dict()
+
+        date_from_days = self._data[data_key]["date_from_days"]
+        id_ = self._data[data_key]["id"]
 
         if len(path) > 1:
-            k1 = path[-2]
-            k2 = path[-1]
-            d3 = self._data[k1]["deps"][k2]
+            parent = path[-2]
+            d3 = self._data[parent]["deps"][data_key]
             if "qty" in d3:
                 qty = float(d3["qty"])
             else:
@@ -802,25 +813,16 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                 each = float(d3["each"])
             else:
                 each = 1
-        else:
-            qty = ""
-            each = ""
 
-        unit = ""
-        ref = ""
-        gavals = dict()
-        date_from_days = self._data[data_key]["date_from_days"]
-        if len(path) > 1:
-            unit = self._data[path[-2]]["deps"][path[-1]]["unit"]
-            ref = self._data[path[-2]]["deps"][path[-1]]["ref"]
+            unit = self._data[parent]["deps"][data_key]["unit"]
+            ref = self._data[parent]["deps"][data_key]["ref"]
             for i in range(db.gavals_count):
                 k = "gaval%d"%(i+1)
-                if k in self._data[path[-2]]["deps"][path[-1]]:
-                    gavals[k] = self._data[path[-2]]["deps"][path[-1]][k]
+                if k in self._data[parent]["deps"][data_key]:
+                    gavals[k] = self._data[parent]["deps"][data_key][k]
 
-        self._code_widget.populate(self._data[data_key]["id"],
-            self._data[data_key]["date_from_days"],
-            qty, each, unit, ref, gavals)
+        self._code_widget.populate(id_, date_from_days, qty, each,
+                                    unit, ref, gavals)
 
         self._my_statusbar.showMessage("/".join(map(lambda x : self._data[x]["code"], path)))
 
