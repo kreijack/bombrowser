@@ -163,8 +163,6 @@ class RevisionListWidget(QWidget):
 
             row += 1
 
-        # TBD: add validator for id, rid, date_X_days
-
         #hr = QHBoxLayout()
         #vb.addLayout(hr)
         b = QPushButton("Search")
@@ -217,6 +215,8 @@ class RevisionListWidget(QWidget):
         for k, v in self._bom.items():
             match = True
             for pk, pv in pattern.items():
+                if pk == 'iter_':
+                    pk = 'iter'
                 if not pk in v.keys():
                     print("WARNING: key '%s' not found"%(pk))
                     print("WARNING: pattern=", pattern)
@@ -233,7 +233,7 @@ class RevisionListWidget(QWidget):
                     mode = ""
                     v1 = pv
 
-                if pk == "rid":
+                if pk in ("rid", "id", "iter") or pk.startswith("date_"):
                     v1 = int(v1)
 
                 if mode == '=':
@@ -253,12 +253,20 @@ class RevisionListWidget(QWidget):
                         match = False
                         break
                 else:
-                    if pk != "rid" and not v1 in v[pk]:
-                        match = False
-                        break
-                    elif pk == "rid" and v1 != v[pk]:
-                        match = False
-                        break
+                    if pk in ("rid", "id", "iter"):
+                        # integer comparation
+                        if v1 != v[pk]:
+                            match = False
+                            break
+                    elif pk.startswith("date_"):
+                        # integer comparation
+                        if v1 != v[pk]:
+                            match = False
+                            break
+                    else:
+                        # string comparation
+                        if not v1 in v[pk]:
+                            match = False
         
             if match:
                 ret.append([v[kk] for kk in fns])
@@ -280,9 +288,16 @@ class RevisionListWidget(QWidget):
 
                 if k == "date_from_days" or k == "date_to_days":
                     if v[0] in "<>=!":
-                        v = v[0] + str(db.iso_to_days(v[1:]))
+                        prefix = v[0]
+                        v = v[1:]
+                    else:
+                        prefix = ""
+                    if v.upper() == "PROTOTYPE":
+                        v = str(db.prototype_date)
                     else:
                         v = str(db.iso_to_days(v))
+                    v = prefix + v
+
                 elif self._descr_force_uppercase == "1" and k == "descr":
                         v = v.upper()
                 elif self._code_force_uppercase == "1" and k == "code":
