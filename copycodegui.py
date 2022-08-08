@@ -25,6 +25,7 @@ from PySide2.QtCore import Qt
 
 import db, editcode, bbwindow
 import utils, selectdategui, cfg
+import bbdate
 
 class CopyCode(bbwindow.BBMainWindow):
     def __init__(self, rev_id, parent):
@@ -102,8 +103,11 @@ class CopyCode(bbwindow.BBMainWindow):
         grid.addWidget(QLabel("Date from:"), 13, 0)
         self._l_old_date_from = QLabel(self._date_from)
         grid.addWidget(self._l_old_date_from, 13, 1)
-        self._l_new_date_from = QLineEdit(
-            db.days_to_iso(db.now_to_days())
+        #self._l_new_date_from = QLineEdit(
+        self._l_new_date_from = bbdate.BBDatesLineEdit(
+            db.days_to_iso(db.now_to_days()),
+            allow_cmp=False,
+            allow_prototype=True
         )
         grid.addWidget(self._l_new_date_from, 13, 2)
 

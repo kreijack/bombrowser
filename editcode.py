@@ -31,7 +31,7 @@ from PySide2.QtCore import  QUrl, Signal, Qt, QEvent
 
 import  utils, listcodegui, db, cfg
 import  importer, customize, bbwindow, codecontextmenu
-
+import bbdate
 
 class SelectCode(QDialog):
     def __init__(self, parent):
@@ -103,8 +103,8 @@ class EditDates(QDialog):
         max_date_to_days = None
         for row in range(row_cnt):
             rid = int(self._table.item(row, 0).text())
-            date_from = self._table.item(row, 4).text().upper()
-            date_to = self._table.item(row, 5).text()
+            date_from = self._get_table_cell(row, 4).text().upper()
+            date_to = self._get_table_cell(row, 5).text()
 
             try:
                 if date_from == "PROTOTYPE":
@@ -167,10 +167,9 @@ class EditDates(QDialog):
         if len(dates) > 1 and dates[1][3] == "":
             dates[1][4] = db.prototype_date -1
 
-
         try:
             d.update_dates(dates)
-        except:
+        except Exception as e:
             utils.show_exception(msg="Error during the data saving\n" +
                     str(e))
             return
@@ -224,30 +223,45 @@ class EditDates(QDialog):
             i.setFont(f)
             self._table.setItem(row, 3, i)
 
-            i = QTableWidgetItem(db.days_to_txt(date_from_days))
-            self._table.setItem(row, 4, i)
+            i = bbdate.BBDatesLineEdit(db.days_to_txt(date_from_days),
+                                        allow_cmp=False,
+                                        allow_prototype = row == 0)
+            self._table.setCellWidget(row, 4, i)
+            i.textChanged.connect(utils.Callable(
+                    lambda *x:self._cell_changed(*x[1:])
+                    , row, 4))
 
-            i = QTableWidgetItem(db.days_to_txt(date_to_days))
             if row != 0:
+                i = QTableWidgetItem(db.days_to_txt(date_to_days))
                 i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                 i.setFont(f)
-            self._table.setItem(row, 5, i)
+                self._table.setItem(row, 5, i)
+            else:
+                i = bbdate.BBDatesLineEdit(db.days_to_txt(date_to_days),
+                                        allow_cmp=False,
+                                        allow_prototype=False)
+                self._table.setCellWidget(row, 5, i)
 
-            if date_from_days == db.prototype_date:
-                # the row is prototype: we can't change anything
-                #self._table.item(row, 4).setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-                #self._table.item(row, 4).setFont(f)
-                self._table.item(row, 5).setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
-                self._table.item(row, 5).setFont(f)
+                if date_from_days == db.prototype_date:
+                    self._table.cellWidget(row, 5).setReadOnly(True)
+
+                i.textChanged.connect(utils.Callable(
+                    lambda *x:self._cell_changed(*x[1:])
+                    , row, 5))
 
             row += 1
 
         self.setWindowTitle("Edit dates: %s"%(code))
-        self._table.cellChanged.connect(self._cell_changed)
         self._table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         QApplication.instance().processEvents()
         self._table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
         self._table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+
+    def _get_table_cell(self, row, col):
+        if col == 4 or (row == 0 and col == 5):
+            return self._table.cellWidget(row, col)
+        else:
+            return self._table.item(row, col)
 
     def _cell_changed(self, row, col):
         # check the date from column
@@ -256,67 +270,48 @@ class EditDates(QDialog):
             return
 
         if row == 0 and col == 4:
-            if self._table.item(0, 4).text().upper() == "PROTOTYPE":
-            #if col == 5:
-                # phantom change due to the rows below, ignore it
-                #return
-
-                self._table.item(0, 5).setText("")
-                self._table.item(0, 5).setBackground(
-                    self._table.item(row, 0).background())
-                self._table.item(0, 5).setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+            if self._table.cellWidget(0, 4).text().upper() == "PROTOTYPE":
+                self._table.cellWidget(0, 5).setText("")
+                self._table.cellWidget(0, 5).setReadOnly(True)
 
                 if self._table.rowCount() > 1:
                     self._table.item(1, 5).setText("")
-                    self._table.item(1, 5).setBackground(
-                        self._table.item(row, 0).background())
-
-                if row == 0 and col == 4:
-                    self._table.item(row, col).setBackground(
-                        self._table.item(row, 0).background())
                     return
             else:
-                self._table.item(0, 5).setFlags(Qt.ItemIsSelectable |
-                    Qt.ItemIsEnabled | Qt.ItemIsEditable)
+                self._table.cellWidget(0, 5).setReadOnly(False)
 
-
-        dt = self._table.item(row, col).text()
+        dt = self._get_table_cell(row, col).text()
         err = False
 
         if row == 0 and col == 5:
             if dt != "":
                 try:
-                        from_date = db.iso_to_days(dt)
+                    from_date = db.iso_to_days(dt)
                 except:
                     err = True
                 if not err:
-                    err = self._table.item(row, 4).text() > dt
+                    err = self._get_table_cell(row, 4).text() > dt
         else:
             try:
-                    from_date = db.iso_to_days(dt)
+                from_date = db.iso_to_days(dt)
             except:
                 err = True
 
             if not err:
-                if row > 0 and (self._table.item(row -1 , col).text() <= dt):
+                if row > 0 and (self._get_table_cell(row -1 , col).text() <= dt):
                     err = True
                 if ((row < self._table.rowCount() - 1) and
-                    (self._table.item(row +1 , col).text() >= dt)):
+                    (self._get_table_cell(row +1 , col).text() >= dt)):
                         err = True
 
         if err:
             self._table.clearSelection()
-            self._table.item(row, col).setBackground(
-                QColor.fromRgb(255, 252, 187))
             return
-
-        self._table.item(row, col).setBackground(
-            self._table.item(row, 0).background())
 
         if col == 4 and row < self._table.rowCount() - 1:
             to_date = from_date - 1
             to_date = db.days_to_iso(to_date)
-            self._table.item(row+1, col+1).setText(to_date)
+            self._get_table_cell(row+1, col+1).setText(to_date)
 
 
 class CopyFilesDialog(QDialog):
