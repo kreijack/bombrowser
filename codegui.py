@@ -22,7 +22,7 @@ import os
 from PySide2.QtWidgets import QLabel
 from PySide2.QtWidgets import QGridLayout, QWidget, QApplication
 from PySide2.QtWidgets import QAction, QFrame
-from PySide2.QtWidgets import QPushButton
+from PySide2.QtWidgets import QPushButton, QMessageBox
 from PySide2.QtWidgets import QComboBox, QMenu
 from PySide2.QtGui import QDesktopServices
 
@@ -48,6 +48,12 @@ class CodeWidget(QWidget):
 
         d = db.DB()
         data = d.get_code(id_, date_from_days)
+
+        if not data or len(data) < 1:
+            QMessageBox.critical(self, "BOMBrowser",
+                "The code id=%d at date %s seems to not exist"%(
+                id_, db.days_to_txt(date_from_days)))
+            return
 
         self._data = data
         self._qty = qty
@@ -286,9 +292,17 @@ class CodesWidget(CodeWidget):
         self._code_id = code_id
 
         d = db.DB()
+        dates = d.get_dates_by_code_id3(self._code_id)
+        if not dates or len(dates) < 1:
+            QMessageBox.critical(self, "BOMBrowser",
+                "The code id=%d seems to not exist"%(
+                code_id))
+            return
+
         self._ignore = True
         self._list.clear()
-        self._dates = d.get_dates_by_code_id3(self._code_id)
+        self._dates = dates
+
         for data2 in self._dates:
             (icode, idescr, idate_from_days, idate_to_days, rid) = data2[:5]
 
