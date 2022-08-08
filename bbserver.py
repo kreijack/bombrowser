@@ -53,10 +53,10 @@ class RemoteSQLClient:
 
         try:
             self._sock.sendall(header)
-        except:
+        except BaseException as e:
             self._sock.close()
             self._sock = None
-            raise
+            raise e
         self._sock.sendall(data)
 
         header = bytes([])
@@ -80,7 +80,10 @@ class RemoteSQLClient:
 
         ret, excp = pickle.loads(data)
         if not excp is None:
-            raise Exception(excp)
+            raise Exception("Remote server exception:\n" +
+                "-"*40 + "\n" +
+                excp + "\n" +
+                "-"*40 )
         if func_name == "remote_server_do_auth" and ret:
             self._username = args[0]
             self._password = args[1]
@@ -130,22 +133,22 @@ class _ServerHandler(socketserver.BaseRequestHandler):
                 data += d        
             
             name, args, kwargs = pickle.loads(data)
+
+            ret = None
+            excp = None
+
             if name == "remote_server_get_info":
-                excp = None
                 ret = {
                     "clients_count": self.server._server_data["clients_count"],
                     "id": self.server._server_data["client_seq"],
                 }
             elif name == "remote_server_get_id":
-                excp = None
                 ret = self.server._server_data["client_seq"]
-            elif hasattr(remote_db_instance, name):
+            else:
                 try:
-                    ret = getattr(remote_db_instance, name)(*args, **kwargs)
-                    excp = None
+                    ret = remote_db_instance.call(name, *args, **kwargs)
                 except Exception as e:
-                    excp = str(e) # sometime you cannot serialize an exception
-                    ret = None
+                     excp = str(e) # sometime you cannot serialize an exception
 
             data = pickle.dumps((ret, excp))
             header = struct.pack(format_, 0, # rev
@@ -206,32 +209,35 @@ class RemoteSQLServer:
         self._read_only = False       
         return True
 
-    def _getattr(self, name):
+    def test_raise_exception(self):
+        raise Exception("test-exception")
+
+    def call(self, name, *args, **kwargs):
+        if name == "remote_server_do_auth":
+            return self.remote_server_do_auth(*args, **kwargs)
+        if name == "test_raise_exception":
+            return self.test_raise_exception(*args, **kwargs)
+
         if not self._allow_access:
             raise Exception("You have to authenticate")
-
-        if (name in self._read_write_methods and self._read_only):
-            raise Exception("Access read only")
             
         if (not name in self._read_write_methods and
             not name in self._read_only_methods):
                 raise Exception("Unknown method '%s'"%(name))
 
-        if not callable(getattr(self._db, name)):
-            raise Exception("Method '%s' is not callable"%(name))
+        if (name in self._read_write_methods and self._read_only):
+            raise Exception("Access read only")
 
-        return getattr(self._db, name)
-
-    def __getattr__(self, name):
         try:
-            return self._getattr(name)
-        except Exception as e:
-            class Caller:
-                def __init__(self, e):
-                    self._e = e
-                def __call__(self, *x):
-                    raise self._e
-            return Caller(e)
+            return getattr(self._db, name)(*args, **kwargs)
+        except:
+            import sys, traceback
+            e = "Traceback\n"+ \
+                "\n".join(traceback.format_tb(sys.exc_info()[2])) + \
+                str(sys.exc_info()[0]) + str(sys.exc_info()[1])
+
+            raise Exception(e)
+
 
 def _start_server(db_instance, addr='0.0.0.0', port=8765,
         verbose=False, allow_exit_server=False):
@@ -265,6 +271,29 @@ def _test_get_conn():
     r = RemoteSQLClient()
     r.remote_server_do_auth("foo", "bar")
     return r
+
+def test_000_raise_generic_exception():
+    r = _test_get_conn()
+
+    excepted = False
+    try:
+        r.test_raise_exception()
+    except BaseException as e:
+        excepted = True
+
+    assert(excepted)
+
+def test_000_raise_unknown_method():
+    r = _test_get_conn()
+
+    excepted = False
+    try:
+        r.test_unknown(1, 2, 3, 4, 5)
+    except BaseException as e:
+        excepted = True
+
+    assert(excepted)
+
 
 def test_000_create_db():
     r = _test_get_conn()
@@ -422,6 +451,34 @@ def test_050_update_dates():
 
     res = r.get_dates_by_code_id3(code_id)
     assert(res[1][2] == new_data)
+
+def test_050_update_dates_exception():
+    r = _test_get_conn()
+    r.create_db()
+    r.create_first_code()
+
+    res = r.get_codes_by_like_code('%')
+    code_id = res[0][0]
+    res = r.get_dates_by_code_id3(code_id)
+    assert(len(res) == 1)
+    rid = res[0][4]
+
+    r.revise_code(rid, "new-descr", 'A')
+    res = r.get_dates_by_code_id3(code_id)
+    assert(len(res) == 2)
+
+    dates = [[x[4], '', x[2], '', x[3]] for x in res]
+    # format rid, date_from, date_from_days, date_to, date_to_days
+    t = dates[1][2]
+    dates[1][2] = dates[0][2]
+    dates[0][2] = 2
+
+    excepted = False
+    try:
+        r.update_dates(dates)
+    except BaseException as e:
+        excepted = True
+    assert(excepted)
 
 def test_050_get_config():
     r = _test_get_conn()
