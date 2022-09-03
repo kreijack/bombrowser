@@ -187,14 +187,14 @@ class ExportDialog(QDialog):
         link = dest
         if self._cb_zip_all.isChecked():
             nf = os.path.join(dest, self._fn + ".zip")
-            z = zipfile.ZipFile(nf, "w", compression=zipfile.ZIP_DEFLATED)
-            if bom_file:
-                z.write(bom_file, arcname=os.path.basename(bom_file))
-            for i in fnl:
-                nf2 = os.path.join(dest, os.path.basename(i))
-                # if shutil.copy fails, we will not have a file
-                if os.path.exists(i):
-                    z.write(nf2, arcname = os.path.basename(i))
+            with zipfile.ZipFile(nf, "w", compression=zipfile.ZIP_DEFLATED) as z:
+                if bom_file:
+                    z.write(bom_file, arcname=os.path.basename(bom_file))
+                for i in fnl:
+                    nf2 = os.path.join(dest, os.path.basename(i))
+                    # if shutil.copy fails, we will not have a file
+                    if os.path.exists(i):
+                        z.write(nf2, arcname = os.path.basename(i))
             link = nf
         QApplication.restoreOverrideCursor()
         
