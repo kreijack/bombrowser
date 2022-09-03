@@ -8,6 +8,7 @@
 - show assembly components in the same order as edit window
 - initial attempt to upload of the files in the specific directories
 - editcode, allow drag & drop in all window
+- add Date dialog
 - bug: don't copy a non existant files during export
 - bug: import: more tolerant abut line ending (CR/LN)
 - bug: import: check that all the main columns are present
