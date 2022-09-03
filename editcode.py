@@ -702,11 +702,10 @@ class EditWindow(bbwindow.BBMainWindow):
             e.acceptProposedAction()
 
     def dropEvent(self, e):
+        files = set()
         for url in e.mimeData().urls():
-            files = []
-            for url in e.mimeData().urls():
-                files.append(url.toLocalFile())
-            self._drawings_table.add_drawings(files)
+            files.add(url.toLocalFile())
+        self._drawings_table.add_drawings(list(files))
 
     def _populate_dates_list_info(self):
         d = db.DB()
