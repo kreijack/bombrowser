@@ -1564,19 +1564,21 @@ class _BaseServer:
         gval_query = ", ".join(["r.gval%d"%(i+1) for i in range(gvals_count)])
 
         query = """
-            SELECT i.id, r.id, i.code, r.descr, r.ver, r.iter,
+            SELECT DISTINCT i.id, r.id, i.code, r.descr, r.ver, r.iter,
                 r.date_from_days, r.date_to_days,
                 """ + gval_query + """
             FROM item_revisions AS r
             LEFT JOIN items AS i
               ON r.code_id = i.id
+            LEFT JOIN drawings AS d
+              ON d.revision_id = r.id
         """
 
         where = []
 
         args = []
         arg_names = ["id", "rid", "code", "rev", "iter_", "descr",
-                     "date_from_days", "date_to_days"]
+                     "date_from_days", "date_to_days", "doc"]
         arg_names += ["gval%d"%(i+1) for i in range(gvals_count)]
 
         for k in kwargs:
@@ -1587,6 +1589,9 @@ class _BaseServer:
             table = "r"
             if k in ["code", "id"]:
                 table = "i"
+            elif k == 'doc':
+                table = "d"
+                k = "fullpath"
             elif k == "rid":
                 k = "id"
             elif k == "rev":
@@ -1614,7 +1619,9 @@ class _BaseServer:
             query += "            WHERE\n"
             query += "            AND\n".join(where)
 
-        query += "            ORDER BY i.code ASC, r.iter ASC\n"
+        query += """
+                ORDER BY i.code ASC, r.iter ASC
+        """
 
         #print("query=", query)
         #print("args=", args)

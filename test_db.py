@@ -1512,8 +1512,17 @@ def _create_data_for_search_revisions(c, d):
         for i in range(db.gvals_count):
             data[rid]["gval%d"%(i+1)] = gvals[i]
 
+        if rid == dates1[0][0]:
+            dwg = [["filea", "file-fullpath-1-1"]]
+        elif rid == dates1[1][0]:
+            dwg = [
+                ["filea", "file-fullpath-2-1"],
+                ["filea", "file-fullpath-2-1"],
+            ]
+        else:
+            dwg = []
         d.update_by_rid2(rid, data[rid]["descr"], data[rid]["rev"],
-                data[rid]["unit"], gvals)
+                data[rid]["unit"], gvals, drawings = dwg)
 
     return data
 
@@ -1619,6 +1628,23 @@ def test_search_revisions_all_values():
     assert(len(ret) == 2)
 
     # TBD dates
+
+def test_search_revisions_by_drawings():
+    d, c = _create_db()
+    data = _create_data_for_search_revisions(c, d)
+
+    ret = d.search_revisions()
+    assert(len(ret)) > 2
+
+    ret = d.search_revisions(doc="%fullpath%")
+    assert(len(ret)) == 2
+
+    ret = d.search_revisions(doc="%fullpath-1%")
+    assert(len(ret)) == 1
+
+    ret = d.search_revisions(doc="%fullpath-2%")
+    assert(len(ret)) == 1
+
 
 def test_gvals():
     d = _init_db()
