@@ -272,7 +272,6 @@ class RevisionListWidget(QWidget):
 
         self._copy_info = "\t".join(self._search_revision_cols)
         self._copy_info += "\n"
-        self._copy_info += "\n".join(["\t".join(map(str, row[:5])) for row in ret])
 
         self._table.setSortingEnabled(False)
         self._table.clear()
@@ -291,6 +290,7 @@ class RevisionListWidget(QWidget):
             col_map[self._notgvalcols + idx - 1] = seq + self._notgvalcols
         for row in ret:
             c = 0
+            linerow = ["" for x in range(len(row))]
             for c, v in enumerate(row):
                 if c == 1:
                     rid = int(v)
@@ -307,7 +307,9 @@ class RevisionListWidget(QWidget):
                 i = QTableWidgetItem(str(v))
                 i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                 self._table.setItem(r, c, i)
+                linerow[c] = str(v)
 
+            self._copy_info += "\t".join(linerow)+"\n"
             r += 1
         self._table.setSortingEnabled(True)
         self._table.selectionModel().selectionChanged.connect(self._table_clicked)
