@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sys, traceback
+import sys, traceback, re
 
 from PySide2.QtWidgets import QMessageBox
 
@@ -174,6 +174,164 @@ def xunescape(s):
             j += 1
                 
     return s        
+
+def bb_match(s, exp, conv=None):
+    """
+        bb_match(s, exp, conv)
+
+        return True if 's' match the 'exp' expression.
+
+        The 'exp' expression is in the form:
+        <exp1>[;<exp2>[...]]
+
+        where
+
+        exp support the following special chareacters (derived by SQL extension)
+        % -> means any characters sequence of any length
+        _ -> means any character
+        [abc] is any character in the range "abc"
+    """
+
+    if exp[0] == '=':
+        exps = [exp]
+    else:
+        exps = exp.split(";")
+
+    for exp in exps:
+        if len(exp) == 0:
+            continue
+
+        if exp[0] == '=':
+            if not conv is None:
+                if conv(exp[1:]) == s:
+                    return True
+            elif exp[1:] == s:
+                return True
+
+        elif exp[0] == '>':
+            if not conv is None:
+                if s > conv(exp[1:]):
+                    return True
+            elif s > exp[1:]:
+                return True
+
+        elif exp[0] == '<':
+            if not conv is None:
+                if s < conv(exp[1:]):
+                    return True
+            elif s < exp[1:]:
+                return True
+
+        elif exp[0] == '!':
+            if not conv is None:
+                if s != conv(exp[1:]):
+                    return True
+            elif s != exp[1:]:
+                return True
+
+        elif not ('%' in exp or '_' in exp or '[' in exp or ']' in exp):
+            if not conv is None:
+                if conv(exp) == s:
+                    return True
+            elif exp in s:
+                return True
+
+        elif conv is None:
+            exp = exp.replace("\\", r"\\").replace("*", r"\*")
+            exp = exp.replace(".", r"\.").replace("%", ".*").replace("_", ".")
+            if re.match("^"+exp+"$", s):
+                return True
+
+    return False
+
+def test_bb_match_simple():
+    assert(bb_match("abc", "a"))
+    assert(bb_match("abc", "a%"))
+    assert(not bb_match("abc", "%a"))
+
+    assert(not bb_match("abc", "c%"))
+    assert(bb_match("abc", "%c"))
+
+    assert(not bb_match("abc", "d"))
+    assert(not bb_match("abc", "%d"))
+    assert(not bb_match("abc", "d%"))
+
+    assert(not bb_match("abc", "=a"))
+    assert(not bb_match("abc", "=d"))
+    assert(bb_match("abc", "=abc"))
+
+    assert(bb_match("bcd", ">a"))
+    assert(bb_match("abc", "<z"))
+
+    assert(bb_match("abc", "!a"))
+    assert(bb_match("abc", "!z"))
+
+    assert(not bb_match("abc", "[bfg]"))
+
+    assert(bb_match("abc", "%[bfg]%"))
+
+def test_bb_match_special():
+    assert(not bb_match("abc", "a.c"))
+    assert(bb_match("abc", "a_c"))
+    assert(not bb_match("aac", "a*c"))
+    assert(bb_match("aac", "a%c"))
+    assert(not bb_match("aac", ".*c"))
+    assert(bb_match("aac", "%c"))
+
+def test_bb_match_list():
+    assert(bb_match("abc", "a;k"))
+    assert(bb_match("abc", "k;a"))
+
+    assert(not bb_match("abc", "k;e"))
+    assert(bb_match("abc", "k;=abc"))
+
+    assert(not bb_match("abc", "=k;a"))
+    assert(not bb_match("a;c", "=a;b"))
+
+    assert(bb_match("abc", ";=k;a"))
+
+    assert(not bb_match("bcd", ";=k;>fa"))
+    assert(bb_match("bcd", ";=k;>a"))
+
+    assert(not bb_match("bcd", ";=k;<a"))
+    assert(bb_match("bcd", ";=k;<z"))
+
+    assert(bb_match("bcd", ";=k;!b"))
+    assert(not bb_match("bcd", ";=k;!bcd"))
+
+    assert(bb_match("bcd", ";=k;b%"))
+    assert(not bb_match("bcd", ";=k;%b"))
+    assert(bb_match("bcd", ";=k;%d"))
+    assert(not bb_match("bcd", ";=k;d%"))
+    assert(bb_match("bcd", ";=k;%d%"))
+
+    assert(bb_match("bcd", ";=k;%c%"))
+    assert(not bb_match("bcd", ";=k;%c"))
+    assert(not bb_match("bcd", ";=k;c%"))
+
+    assert(not bb_match(11, "9;10", int))
+    assert(bb_match(10, "9;10", int))
+    assert(not bb_match(10, "20;>10", int))
+    assert(bb_match(10, "<20;>10", int))
+
+
+def test_bb_match_conv():
+    assert(not bb_match(10, ">10", int))
+    assert(bb_match(10, ">7", int))
+    assert(bb_match(10, "<157", int))
+    assert(not bb_match(10, "<1", int))
+
+    assert(not bb_match(10, "=11", int))
+    assert(bb_match(10, "=10", int))
+
+    assert(not bb_match(10, "!10", int))
+    assert(bb_match(10, "!11", int))
+
+    assert(not bb_match(10, "11", int))
+    assert(not bb_match(10, "1", int))
+    assert(bb_match(10, "10", int))
+
+    assert(not bb_match(10, "%1%", int))
 
 def test_xescape():
     assert(xescape("abc") == "abc")

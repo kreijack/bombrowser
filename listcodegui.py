@@ -28,7 +28,7 @@ from PySide2.QtWidgets import QHeaderView, QMenu, QTableWidget, QTableWidgetItem
 
 from PySide2.QtCore import Qt, Signal, QPoint
 
-import db, codegui, bbwindow
+import db, codegui, bbwindow, utils
 import cfg, searchrevisiongui, codecontextmenu
 
 class CodesListWidget(QWidget):
@@ -115,8 +115,8 @@ class CodesListWidget(QWidget):
         if self._bom:
                 ret = []
                 for k, v in self._bom.items():
-                    if ((cs == "" or cs in v["code"]) and
-                        (ds == "" or ds in v["descr"])):
+                    if ((cs == "" or utils.bb_match(v["code"], cs)) and
+                        (ds == "" or utils.bb_match(v["descr"], ds))):
                             ret.append((v["id"], v["code"], v["descr"], v["ver"], v["iter"]))
         else:
                 d = db.DB()

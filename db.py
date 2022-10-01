@@ -610,15 +610,16 @@ class _BaseServer:
 
         for row in req:
             if len(row) == 2:
-                field, value = row
-                if len(value) > 0 and value[0] == "=":
-                    req2.append((field, (value,), None))
-                    continue
+                row = list(row)
+                row.append(None)
 
-                vs = value.split(";")
-                req2.append((field, vs, None))
-            else:
-                req2.append((row[0], (row[1],), row[2]))
+            field, value, func = row
+            if len(value) > 0 and value[0] == "=":
+                req2.append((field, (value,), func))
+                continue
+
+            vs = value.split(";")
+            req2.append((field, vs, func))
 
         q2 = []
         args = []
@@ -630,23 +631,23 @@ class _BaseServer:
                 f = func
             for value in values:
                 if len(value) > 0 and value[0] in "<=>":
-                    q.append(" %s %s ? "%(field, value[0]))
+                    q.append("%s %s ?"%(field, value[0]))
                     args.append(f(value[1:]))
 
                 elif len(value) > 0 and value[0] == "!":
-                    q.append(" %s <> ? "%(field,))
+                    q.append("%s <> ?"%(field,))
                     args.append(f(value[1:]))
 
                 elif "%" in value or "_" in value or "[" in value or "]" in value:
-                    q.append(" %s LIKE ? "%(field,))
+                    q.append("%s LIKE ?"%(field,))
                     args.append(f(value))
 
                 elif len(value) > 0 and func is None:
-                    q.append(" %s LIKE ? "%(field,))
+                    q.append("%s LIKE ?"%(field,))
                     args.append("%" + value + "%")
 
                 elif len(value) > 0 :
-                    q.append(" %s = ? "%(field,))
+                    q.append("%s = ?"%(field,))
                     args.append(value)
 
                 else:
@@ -655,13 +656,13 @@ class _BaseServer:
 
             if len(q) > 0:
                 if len(q) > 1:
-                    q2.append("( " + " OR ".join(q) + ")")
+                    q2.append("(" + " OR ".join(q) + ")")
                 else:
                     q2.append(q[0])
 
         qry = " AND ".join(q2)
 
-        return (qry, args)
+        return (" " + qry + " ", args)
 
     def get_codes_by_like_code_and_descr(self, code, descr):
         if code == "" and descr == "":

@@ -102,9 +102,17 @@ class RevisionListWidget(QWidget):
                     w = bbdate.BBDatesLineEdit()
                 elif key == 'id' or key == 'rid' or key == "iter_":
                     w = QLineEdit()
+
+                    # allow:
+                    # =1224
+                    # >1234
+                    # 1234
+                    # 1234;567
+                    # >5000;<3000
+                    myregexp = "^[!=<>]?[0-9]*(;[!=<>]?[0-9]*)*$"
                     w.textChanged.connect(bbdate.Validator(w,
-                        QRegExpValidator(QRegExp("^[!=<>]?[0-9]*$"))))
-                    w.setValidator(QRegExpValidator(QRegExp("^[!=<>]?[0-9]*$")))
+                        QRegExpValidator(QRegExp(myregexp))))
+                    w.setValidator(QRegExpValidator(QRegExp(myregexp)))
                 else:
                     w = QLineEdit()
 
@@ -178,48 +186,13 @@ class RevisionListWidget(QWidget):
                 if len(pv) < 1:
                     continue
 
-                if pv[0] in "=!<>":
-                    mode = pv[0]
-                    v1 = pv[1:]
-                else:
-                    mode = ""
-                    v1 = pv
-
                 if pk in ("rid", "id", "iter") or pk.startswith("date_"):
-                    v1 = int(v1)
-
-                if mode == '=':
-                    if v1 != v[pk]:
-                        match = False
-                        break
-                elif mode == '!':
-                    if v1 == v[pk]:
-                        match = False
-                        break
-                elif mode == '>':
-                    if v1 >= v[pk]:
-                        match = False
-                        break
-                elif mode == '<':
-                    if v1 <= v[pk]:
-                        match = False
-                        break
+                    match = utils.bb_match(v[pk], pv, int)
                 else:
-                    if pk in ("rid", "id", "iter"):
-                        # integer comparation
-                        if v1 != v[pk]:
-                            match = False
-                            break
-                    elif pk.startswith("date_"):
-                        # integer comparation
-                        if v1 != v[pk]:
-                            match = False
-                            break
-                    else:
-                        # string comparation
-                        if not v1 in v[pk]:
-                            match = False
-        
+                    match = utils.bb_match(v[pk], pv)
+                if not match:
+                    break
+
             if match:
                 ret.append([v[kk] for kk in fns])
 

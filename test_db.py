@@ -168,6 +168,31 @@ def test_get_code_by_code_and_descr():
     assert(data[0][1] == "code136")
     assert(data[0][2] == "descr469")
 
+def test_get_code_by_code_and_descr_multiple_or():
+    d = _init_db()
+
+    with Transaction(d) as c:
+        _test_insert_items(c)
+
+    data = d.get_codes_by_like_code_and_descr("code124;code135", "")
+    assert(len(data) == 2)
+    data.sort(key = lambda x: x[0])
+
+    assert(data[0][1] == "code124")
+    assert(data[1][1] == "code135")
+
+def test_get_code_by_code_and_descr_multiple_or_and():
+    d = _init_db()
+
+    with Transaction(d) as c:
+        _test_insert_items(c)
+
+    data = d.get_codes_by_like_code_and_descr("code123;code135;code124", "5")
+    assert(len(data) == 2)
+    data.sort(key = lambda x: x[0])
+
+    assert(data[0][1] == "code123")
+    assert(data[1][1] == "code124")
 
 def _test_insert_assembly(c):
     """
@@ -2458,6 +2483,156 @@ def test_oracle_empty_string():
         c.execute("""SELECT gval1 FROM item_revisions""")
         s = c.fetchall()
         assert(s[0][0] == '')
+
+def test_expand_search_str_clauses_simple():
+    d = _init_db()
+    (q, args) = d._expand_search_str_clauses((
+        ("id", "123"),
+    ))
+    assert(len(args) == 1)
+    assert(not "AND" in q)
+    assert("id LIKE ?" in q)
+
+def test_expand_search_str_clauses_multiple_and():
+    d = _init_db()
+    (q, args) = d._expand_search_str_clauses((
+        ("id", "123"),
+        ("rid", "456"),
+    ))
+    assert(len(args) == 2)
+    assert("AND" in q)
+    assert(not "OR" in q)
+    assert("id LIKE ?" in q)
+    assert("rid LIKE ?" in q)
+
+def test_expand_search_str_clauses_multiple_or():
+    d = _init_db()
+    (q, args) = d._expand_search_str_clauses((
+        ("id", "123;567"),
+    ))
+    assert(len(args) == 2)
+    assert("OR" in q)
+    assert(not "AND" in q)
+    assert("id LIKE ?" in q)
+
+def test_expand_search_str_clauses_multiple_or_and():
+    d = _init_db()
+    (q, args) = d._expand_search_str_clauses((
+        ("id", "123;567"),
+        ("rid", "678"),
+    ))
+    assert(args[0] == "%123%")
+    assert(args[1] == "%567%")
+    assert(args[2] == "%678%")
+    assert(len(args) == 3)
+    assert("OR" in q)
+    assert("AND" in q)
+    assert("id LIKE ?" in q)
+    assert("rid LIKE ?" in q)
+
+def test_expand_search_str_clauses_greather():
+    d = _init_db()
+    (q, args) = d._expand_search_str_clauses((
+        ("id", ">123"),
+    ))
+    assert(len(args) == 1)
+    assert(not "OR" in q)
+    assert(not "AND" in q)
+    assert("id > ?" in q)
+
+def test_expand_search_str_clauses_less():
+    d = _init_db()
+    (q, args) = d._expand_search_str_clauses((
+        ("id", "<123"),
+    ))
+    assert(len(args) == 1)
+    assert(not "OR" in q)
+    assert(not "AND" in q)
+    assert("id < ?" in q)
+
+def test_expand_search_str_clauses_differ():
+    d = _init_db()
+    (q, args) = d._expand_search_str_clauses((
+        ("id", "!123"),
+    ))
+    assert(len(args) == 1)
+    assert(not "OR" in q)
+    assert(not "AND" in q)
+    assert("id <> ?" in q)
+
+def test_expand_search_str_clauses_int():
+    d = _init_db()
+    (q, args) = d._expand_search_str_clauses((
+        ("id", "!123", int),
+    ))
+    assert(len(args) == 1)
+    assert(not "OR" in q)
+    assert(not "AND" in q)
+    assert("id <> ?" in q)
+
+    try:
+        args[0] + 1
+    except:
+        test_is_int_passed = False
+    else:
+        test_is_int_passed = True
+    assert(test_is_int_passed)
+
+def test_expand_search_str_clauses_begin_with_equal():
+    d = _init_db()
+    (q, args) = d._expand_search_str_clauses((
+        ("id", "=123;4566"),
+    ))
+    assert(len(args) == 1)
+    assert("id = ?" in q)
+    assert(args[0] == "123;4566")
+
+def test_expand_search_str_clauses_begin_after_semicolon():
+    d = _init_db()
+    (q, args) = d._expand_search_str_clauses((
+        ("id", ";=123;4566"),
+    ))
+    assert(len(args) == 2)
+    assert(args[0] == "123")
+    assert(args[1] == "%4566%")
+    assert("id = ?" in q)
+    assert("id LIKE ?" in q)
+    assert("OR" in q)
+    assert(not "AND" in q)
+
+def test_expand_search_str_clauses_multiple_or_and_2():
+    d = _init_db()
+    (q, args) = d._expand_search_str_clauses((
+        ("id", "123;567"),
+        ("rid", "678"),
+    ))
+
+    assert(len(args) == 3)
+    assert(args[0] == "%123%")
+    assert(args[1] == "%567%")
+    assert(args[2] == "%678%")
+    assert("OR" in q)
+    assert("AND" in q)
+    assert("id LIKE ?" in q)
+    assert("rid LIKE ?" in q)
+
+    # q should resemble
+    # (id LIKE ? or id LIKE ?) AND rid LIKE ?
+
+    i = q.find("(")
+    assert(i >= 0)
+
+    i2 = q.find("OR")
+    assert(i2 >= 0)
+    assert(i2 > i)
+
+    i = q.find(")")
+    assert(i >= 0)
+    assert(i > i2)
+
+    i2 = q.find("AND")
+    assert(i2 >= 0)
+    assert(i2 > i)
 
 #------
 
