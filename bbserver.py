@@ -699,8 +699,7 @@ def start_tests(args):
     server.start()
     try:
         time.sleep(0.5)
-        test_db.run_test(args, sys.modules[__name__],
-            print_exc=True)
+        test_db.run_test(args, sys.modules[__name__])
     finally:
         if _server_istance:
             _server_istance.shutdown()

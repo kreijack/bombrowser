@@ -2648,13 +2648,24 @@ def _list_tests(modules):
             continue
         yield name, obj
 
-def run_test(filters, modules, prefix="", print_exc=False):
+def run_test(filters, modules, prefix=""):
     if prefix != "":
         prefix += "."
 
+    lfilters = []
+    for i in filters:
+        if i == "--print-exception":
+            print_exc = True
+        elif i == "--list-tests":
+            for name, obj in _list_tests(modules):
+                print(name)
+            return
+        else:
+            lfilters.append(i)
+
     for (name, obj) in _list_tests(modules):
         skip = False
-        for f in filters:
+        for f in lfilters:
             if f.startswith("^"):
                 if f[1:] in prefix+name:
                     skip = True
@@ -2685,7 +2696,6 @@ def run_test(filters, modules, prefix="", print_exc=False):
 def main():
     cfg.init()
     global _use_memory_sqlite
-    print_exc = False
 
     i = 1
     while i < len(sys.argv):
@@ -2695,12 +2705,6 @@ def main():
             sys.exit()
         elif sys.argv[i] == "--use-ini-config":
             _use_memory_sqlite=False
-        elif sys.argv[i] == "--list-tests":
-            for name, obj in _list_tests(sys.modules[__name__]):
-                print(name)
-            return
-        elif sys.argv[i] == "--print-exception":
-            print_exc = True
         elif sys.argv[i] == "--cfg":
             i += 1
             arg = sys.argv[i]
@@ -2716,7 +2720,7 @@ def main():
             break
         i += 1
 
-    run_test(sys.argv[i:], sys.modules[__name__], print_exc=print_exc)
+    run_test(sys.argv[i:], sys.modules[__name__])
     sys.exit(0)
 
 if __name__ == "__main__":
