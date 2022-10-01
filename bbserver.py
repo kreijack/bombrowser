@@ -699,7 +699,7 @@ def start_tests(args):
     server.start()
     try:
         time.sleep(0.5)
-        test_db.run_test(args, sys.modules[__name__])
+        test_db.run_test(args, sys.modules[__name__], "bbserver")
     finally:
         if _server_istance:
             _server_istance.shutdown()
