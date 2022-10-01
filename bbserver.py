@@ -181,8 +181,6 @@ class RemoteSQLServer:
             "get_parent_dates_range_by_code_id",
             "get_dates_by_code_id3",
             "get_codes_by_like_code_and_descr",
-            "get_codes_by_like_descr",
-            "get_codes_by_like_code",
             "get_codes_by_code",
             "get_code_by_rid",
             "get_code",
@@ -309,7 +307,7 @@ def test_020_get_codes_by_like_code():
     r.create_db()
     r.create_first_code()
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     assert(len(res) == 1)
 
 def test_030_get_codes_by_code():
@@ -317,7 +315,7 @@ def test_030_get_codes_by_code():
     r.create_db()
     r.create_first_code()
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     code = res[0][1]
 
     res = r.get_codes_by_code(code)
@@ -328,7 +326,7 @@ def test_040_get_dates_by_code_id3():
     r.create_db()
     r.create_first_code()
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     code_id = res[0][0]
     res = r.get_dates_by_code_id3(code_id)
     assert(len(res) == 1)
@@ -338,14 +336,14 @@ def test_050_copy_code():
     r.create_db()
     r.create_first_code()
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     code_id = res[0][0]
     res = r.get_dates_by_code_id3(code_id)
     rid = res[0][4]
 
     r.copy_code('1', rid, "new-descr", 0)
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     assert(len(res) == 2)
 
 def test_050_delete_code():
@@ -353,7 +351,7 @@ def test_050_delete_code():
     r.create_db()
     r.create_first_code()
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     code_id = res[0][0]
     res = r.get_dates_by_code_id3(code_id)
     rid = res[0][4]
@@ -361,7 +359,7 @@ def test_050_delete_code():
     r.copy_code('1', rid, "new-descr", 0)
 
     code_id = None
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     for line in res:
         if line[1].startswith("0000"):
             code_id = line[0]
@@ -369,7 +367,7 @@ def test_050_delete_code():
 
     res = r.delete_code(code_id)
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     assert(len(res) == 1)
 
 def test_050_update_by_rid2():
@@ -377,7 +375,7 @@ def test_050_update_by_rid2():
     r.create_db()
     r.create_first_code()
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     code_id = res[0][0]
     res = r.get_dates_by_code_id3(code_id)
     rid = res[0][4]
@@ -385,7 +383,7 @@ def test_050_update_by_rid2():
     r.update_by_rid2(rid, "new-descr", 0, "NR",
         ['x' for x in range(db.gvals_count)])
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     assert(res[0][2] == "new-descr")
 
 def test_050_revise_code():
@@ -393,7 +391,7 @@ def test_050_revise_code():
     r.create_db()
     r.create_first_code()
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     code_id = res[0][0]
     res = r.get_dates_by_code_id3(code_id)
     assert(len(res) == 1)
@@ -408,7 +406,7 @@ def test_060_delete_code_revision():
     r.create_db()
     r.create_first_code()
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     code_id = res[0][0]
     res = r.get_dates_by_code_id3(code_id)
     assert(len(res) == 1)
@@ -433,7 +431,7 @@ def test_050_update_dates():
     r.create_db()
     r.create_first_code()
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     code_id = res[0][0]
     res = r.get_dates_by_code_id3(code_id)
     assert(len(res) == 1)
@@ -457,7 +455,7 @@ def test_050_update_dates_exception():
     r.create_db()
     r.create_first_code()
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     code_id = res[0][0]
     res = r.get_dates_by_code_id3(code_id)
     assert(len(res) == 1)
@@ -496,20 +494,12 @@ def test_050_get_codes_by_like_code_and_descr():
     res = r.get_codes_by_like_code_and_descr('0%', '%')
     assert(len(res) == 1)
 
-def test_050_get_codes_by_like_descr():
-    r = _test_get_conn()
-    r.create_db()
-    r.create_first_code()
-
-    res = r.get_codes_by_like_descr('FIRST%')
-    assert(len(res) == 1)
-
 def test_060_get_drawings_by_rid():
     r = _test_get_conn()
     r.create_db()
     r.create_first_code()
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     code_id = res[0][0]
     res = r.get_dates_by_code_id3(code_id)
     rid = res[0][4]
@@ -527,7 +517,7 @@ def test_050_get_code():
     r.create_db()
     r.create_first_code()
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     code_id = res[0][0]
     res = r.get_dates_by_code_id3(code_id)
     date_from_days = res[0][2]
@@ -540,7 +530,7 @@ def test_050_get_code_by_rid():
     r.create_db()
     r.create_first_code()
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     code_id = res[0][0]
     res = r.get_dates_by_code_id3(code_id)
     rid = res[0][4]
@@ -553,7 +543,7 @@ def test_050_search_revision():
     r.create_db()
     r.create_first_code()
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     code_id = res[0][0]
     res = r.get_dates_by_code_id3(code_id)
     rid = res[0][4]
@@ -566,13 +556,13 @@ def _test_make_assembly():
     r.create_db()
     r.create_first_code()
 
-    res = r.get_codes_by_like_code('%')
+    res = r.get_codes_by_like_code_and_descr('%', '')
     pcode_id = res[0][0]
     res = r.get_dates_by_code_id3(pcode_id)
     prid = res[0][4]
 
     r.copy_code('1', prid, "new-descr", 0)
-    res = r.get_codes_by_like_code('1')
+    res = r.get_codes_by_like_code_and_descr('1', '')
     ccode_id = res[0][0]
     res = r.get_dates_by_code_id3(ccode_id)
     dates = [[x[4], '', 0, '', x[3]] for x in res]
@@ -591,7 +581,7 @@ def _test_make_assembly():
 def test_070_get_children_by_rid():
     r = _test_make_assembly()
 
-    res = r.get_codes_by_like_code('0%')
+    res = r.get_codes_by_like_code_and_descr('0%', '')
     pcode_id = res[0][0]
     res = r.get_dates_by_code_id3(pcode_id)
     prid = res[0][4]
@@ -603,13 +593,13 @@ def test_070_get_children_by_rid():
 def test_070_get_where_used_from_id_code():
     r = _test_make_assembly()
 
-    res = r.get_codes_by_like_code('1')
+    res = r.get_codes_by_like_code_and_descr('1', '')
     ccode_id = res[0][0]
 
     res = r.get_where_used_from_id_code(ccode_id)
     assert(len(res[1]) == 2)
 
-    res = r.get_codes_by_like_code('0%')
+    res = r.get_codes_by_like_code_and_descr('0%', '')
     pcode_id = res[0][0]
 
     res = r.get_where_used_from_id_code(pcode_id)
@@ -618,7 +608,7 @@ def test_070_get_where_used_from_id_code():
 def test_070_get_bom_by_code_id3():
     r = _test_make_assembly()
 
-    res = r.get_codes_by_like_code('1')
+    res = r.get_codes_by_like_code_and_descr('1', '')
     ccode_id = res[0][0]
     res = r.get_dates_by_code_id3(ccode_id)
     crid = res[0][4]
@@ -627,7 +617,7 @@ def test_070_get_bom_by_code_id3():
     res = r.get_bom_by_code_id3(ccode_id, cdate_from_days)
     assert(len(res[1]) == 1)
 
-    res = r.get_codes_by_like_code('0%')
+    res = r.get_codes_by_like_code_and_descr('0%', '')
     pcode_id = res[0][0]
     res = r.get_dates_by_code_id3(pcode_id)
     prid = res[0][4]
@@ -639,7 +629,7 @@ def test_070_get_bom_by_code_id3():
 def test_070_get_bom_dates_by_code_id():
     r = _test_make_assembly()
 
-    res = r.get_codes_by_like_code('0%')
+    res = r.get_codes_by_like_code_and_descr('0%', '')
     pcode_id = res[0][0]
     res = r.get_dates_by_code_id3(pcode_id)
 
@@ -649,7 +639,7 @@ def test_070_get_bom_dates_by_code_id():
 def test_070_get_children_dates_range_by_rid():
     r = _test_make_assembly()
 
-    res = r.get_codes_by_like_code('0%')
+    res = r.get_codes_by_like_code_and_descr('0%', '')
     pcode_id = res[0][0]
     res = r.get_dates_by_code_id3(pcode_id)
     prid = res[0][4]
@@ -660,7 +650,7 @@ def test_070_get_children_dates_range_by_rid():
 def test_070_get_parent_dates_range_by_code_id():
     r = _test_make_assembly()
 
-    res = r.get_codes_by_like_code('1')
+    res = r.get_codes_by_like_code_and_descr('1', '')
     ccode_id = res[0][0]
 
     res = r.get_parent_dates_range_by_code_id(ccode_id)

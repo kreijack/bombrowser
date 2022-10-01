@@ -113,7 +113,7 @@ def test_get_code():
     assert(data[0][2] == "descr457")
 
 
-    data = d.get_codes_by_like_code("code12%")
+    data = d.get_codes_by_like_code_and_descr("code12%", "")
     assert(len(data) == 2)
     data.sort(key = lambda x: x[1])
     assert(data[0][1] == "code123")
@@ -146,7 +146,7 @@ def test_get_code_by_descr():
     with Transaction(d) as c:
         _test_insert_items(c)
 
-    data = d.get_codes_by_like_descr("descr46%")
+    data = d.get_codes_by_like_code_and_descr("", "descr46%")
     assert(len(data) == 2)
     data.sort(key = lambda x: x[1])
     assert(data[0][1] == "code135")

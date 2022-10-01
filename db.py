@@ -604,65 +604,88 @@ class _BaseServer:
             else:
                 return res
 
-    def get_codes_by_like_code(self, code):
-        with ROCursor(self) as c:
-            c.execute("""
-            SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
-            FROM (
-                    SELECT i.id, MAX(iter) AS iter
-                    FROM items AS i
-                    LEFT JOIN item_revisions AS r
-                        ON r.code_id = i.id
-                    WHERE i.code LIKE ?
-                    GROUP BY i.id
-            ) AS r2
-            LEFT JOIN item_revisions AS r
-                ON r.code_id = r2.id AND r.iter = r2.iter
-            LEFT JOIN items AS i
-                ON r.code_id = i.id
-            ORDER BY i.code, r.iter DESC
-            """, (code,))
-            res = c.fetchall()
-            if not res:
-                return None
-            else:
-                return res
+    def _expand_search_str_clauses(self, req):
+        # split query joined by ';'
+        req2 = []
 
-    def get_codes_by_like_descr(self, descr):
-        with ROCursor(self) as c:
-            c.execute("""
-            SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
-            FROM (
-                    SELECT i.id, MAX(iter) AS iter
-                    FROM item_revisions AS r
-                    LEFT JOIN items AS i
-                        ON r.code_id = i.id
-                    WHERE r.descr LIKE ?
-                    GROUP BY i.id
-            ) AS r2
-            LEFT JOIN item_revisions AS r
-                ON r.code_id = r2.id AND r.iter = r2.iter
-            LEFT JOIN items AS i
-                ON r.code_id = i.id
-            ORDER BY i.code, r.iter DESC
+        for row in req:
+            if len(row) == 2:
+                field, value = row
+                if len(value) > 0 and value[0] == "=":
+                    req2.append((field, (value,), None))
+                    continue
 
-            """, (descr, ))
-            res = c.fetchall()
-            if not res:
-                return None
+                vs = value.split(";")
+                req2.append((field, vs, None))
             else:
-                return res
+                req2.append((row[0], (row[1],), row[2]))
+
+        q2 = []
+        args = []
+        for (field, values, func) in req2:
+            q = []
+            if func is None:
+                f = lambda x: x
+            else:
+                f = func
+            for value in values:
+                if len(value) > 0 and value[0] in "<=>":
+                    q.append(" %s %s ? "%(field, value[0]))
+                    args.append(f(value[1:]))
+
+                elif len(value) > 0 and value[0] == "!":
+                    q.append(" %s <> ? "%(field,))
+                    args.append(f(value[1:]))
+
+                elif "%" in value or "_" in value or "[" in value or "]" in value:
+                    q.append(" %s LIKE ? "%(field,))
+                    args.append(f(value))
+
+                elif len(value) > 0 and func is None:
+                    q.append(" %s LIKE ? "%(field,))
+                    args.append("%" + value + "%")
+
+                elif len(value) > 0 :
+                    q.append(" %s = ? "%(field,))
+                    args.append(value)
+
+                else:
+                    # if we are here, the field is empty and any <=>! are specified
+                    pass
+
+            if len(q) > 0:
+                if len(q) > 1:
+                    q2.append("( " + " OR ".join(q) + ")")
+                else:
+                    q2.append(q[0])
+
+        qry = " AND ".join(q2)
+
+        return (qry, args)
 
     def get_codes_by_like_code_and_descr(self, code, descr):
+        if code == "" and descr == "":
+            return []
+
         with ROCursor(self) as c:
-            c.execute("""
+            q = """
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
             FROM (
                     SELECT i.id, MAX(iter) AS iter
                     FROM item_revisions AS r
                     LEFT JOIN items AS i
                         ON r.code_id = i.id
-                    WHERE i.code LIKE ? AND r.descr LIKE ?
+                    WHERE
+            """
+
+            q2, args = self._expand_search_str_clauses((
+                ("i.code", code),
+                ("r.descr", descr)
+            ))
+
+            q += """
+                        """ + q2
+            q += """
                     GROUP BY i.id
             ) AS r2
             LEFT JOIN item_revisions AS r
@@ -670,7 +693,9 @@ class _BaseServer:
             LEFT JOIN items AS i
                 ON r.code_id = i.id
             ORDER BY i.code, r.iter DESC
-            """, (code, descr))
+            """
+
+            c.execute(q, args)
             res = c.fetchall()
             if not res:
                 return None
@@ -1599,25 +1624,15 @@ class _BaseServer:
             elif k == "iter_":
                 k = "iter"
 
-            if "%" in arg:
-                where.append("              %s.%s LIKE ?\n"%(table, k))
-            elif arg[0] in '<=>':
-                where.append("              %s.%s %s ?\n"%(table, k, arg[0]))
-                arg = arg[1:]
-            elif arg[0] == "!":
-                where.append("              %s.%s <> ?\n"%(table, k))
-                arg = arg[1:]
-            else:
-                where.append("              %s.%s = ?\n"%(table, k))
-
             if k in ["id", "iter"]:
-                args.append(int(arg))
+                where.append(("%s.%s"%(table, k), arg, int))
             else:
-                args.append(arg)
+                where.append(("%s.%s"%(table, k), arg))
 
         if len(where):
             query += "            WHERE\n"
-            query += "            AND\n".join(where)
+            q, args = self._expand_search_str_clauses(where)
+            query += "                " + q
 
         query += """
                 ORDER BY i.code ASC, r.iter ASC

@@ -120,12 +120,7 @@ class CodesListWidget(QWidget):
                             ret.append((v["id"], v["code"], v["descr"], v["ver"], v["iter"]))
         else:
                 d = db.DB()
-                if cs != "" and ds:
-                    ret = d.get_codes_by_like_code_and_descr(cs, ds)
-                elif cs == "":
-                    ret = d.get_codes_by_like_descr(ds)
-                else:
-                    ret = d.get_codes_by_like_code(cs)
+                ret = d.get_codes_by_like_code_and_descr(cs, ds)
 
         if not ret or len(ret) == 0:
             QApplication.beep()
