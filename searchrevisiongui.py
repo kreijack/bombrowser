@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sys
+import sys, os
 
 from PySide2.QtWidgets import  QScrollArea
 from PySide2.QtWidgets import  QSplitter, QTableView, QLabel
@@ -40,7 +40,8 @@ class RevisionListWidget(QWidget):
     def __init__(self, parent=None, bom=None):
         QWidget.__init__(self, parent)
 
-        self._copy_info = ""
+        self._copy_info = []
+        self._copy_info_header = []
         self._code_id = None
         self._code = None
         self._rid = None
@@ -243,8 +244,8 @@ class RevisionListWidget(QWidget):
             self.emitResult.emit(0)
             return
 
-        self._copy_info = "\t".join(self._search_revision_cols)
-        self._copy_info += "\n"
+        self._copy_info_header = self._search_revision_cols
+        self._copy_info = []
 
         self._table.setSortingEnabled(False)
         self._table.clear()
@@ -263,7 +264,7 @@ class RevisionListWidget(QWidget):
             col_map[self._notgvalcols + idx - 1] = seq + self._notgvalcols
         for row in ret:
             c = 0
-            linerow = ["" for x in range(len(row))]
+            linerow = ["" for x in range(len(self._search_revision_cols))]
             for c, v in enumerate(row):
                 if c == 1:
                     rid = int(v)
@@ -282,7 +283,7 @@ class RevisionListWidget(QWidget):
                 self._table.setItem(r, c, i)
                 linerow[c] = str(v)
 
-            self._copy_info += "\t".join(linerow)+"\n"
+            self._copy_info.append(linerow)
             r += 1
         self._table.setSortingEnabled(True)
         self._table.selectionModel().selectionChanged.connect(self._table_clicked)
@@ -329,7 +330,19 @@ class RevisionListWidget(QWidget):
         return self._date_from_days
 
     def getTableText(self):
-        return self._copy_info
+        s = "\t".join(self._copy_info_header + ["Documents"]) + "\n"
+        d = db.DB()
+        for row in self._copy_info:
+            rid = row[1]
+            ldocs = d.get_drawings_by_rid(rid)
+            if len(ldocs):
+                docs = ", ".join([os.path.basename(x[1]) for x in ldocs])
+            else:
+                docs = ""
+            row.append(docs)
+            #print(rid, row, docs)
+            s += "\t".join(row) + "\n"
+        return s
 
 if __name__ == "__main__":
     cfg.init()
