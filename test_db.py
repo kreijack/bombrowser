@@ -1654,7 +1654,7 @@ def test_search_revisions_all_values():
 
     # TBD dates
 
-def test_search_revisions_by_drawings():
+def test_search_revisions_and_drawings_by_drawings():
     d, c = _create_db()
     data = _create_data_for_search_revisions(c, d)
 
@@ -1670,6 +1670,21 @@ def test_search_revisions_by_drawings():
     ret = d.search_revisions(doc="%fullpath-2%")
     assert(len(ret)) == 1
 
+def test_search_revisions_by_drawings():
+    d, c = _create_db()
+    data = _create_data_for_search_revisions(c, d)
+
+    ret = d.search_revisions(search_document=True, doc="%fullpath%")
+    assert(len(ret)) == 2
+    assert("fullpath" in ret[0][-1])
+
+    ret = d.search_revisions(search_document=True, doc="%fullpath-1%")
+    assert(len(ret)) == 1
+    assert("fullpath-1" in ret[0][-1])
+
+    ret = d.search_revisions(search_document=True, doc="%fullpath-2%")
+    assert(len(ret)) == 1
+    assert("fullpath-2" in ret[0][-1])
 
 def test_gvals():
     d = _init_db()

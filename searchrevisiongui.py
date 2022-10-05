@@ -40,8 +40,7 @@ class RevisionListWidget(QWidget):
     def __init__(self, parent=None, bom=None):
         QWidget.__init__(self, parent)
 
-        self._copy_info = []
-        self._copy_info_header = []
+        self._last_search_params = None
         self._code_id = None
         self._code = None
         self._rid = None
@@ -229,6 +228,7 @@ class RevisionListWidget(QWidget):
 
                 dd[k] = v
 
+            self._last_search_params = dd
             if self._bom:
                 ret = self._search_in_bom(dd)
             else:
@@ -244,9 +244,6 @@ class RevisionListWidget(QWidget):
             self.emitResult.emit(0)
             return
 
-        self._copy_info_header = self._search_revision_cols
-        self._copy_info = []
-
         self._table.setSortingEnabled(False)
         self._table.clear()
 
@@ -258,13 +255,11 @@ class RevisionListWidget(QWidget):
         limit = 1000
         self._dates = dict()
 
-
         col_map = dict()
         for (seq, idx, gvalname, caption, type_) in cfg.get_gvalnames2():
             col_map[self._notgvalcols + idx - 1] = seq + self._notgvalcols
         for row in ret:
             c = 0
-            linerow = ["" for x in range(len(self._search_revision_cols))]
             for c, v in enumerate(row):
                 if c == 1:
                     rid = int(v)
@@ -281,10 +276,9 @@ class RevisionListWidget(QWidget):
                 i = QTableWidgetItem(str(v))
                 i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                 self._table.setItem(r, c, i)
-                linerow[c] = str(v)
 
-            self._copy_info.append(linerow)
             r += 1
+
         self._table.setSortingEnabled(True)
         self._table.selectionModel().selectionChanged.connect(self._table_clicked)
         if len(ret) > 0:
@@ -330,18 +324,57 @@ class RevisionListWidget(QWidget):
         return self._date_from_days
 
     def getTableText(self):
-        s = "\t".join(self._copy_info_header + ["Documents"]) + "\n"
-        d = db.DB()
-        for row in self._copy_info:
-            rid = row[1]
-            ldocs = d.get_drawings_by_rid(rid)
-            if len(ldocs):
-                docs = ", ".join([os.path.basename(x[1]) for x in ldocs])
+        if self._last_search_params is None:
+            return ""
+
+        dd = self._last_search_params
+        header = self._search_revision_cols
+        if self._bom:
+            ret = self._search_in_bom(dd)
+        else:
+            d = db.DB()
+            ret = d.search_revisions(search_document=True, **dd)
+            header += ["Documents"]
+
+        s = "\t".join(header) + "\n"
+
+        col_map = dict()
+        for (seq, idx, gvalname, caption, type_) in cfg.get_gvalnames2():
+            col_map[self._notgvalcols + idx - 1] = seq + self._notgvalcols
+        prev_row = [None, None]
+        for row in ret:
+            c = 0
+            linerow = ["" for x in range(len(header))]
+            for c, v in enumerate(row):
+                if c == 1:
+                    rid = int(v)
+                elif c == 6 or c == 7:
+                    if c == 6:
+                        self._dates[rid] = v
+                    v = db.days_to_txt(v)
+
+                # gval(s) are from column 8 onwards. Map it correctly
+                if c >= self._notgvalcols:
+                    if not c in col_map:
+                        continue
+                    c = col_map[c]
+
+                linerow[c] = str(v)
+
+            # copy document as last column
+            linerow[-1] = os.path.basename(row[-1])
+
+            # merge the documents if the revid is the same
+            if prev_row[1] == linerow[1]:
+                prev_row[-1] += ", " + linerow[-1]
             else:
-                docs = ""
-            row.append(docs)
-            #print(rid, row, docs)
-            s += "\t".join(row) + "\n"
+                if prev_row[1]:
+                    s += "\t".join(prev_row) + "\n"
+                prev_row = linerow
+
+        if prev_row[1]:
+            s += "\t".join(prev_row) + "\n"
+
         return s
 
 if __name__ == "__main__":
