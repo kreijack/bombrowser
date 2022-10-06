@@ -1541,8 +1541,8 @@ def _create_data_for_search_revisions(c, d):
             dwg = [["filea", "file-fullpath-1-1"]]
         elif rid == dates1[1][0]:
             dwg = [
-                ["filea", "file-fullpath-2-1"],
-                ["filea", "file-fullpath-2-1"],
+                ["filea21", "file-fullpath-2-1"],
+                ["filea22", "file-fullpath-2-2"],
             ]
         else:
             dwg = []
@@ -1551,12 +1551,19 @@ def _create_data_for_search_revisions(c, d):
 
     return data
 
+def test_search_revision_multiple_drawings():
+    d, c = _create_db()
+    _create_data_for_search_revisions(c, d)
+
+    ret = d.search_revisions()
+    assert(len(ret) == 10)
+
 def test_search_revisions_empty():
     d, c = _create_db()
     _create_data_for_search_revisions(c, d)
 
     ret = d.search_revisions()
-    assert(len(ret) == 9)
+    assert(len(ret) == 10)
 
 def test_search_revisions_by_rid():
     d, c = _create_db()
@@ -1565,7 +1572,7 @@ def test_search_revisions_by_rid():
     for rid in data.keys():
 
         ret = d.search_revisions(rid=rid)
-        assert(len(ret) == 1)
+        assert(len(ret) <= 2)
 
         assert(ret[0][1] == rid)
 
@@ -1587,7 +1594,7 @@ def test_search_revisions_greather():
     ret = d.search_revisions(gval5=">gval 0004")
 
     for row in ret:
-        assert(row[12] > "gval 0004")
+        assert(row[13] > "gval 0004")
 
 def test_search_revisions_lesser():
     d, c = _create_db()
@@ -1596,7 +1603,7 @@ def test_search_revisions_lesser():
     ret = d.search_revisions(gval5="<gval 0004")
 
     for row in ret:
-        assert(row[12] < "gval 0004")
+        assert(row[13] < "gval 0004")
 
 def test_search_revisions_ne():
     d, c = _create_db()
@@ -1605,7 +1612,7 @@ def test_search_revisions_ne():
     ret = d.search_revisions(gval5="!gval 0004")
 
     for row in ret:
-        assert(row[12] != "gval 0004")
+        assert(row[13] != "gval 0004")
 
 def test_search_revisions_eq():
     d, c = _create_db()
@@ -1615,13 +1622,13 @@ def test_search_revisions_eq():
 
     assert(len(ret) == 1)
     for row in ret:
-        assert(row[12] == "gval 0004")
+        assert(row[13] == "gval 0004")
 
     ret = d.search_revisions(gval5="=gval 0004")
 
     assert(len(ret) == 1)
     for row in ret:
-        assert(row[12] == "gval 0004")
+        assert(row[13] == "gval 0004")
 
 def test_search_revisions_not_found():
     d, c = _create_db()
@@ -1644,7 +1651,7 @@ def test_search_revisions_all_values():
         dd = { arg: rdata[arg] }
         ret = d.search_revisions(**dd)
 
-        assert(len(ret) == 1)
+        assert(len(ret) <= 2)
 
     ret = d.search_revisions(code="TEST-CODE-1")
     assert(len(ret) > 2)
@@ -1662,29 +1669,29 @@ def test_search_revisions_and_drawings_by_drawings():
     assert(len(ret)) > 2
 
     ret = d.search_revisions(doc="%fullpath%")
-    assert(len(ret)) == 2
+    assert(len(ret)) == 3
 
     ret = d.search_revisions(doc="%fullpath-1%")
     assert(len(ret)) == 1
 
     ret = d.search_revisions(doc="%fullpath-2%")
-    assert(len(ret)) == 1
+    assert(len(ret)) == 2
 
 def test_search_revisions_by_drawings():
     d, c = _create_db()
     data = _create_data_for_search_revisions(c, d)
 
-    ret = d.search_revisions(search_document=True, doc="%fullpath%")
+    ret = d.search_revisions(doc="%fullpath%")
+    assert(len(ret)) == 3
+    assert("fullpath" in ret[0][8])
+
+    ret = d.search_revisions(doc="%fullpath-1%")
+    assert(len(ret)) == 1
+    assert("fullpath-1" in ret[0][8])
+
+    ret = d.search_revisions(doc="%fullpath-2%")
     assert(len(ret)) == 2
-    assert("fullpath" in ret[0][-1])
-
-    ret = d.search_revisions(search_document=True, doc="%fullpath-1%")
-    assert(len(ret)) == 1
-    assert("fullpath-1" in ret[0][-1])
-
-    ret = d.search_revisions(search_document=True, doc="%fullpath-2%")
-    assert(len(ret)) == 1
-    assert("fullpath-2" in ret[0][-1])
+    assert("fullpath-2" in ret[0][8])
 
 def test_gvals():
     d = _init_db()

@@ -1586,17 +1586,12 @@ class _BaseServer:
 
         return ""
 
-    def search_revisions(self, search_document=False, **kwargs):
+    def search_revisions(self, **kwargs):
         gval_query = ", ".join(["r.gval%d"%(i+1) for i in range(gvals_count)])
-
-        if search_document:
-            if len(gval_query):
-                gval_query += ", "
-            gval_query += "d.fullpath"
 
         query = """
             SELECT DISTINCT i.id, r.id, i.code, r.descr, r.ver, r.iter,
-                r.date_from_days, r.date_to_days,
+                r.date_from_days, r.date_to_days, d.fullpath,
                 """ + gval_query + """
             FROM item_revisions AS r
             LEFT JOIN items AS i

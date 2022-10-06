@@ -40,7 +40,7 @@ class RevisionListWidget(QWidget):
     def __init__(self, parent=None, bom=None):
         QWidget.__init__(self, parent)
 
-        self._last_search_params = None
+        self._copy_info = None
         self._code_id = None
         self._code = None
         self._rid = None
@@ -63,6 +63,9 @@ class RevisionListWidget(QWidget):
         self._dates = dict()
         self._search_revision_cols = ["id", "rid", "Code","Description",
             "Rev", "Iteration", "Date from", "Date to"]
+
+        if self._bom is None:
+            self._search_revision_cols += ["Documents"]
 
         self._notgvalcols = len(self._search_revision_cols)
 
@@ -198,6 +201,29 @@ class RevisionListWidget(QWidget):
 
         return ret
 
+    def _search_revisions_join_docs(self, **dd):
+        d = db.DB()
+        ret = d.search_revisions(**dd)
+
+        prev_row = None
+        for row in ret:
+            if prev_row:
+                # column 8 is document
+                if prev_row[1] == row[1]:
+                    prev_row[8] += ", " + os.path.basename(row[8])
+                    continue
+
+                yield prev_row
+
+            prev_row = list(row)
+            if prev_row[8] is None:
+                prev_row[8] = ""
+            else:
+                prev_row[8] = os.path.basename(prev_row[8])
+
+        if prev_row:
+            yield prev_row
+
     def _search(self):
 
         try:
@@ -232,8 +258,7 @@ class RevisionListWidget(QWidget):
             if self._bom:
                 ret = self._search_in_bom(dd)
             else:
-                d = db.DB()
-                ret = d.search_revisions(**dd)
+                ret = list(self._search_revisions_join_docs(**dd))
         except:
             QApplication.beep()
             utils.show_exception(msg="Incorrect parameter for search")
@@ -258,8 +283,11 @@ class RevisionListWidget(QWidget):
         col_map = dict()
         for (seq, idx, gvalname, caption, type_) in cfg.get_gvalnames2():
             col_map[self._notgvalcols + idx - 1] = seq + self._notgvalcols
+
+        self._copy_info = "\t".join(self._search_revision_cols) + "\n"
         for row in ret:
             c = 0
+            copy_row = ["" for x in self._search_revision_cols]
             for c, v in enumerate(row):
                 if c == 1:
                     rid = int(v)
@@ -268,7 +296,8 @@ class RevisionListWidget(QWidget):
                         self._dates[rid] = v
                     v = db.days_to_txt(v)
 
-                # gval(s) are from column 8 onwards. Map it correctly
+                # gval(s) are from column "self._notgvalcols" onwards.
+                # Map it correctly
                 if c >= self._notgvalcols:
                     if not c in col_map:
                         continue
@@ -276,7 +305,9 @@ class RevisionListWidget(QWidget):
                 i = QTableWidgetItem(str(v))
                 i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                 self._table.setItem(r, c, i)
+                copy_row[c] = str(v)
 
+            self._copy_info += "\t".join(copy_row) + "\n"
             r += 1
 
         self._table.setSortingEnabled(True)
@@ -324,58 +355,7 @@ class RevisionListWidget(QWidget):
         return self._date_from_days
 
     def getTableText(self):
-        if self._last_search_params is None:
-            return ""
-
-        dd = self._last_search_params
-        header = self._search_revision_cols
-        if self._bom:
-            ret = self._search_in_bom(dd)
-        else:
-            d = db.DB()
-            ret = d.search_revisions(search_document=True, **dd)
-            header += ["Documents"]
-
-        s = "\t".join(header) + "\n"
-
-        col_map = dict()
-        for (seq, idx, gvalname, caption, type_) in cfg.get_gvalnames2():
-            col_map[self._notgvalcols + idx - 1] = seq + self._notgvalcols
-        prev_row = [None, None]
-        for row in ret:
-            c = 0
-            linerow = ["" for x in range(len(header))]
-            for c, v in enumerate(row):
-                if c == 1:
-                    rid = int(v)
-                elif c == 6 or c == 7:
-                    if c == 6:
-                        self._dates[rid] = v
-                    v = db.days_to_txt(v)
-
-                # gval(s) are from column 8 onwards. Map it correctly
-                if c >= self._notgvalcols:
-                    if not c in col_map:
-                        continue
-                    c = col_map[c]
-
-                linerow[c] = str(v)
-
-            # copy document as last column
-            linerow[-1] = os.path.basename(row[-1])
-
-            # merge the documents if the revid is the same
-            if prev_row[1] == linerow[1]:
-                prev_row[-1] += ", " + linerow[-1]
-            else:
-                if prev_row[1]:
-                    s += "\t".join(prev_row) + "\n"
-                prev_row = linerow
-
-        if prev_row[1]:
-            s += "\t".join(prev_row) + "\n"
-
-        return s
+        return self._copy_info
 
 if __name__ == "__main__":
     cfg.init()
