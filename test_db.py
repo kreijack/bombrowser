@@ -2675,6 +2675,7 @@ def run_test(filters, modules, prefix=""):
         prefix += "."
 
     lfilters = []
+    print_exc = False
     for i in filters:
         if i == "--print-exception":
             print_exc = True
