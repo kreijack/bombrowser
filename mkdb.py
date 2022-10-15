@@ -23,23 +23,39 @@ import os
 import datetime
 import cfg
 
-
+# number of boards
 board_count = 40
+# the board components count is
+# board_components_count_max / 10 + rnd % board_components_count_max
 board_components_count_max = 200
 
+# number of mechanical components
 mech_number_of_components = 1000
 
+# number of subassemblies
 mech_num_assemblies = 200
+# the assembly components count is
+# mech_assy_components_count_max / 10 + rnd % mech_assy_components_count_max
 mech_assy_components_count_max = 50
+# maximum depth of bom
 mech_num_level = 10
 
+# number of top code
 top_code_count = 120
+# the top code components count is
+# top_code_components_count_max / 10 + rnd % top_code_components_count_max
 top_code_components_count_max = 12
 
+# number of spare parts
 spare_part_count = 120
+# the spare part components count is
+# spare_part_components_count_max / 10 + rnd % spare_part_components_count_max
 spare_part_components_count_max = 12
 
+# number of prototypes
 prototype_count = 200
+
+# number of revisions
 changes_count = 200
 
 cfg.init()
@@ -99,7 +115,7 @@ def insert_screws(c):
                     0, "NR", "M%dX%d"%(d, l), "SCREWS SUPPLIER")
             cnt += 1
 
-# create washer
+# create washers
 def insert_washer(c):
     cnt=1
     for d in [2, 3, 4, 5, 6, 8, 10, 12]:
@@ -107,7 +123,7 @@ def insert_washer(c):
                 0, "NR", "W D%d"%(d, ), "WASHERS SUPPLIER")
         cnt += 1
 
-# create washer
+# create elastic washers
 def insert_elastic_washer(c):
     cnt=1
     for d in [2, 3, 4, 5, 6, 8, 10, 12]:
@@ -115,7 +131,7 @@ def insert_elastic_washer(c):
                 0, "NR", "EW D%d"%(d, ), "WASHERS SUPPLIER")
         cnt += 1
 
-# create resistor
+# create resistors
 def insert_resistor(c):
     # from https://www.eeweb.com/tools/resistor-tables/
     # 0.1%, 0.25%, and 0.5% Resistor Table (E192)
@@ -154,7 +170,7 @@ def insert_resistor(c):
                     0, "NR", "R%.2f%s"%(r / k, suffix), "RESISTORS SUPPLIER")
             cnt += 1
 
-
+# create capacitors
 def insert_capacitor(c):
 # from https://www.rfcafe.com/references/electrical/capacitor-values.htm
 #pF 	pF 	pF 	    pF 	    µF 	    µF 	    µF 	    µF 	    µF 	µF  	µF
@@ -203,6 +219,7 @@ def insert_capacitor(c):
             cnt += 1
             col += 1
 
+# create microprocessors
 def insert_microprocessor(c):
 # from https://en.wikipedia.org/wiki/Microprocessor_chronology
     table = """
@@ -281,7 +298,7 @@ def get_min_by_code(c, pattern):
                  (pattern,))
     return c.fetchone()[0]
 
-
+# create boards with drawings
 def insert_board(c):
 
     min_id = get_min_by_code(c, '5%')
@@ -346,6 +363,7 @@ def insert_board(c):
                     0, '//')
             )
 
+# create mechanical componets with drawings
 def insert_mechanical_components(c):
     cnt=1
     for d in range(mech_number_of_components):
@@ -368,6 +386,7 @@ def insert_mechanical_components(c):
         )
         cnt += 1
 
+# create assemblies with drawings and assembling procedure
 def insert_mechanical_assemblies(c):
 
     boards_min_id = get_min_by_code(c, '7%')
@@ -446,6 +465,7 @@ def insert_mechanical_assemblies(c):
                     '//')
             )
 
+# create top assemblies with packaging procedure
 def insert_top_codes(c):
 
     mech_min = get_min_by_code(c,'82%')
@@ -509,6 +529,7 @@ def insert_top_codes(c):
                     '//')
             )
 
+# create spare part with packaging procedure
 def insert_spare_parts(c):
 
     mech_min = get_min_by_code(c,'6%')
@@ -653,7 +674,6 @@ def revise_code(c, old_rid, new_date=None):
 
         return (new_rid, rev)
 
-
 def revise_assembly(c, old_rid, new_date = None):
 
     (new_rid, rev) = revise_code(c, old_rid, new_date)
@@ -672,8 +692,6 @@ def revise_assembly(c, old_rid, new_date = None):
 
     # TODO: make some changes to the assembly
     return (new_rid, rev)
-
-
 
 # make some changes
 def make_changes(c):
@@ -762,11 +780,6 @@ def make_changes(c):
             print("Code=", code)
             assert(False)
 
-
-        #parents = update_assemblies_for_new_code(c, the_id, new_id)
-        #print("parents=",len(parents))
-        #rec_update_assemblies(c, parents)
-
 def make_prototype(c):
     global date0
 
@@ -853,13 +866,6 @@ def make_prototype(c):
             # ??
             print("Code=", code)
             assert(False)
-
-
-        #parents = update_assemblies_for_new_code(c, the_id, new_id)
-        #print("parents=",len(parents))
-        #rec_update_assemblies(c, parents)
-
-
 
 def xrmdir(path):
         if os.path.isdir(path):
@@ -996,7 +1002,6 @@ def insert_codes_with_loop(c):
             ?,
             ?, ?, ?
         )""",  ('NR', cai, ccr, 1, 1, '//'))
-
 
 def create_db():
     d = db.DB()
