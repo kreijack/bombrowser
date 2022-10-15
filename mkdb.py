@@ -592,9 +592,7 @@ def insert_spare_parts(c):
                     '//')
             )
 
-def revise_code(c, old_rid, new_date=None):
-
-        global date0
+def revise_code(c, old_rid, new_date):
 
         c.execute("""
             SELECT code_id, MAX(iter)
@@ -623,10 +621,7 @@ def revise_code(c, old_rid, new_date=None):
         else:
             rev = chr(ord(rev)+1)
 
-        if new_date is None:
-            new_date_from_days = db.iso_to_days(date0)
-        else:
-            new_date_from_days = new_date
+        new_date_from_days = new_date
         new_date_from = db.days_to_iso(new_date_from_days)
 
         if new_date_from_days == db.prototype_date:
@@ -674,7 +669,7 @@ def revise_code(c, old_rid, new_date=None):
 
         return (new_rid, rev)
 
-def revise_assembly(c, old_rid, new_date = None):
+def revise_assembly(c, old_rid, new_date):
 
     (new_rid, rev) = revise_code(c, old_rid, new_date)
 
@@ -693,6 +688,78 @@ def revise_assembly(c, old_rid, new_date = None):
     # TODO: make some changes to the assembly
     return (new_rid, rev)
 
+def change_code(c, code_id, new_date):
+    # fetch the latest code revision
+    c.execute("""SELECT MAX(iter)
+                 FROM item_revisions
+                 WHERE code_id=?""", (code_id,))
+    (iter_,) = c.fetchone()
+    c.execute("""SELECT id
+                 FROM item_revisions
+                 WHERE code_id=?
+                   AND iter=?""", (code_id, iter_))
+    (rev_id,) = c.fetchone()
+    c.execute("""SELECT code
+                 FROM items
+                 WHERE id=?""", (code_id,))
+    (code,) = c.fetchone()
+
+    if code.startswith("81"):
+        # no assembly
+        new_id, new_rev = revise_code(c, rev_id, new_date)
+        fn1 = "documents/drawings/%s_(drw)_rev%s.txt"%(code, new_rev)
+        open(fn1, "w").write("Type: mechanical drawing\nCode:%s\n"%(
+            code, ))
+        c.execute("""INSERT INTO drawings(
+                code, revision_id, filename, fullpath
+            ) VALUES ( ?, ?, ?, ? )
+                """, (code, new_id, os.path.basename(fn1), os.path.abspath(fn1))
+        )
+
+    elif code.startswith("82"):
+            # assembly
+            new_id, new_rev = revise_assembly(c, rev_id, new_date)
+            fn1 = "documents/drawings/%s_(drw)_rev%s.txt"%(code, new_rev)
+            open(fn1, "w").write("Type: mechanical drawing\nCode:%s\n"%(
+                code, ))
+            c.execute("""INSERT INTO drawings(
+                    code, revision_id, filename, fullpath
+                ) VALUES ( ?, ?, ?, ? )
+                    """, (code, new_id, os.path.basename(fn1), os.path.abspath(fn1))
+            )
+            fn2 = "documents/assembling-procedures/%s_(ass)_rev%s.txt"%(code, new_rev)
+            open(fn2, "w").write("Type: assembling procedure\nCode:%s\n"%(
+                code, ))
+            c.execute("""INSERT INTO drawings(
+                    code, revision_id, filename, fullpath
+                ) VALUES ( ?, ?, ?, ? )
+                    """, (code, new_id, os.path.basename(fn2), os.path.abspath(fn2))
+            )
+
+    elif code.startswith("6"):
+            new_id, new_rev = revise_assembly(c, rev_id, new_date)
+            fn1 = "documents/boards/%s_(el)_rev%s.txt"%(code, new_rev)
+            open(fn1, "w").write("Type: board drawing\nCode: %s\n"%(
+                code,))
+            c.execute("""INSERT INTO drawings(
+                    code, revision_id, filename, fullpath
+                ) VALUES ( ?, ?, ?, ? )
+                    """, (code, new_id, os.path.basename(fn1), os.path.abspath(fn1))
+            )
+
+    elif code[0] in "57":
+        new_id, new_rev = revise_code(c, rev_id, new_date)
+    elif code.startswith("1"):
+        print("WARNING: code ", code, " is ignore")
+        return
+        # topcode
+        # update the packaging procedure
+        # update the assembly
+    else:
+        # ??
+        print("Code=", code)
+        assert(False)
+
 # make some changes
 def make_changes(c):
     global date0
@@ -705,80 +772,11 @@ def make_changes(c):
     for cnt in range(changes_count):
 
         date0 = db.increase_date(date0, 10)
+        new_date = db.iso_to_days(date0)
 
         code_id = rnd.get() % (max_id - min_id + 1) + min_id
 
-        # fetch the latest code revision
-        c.execute("""SELECT MAX(iter)
-                     FROM item_revisions
-                     WHERE code_id=?""", (code_id,))
-        (iter_,) = c.fetchone()
-        c.execute("""SELECT id
-                     FROM item_revisions
-                     WHERE code_id=?
-                       AND iter=?""", (code_id, iter_))
-        (rev_id,) = c.fetchone()
-        c.execute("""SELECT code
-                     FROM items
-                     WHERE id=?""", (code_id,))
-        (code,) = c.fetchone()
-
-        #print("%s/%s) Updating code '%s', rid=%d"%(cnt, 200, code, rev_id))
-
-        if code.startswith("81"):
-            # no assembly
-            new_id, new_rev = revise_code(c, rev_id)
-            fn1 = "documents/drawings/%s_(drw)_rev%s.txt"%(code, new_rev)
-            open(fn1, "w").write("Type: mechanical drawing\nCode:%s\n"%(
-                code, ))
-            c.execute("""INSERT INTO drawings(
-                    code, revision_id, filename, fullpath
-                ) VALUES ( ?, ?, ?, ? )
-                    """, (code, new_id, os.path.basename(fn1), os.path.abspath(fn1))
-            )
-
-        elif code.startswith("82"):
-                # assembly
-                new_id, new_rev = revise_assembly(c, rev_id)
-                fn1 = "documents/drawings/%s_(drw)_rev%s.txt"%(code, new_rev)
-                open(fn1, "w").write("Type: mechanical drawing\nCode:%s\n"%(
-                    code, ))
-                c.execute("""INSERT INTO drawings(
-                        code, revision_id, filename, fullpath
-                    ) VALUES ( ?, ?, ?, ? )
-                        """, (code, new_id, os.path.basename(fn1), os.path.abspath(fn1))
-                )
-                fn2 = "documents/assembling-procedures/%s_(ass)_rev%s.txt"%(code, new_rev)
-                open(fn2, "w").write("Type: assembling procedure\nCode:%s\n"%(
-                    code, ))
-                c.execute("""INSERT INTO drawings(
-                        code, revision_id, filename, fullpath
-                    ) VALUES ( ?, ?, ?, ? )
-                        """, (code, new_id, os.path.basename(fn2), os.path.abspath(fn2))
-                )
-
-        elif code.startswith("6"):
-                new_id, new_rev = revise_assembly(c, rev_id)
-                fn1 = "documents/boards/%s_(el)_rev%s.txt"%(code, new_rev)
-                open(fn1, "w").write("Type: board drawing\nCode: %s\n"%(
-                    code,))
-                c.execute("""INSERT INTO drawings(
-                        code, revision_id, filename, fullpath
-                    ) VALUES ( ?, ?, ?, ? )
-                        """, (code, new_id, os.path.basename(fn1), os.path.abspath(fn1))
-                )
-
-
-        elif code.startswith("1"):
-            print("WARNING: code ", code, " is ignore")
-            continue
-            # topcode
-            # update the packaging procedure
-            # update the assembly
-        else:
-            # ??
-            print("Code=", code)
-            assert(False)
+        change_code(c, code_id, new_date)
 
 def make_prototype(c):
     global date0
@@ -794,78 +792,7 @@ def make_prototype(c):
     print("Make few prototypes")
 
     for code_id in code_ids:
-
-
-        # fetch the latest code revision
-        c.execute("""SELECT MAX(iter)
-                     FROM item_revisions
-                     WHERE code_id=?""", (code_id,))
-        (iter_,) = c.fetchone()
-        c.execute("""SELECT id
-                     FROM item_revisions
-                     WHERE code_id=?
-                       AND iter=?""", (code_id, iter_))
-        (rev_id,) = c.fetchone()
-        c.execute("""SELECT code
-                     FROM items
-                     WHERE id=?""", (code_id,))
-        (code,) = c.fetchone()
-
-        if code.startswith("81"):
-            # no assembly
-            new_id, new_rev = revise_code(c, rev_id, db.prototype_date)
-            fn1 = "documents/drawings/%s_(drw)_rev%s.txt"%(code, new_rev)
-            open(fn1, "w").write("Type: mechanical drawing\nCode:%s\n"%(
-                code, ))
-            c.execute("""INSERT INTO drawings(
-                    code, revision_id, filename, fullpath
-                ) VALUES ( ?, ?, ?, ? )
-                    """, (code, new_id, os.path.basename(fn1), os.path.abspath(fn1))
-            )
-
-        elif code.startswith("82"):
-                # assembly
-                new_id, new_rev = revise_assembly(c, rev_id, db.prototype_date)
-                fn1 = "documents/drawings/%s_(drw)_rev%s.txt"%(code, new_rev)
-                open(fn1, "w").write("Type: mechanical drawing\nCode:%s\n"%(
-                    code, ))
-                c.execute("""INSERT INTO drawings(
-                        code, revision_id, filename, fullpath
-                    ) VALUES ( ?, ?, ?, ? )
-                        """, (code, new_id, os.path.basename(fn1), os.path.abspath(fn1))
-                )
-                fn2 = "documents/assembling-procedures/%s_(ass)_rev%s.txt"%(code, new_rev)
-                open(fn2, "w").write("Type: assembling procedure\nCode:%s\n"%(
-                    code, ))
-                c.execute("""INSERT INTO drawings(
-                        code, revision_id, filename, fullpath
-                    ) VALUES ( ?, ?, ?, ? )
-                        """, (code, new_id, os.path.basename(fn2), os.path.abspath(fn2))
-                )
-
-        elif code.startswith("6"):
-                new_id, new_rev = revise_assembly(c, rev_id, db.prototype_date)
-                fn1 = "documents/boards/%s_(el)_rev%s.txt"%(code, new_rev)
-                open(fn1, "w").write("Type: board drawing\nCode: %s\n"%(
-                    code,))
-                c.execute("""INSERT INTO drawings(
-                        code, revision_id, filename, fullpath
-                    ) VALUES ( ?, ?, ?, ? )
-                        """, (code, new_id, os.path.basename(fn1), os.path.abspath(fn1))
-                )
-
-        elif code[0] in "57":
-            new_id, new_rev = revise_code(c, rev_id, db.prototype_date)
-        elif code.startswith("1"):
-            print("WARNING: code ", code, " is ignore")
-            continue
-            # topcode
-            # update the packaging procedure
-            # update the assembly
-        else:
-            # ??
-            print("Code=", code)
-            assert(False)
+        change_code(c, code_id, db.prototype_date)
 
 def xrmdir(path):
         if os.path.isdir(path):
