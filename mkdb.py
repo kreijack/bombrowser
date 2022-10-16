@@ -17,46 +17,91 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import db
-import sqlite3
 import os
+import sys
 import datetime
+
 import cfg
+import db
 
-# number of boards
-board_count = 40
-# the board components count is
-# board_components_count_max / 10 + rnd % board_components_count_max
-board_components_count_max = 200
 
-# number of mechanical components
-mech_number_of_components = 1000
+def set_standard_config():
+    global board_count, board_components_count_max
+    global mech_number_of_components
+    global mech_num_assemblies, mech_assy_components_count_max
+    global mech_num_level
+    global top_code_count, top_code_components_count_max
+    global spare_part_count, spare_part_components_count_max
+    global prototype_count, changes_count
 
-# number of subassemblies
-mech_num_assemblies = 200
-# the assembly components count is
-# mech_assy_components_count_max / 10 + rnd % mech_assy_components_count_max
-mech_assy_components_count_max = 50
-# maximum depth of bom
-mech_num_level = 10
+    # number of boards
+    board_count = 40
+    # the board components count is
+    # board_components_count_max / 10 + rnd % board_components_count_max
+    board_components_count_max = 200
 
-# number of top code
-top_code_count = 120
-# the top code components count is
-# top_code_components_count_max / 10 + rnd % top_code_components_count_max
-top_code_components_count_max = 12
+    # number of mechanical components
+    mech_number_of_components = 1000
 
-# number of spare parts
-spare_part_count = 120
-# the spare part components count is
-# spare_part_components_count_max / 10 + rnd % spare_part_components_count_max
-spare_part_components_count_max = 12
+    # number of subassemblies
+    mech_num_assemblies = 200
+    # the assembly components count is
+    # mech_assy_components_count_max / 10 + rnd % mech_assy_components_count_max
+    mech_assy_components_count_max = 50
+    # maximum depth of bom
+    mech_num_level = 10
 
-# number of prototypes
-prototype_count = 200
+    # number of top code
+    top_code_count = 120
+    # the top code components count is
+    # top_code_components_count_max / 10 + rnd % top_code_components_count_max
+    top_code_components_count_max = 12
 
-# number of revisions
-changes_count = 200
+    # number of spare parts
+    spare_part_count = 120
+    # the spare part components count is
+    # spare_part_components_count_max / 10 + rnd % spare_part_components_count_max
+    spare_part_components_count_max = 12
+
+    # number of prototypes
+    prototype_count = 200
+
+    # number of revisions
+    changes_count = 200
+
+def set_advance_config():
+    global board_count, board_components_count_max
+    global mech_number_of_components
+    global mech_num_assemblies, mech_assy_components_count_max
+    global mech_num_level
+    global top_code_count, top_code_components_count_max
+    global spare_part_count, spare_part_components_count_max
+    global prototype_count, changes_count
+
+    set_standard_config()
+
+    # number of subassemblies
+    mech_num_assemblies = 500
+    # the assembly components count is
+    # mech_assy_components_count_max / 10 + rnd % mech_assy_components_count_max
+    mech_assy_components_count_max = 30
+    # maximum depth of bom
+    mech_num_level = 10
+
+    # number of top code
+    top_code_count = 220
+    # the top code components count is
+    # top_code_components_count_max / 10 + rnd % top_code_components_count_max
+    top_code_components_count_max = 12
+
+    # number of spare parts
+    spare_part_count = 220
+    # the spare part components count is
+    # spare_part_components_count_max / 10 + rnd % spare_part_components_count_max
+    spare_part_components_count_max = 12
+
+    # number of revisions
+    changes_count = 10000
 
 cfg.init()
 
@@ -390,14 +435,15 @@ def insert_mechanical_components(c):
 def insert_mechanical_assemblies(c):
 
     boards_min_id = get_min_by_code(c, '7%')
+    mech_comp_max_id = get_max_by_code(c, '81%')
 
     # TODO build revision
 
     # make 120 assemblies
     for cnt in range(mech_num_assemblies):
 
-        if (cnt % (mech_num_assemblies / mech_num_level)) == 0:
-            old_mech_max_id = get_max_by_code(c, '8%')
+        if (cnt % int(mech_num_assemblies / mech_num_level)) == 0:
+            assy_max_id = get_max_by_code(c, '8%')
 
         # each components between [boards_min_id, old_mech_max_id] are a
         # valid child
@@ -434,15 +480,26 @@ def insert_mechanical_assemblies(c):
                 """, (code, mech_id, os.path.basename(fn2), os.path.abspath(fn2))
         )
 
-
-        #up to 127 sub assemblies
         did =set()
         for i in range(ncomponents):
-            while True:
-                cid = (rnd.get() %
-                    (old_mech_max_id - boards_min_id) + boards_min_id)
-                if not cid in did:
-                    break
+            if (i % 2) or (assy_max_id - mech_comp_max_id) < 10:
+                while True:
+                    cid = (rnd.get() %
+                        (mech_comp_max_id - boards_min_id) + boards_min_id)
+                    if not cid in did:
+                        break
+            else:
+                # in the begin we have few assemblies
+                n = 10
+                while n > 0:
+                    cid = (rnd.get() %
+                        (assy_max_id - mech_comp_max_id) + mech_comp_max_id)
+                    if not cid in did:
+                        break
+                    n -= 1
+                if cid in did:
+                    continue
+
             did.add(cid)
 
             ts = datetime.date.fromisoformat(date0).toordinal()
@@ -769,17 +826,23 @@ def make_changes(c):
 
     print("Make few changes")
 
+    new_date = db.iso_to_days(date0)
+    # to be coherent with test plan
+    if changes_count  == 200:
+        dtinc = 10
+        new_date = db.iso_to_days(date0)
+    else:
+        dtinc = 22.0 * 365 / changes_count
+        new_date = db.iso_to_days(date0) * 1.0
     for cnt in range(changes_count):
 
-        date0 = db.increase_date(date0, 10)
-        new_date = db.iso_to_days(date0)
+        new_date += dtinc
 
         code_id = rnd.get() % (max_id - min_id + 1) + min_id
 
-        change_code(c, code_id, new_date)
+        change_code(c, code_id, int(new_date))
 
 def make_prototype(c):
-    global date0
 
     min_id = get_min_by_code(c, '5%')
     max_id = get_max_by_code(c, '82%')
@@ -1011,5 +1074,24 @@ def create_db():
         print("Insert assembly with a loop")
         insert_codes_with_loop(c)
 
-create_db()
+def help_():
+    print("usage: mkdb.py --test-db|--big-db|--help")
 
+def main(args):
+    args = sys.argv
+    if len(args) == 2:
+        if args[1] == "--test-db":
+            set_standard_config()
+        elif args[1] == "--big-db":
+            set_advance_config()
+        else:
+            print("ERROR: unknown parameter")
+            help_()
+            return
+    else:
+        print("ERROR: missing parameter")
+        help_()
+        return
+    create_db()
+
+main(sys.argv)
