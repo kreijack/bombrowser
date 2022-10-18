@@ -99,6 +99,18 @@ database = bombrowser
 username = bombrowser
 password = bombrowserPassword1.
 
+[REMOTEBBSERVER]
+host   = 127.0.0.1
+port = 8765
+username = username
+password = bombrowserPassword1.
+
+[LOCALBBSERVER]
+db = postgresql
+host   = 127.0.0.1
+port = 8765
+verbose = 0
+
 # this appears in the menu as "copy" or as "export as csv"
 [template_simple]
 
