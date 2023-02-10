@@ -410,7 +410,7 @@ class DrawingTable(QTableWidget):
 
         self.doubleClicked.connect(self._view_drawing)
 
-    def _finish_add_drawings(self, files):
+    def _opt_copy_and_add_drawings(self, files):
         method = "none"
         if cfg.config().has_section("FILES_UPLOAD"):
             method = cfg.config()["FILES_UPLOAD"]["method"]
@@ -453,7 +453,7 @@ class DrawingTable(QTableWidget):
             self._copy_link_files(d.get_results())
         else:
             for f in files:
-                self._add_filename(f)
+                self._add_filename_to_table(f)
 
     def _copy_link_files(self, files):
         files_to_link = []
@@ -484,7 +484,7 @@ class DrawingTable(QTableWidget):
                 return
 
         for fn in files_to_link:
-            self._add_filename(fn)
+            self._add_filename_to_table(fn)
 
     def _drawing_menu(self, point):
         idxs = self.selectedIndexes()
@@ -498,9 +498,9 @@ class DrawingTable(QTableWidget):
         m.setEnabled(len(idxs) > 0)
 
         m = contextMenu.addAction("Add drawings link...")
-        m.triggered.connect(self._link_drawing)
+        m.triggered.connect(self._link_drawing_with_dialog)
         m = contextMenu.addAction("Add drawings...")
-        m.triggered.connect(self._add_drawing)
+        m.triggered.connect(self._add_drawing_with_dialog)
 
         contextMenu.addSeparator()
 
@@ -531,7 +531,7 @@ class DrawingTable(QTableWidget):
             return
 
         for fn in DrawingTable._clipboard:
-            self._add_filename(fn)
+            self._add_filename_to_table(fn)
 
     def _view_drawing(self):
         idxs = self.selectedIndexes()
@@ -556,17 +556,17 @@ class DrawingTable(QTableWidget):
 
         self.rowChanged.emit()
 
-    def _add_drawing(self):
+    def _add_drawing_with_dialog(self):
         (fns, _) = QFileDialog.getOpenFileNames(self, "Select a file")
         if len(fns):
-            self._finish_add_drawings(fns)
+            self._opt_copy_and_add_drawings(fns)
 
-    def _link_drawing(self):
+    def _link_drawing_with_dialog(self):
         (fns, _) = QFileDialog.getOpenFileNames(self, "Select a file")
         for fn in fns:
-            self._add_filename(fn)
+            self._add_filename_to_table(fn)
 
-    def _add_filename(self, fn):
+    def _add_filename_to_table(self, fn):
         row = self.rowCount()
         self.setRowCount(row+1)
         self.setItem(row, 0, QTableWidgetItem(os.path.basename(fn)))
@@ -575,7 +575,7 @@ class DrawingTable(QTableWidget):
 
     def add_drawings(self, fns):
         if len(fns):
-            self._finish_add_drawings(fns)
+            self._opt_copy_and_add_drawings(fns)
 
 class QComboBoxCList(QComboBox):
     def __init__(self, parent_=None):
