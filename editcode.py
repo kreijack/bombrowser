@@ -1207,6 +1207,9 @@ class EditWindow(bbwindow.BBMainWindow):
                     db.days_to_txt(date_to_days)))
 
     def _mangle_path(self, path):
+        if os.path.dirname(path) == '':
+            return path
+
         default_dirs = cfg.config()["FILES_UPLOAD"].get("default_dirs", "")
         default_dirs = [ x.strip()
                          for x in default_dirs.split("\n")
@@ -1240,9 +1243,7 @@ class EditWindow(bbwindow.BBMainWindow):
                 return ("Duplicate path in drawings: row='%s'"%(i + 1), None)
             drawings_set.add(name)
             drawings_set.add(path)
-            print("path1=", path)
             path = self._mangle_path(path)
-            print("path2=", path)
             drawings.append((name, path))
 
         # TBD: check for loop
