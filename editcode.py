@@ -946,10 +946,17 @@ class EditWindow(bbwindow.BBMainWindow):
     def closeEvent(self, event):
         if self._form_is_changed():
             ret = QMessageBox.question(self, "BOMBrowser",
-                "The form was changed; do you want to close this window without saving  ?")
-            if ret != QMessageBox.Yes:
+                "The form was changed; do you want to save before closing  ?",
+                QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel)
+            if ret == QMessageBox.Cancel:
                 event.ignore()
                 return
+            if ret == QMessageBox.Yes:
+                ret = self._save_changes()
+                if ret != "OK":
+                    event.ignore()
+                    return
+
         bbwindow.BBMainWindow.closeEvent(self, event)
         event.accept()
 
@@ -967,10 +974,16 @@ class EditWindow(bbwindow.BBMainWindow):
                 return
 
             ret = QMessageBox.question(self, "BOMBrowser",
-                "The form was changed; are you sure to change date without saving ?")
-            if ret != QMessageBox.Yes:
+                "The form was changed; do you want to save before changing date  ?",
+                QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel)
+            if ret == QMessageBox.Cancel:
                 self._dates_list.setCurrentIndex(self._dates_list_last_index)
                 return
+            if ret == QMessageBox.Yes:
+                ret = self._save_changes()
+                if ret != "OK":
+                    self._dates_list.setCurrentIndex(self._dates_list_last_index)
+                    return
 
         self._populate_table(rid)
         self._dates_list_last_index = i
@@ -1089,7 +1102,7 @@ class EditWindow(bbwindow.BBMainWindow):
     def _delete_code(self):
         if self._form_is_changed():
             ret = QMessageBox.question(self, "BOMBrowser",
-                "The form was changed; do you want to continue without saving  ?")
+                "The form was changed; do you want to continue to remove this code  ?")
             if ret != QMessageBox.Yes:
                 return
 
@@ -1126,7 +1139,7 @@ class EditWindow(bbwindow.BBMainWindow):
     def _delete_revision(self):
         if self._form_is_changed():
             ret = QMessageBox.question(self, "BOMBrowser",
-                "The form was changed; do you want to continue without saving  ?")
+                "The form was changed; do you want to continue deleting this revision  ?")
             if ret != QMessageBox.Yes:
                 return
 
