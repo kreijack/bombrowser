@@ -533,6 +533,24 @@ class DrawingTable(QTableWidget):
         for fn in DrawingTable._clipboard:
             self._add_filename_to_table(fn)
 
+    def _find_filename(self, filename):
+        if os.path.exists(filename):
+            return filename
+
+        default_dirs = cfg.config()["FILES_UPLOAD"].get("default_dirs", "")
+        default_dirs = [ x.strip()
+                         for x in default_dirs.split("\n")
+                         if (len(x.strip()) > 0 and 
+                             os.path.exists(x.strip()) and
+                             os.path.isdir(x.strip())) ]
+
+        for dd in default_dirs:
+            fp = os.path.join(dd, filename)
+            if os.path.exists(fp):
+                return fp
+
+        return filename
+
     def _view_drawing(self):
         idxs = self.selectedIndexes()
         if len(idxs) == 0:
@@ -541,6 +559,7 @@ class DrawingTable(QTableWidget):
         rows = list(set([idx.row() for idx in idxs]))
         for r in rows:
             path = self.item(r, 1).text()
+            path = self._find_filename(path)
             QDesktopServices.openUrl(QUrl.fromLocalFile(path))
 
     def _delete_drawing(self):
@@ -1174,6 +1193,19 @@ class EditWindow(bbwindow.BBMainWindow):
                     db.days_to_txt(date_from_days),
                     db.days_to_txt(date_to_days)))
 
+    def _mangle_path(self, path):
+        default_dirs = cfg.config()["FILES_UPLOAD"].get("default_dirs", "")
+        default_dirs = [ x.strip()
+                         for x in default_dirs.split("\n")
+                         if (len(x.strip()) > 0 and 
+                             os.path.exists(x.strip()) and
+                             os.path.isdir(x.strip())) ]
+
+        for dd in default_dirs:
+            if os.path.samefile(os.path.dirname(path), dd):
+                return os.path.basename(path)
+        return path
+
     def _save_changes_prepare_data(self):
         d = db.DB()
 
@@ -1195,6 +1227,9 @@ class EditWindow(bbwindow.BBMainWindow):
                 return ("Duplicate path in drawings: row='%s'"%(i + 1), None)
             drawings_set.add(name)
             drawings_set.add(path)
+            print("path1=", path)
+            path = self._mangle_path(path)
+            print("path2=", path)
             drawings.append((name, path))
 
         # TBD: check for loop

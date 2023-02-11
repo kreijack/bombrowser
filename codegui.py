@@ -274,7 +274,26 @@ class CodeWidget(QWidget):
     def _copy_info(self):
         self._copy_str(self._text_info)
 
+    def _find_filename(self, filename):
+        if os.path.exists(filename):
+            return filename
+
+        default_dirs = cfg.config()["FILES_UPLOAD"].get("default_dirs", "")
+        default_dirs = [ x.strip()
+                         for x in default_dirs.split("\n")
+                         if (len(x.strip()) > 0 and 
+                             os.path.exists(x.strip()) and
+                             os.path.isdir(x.strip())) ]
+
+        for dd in default_dirs:
+            fp = os.path.join(dd, filename)
+            if os.path.exists(fp):
+                return fp
+
+        return filename
+
     def _open_file(self, nf):
+        nf = self._find_filename(nf)
         QDesktopServices.openUrl(QUrl.fromLocalFile(nf))
 
 
