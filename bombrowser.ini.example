@@ -329,3 +329,36 @@ columns=
 maxlevel=2
 delimiter=SEMICOLON
 quotechar=SINGLEQUOTE
+
+
+[FILES_UPLOAD]
+# valid value: simple -> upload files under upload_files_dir
+#              none -> insert the link "as is"
+#              regexp -> see regexpmap
+method=regexp
+
+# upload dir
+simple_destination_dir=/tmp/test
+
+# case insensitive possible value: 0 or 1
+regexpmap_case_sensitive=0
+# separator for the regexpmap
+regexpmap_separator=:
+# map to set the destinator filder
+#  <regexp>:<action>:<dest folder>
+# where action is:
+# - copy 	copy to dest folder
+# - link	take the file path as is, dest folder is ignored
+# NB: the order matters !, firts match
+regexpmap_table=
+    ext1\.txt$:copy:/tmp/dir1/dir2
+    ext2\.txt$:copy:/tmp/dir/dir2
+    :copy:/tmp/default/dir
+
+# this is a list of default directories; if a file is (or will be) placed
+# here, the diretory is not stored in the DB
+# When a file is open, all these directories are scanned and the first
+# one found with the same filename is opened
+default_dirs=
+    /tmp/default/dir
+    /tmp/dir1/dir2
