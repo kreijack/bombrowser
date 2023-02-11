@@ -416,19 +416,18 @@ class DrawingTable(QTableWidget):
             method = cfg.config()["FILES_UPLOAD"]["method"]
 
         if method == "simple":
-            t = [("Copy", x, cfg.config()["FILES_UPLOAD"]["simple_destination_dir"])
-                for x in files]
-            d = CopyFilesDialog(t, parent=self)
-            if not d.exec_():
-                return
+            dst_dir = cfg.config()["FILES_UPLOAD"]["simple_destination_dir"]
+            t = [("Copy", x, dst_dir) for x in files]
 
-            self._copy_link_files(d.get_results())
+            files = self._copy_link_files(t)
+
         elif method == "regexp":
             sep = cfg.config()["FILES_UPLOAD"]["regexpmap_separator"]
             casesens = int(cfg.config()["FILES_UPLOAD"]["regexpmap_case_sensitive"])
+            regtable = cfg.config()["FILES_UPLOAD"]["regexpmap_table"].split("\n")
             regtable = [x.strip().split(sep)
-                      for x in cfg.config()["FILES_UPLOAD"]["regexpmap_table"].split("\n")
-                      if len(x.strip().split(sep)) in [2,3]]
+                        for x in regtable
+                        if len(x.strip().split(sep)) in [2,3]]
             res = []
             flags = 0
             if not casesens:
@@ -446,16 +445,18 @@ class DrawingTable(QTableWidget):
                         break
                 else:
                     res.append(("Link", fn, ""))
-            d = CopyFilesDialog(res, parent=self)
-            if not d.exec_():
-                return
 
-            self._copy_link_files(d.get_results())
-        else:
-            for f in files:
-                self._add_filename_to_table(f)
+            files = self._copy_link_files(res)
 
-    def _copy_link_files(self, files):
+        for f in files:
+            self._add_filename_to_table(f)
+
+    def _copy_link_files(self, src_files):
+        d = CopyFilesDialog(src_files, parent=self)
+        if not d.exec_():
+            return []
+
+        files = d.get_results()
         files_to_link = []
         for act, src, destdir in files:
             if act == "Ignore":
@@ -463,7 +464,7 @@ class DrawingTable(QTableWidget):
             if not os.path.exists(src):
                 QMessageBox.critical(self, "BOMBrowser - error",
                         "File '" + src + "' doesn't exists.\nAbort.\n")
-                return
+                return []
             if act == "Link":
                 files_to_link.append(src)
                 continue
@@ -481,10 +482,9 @@ class DrawingTable(QTableWidget):
                         "-"*30 + "\n" +
                         str(e) + "\n" +
                         "-"*30)
-                return
+                return []
 
-        for fn in files_to_link:
-            self._add_filename_to_table(fn)
+        return files_to_link
 
     def _drawing_menu(self, point):
         idxs = self.selectedIndexes()
