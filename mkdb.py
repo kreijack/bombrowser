@@ -78,30 +78,43 @@ def set_advance_config():
     global spare_part_count, spare_part_components_count_max
     global prototype_count, changes_count
 
-    set_standard_config()
+    # number of boards
+    board_count = 600
+    # the board components count is
+    # board_components_count_max / 10 + rnd % board_components_count_max
+    board_components_count_max = 200
+
+    # number of mechanical components
+    mech_number_of_components = 9000
 
     # number of subassemblies
-    mech_num_assemblies = 500
+    mech_num_assemblies = 9000
     # the assembly components count is
     # mech_assy_components_count_max / 10 + rnd % mech_assy_components_count_max
-    mech_assy_components_count_max = 30
+    mech_assy_components_count_max = 20 # 30 ->3500
     # maximum depth of bom
     mech_num_level = 10
 
     # number of top code
-    top_code_count = 220
+    top_code_count = 800
     # the top code components count is
     # top_code_components_count_max / 10 + rnd % top_code_components_count_max
     top_code_components_count_max = 12
 
     # number of spare parts
-    spare_part_count = 220
+    spare_part_count = 800
     # the spare part components count is
     # spare_part_components_count_max / 10 + rnd % spare_part_components_count_max
     spare_part_components_count_max = 12
 
+    # number of prototypes
+    prototype_count = 200
+
     # number of revisions
-    changes_count = 10000
+    changes_count = 200
+
+    # number of revisions
+    changes_count = 30000
 
 cfg.init()
 
@@ -357,7 +370,7 @@ def insert_board(c):
         ncomponents = rnd.get() % board_components_count_max + \
             board_components_count_max / 10
 
-        code = "610%03d"%(cnt)
+        code = "61%04d"%(cnt)
 
         fn1 = "documents/boards/%s_(wl)_rev0.txt"%(code)
         open(fn1, "w").write("Type: board drawing\nCode: %s\nNr components: %d\n"%(
@@ -412,7 +425,7 @@ def insert_board(c):
 def insert_mechanical_components(c):
     cnt=1
     for d in range(mech_number_of_components):
-        code = "810%03d"%(cnt)
+        code = "81%04d"%(cnt)
         insert_code(c,
                 "MECHANICAL COMPONENT NR.%d"%(d, ), "810%03d"%(cnt), 0,
                 0, "NR", "", "MECHANICAL SUPPLIER %d"%(d % 4,)
@@ -451,7 +464,7 @@ def insert_mechanical_assemblies(c):
         ncomponents = rnd.get() % mech_assy_components_count_max + \
             mech_assy_components_count_max // 10
 
-        code = "820%03d"%(cnt)
+        code = "82%04d"%(cnt)
 
         fn1 = "documents/drawings/%s_(drw)_rev0.txt"%(code)
         open(fn1, "w").write("Type: mechanical drawing\nCode: %s\nNr components: %d\n"%(
