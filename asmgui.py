@@ -129,7 +129,13 @@ class ExportDialog(QDialog):
         self._cb_open_dest_folder = QCheckBox("Open destination folder")
         self._cb_open_dest_folder.setChecked(True)
         grid.addWidget(self._cb_open_dest_folder, 24, 10, 1, 2)
-        
+
+        self._cb_max_size = QCheckBox("Max file size to copy (MB)")
+        self._cb_max_size.setChecked(True)
+        grid.addWidget(self._cb_max_size, 25, 10)
+        self._le_max_size = QLineEdit("30")
+        grid.addWidget(self._le_max_size, 25, 11)
+
         b = QPushButton("Close")
         grid.addWidget(b, 30, 10)
         b.clicked.connect(self.close)
@@ -137,45 +143,167 @@ class ExportDialog(QDialog):
         b = QPushButton("Export...")
         grid.addWidget(b, 30, 11)
         b.clicked.connect(self._do_export)    
-        
+
+    def _get_file_size(self, path):
+        if os.path.isfile(path):
+            return os.path.getsize(path)
+        if not os.path.isdir(path):
+            return 0
+
+        tsize = 0
+        for dirpath, dirnames, filenames in os.walk(path):
+            for fn in filenames:
+                fp = os.path.join(dirpath, fn)
+                if not os.path.isfile(fp):
+                    continue
+                tsize += os.path.getsize(fp)
+
+        return fp
+
     def _do_export(self):
     
         QApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            self._do_export1()
+        finally:
+            QApplication.restoreOverrideCursor()
+            self.close()
+
+    def _do_export_get_info(self, progress):
+        maxsize = 0
+        if self._cb_max_size.isChecked():
+            maxsize = int(self._le_max_size.text()) * 1024 * 1024
+
+        missing_files = []
+        bigger_files = []
+        irregular_files = []
+        fnl = []
+        d = db.DB()
+        for k in self._data:
+            rid = self._data[k]["rid"]
+            drawings = d.get_drawings_by_rid(rid)
+            fnl += [utils.find_filename(x[1]) for x in drawings]
+
+        fnl2 = []
+
+        for i in range(len(fnl)):
+            fname = fnl[i]
+            progress.setValue(i + 1)
+            progress.setLabelText(fname)
+
+            if progress.wasCanceled():
+                progress.close()
+                return (1, [])
+
+            if not os.path.exists(fname):
+                missing_files.append(fname)
+                continue
+
+            if not os.path.isdir(fname) and not os.path.isfile(fname):
+                irregular_files.append(fname)
+                continue
+
+            if maxsize > 0 and self._get_file_size(fname) > maxsize:
+                bigger_files.append(fname)
+                continue
+
+            fnl2.append(fname)
+
+        progress.close()
+
+        if (len(missing_files) > 0 or len(irregular_files) > 0 or
+            len(bigger_files) > 0):
+                msg = "The following file will not be copied:\n\n"
+                for i in missing_files:
+                    msg += "Missing file: %s\n"%(i)
+                for i in bigger_files:
+                    msg += "File too big: %s\n"%(i)
+                for i in irregular_files:
+                    msg += "Irregular file: %s\n"%(i)
+                msg += "\nEnd the copy ?"
+
+                ret = QMessageBox.question(self, "BOMBrowser", msg)
+                if ret == QMessageBox.Yes:
+                    return (1, [])
+
+        return (0, fnl2)
+
+    def _do_export_copy_files(self, progress, fnl, dest):
+        for i in range(len(fnl)):
+            fname = fnl[i]
+            progress.setValue(i)
+            progress.setLabelText(fname)
+
+            if progress.wasCanceled():
+                progress.close()
+                return 1
+
+            try:
+                shutil.copy(fname, dest)
+            except Exception as e:
+                ret = QMessageBox.question(self, "BOMBrowser",
+                    "Error during the copy of '%s'\nEnd the copy ?"%(fname))
+                if ret == QMessageBox.Yes:
+                    return 1
+
+        return 0
+
+    def _do_export_zip_files(self, progress, bom_file, fnl, dest):
+        nf = os.path.join(dest, self._fn + ".zip")
+        with zipfile.ZipFile(nf, "w", compression=zipfile.ZIP_DEFLATED) as z:
+            if bom_file:
+                z.write(bom_file, arcname=os.path.basename(bom_file))
+                progress.setValue(0)
+                progress.setLabelText("bom-file")
+
+            j = 1
+            for i in fnl:
+                progress.setValue(j)
+                j += 1
+                progress.setLabelText(i)
+
+                nf2 = os.path.join(dest, os.path.basename(i))
+                # copy only if the file exists
+                if os.path.exists(i):
+                    z.write(nf2, arcname = os.path.basename(i))
+
+            return nf
+
+    def _do_export1(self):
+
         dest = self._dfolder.text()
         if not os.path.exists(dest):
             os.makedirs(dest)
         fnl = []
 
         if self._cb_export_files.isChecked():
-            
-            d = db.DB()
-            for k in self._data:
-                rid = self._data[k]["rid"]
-                drawings = d.get_drawings_by_rid(rid)
-                fnl += [x[1] for x in drawings]
+            progress = QProgressDialog("Getting information...",
+                "Abort Copy", 0, len(fnl) + 1, self)
+            progress.setWindowModality(Qt.WindowModal)
+            progress.forceShow()
+            progress.setValue(0)
+            progress.setLabelText("Extracting data from DB")
 
-            fname = ''
+            try:
+                (r, fnl) = self._do_export_get_info(progress)
+            finally:
+                progress.close()
+
+            if r != 0:
+                return
 
             progress = QProgressDialog("Copying files...", "Abort Copy", 0, len(fnl), self)
             progress.setWindowModality(Qt.WindowModal)
+            progress.forceShow()
 
-            for i in range(len(fnl)):
-                fname = fnl[i]
-                progress.setValue(i)
+            try:
+                r = self._do_export_copy_files(progress, fnl, dest)
+            finally:
+                progress.close()
 
-                if progress.wasCanceled():
-                    break
-                #... copy one file
+            if r != 0:
+                return
 
-                progress.setLabelText(fname)
-                try:
-                    shutil.copy(fname, dest)
-                except Exception as e:
-                    progress.forceShow()
-                    ret = QMessageBox.question(self, "BOMBrowser",
-                        "Error during the copy of '%s'\nEnd the copy ?"%(fname))
-                    if ret == QMessageBox.Yes:
-                        QApplication.restoreOverrideCursor()
             progress.setValue(len(fnl))
             progress.close()
         
@@ -186,26 +314,25 @@ class ExportDialog(QDialog):
 
         link = dest
         if self._cb_zip_all.isChecked():
-            nf = os.path.join(dest, self._fn + ".zip")
-            with zipfile.ZipFile(nf, "w", compression=zipfile.ZIP_DEFLATED) as z:
-                if bom_file:
-                    z.write(bom_file, arcname=os.path.basename(bom_file))
-                for i in fnl:
-                    nf2 = os.path.join(dest, os.path.basename(i))
-                    # if shutil.copy fails, we will not have a file
-                    if os.path.exists(i):
-                        z.write(nf2, arcname = os.path.basename(i))
-            link = nf
-        QApplication.restoreOverrideCursor()
+            progress = QProgressDialog("Zip files...", "Abort Copy", 0, len(fnl), self)
+            progress.setWindowModality(Qt.WindowModal)
+            progress.forceShow()
+
+            try:
+                link = self._do_export_zip_files(progress, bom_file, fnl, dest)
+            finally:
+                progress.close()
+
+            progress.setValue(len(fnl) + 1)
+            progress.close()
         
         if self._cb_open_dest_folder.isChecked():
             QDesktopServices.openUrl(QUrl.fromLocalFile(dest))
         
         if self._cb_copy_link.isChecked():
             self._copy_file(link) 
-        
+
         QMessageBox.information(self, "BOMBrowser", "Export ended")
-        self.close()
 
     def _copy_file(self, fn):
         md = QMimeData()
