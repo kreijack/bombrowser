@@ -17,13 +17,14 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sys
+import sys, os
 
-from PySide2.QtWidgets import QApplication
+from PySide2.QtWidgets import QApplication, QMessageBox
 
 import cfg, db
 import utils
 import listcodegui
+import version
 
 def main(args):
 
@@ -43,10 +44,30 @@ def main(args):
 
     sys.excepthook = utils._show_exception
 
+    if not os.path.exists("bombrowser.ini"):
+        QMessageBox.critical(None, "BOMBrowser - %s"%(version.version),
+            "Cannot find 'bombrowser.ini'")
+        return
+
+    ret = cfg.check_cfg()
+
+    if len(ret) != 1 or ret[0][0] != "OK":
+        message = "ERROR in bombrowser.ini\n"
+        for type_, msg in ret:
+            if type_ == "MORE":
+                message += "WARNING: " + msg + "\n"
+            else:
+                message += "CRITICAL: " + msg + "\n"
+        message += "Abort\n"
+        QMessageBox.critical(None, "BOMBrowser - %s"%(version.version),
+            message)
+        return
+
     try:
         cfg.init()
     except:
-        utils.show_exception(msg="Cannot load configuration: may be bombroser.ini is missing ?\nAbort\n")
+        QMessageBox.critical(None, "BOMBrowser - %s"%(version.version),
+            "Cannot load configuration: may be bombrowser.ini is missing ?\nAbort\n")
         return
 
     fontscale = float(cfg.config()["BOMBROWSER"].get("scalefont", "1.0"))
@@ -97,7 +118,6 @@ def main(args):
             db.main("bombrowser --manage-db", args[i+1:])
             sys.exit()
         elif args[i] == "--help":
-            import version
             print("bombrowser "+version.version)
             print()
             print("bombrowser --whereused <code>")
