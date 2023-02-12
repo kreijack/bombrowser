@@ -533,24 +533,6 @@ class DrawingTable(QTableWidget):
         for fn in DrawingTable._clipboard:
             self._add_filename_to_table(fn)
 
-    def _find_filename(self, filename):
-        if os.path.exists(filename):
-            return filename
-
-        default_dirs = cfg.config()["FILES_UPLOAD"].get("default_dirs", "")
-        default_dirs = [ x.strip()
-                         for x in default_dirs.split("\n")
-                         if (len(x.strip()) > 0 and 
-                             os.path.exists(x.strip()) and
-                             os.path.isdir(x.strip())) ]
-
-        for dd in default_dirs:
-            fp = os.path.join(dd, filename)
-            if os.path.exists(fp):
-                return fp
-
-        return filename
-
     def _view_drawing(self):
         idxs = self.selectedIndexes()
         if len(idxs) == 0:
@@ -559,7 +541,6 @@ class DrawingTable(QTableWidget):
         rows = list(set([idx.row() for idx in idxs]))
         for r in rows:
             path = self.item(r, 1).text()
-            path = self._find_filename(path)
             QDesktopServices.openUrl(QUrl.fromLocalFile(path))
 
     def _delete_drawing(self):
@@ -1207,6 +1188,8 @@ class EditWindow(bbwindow.BBMainWindow):
                     db.days_to_txt(date_to_days)))
 
     def _mangle_path(self, path):
+        if not os.path.exists(path):
+            return path
         if os.path.dirname(path) == '':
             return path
 
@@ -1456,6 +1439,7 @@ class EditWindow(bbwindow.BBMainWindow):
 
         row = 0
         for (name, path) in drawings:
+            path = utils.find_filename(path)
             i = QTableWidgetItem(name)
             i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
             self._drawings_table.setItem(row, 0, i)

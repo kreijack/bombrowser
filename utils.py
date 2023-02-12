@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sys, traceback, re
+import sys, traceback, re, os, cfg
 
 from PySide2.QtWidgets import QMessageBox
 
@@ -243,6 +243,24 @@ def bb_match(s, exp, conv=None):
                 return True
 
     return False
+
+def find_filename(filename):
+    if os.path.dirname(filename) != '':
+        return filename
+
+    default_dirs = cfg.config()["FILES_UPLOAD"].get("default_dirs", "")
+    default_dirs = [ x.strip()
+                     for x in default_dirs.split("\n")
+                     if (len(x.strip()) > 0 and
+                         os.path.exists(x.strip()) and
+                         os.path.isdir(x.strip())) ]
+
+    for dd in default_dirs:
+        fp = os.path.join(dd, filename)
+        if os.path.exists(fp):
+            return fp
+
+    return filename
 
 def test_bb_match_simple():
     assert(bb_match("abc", "a"))
