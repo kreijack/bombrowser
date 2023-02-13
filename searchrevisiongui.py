@@ -28,7 +28,7 @@ from PySide2.QtWidgets import  QHeaderView, QTableWidgetItem, QTableWidget
 from PySide2.QtCore import  QPoint, Signal, Qt, QRegExp
 from PySide2.QtGui import QRegExpValidator, QValidator
 
-import db, codegui, utils
+import db, codegui, utils, time
 import cfg, bbdate
 
 class RevisionListWidget(QWidget):
@@ -284,7 +284,7 @@ class RevisionListWidget(QWidget):
         for (seq, idx, gvalname, caption, type_) in cfg.get_gvalnames2():
             col_map[self._notgvalcols + idx - 1] = seq + self._notgvalcols
 
-        self._copy_info = "\t".join(self._search_revision_cols) + "\n"
+        self._copy_info = ["\t".join(self._search_revision_cols)]
         for row in ret:
             c = 0
             copy_row = ["" for x in self._search_revision_cols]
@@ -307,8 +307,9 @@ class RevisionListWidget(QWidget):
                 self._table.setItem(r, c, i)
                 copy_row[c] = str(v)
 
-            self._copy_info += "\t".join(copy_row) + "\n"
+            self._copy_info.append("\t".join(copy_row))
             r += 1
+        self._copy_info = "\n".join(self._copy_info)
 
         self._table.setSortingEnabled(True)
         self._table.selectionModel().selectionChanged.connect(self._table_clicked)
