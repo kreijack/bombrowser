@@ -28,14 +28,14 @@ from PySide2.QtWidgets import QHeaderView, QMenu, QTableWidget, QTableWidgetItem
 
 from PySide2.QtCore import Qt, Signal, QPoint
 
-import db, codegui, bbwindow, utils
+import db, codegui, bbwindow, utils, time
 import cfg, searchrevisiongui, codecontextmenu
 
 class CodesListWidget(QWidget):
     #tableCustomContextMenuRequested = Signal(QPoint)
     rightMenu = Signal(QPoint)
     doubleClicked = Signal()
-    emitResult = Signal(int)
+    emitResult = Signal(float, int)
 
     def __init__(self, parent=None, bom=None):
         QWidget.__init__(self, parent)
@@ -105,6 +105,8 @@ class CodesListWidget(QWidget):
         self.rightMenu.emit(self._table.viewport().mapToGlobal(point))
 
     def _search(self):
+        time0 = time.time()
+
         cs = self._code_search.text()
         ds = self._descr_search.text()
         if self._descr_force_uppercase == "1":
@@ -124,7 +126,7 @@ class CodesListWidget(QWidget):
 
         if not ret or len(ret) == 0:
             QApplication.beep()
-            self.emitResult.emit(0)
+            self.emitResult.emit(0, 0)
             return
 
         self._copy_info = "\t".join(["id", "Code", "Rev", "Iteration", "Description"])
@@ -155,7 +157,7 @@ class CodesListWidget(QWidget):
         self._table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
         self._table.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
 
-        self.emitResult.emit(len(ret))
+        self.emitResult.emit(time.time()- time0, len(ret))
 
     def _table_clicked(self, to, from_):
 
@@ -275,9 +277,9 @@ class CodesWindow(bbwindow.BBMainWindow):
         self._create_menu()
         # create toolbar
 
-    def _show_results(self, n):
+    def _show_results(self, t, n):
         if n > 0:
-            self._my_statusbar.showMessage("Last search result %s"%(str(n)))
+            self._my_statusbar.showMessage("Last search result %d in %.2f sec"%(n, t))
         else:
             self._my_statusbar.showMessage("Last search returned 0 result !!!")
 

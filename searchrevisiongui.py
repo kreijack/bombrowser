@@ -35,7 +35,7 @@ class RevisionListWidget(QWidget):
     #tableCustomContextMenuRequested = Signal(QPoint)
     rightMenu = Signal(QPoint)
     doubleClicked = Signal()
-    emitResult = Signal(int)
+    emitResult = Signal(float, int)
 
     def __init__(self, parent=None, bom=None):
         QWidget.__init__(self, parent)
@@ -225,7 +225,7 @@ class RevisionListWidget(QWidget):
             yield prev_row
 
     def _search(self):
-
+        time0 = time.time()
         try:
             dd = dict()
             for k in self._line_edit_widgets.keys():
@@ -266,7 +266,7 @@ class RevisionListWidget(QWidget):
 
         if not ret or len(ret) == 0:
             QApplication.beep()
-            self.emitResult.emit(0)
+            self.emitResult.emit(0, 0)
             return
 
         self._table.setSortingEnabled(False)
@@ -320,7 +320,7 @@ class RevisionListWidget(QWidget):
         self._table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
         self._table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
 
-        self.emitResult.emit(len(ret))
+        self.emitResult.emit(time.time() - time0, len(ret))
 
     def _table_clicked(self, to, from_):
 
