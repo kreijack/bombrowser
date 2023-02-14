@@ -1,4 +1,4 @@
-# -- BOMBROWSER.ini -- v3
+# -- BOMBROWSER.ini -- v4
 
 [BOMBROWSER]
 # select db source
@@ -46,8 +46,6 @@ gavalnames=
 #
 # this table allow to set a color (and stile) on the basis of a 
 # combination of the code fields (code, description, qty....)
-# if a field is prefixed by '*', the check is perfomred on the 
-# path from the top node to the code
 # available action:
 #   bg -> background color
 #   fg -> foreground color
@@ -68,12 +66,38 @@ gavalnames=
 #    by the Qt::GlobalColor enums, e.g. "green" and Qt::green does not
 #    refer to the same color.
 #    transparent - representing the absence of a color.
-#    
+#
+# a rule is in the form:
+#   cond1[,cond2[...]]:action1[,action2[...]]
+#   'condX' is <columnname>=[!]<value>  -> match if <columnname> = <value>
+#                                          if '!' is present, the condition
+#                                          is "not match"; <columnname>=
+#                                          means 'columnname' is empty;
+#                                          <columnname>=! means columnname
+#                                          is not empty
+#   <actionX> is something like 'fg=<color>' or 'italic' or bold or
+#             bg=<color>
+#
+#   if multiple conditions are present, these works in 'and'
+#   if multipel action are present, all actions are applied
+#   if multiple rules are present, all the rules are applied regardeless
+#   any match
+#
+# this parameter handles the aspect of the 'advanced' search revision
+revlistolors=
+#    gval10=:bg=red
+#    gval9=T:bold
+
+# this parameter handles the aspect of the bom (assembly, where used...)
+# if a field is prefixed by '*', the check is perfomred on the 
+# path from the top node to the code
 bomcolors=
     gval10=:fg=red
     gval9=T:italic
     *gaval1=I:fg=gray
     *gaval1=I,gval10=:fg=pink
+#    gval9=T:bold
+#    gval9=:fg=green
 
 # increase the font size by a factor (default 1.0)
 scalefont=1.2

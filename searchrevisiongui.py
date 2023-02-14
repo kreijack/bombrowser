@@ -26,7 +26,7 @@ from PySide2.QtWidgets import  QLineEdit
 from PySide2.QtWidgets import  QPushButton, QVBoxLayout
 from PySide2.QtWidgets import  QHeaderView, QTableWidgetItem, QTableWidget
 from PySide2.QtCore import  QPoint, Signal, Qt, QRegExp
-from PySide2.QtGui import QRegExpValidator, QValidator
+from PySide2.QtGui import QRegExpValidator, QValidator, QColor, QBrush
 
 import db, codegui, utils, time
 import cfg, bbdate
@@ -224,6 +224,45 @@ class RevisionListWidget(QWidget):
         if prev_row:
             yield prev_row
 
+    def _apply_colors(self, color_filters, field_map, row, item):
+        def match(k, v):
+            if not k in field_map:
+                return False
+
+            field = row[field_map[k]]
+
+            if v.startswith("!") and field != v[1:]:
+                return True
+            if field == v:
+                return True
+
+            return False
+
+        def apply_actions(actions):
+            for action in actions:
+                if action.startswith("bg="):
+                    item.setBackground(QColor(action[3:]))
+                elif action.startswith("fg="):
+                    item.setForeground(QColor(action[3:]))
+                elif action.startswith("italic"):
+                    f = item.font()
+                    f.setItalic(True)
+                    item.setFont(f)
+                elif action.startswith("bold"):
+                    f = item.font()
+                    f.setBold(True)
+                    item.setFont(f)
+                else:
+                    print("WARNING: unknown action '%s'"%(action))
+
+        for (filters, actions) in color_filters:
+            for f in filters:
+                k,v = f.split("=")[:2]
+                if not match(k, v):
+                    break
+            else:
+                apply_actions(actions)
+
     def _search(self):
         time0 = time.time()
         try:
@@ -280,14 +319,24 @@ class RevisionListWidget(QWidget):
         limit = 1000
         self._dates = dict()
 
+        # This dict maps the sql table column nr to the widget table column nr
         col_map = dict()
         for (seq, idx, gvalname, caption, type_) in cfg.get_gvalnames2():
             col_map[self._notgvalcols + idx - 1] = seq + self._notgvalcols
 
+        # This dict maps the sql table column id to the widget table column nr
+        field_map = dict()
+        for i, field in enumerate(self._field_names[:self._notgvalcols]):
+            field_map[field[0]] = i
+        for (seq, idx, gvalname, caption, type_) in cfg.get_gvalnames2():
+            field_map[gvalname] = self._notgvalcols + idx - 1
+
         self._copy_info = ["\t".join(self._search_revision_cols)]
+        revlistcolors = cfg.get_revlistolors()
         for row in ret:
             c = 0
             copy_row = ["" for x in self._search_revision_cols]
+            items_list = []
             for c, v in enumerate(row):
                 if c == 1:
                     rid = int(v)
@@ -304,6 +353,8 @@ class RevisionListWidget(QWidget):
                     c = col_map[c]
                 i = QTableWidgetItem(str(v))
                 i.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                if len(revlistcolors) > 0:
+                    self._apply_colors(revlistcolors, field_map, row, i)
                 self._table.setItem(r, c, i)
                 copy_row[c] = str(v)
 

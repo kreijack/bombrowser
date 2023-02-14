@@ -130,7 +130,7 @@ def get_bomcolors():
     l = [x.strip() for x in
             config().get("BOMBROWSER", "bomcolors").split("\n")
             if len(x.strip()) > 0
-        ]    
+        ]
 
     ret = []
     for line in l:
@@ -138,7 +138,25 @@ def get_bomcolors():
         f = [x.strip() for x in line.split(":")[0].split(",")]
         a = [x.strip() for x in line.split(":")[1].split(",")]
         ret.append((f,a))
-        
+
+    return ret
+
+def get_revlistolors():
+    if not "revlistolors" in config()["BOMBROWSER"]:
+        return []
+
+    l = [x.strip() for x in
+            config().get("BOMBROWSER", "revlistolors").split("\n")
+            if len(x.strip()) > 0
+        ]
+
+    ret = []
+    for line in l:
+        assert(":" in line)
+        f = [x.strip() for x in line.split(":")[0].split(",")]
+        a = [x.strip() for x in line.split(":")[1].split(",")]
+        ret.append((f,a))
+
     return ret
 
 def _check_cfg(cfg):
@@ -153,6 +171,7 @@ def _check_cfg(cfg):
                 ('gvalnames', True),
                 ('gavalnames', True),
                 ('bomcolors', True),
+                ('revlistolors', True),
                 ('scalefont', True),
         )),
         ('FILES_UPLOAD', (
