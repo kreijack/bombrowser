@@ -26,7 +26,7 @@ def init():
 
     line = open("bombrowser.ini").readline().strip()
     if line != "# -- BOMBROWSER.ini -- v4":
-        raise Exception("Incorrect version of bombrowser.ini\nMinimum v3 required")
+        raise Exception("Incorrect version of bombrowser.ini\nMinimum v4 required")
 
     global _cfg
     _cfg = configparser.ConfigParser()
@@ -37,7 +37,7 @@ def init():
 
     line = open("bombrowser-local.ini").readline().strip()
     if line != "# -- BOMBROWSER.ini -- v4":
-        raise Exception("Incorrect version of bombrowser-local.ini\nMinimum v3 required")
+        raise Exception("Incorrect version of bombrowser-local.ini\nMinimum v4 required")
 
     cfg2 = configparser.ConfigParser()
     cfg2.read_file(open("bombrowser-local.ini"))
