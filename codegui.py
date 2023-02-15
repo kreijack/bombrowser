@@ -190,8 +190,12 @@ class CodeWidget(QWidget):
             grid.addWidget(QHLine(), row, 0, 1, 2)
             row += 1
 
+        maxlen = int(cfg.config()["BOMBROWSER"]["btnmaxlength"])
         for drw in self._drawings:
-            b = QPushButton(drw[0])
+            n = drw[0]
+            if maxlen > 3 and len(n) > maxlen:
+                n = n[:maxlen-3]+"..."
+            b = QPushButton(n)
             class Opener:
                 def __init__(self, obj, *args):
                     self._obj = obj

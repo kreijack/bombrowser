@@ -173,6 +173,7 @@ def _check_cfg(cfg):
                 ('bomcolors', True),
                 ('revlistolors', True),
                 ('scalefont', True),
+                ('btnmaxlength', True),
         )),
         ('FILES_UPLOAD', (
                 ('method', True),

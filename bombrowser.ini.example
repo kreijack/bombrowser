@@ -102,6 +102,10 @@ bomcolors=
 # increase the font size by a factor (default 1.0)
 scalefont=1.2
 
+# maximum length of the label of the buttons on the right panel related 
+# to the drawings; 0 to not set a limit
+btnmaxlength=30
+
 [SQLITE]
 path=database.sqlite
 
