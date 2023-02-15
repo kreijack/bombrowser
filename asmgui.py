@@ -752,9 +752,9 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                 i = l[idx]
                 tmp = self._data[i]
                 if k in tmp:
-                    if v.startswith("!") and tmp[k] != v[1:]:
+                    if v.startswith("!") and str(tmp[k]) != v[1:]:
                         return True
-                    if tmp[k] == v:
+                    if str(tmp[k]) == v:
                         return True
 
                 if idx == 0:
@@ -764,9 +764,9 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                 j = l[idx-1]
                 tmp2 = self._data[j]["deps"][i]
                 if k in tmp2:
-                    if v.startswith("!") and tmp2[k] != v[1:]:
+                    if v.startswith("!") and str(tmp2[k]) != v[1:]:
                         return True
-                    if tmp2[k] == v:
+                    if (tmp2[k]) == v:
                         return True
 
             return False

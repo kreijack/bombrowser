@@ -229,7 +229,7 @@ class RevisionListWidget(QWidget):
             if not k in field_map:
                 return False
 
-            field = row[field_map[k]]
+            field = str(row[field_map[k]])
 
             if v.startswith("!") and field != v[1:]:
                 return True
