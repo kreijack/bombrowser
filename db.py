@@ -580,6 +580,7 @@ class _BaseServer:
 
         return data
 
+    # case sensitive search
     def get_codes_by_code(self, code):
         with ROCursor(self) as c:
             c.execute("""
@@ -589,7 +590,7 @@ class _BaseServer:
                     FROM items AS i
                     LEFT JOIN item_revisions AS r
                         ON r.code_id = i.id
-                    WHERE i.code = ?
+                    WHERE UPPER(i.code) = UPPER(?)
                     GROUP BY i.id
             ) AS r2
             LEFT JOIN item_revisions AS r
@@ -612,18 +613,21 @@ class _BaseServer:
             if len(row) == 2:
                 row = list(row)
                 row.append(None)
+            if len(row) == 3:
+                row = list(row)
+                row.append(False)
 
-            field, value, func = row
+            field, value, func, upper = row
             if len(value) > 0 and value[0] == "=":
-                req2.append((field, (value,), func))
+                req2.append((field, (value,), func, upper))
                 continue
 
             vs = value.split(";")
-            req2.append((field, vs, func))
+            req2.append((field, vs, func, upper))
 
         q2 = []
         args = []
-        for (field, values, func) in req2:
+        for (field, values, func, upper) in req2:
             q = []
             if func is None:
                 f = lambda x: x
@@ -631,28 +635,29 @@ class _BaseServer:
                 f = func
             for value in values:
                 if len(value) > 0 and value[0] in "<=>":
-                    q.append("%s %s ?"%(field, value[0]))
-                    args.append(f(value[1:]))
-
+                    op = value[0]
+                    arg = f(value[1:])
                 elif len(value) > 0 and value[0] == "!":
-                    q.append("%s <> ?"%(field,))
-                    args.append(f(value[1:]))
-
+                    op = "<>"
+                    arg = f(value[1:])
                 elif "%" in value or "_" in value or "[" in value or "]" in value:
-                    q.append("%s LIKE ?"%(field,))
-                    args.append(f(value))
-
+                    op = "LIKE"
+                    arg = f(value)
                 elif len(value) > 0 and func is None:
-                    q.append("%s LIKE ?"%(field,))
-                    args.append("%" + value + "%")
-
+                    op = "LIKE"
+                    arg = "%" + value + "%"
                 elif len(value) > 0 :
-                    q.append("%s = ?"%(field,))
-                    args.append(value)
-
+                    op = "="
+                    arg = value  # CHECK: why not f(value) ?
                 else:
                     # if we are here, the field is empty and any <=>! are specified
-                    pass
+                    continue
+
+                if upper:
+                    q.append("UPPER(%s) %s UPPER(?)"%(field, op))
+                else:
+                    q.append("%s %s ?"%(field, op))
+                args.append(arg)
 
             if len(q) > 0:
                 if len(q) > 1:
@@ -664,6 +669,7 @@ class _BaseServer:
 
         return (" " + qry + " ", args)
 
+    # case sensitive search
     def get_codes_by_like_code_and_descr(self, code, descr):
         if code == "" and descr == "":
             return []
@@ -680,8 +686,8 @@ class _BaseServer:
             """
 
             q2, args = self._expand_search_str_clauses((
-                ("i.code", code),
-                ("r.descr", descr)
+                ("i.code", code, None, True),
+                ("r.descr", descr, None, True)
             ))
 
             q += """
@@ -1290,6 +1296,10 @@ class _BaseServer:
                         for (code_id, qty, each, unit, ref, gvs) in children])
 
     def update_dates(self, dates):
+        # dates[] = [
+        #     (rid, date_from, date_from_days, date_to, date_to_days),
+        #     [...]
+        # ]
         # check that the date_from are in order
         l = [x[2] for x in dates]
         l1 = l[:]
@@ -1586,6 +1596,7 @@ class _BaseServer:
 
         return ""
 
+    # case sensitive search
     def search_revisions(self, **kwargs):
         gval_query = ", ".join(["r.gval%d"%(i+1) for i in range(gvals_count)])
 
@@ -1626,9 +1637,9 @@ class _BaseServer:
                 k = "iter"
 
             if k in ["id", "iter"]:
-                where.append(("%s.%s"%(table, k), arg, int))
+                where.append(("%s.%s"%(table, k), arg, int, False))
             else:
-                where.append(("%s.%s"%(table, k), arg))
+                where.append(("%s.%s"%(table, k), arg, None, True))
 
         if len(where):
             query += "            WHERE\n"

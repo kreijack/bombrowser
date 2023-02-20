@@ -194,6 +194,36 @@ def test_get_code_by_code_and_descr_multiple_or_and():
     assert(data[0][1] == "code123")
     assert(data[1][1] == "code124")
 
+def test_get_code_by_upper_code():
+    d = _init_db()
+
+    with Transaction(d) as c:
+        _test_insert_items(c)
+        d._execute(c, "PRAGMA case_sensitive_like = 1")
+
+    data = d.get_codes_by_like_code_and_descr("", "DESCR46%")
+    assert(len(data) == 2)
+    data.sort(key = lambda x: x[1])
+    assert(data[0][1] == "code135")
+    assert(data[0][2] == "descr468")
+
+    assert(data[1][1] == "code136")
+    assert(data[1][2] == "descr469")
+
+def test_get_code_by_upper_code_and_descr_multiple_or_and():
+    d = _init_db()
+
+    with Transaction(d) as c:
+        _test_insert_items(c)
+        d._execute(c, "PRAGMA case_sensitive_like = 1")
+
+    data = d.get_codes_by_like_code_and_descr("CODE123;CODE135;CODE124", "5")
+    assert(len(data) == 2)
+    data.sort(key = lambda x: x[0])
+
+    assert(data[0][1] == "code123")
+    assert(data[1][1] == "code124")
+
 def _test_insert_assembly(c):
     """
           10/01        15/01        20/01         25/01
@@ -1512,8 +1542,8 @@ def test_update_by_rid2_with_drawings():
     assert("dirb/fileb" in dwgs[1][1])
 
 def _create_data_for_search_revisions(c, d):
-    code1 = "TEST-CODE-1"
-    code2 = "TEST-CODE-2"
+    code1 = "test-code-1"
+    code2 = "test-code-2"
     code_id1, dates1 = _create_code_revision(c, code1, 4)
     code_id2, dates2 = _create_code_revision(c, code2, 5)
     d._commit(c)
@@ -1592,6 +1622,7 @@ def test_search_revisions_greather():
     data = _create_data_for_search_revisions(c, d)
 
     ret = d.search_revisions(gval5=">gval 0004")
+    assert(len(ret) > 0)
 
     for row in ret:
         assert(row[13] > "gval 0004")
@@ -1601,6 +1632,18 @@ def test_search_revisions_lesser():
     data = _create_data_for_search_revisions(c, d)
 
     ret = d.search_revisions(gval5="<gval 0004")
+    assert(len(ret) > 0)
+
+    for row in ret:
+        assert(row[13] < "gval 0004")
+
+def test_search_revisions_upper_lesser():
+    d, c = _create_db()
+    data = _create_data_for_search_revisions(c, d)
+    d._execute(c, "PRAGMA case_sensitive_like = 1")
+
+    ret = d.search_revisions(gval5="<GVAL 0004")
+    assert(len(ret) > 0)
 
     for row in ret:
         assert(row[13] < "gval 0004")
@@ -1610,6 +1653,7 @@ def test_search_revisions_ne():
     data = _create_data_for_search_revisions(c, d)
 
     ret = d.search_revisions(gval5="!gval 0004")
+    assert(len(ret) > 0)
 
     for row in ret:
         assert(row[13] != "gval 0004")
@@ -1659,6 +1703,34 @@ def test_search_revisions_all_values():
     ret = d.search_revisions(iter_=1)
     assert(len(ret) == 2)
 
+def test_search_revisions_all_upper_values():
+    d, c = _create_db()
+    data = _create_data_for_search_revisions(c, d)
+    d._execute(c, "PRAGMA case_sensitive_like = 1")
+
+    d._execute(c, "SELECT COUNT(*) FROM items WHERE code = ?", ("TEST-CODE-1", ))
+    assert(c.fetchone()[0] == 0)
+
+    arg_names = ["rid", "rev", "descr"]
+    arg_names += ["gval%d"%(i+1) for i in range(db.gvals_count)]
+
+    rids = list(data.keys())
+
+    for i, arg in enumerate(arg_names):
+        rdata = data[rids[i % len(rids)]]
+        if isinstance(rdata[arg], str):
+            dd = { arg: (rdata[arg]).upper() }
+        else:
+            dd = { arg: rdata[arg] }
+        ret = d.search_revisions(**dd)
+
+        assert(len(ret) <= 2)
+
+    ret = d.search_revisions(code="TEST-CODE-1")
+    assert(len(ret) > 2)
+
+    ret = d.search_revisions(iter_=1)
+    assert(len(ret) == 2)
     # TBD dates
 
 def test_search_revisions_and_drawings_by_drawings():
