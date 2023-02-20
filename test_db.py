@@ -62,6 +62,9 @@ def _create_db():
 def _init_db():
     if _use_memory_sqlite:
         d = db.DBSQLite(":memory:")
+        # simulate a case sensitive DB
+        c = d._conn.cursor()
+        d._execute(c, "PRAGMA case_sensitive_like = 1")
         db._globaDBInstance = d
     else:
         d = db.DB() #_connection_string)
