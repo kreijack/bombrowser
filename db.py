@@ -1636,7 +1636,7 @@ class _BaseServer:
             elif k == "iter_":
                 k = "iter"
 
-            if k in ["id", "iter"]:
+            if k in ["id", "iter", "date_from_days", "date_to_days"]:
                 where.append(("%s.%s"%(table, k), arg, int, False))
             else:
                 where.append(("%s.%s"%(table, k), arg, None, True))
