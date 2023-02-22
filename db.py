@@ -1905,15 +1905,17 @@ class DBOracleServer(_BaseServer):
 
 
 class DBSQLite(_BaseServer):
-    def __init__(self, path=None):
+    def __init__(self, path=None, ignore_case_during_search=True):
         if path == "" or path is None:
             path = _db_path
+        self._ignore_case_during_search = ignore_case_during_search
         _BaseServer.__init__(self, path)
 
     def _open(self, path):
         self._conn = sqlite3.connect(self._path)
         self._conn.execute("PRAGMA foreign_keys = ON")
-        self._conn.execute("PRAGMA case_sensitive_like = 1")
+        if not self._ignore_case_during_search:
+            self._conn.execute("PRAGMA case_sensitive_like = 1")
         self._mod = sqlite3
 
     def _commit(self, c):
@@ -2175,7 +2177,8 @@ def _create_db(dbtype):
 
     elif dbtype == "sqlite":
         path = cfg.config().get("SQLITE", "path")
-        instance = DBSQLite(path)
+        ignore_case_during_search = cfg.config().get("SQLITE", "ignore_case_during_search") != "0"
+        instance = DBSQLite(path, ignore_case_during_search)
         connection="Server: SQLITE/"+path[-30:]
 
     elif dbtype == "oracle":
