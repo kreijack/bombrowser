@@ -676,7 +676,7 @@ class EditWindow(bbwindow.BBMainWindow):
         self._code_id = code_id
         self._rid = None
         self._orig_revision = None
-        self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
+        self._descr_force_uppercase = cfg.config()["BOMBROWSER"]["description_force_uppercase"] != "0"
         self._case_sens = cfg.config()["BOMBROWSER"]["ignore_case_during_search"] == "0"
         self._dates_list_info = None
         self._children_modified = False
@@ -1294,7 +1294,7 @@ class EditWindow(bbwindow.BBMainWindow):
         (gvals, drawings, children) = data
 
         descr = self._descr.text()
-        if self._descr_force_uppercase == "1":
+        if self._descr_force_uppercase:
             descr = descr.upper()
 
         d = db.DB()

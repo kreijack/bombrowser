@@ -62,8 +62,8 @@ class CopyCode(bbwindow.BBMainWindow):
 
         self._proto_exists = data[0][2] == db.prototype_date
 
-        self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
-        self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
+        self._descr_force_uppercase = cfg.config()["BOMBROWSER"]["description_force_uppercase"] != "0"
+        self._code_force_uppercase = cfg.config()["BOMBROWSER"]["code_force_uppercase"] != "0"
         self._case_sens = cfg.config()["BOMBROWSER"]["ignore_case_during_search"] == "0"
 
         self._init_gui()
@@ -214,9 +214,9 @@ class CopyCode(bbwindow.BBMainWindow):
 
         code = self._l_new_code.text().strip()
         descr = self._l_new_descr.text().strip()
-        if self._descr_force_uppercase == "1":
+        if self._descr_force_uppercase:
                 descr = descr.upper()
-        if self._code_force_uppercase == "1":
+        if self._code_force_uppercase:
                 code = code.upper()
 
         try:
