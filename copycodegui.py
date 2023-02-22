@@ -64,6 +64,7 @@ class CopyCode(bbwindow.BBMainWindow):
 
         self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
         self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
+        self._case_sens = cfg.config()["BOMBROWSER"]["ignore_case_during_search"] == "0"
 
         self._init_gui()
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -187,7 +188,8 @@ class CopyCode(bbwindow.BBMainWindow):
 
         if self._cb_copy_rev.checkState() == Qt.CheckState.Checked:
             d = db.DB()
-            data = d.get_codes_by_code(self._l_new_code.text())
+            data = d.get_codes_by_code(self._l_new_code.text(),
+                                        case_sensitive=self._case_sens)
             if not data is None and len(data) != 0:
                 QMessageBox.critical(self,
                     "BOMBrowser - error",
@@ -255,7 +257,9 @@ class CopyCode(bbwindow.BBMainWindow):
             return
 
         if self.shouldStartEditor():
-            codes = d.get_codes_by_code(self._new_code)
+            icase = cfg.config()["BOMBROWSER"]["ignore_case_during_search"] != "0"
+            codes = d.get_codes_by_code(self._new_code,
+                                case_sensitive=self._case_sens)
             if len(codes):
                 w2 = editcode.EditWindow(codes[0][0])
                 w2.show()

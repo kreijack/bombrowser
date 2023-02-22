@@ -677,7 +677,7 @@ class EditWindow(bbwindow.BBMainWindow):
         self._rid = None
         self._orig_revision = None
         self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
-        self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
+        self._case_sens = cfg.config()["BOMBROWSER"]["ignore_case_during_search"] == "0"
         self._dates_list_info = None
         self._children_modified = False
         self._drawing_modified = False
@@ -1257,7 +1257,7 @@ class EditWindow(bbwindow.BBMainWindow):
                 return ("Incorrect value 'Each' in row %d (%s)'"%(i + 1, each),
                             None)
 
-            codes = d.get_codes_by_code(code)
+            codes = d.get_codes_by_code(code, case_sensitive=self._case_sens)
 
             if codes is None or len(codes) == 0:
                 return ("Invalid code '%s' in row %d'"%(code, i + 1),
@@ -1266,7 +1266,6 @@ class EditWindow(bbwindow.BBMainWindow):
             if code in codes_set:
                 return ("Duplicated code '%s' in row %d'"%(code, i + 1),
                             None)
-
 
             dates = d.get_dates_by_code_id3(code_id)
             min_date_from_days = min([x[2] for x in dates])
@@ -1469,9 +1468,7 @@ class EditWindow(bbwindow.BBMainWindow):
         if col == 2:
             d = db.DB()
             i = table.item(row, 2)
-            if self._code_force_uppercase == "1":
-                i.setText(i.text().upper())
-            codes = d.get_codes_by_code(i.text())
+            codes = d.get_codes_by_code(i.text(), case_sensitive=self._case_sens)
 
             if codes is None or len(codes) == 0:
                 table.clearSelection()

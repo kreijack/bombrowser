@@ -175,7 +175,7 @@ def xunescape(s):
                 
     return s        
 
-def bb_match(s, exp, conv=None):
+def bb_match(s, exp, conv2=None, case_sensitive=True):
     """
         bb_match(s, exp, conv)
 
@@ -197,50 +197,54 @@ def bb_match(s, exp, conv=None):
     else:
         exps = exp.split(";")
 
+    if conv2 is None:
+        conv2 = lambda x : x
+
+    if isinstance(s, str) and not case_sensitive:
+        conv = lambda y : conv2(y).upper()
+        s = s.upper()
+    else:
+        conv = conv2
+
     for exp in exps:
         if len(exp) == 0:
             continue
 
         if exp[0] == '=':
-            if not conv is None:
-                if conv(exp[1:]) == s:
-                    return True
-            elif exp[1:] == s:
+            if conv(exp[1:]) == s:
                 return True
 
         elif exp[0] == '>':
-            if not conv is None:
-                if s > conv(exp[1:]):
-                    return True
-            elif s > exp[1:]:
+            if s > conv(exp[1:]):
                 return True
 
         elif exp[0] == '<':
-            if not conv is None:
-                if s < conv(exp[1:]):
-                    return True
-            elif s < exp[1:]:
+            if s < conv(exp[1:]):
                 return True
 
         elif exp[0] == '!':
-            if not conv is None:
-                if s != conv(exp[1:]):
-                    return True
-            elif s != exp[1:]:
+            if s != conv(exp[1:]):
                 return True
 
         elif not ('%' in exp or '_' in exp or '[' in exp or ']' in exp):
-            if not conv is None:
+            # no special char
+            if isinstance(s, str):
+                if conv(exp) in s:
+                    return True
+            else:
                 if conv(exp) == s:
                     return True
-            elif exp in s:
-                return True
 
-        elif conv is None:
+        elif isinstance(s, str):
+            # special char
             exp = exp.replace("\\", r"\\").replace("*", r"\*")
             exp = exp.replace(".", r"\.").replace("%", ".*").replace("_", ".")
             if re.match("^"+exp+"$", s):
                 return True
+
+        else:
+            # contains [, % ... but it is not a string ?!?!?!?
+            assert(0)
 
     return False
 
@@ -349,7 +353,14 @@ def test_bb_match_conv():
     assert(not bb_match(10, "1", int))
     assert(bb_match(10, "10", int))
 
-    assert(not bb_match(10, "%1%", int))
+    assert(not bb_match(10, "1", int))
+
+def test_bb_match_icase():
+    assert(not bb_match("abc", "A", case_sensitive=True))
+    assert(bb_match("abc", "A", case_sensitive=False))
+
+    assert(bb_match("abc", "%A%", case_sensitive=False))
+
 
 def test_xescape():
     assert(xescape("abc") == "abc")

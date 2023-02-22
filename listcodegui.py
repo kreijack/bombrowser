@@ -44,8 +44,8 @@ class CodesListWidget(QWidget):
         self._copy_info = ""
         self._code_id = None
         self._code = None
-        self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
-        self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
+        self._case_sens = cfg.config()["BOMBROWSER"]["ignore_case_during_search"] == "0"
+
         self._data = dict()
 
         self._init_gui()
@@ -109,20 +109,16 @@ class CodesListWidget(QWidget):
 
         cs = self._code_search.text()
         ds = self._descr_search.text()
-        if self._descr_force_uppercase == "1":
-                ds = ds.upper()
-        if self._code_force_uppercase == "1":
-                cs = cs.upper()
 
         if self._bom:
                 ret = []
                 for k, v in self._bom.items():
-                    if ((cs == "" or utils.bb_match(v["code"], cs)) and
-                        (ds == "" or utils.bb_match(v["descr"], ds))):
+                    if ((cs == "" or utils.bb_match(v["code"], cs, case_sensitive=self._case_sens)) and
+                        (ds == "" or utils.bb_match(v["descr"], ds, case_sensitive=self._case_sens))):
                             ret.append((v["id"], v["code"], v["descr"], v["ver"], v["iter"]))
         else:
                 d = db.DB()
-                ret = d.get_codes_by_like_code_and_descr(cs, ds)
+                ret = d.get_codes_by_like_code_and_descr(cs, ds, case_sensitive=self._case_sens)
 
         if not ret or len(ret) == 0:
             QApplication.beep()

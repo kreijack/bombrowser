@@ -197,14 +197,14 @@ def test_get_code_by_code_and_descr_multiple_or_and():
     assert(data[0][1] == "code123")
     assert(data[1][1] == "code124")
 
-def test_get_code_by_upper_code():
+def test_get_code_by_icase_code():
     d = _init_db()
 
     with Transaction(d) as c:
         _test_insert_items(c)
         d._execute(c, "PRAGMA case_sensitive_like = 1")
 
-    data = d.get_codes_by_like_code_and_descr("", "DESCR46%")
+    data = d.get_codes_by_like_code_and_descr("", "DESCR46%", case_sensitive=False)
     assert(len(data) == 2)
     data.sort(key = lambda x: x[1])
     assert(data[0][1] == "code135")
@@ -213,14 +213,15 @@ def test_get_code_by_upper_code():
     assert(data[1][1] == "code136")
     assert(data[1][2] == "descr469")
 
-def test_get_code_by_upper_code_and_descr_multiple_or_and():
+def test_get_code_by_icase_code_and_descr_multiple_or_and():
     d = _init_db()
 
     with Transaction(d) as c:
         _test_insert_items(c)
         d._execute(c, "PRAGMA case_sensitive_like = 1")
 
-    data = d.get_codes_by_like_code_and_descr("CODE123;CODE135;CODE124", "5")
+    data = d.get_codes_by_like_code_and_descr("CODE123;CODE135;CODE124",
+                                        "5", case_sensitive=False)
     assert(len(data) == 2)
     data.sort(key = lambda x: x[0])
 
@@ -1593,10 +1594,9 @@ def test_search_revision_multiple_drawings():
 
 def test_search_revisions_empty():
     d, c = _create_db()
-    _create_data_for_search_revisions(c, d)
 
     ret = d.search_revisions()
-    assert(len(ret) == 10)
+    assert(len(ret) == 0)
 
 def test_search_revisions_by_rid():
     d, c = _create_db()
@@ -1640,12 +1640,12 @@ def test_search_revisions_lesser():
     for row in ret:
         assert(row[13] < "gval 0004")
 
-def test_search_revisions_upper_lesser():
+def test_search_revisions_icase_lesser():
     d, c = _create_db()
     data = _create_data_for_search_revisions(c, d)
     d._execute(c, "PRAGMA case_sensitive_like = 1")
 
-    ret = d.search_revisions(gval5="<GVAL 0004")
+    ret = d.search_revisions(gval5="<GVAL 0004", case_sensitive=False)
     assert(len(ret) > 0)
 
     for row in ret:
@@ -1700,13 +1700,28 @@ def test_search_revisions_all_values():
 
         assert(len(ret) <= 2)
 
-    ret = d.search_revisions(code="TEST-CODE-1")
+    ret = d.search_revisions(code="test-code-1")
     assert(len(ret) > 2)
 
     ret = d.search_revisions(iter_=1)
     assert(len(ret) == 2)
 
-def test_search_revisions_all_upper_values():
+def test_search_revision_invalid_argument():
+    d, c = _create_db()
+    data = _create_data_for_search_revisions(c, d)
+
+    ret = d.search_revisions(code="test-code-1")
+    assert(len(ret) > 2)
+
+    ok = False
+    try:
+        ret = d.search_revisions(code_unknown="test-code-1")
+    except:
+        ok = True
+
+    assert(ok)
+
+def test_search_revisions_all_icase_values():
     d, c = _create_db()
     data = _create_data_for_search_revisions(c, d)
     d._execute(c, "PRAGMA case_sensitive_like = 1")
@@ -1729,7 +1744,7 @@ def test_search_revisions_all_upper_values():
 
         assert(len(ret) <= 2)
 
-    ret = d.search_revisions(code="TEST-CODE-1")
+    ret = d.search_revisions(code="TEST-CODE-1", case_sensitive=False)
     assert(len(ret) > 2)
 
     ret = d.search_revisions(iter_=1)
@@ -2585,7 +2600,7 @@ def test_expand_search_str_clauses_simple():
     d = _init_db()
     (q, args) = d._expand_search_str_clauses((
         ("id", "123"),
-    ))
+    ), True)
     assert(len(args) == 1)
     assert(not "AND" in q)
     assert("id LIKE ?" in q)
@@ -2595,7 +2610,7 @@ def test_expand_search_str_clauses_multiple_and():
     (q, args) = d._expand_search_str_clauses((
         ("id", "123"),
         ("rid", "456"),
-    ))
+    ), True)
     assert(len(args) == 2)
     assert("AND" in q)
     assert(not "OR" in q)
@@ -2606,7 +2621,7 @@ def test_expand_search_str_clauses_multiple_or():
     d = _init_db()
     (q, args) = d._expand_search_str_clauses((
         ("id", "123;567"),
-    ))
+    ), True)
     assert(len(args) == 2)
     assert("OR" in q)
     assert(not "AND" in q)
@@ -2617,7 +2632,7 @@ def test_expand_search_str_clauses_multiple_or_and():
     (q, args) = d._expand_search_str_clauses((
         ("id", "123;567"),
         ("rid", "678"),
-    ))
+    ), True)
     assert(args[0] == "%123%")
     assert(args[1] == "%567%")
     assert(args[2] == "%678%")
@@ -2631,7 +2646,7 @@ def test_expand_search_str_clauses_greather():
     d = _init_db()
     (q, args) = d._expand_search_str_clauses((
         ("id", ">123"),
-    ))
+    ), True)
     assert(len(args) == 1)
     assert(not "OR" in q)
     assert(not "AND" in q)
@@ -2641,7 +2656,7 @@ def test_expand_search_str_clauses_less():
     d = _init_db()
     (q, args) = d._expand_search_str_clauses((
         ("id", "<123"),
-    ))
+    ), True)
     assert(len(args) == 1)
     assert(not "OR" in q)
     assert(not "AND" in q)
@@ -2651,7 +2666,7 @@ def test_expand_search_str_clauses_differ():
     d = _init_db()
     (q, args) = d._expand_search_str_clauses((
         ("id", "!123"),
-    ))
+    ), True)
     assert(len(args) == 1)
     assert(not "OR" in q)
     assert(not "AND" in q)
@@ -2661,7 +2676,7 @@ def test_expand_search_str_clauses_int():
     d = _init_db()
     (q, args) = d._expand_search_str_clauses((
         ("id", "!123", int),
-    ))
+    ), True)
     assert(len(args) == 1)
     assert(not "OR" in q)
     assert(not "AND" in q)
@@ -2679,7 +2694,7 @@ def test_expand_search_str_clauses_begin_with_equal():
     d = _init_db()
     (q, args) = d._expand_search_str_clauses((
         ("id", "=123;4566"),
-    ))
+    ), True)
     assert(len(args) == 1)
     assert("id = ?" in q)
     assert(args[0] == "123;4566")
@@ -2688,7 +2703,7 @@ def test_expand_search_str_clauses_begin_after_semicolon():
     d = _init_db()
     (q, args) = d._expand_search_str_clauses((
         ("id", ";=123;4566"),
-    ))
+    ), True)
     assert(len(args) == 2)
     assert(args[0] == "123")
     assert(args[1] == "%4566%")
@@ -2702,7 +2717,7 @@ def test_expand_search_str_clauses_multiple_or_and_2():
     (q, args) = d._expand_search_str_clauses((
         ("id", "123;567"),
         ("rid", "678"),
-    ))
+    ), True)
 
     assert(len(args) == 3)
     assert(args[0] == "%123%")
@@ -2730,6 +2745,22 @@ def test_expand_search_str_clauses_multiple_or_and_2():
     i2 = q.find("AND")
     assert(i2 >= 0)
     assert(i2 > i)
+
+def test_expand_search_str_icase():
+    d = _init_db()
+    (q, args) = d._expand_search_str_clauses((
+        ("descr", "foo"),
+    ), True)
+    assert(not "UPPER" in q)
+    assert("foo" in args[0])
+
+
+    d = _init_db()
+    (q, args) = d._expand_search_str_clauses((
+        ("descr", "foo"),
+    ), False)
+    assert("UPPER" in q)
+    assert("FOO" in args[0])
 
 #------
 

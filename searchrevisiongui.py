@@ -45,8 +45,8 @@ class RevisionListWidget(QWidget):
         self._code = None
         self._rid = None
         self._bom = bom
-        self._descr_force_uppercase = cfg.config()["BOMBROWSER"].get("description_force_uppercase", "1")
-        self._code_force_uppercase = cfg.config()["BOMBROWSER"].get("code_force_uppercase", "1")
+        self._case_sens = cfg.config()["BOMBROWSER"]["ignore_case_during_search"] == "0"
+
         self._data = dict()
         self._field_names = [
             ("code", "Code"), ("descr", "Description", 6),
@@ -190,9 +190,9 @@ class RevisionListWidget(QWidget):
                     continue
 
                 if pk in ("rid", "id", "iter") or pk.startswith("date_"):
-                    match = utils.bb_match(v[pk], pv, int)
+                    match = utils.bb_match(v[pk], pv, int, case_sensitive=self._case_sens )
                 else:
-                    match = utils.bb_match(v[pk], pv)
+                    match = utils.bb_match(v[pk], pv, case_sensitive=self._case_sens)
                 if not match:
                     break
 
@@ -203,7 +203,7 @@ class RevisionListWidget(QWidget):
 
     def _search_revisions_join_docs(self, **dd):
         d = db.DB()
-        ret = d.search_revisions(**dd)
+        ret = d.search_revisions(**dd, case_sensitive=self._case_sens)
 
         prev_row = None
         for row in ret:
@@ -285,11 +285,6 @@ class RevisionListWidget(QWidget):
                     else:
                         v = str(db.iso_to_days(v))
                     v = prefix + v
-
-                elif self._descr_force_uppercase == "1" and k == "descr":
-                        v = v.upper()
-                elif self._code_force_uppercase == "1" and k == "code":
-                        v = v.upper()
 
                 dd[k] = v
 

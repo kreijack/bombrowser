@@ -581,7 +581,11 @@ class _BaseServer:
         return data
 
     # case sensitive search
-    def get_codes_by_code(self, code):
+    def get_codes_by_code(self, code, case_sensitive=True):
+        icode = "i.code"
+        if not case_sensitive:
+            code = code.upper()
+            icode = "UPPER(%s)"%(icode)
         with ROCursor(self) as c:
             c.execute("""
             SELECT i.id, i.code, r.descr, r.ver, r.iter, r.default_unit
@@ -590,7 +594,7 @@ class _BaseServer:
                     FROM items AS i
                     LEFT JOIN item_revisions AS r
                         ON r.code_id = i.id
-                    WHERE UPPER(i.code) = UPPER(?)
+                    WHERE %s = ?
                     GROUP BY i.id
             ) AS r2
             LEFT JOIN item_revisions AS r
@@ -598,14 +602,14 @@ class _BaseServer:
             LEFT JOIN items AS i
                 ON r.code_id = i.id
             ORDER BY r.iter DESC
-            """, (code,))
+            """%(icode), (code,))
             res = c.fetchall()
             if not res:
                 return None
             else:
                 return res
 
-    def _expand_search_str_clauses(self, req):
+    def _expand_search_str_clauses(self, req, case_sensitive):
         # split query joined by ';'
         req2 = []
 
@@ -613,21 +617,18 @@ class _BaseServer:
             if len(row) == 2:
                 row = list(row)
                 row.append(None)
-            if len(row) == 3:
-                row = list(row)
-                row.append(False)
 
-            field, value, func, upper = row
+            field, value, func = row
             if len(value) > 0 and value[0] == "=":
-                req2.append((field, (value,), func, upper))
+                req2.append((field, (value,), func))
                 continue
 
             vs = value.split(";")
-            req2.append((field, vs, func, upper))
+            req2.append((field, vs, func))
 
         q2 = []
         args = []
-        for (field, values, func, upper) in req2:
+        for (field, values, func) in req2:
             q = []
             if func is None:
                 f = lambda x: x
@@ -653,8 +654,9 @@ class _BaseServer:
                     # if we are here, the field is empty and any <=>! are specified
                     continue
 
-                if upper:
-                    q.append("UPPER(%s) %s UPPER(?)"%(field, op))
+                if not case_sensitive and isinstance(arg, str):
+                    arg = arg.upper()
+                    q.append("UPPER(%s) %s ?"%(field, op))
                 else:
                     q.append("%s %s ?"%(field, op))
                 args.append(arg)
@@ -670,7 +672,7 @@ class _BaseServer:
         return (" " + qry + " ", args)
 
     # case sensitive search
-    def get_codes_by_like_code_and_descr(self, code, descr):
+    def get_codes_by_like_code_and_descr(self, code, descr, case_sensitive=True):
         if code == "" and descr == "":
             return []
 
@@ -686,9 +688,9 @@ class _BaseServer:
             """
 
             q2, args = self._expand_search_str_clauses((
-                ("i.code", code, None, True),
-                ("r.descr", descr, None, True)
-            ))
+                ("i.code", code, None),
+                ("r.descr", descr, None)
+            ), case_sensitive)
 
             q += """
                         """ + q2
@@ -1597,7 +1599,7 @@ class _BaseServer:
         return ""
 
     # case sensitive search
-    def search_revisions(self, **kwargs):
+    def search_revisions(self, case_sensitive=True, **kwargs):
         gval_query = ", ".join(["r.gval%d"%(i+1) for i in range(gvals_count)])
 
         query = """
@@ -1618,6 +1620,9 @@ class _BaseServer:
                      "date_from_days", "date_to_days", "doc"]
         arg_names += ["gval%d"%(i+1) for i in range(gvals_count)]
 
+        # check that nobody is passing not supported argument
+        assert(len(set(kwargs.keys()).difference(set(arg_names))) == 0)
+
         for k in kwargs:
             assert(k in arg_names)
             arg = str(kwargs[k]).strip()
@@ -1637,13 +1642,13 @@ class _BaseServer:
                 k = "iter"
 
             if k in ["id", "iter", "date_from_days", "date_to_days"]:
-                where.append(("%s.%s"%(table, k), arg, int, False))
+                where.append(("%s.%s"%(table, k), arg, int))
             else:
-                where.append(("%s.%s"%(table, k), arg, None, True))
+                where.append(("%s.%s"%(table, k), arg, None))
 
         if len(where):
             query += "            WHERE\n"
-            q, args = self._expand_search_str_clauses(where)
+            q, args = self._expand_search_str_clauses(where, case_sensitive)
             query += "                " + q
 
         query += """
@@ -1907,7 +1912,8 @@ class DBSQLite(_BaseServer):
 
     def _open(self, path):
         self._conn = sqlite3.connect(self._path)
-        self._conn.execute("""PRAGMA foreign_keys = ON""")
+        self._conn.execute("PRAGMA foreign_keys = ON")
+        self._conn.execute("PRAGMA case_sensitive_like = 1")
         self._mod = sqlite3
 
     def _commit(self, c):

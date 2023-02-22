@@ -174,6 +174,7 @@ def _check_cfg(cfg):
                 ('revlistolors', True),
                 ('scalefont', True),
                 ('btnmaxlength', True),
+                ('ignore_case_during_search', True),
         )),
         ('FILES_UPLOAD', (
                 ('method', True),
