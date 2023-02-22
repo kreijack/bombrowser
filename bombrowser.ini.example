@@ -12,6 +12,9 @@ db=sqlserver
 description_force_uppercase=1
 code_force_uppercase=1
 
+# ignore case during search
+ignore_case_during_search=0
+
 templates_list=template_simple,template_all,template_dummy
 importer_list=import_simple,importer_all
 
@@ -108,6 +111,8 @@ btnmaxlength=30
 
 [SQLITE]
 path=database.sqlite
+# pay attention that this is in 'or' with BOMBROWSER.ignore_case_during_search
+ignore_case_during_search=0
 
 [SQLSERVER]
 conn = DRIVER=ODBC Driver 17 for SQL Server;SERVER=tcp:127.0.0.1;DATABASE=bombrowser;UID=bombrowserUser;PWD=bombrowserPassword1.
@@ -286,90 +291,6 @@ map=
 delimiter=TAB
 default_unit=NR
 ignore_duplicate=1
-
-[test_importer_all]
-name=Test importer all
-type=parent_child
-# Seq	Level	Parent code	Parent descritpion	-	Code	Code2	Description	Q.ty	Each	Unit	Reference	Rev	Iter	From date	To date	Supplier#1 PN	Supplier#1 name	Manufacturer#1 PN	Manufacturer#1 name	Manufacturer#2 PN	Manufacturer#2 name
-map=
-    parent_code:Parent code
-    parent_descr:Parent description
-    code:Code
-    descr:Description
-    qty:Q.ty
-    each:Each
-    unit:Unit
-    ref:Reference
-    gval1:Supplier#1 PN
-    gval2:Supplier#1 name
-    gval3:Manufacturer#1 PN
-    gval4:Manufacturer#1 name
-    gval5:Manufacturer#2 PN
-    gval6:Manufacturer#2 nam
-default_unit=NR
-ignore_duplicate=1
-delimiter=SEMICOLON
-quotechar=SINGLEQUOTE
-
-[test_template_all]
-name=Test full table
-#sortby=2
-columns=
-    seq:Seq
-    level:Level
-    parent:Parent code
-    parent_descr:Parent description
-    '-:-
-    code:Code
-    indented_code:Code2
-    descr:Description
-    qty:Q.ty
-    each:Each
-    unit:Unit
-    ref:Reference
-    rev:Rev
-    iter:Iter
-    date_from:From date
-    date_to:To date
-    gval1:Supplier#1 PN
-    gval2:Supplier#1 name
-    gval3:Manufacturer#1 PN
-    gval4:Manufacturer#1 name
-    gval5:Manufacturer#2 PN
-    gval6:Manufacturer#2 name
-#unique
-
-[test_template_all_1]
-name=Test full table (1st level)
-#sortby=2
-columns=
-    seq:Seq
-    level:Level
-    parent:Parent code
-    parent_descr:Parent description
-    '-:-
-    code:Code
-    indented_code:Code2
-    descr:Description
-    qty:Q.ty
-    each:Each
-    unit:Unit
-    ref:Reference
-    rev:Rev
-    iter:Iter
-    date_from:From date
-    date_to:To date
-    gval1:Supplier#1 PN
-    gval2:Supplier#1 name
-    gval3:Manufacturer#1 PN
-    gval4:Manufacturer#1 name
-    gval5:Manufacturer#2 PN
-    gval6:Manufacturer#2 name
-#unique
-maxlevel=2
-delimiter=SEMICOLON
-quotechar=SINGLEQUOTE
-
 
 [FILES_UPLOAD]
 # valid value: simple -> upload files under upload_files_dir
