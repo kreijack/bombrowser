@@ -184,7 +184,10 @@ def _check_cfg(cfg):
                 ('regexpmap_table', True),
                 ('default_dirs', True),
         )),
-        ('SQLITE',      (('path', True),),),
+        ('SQLITE',      (
+                ('path', True),
+                ('ignore_case_during_search', True),
+        )),
         ('SQLSERVER',   (('conn', True),),),
         ('ORACLE',      (('conn', True),),),
         ('POSTGRESQL', (
