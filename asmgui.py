@@ -158,7 +158,7 @@ class ExportDialog(QDialog):
                     continue
                 tsize += os.path.getsize(fp)
 
-        return fp
+        return tsize
 
     def _do_export(self):
     
