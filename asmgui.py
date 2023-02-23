@@ -239,7 +239,11 @@ class ExportDialog(QDialog):
                 return 1
 
             try:
-                shutil.copy(fname, dest)
+                if os.path.isdir(fname):
+                    fulldest = os.path.join(dest, os.path.basename(fname))
+                    shutil.copytree(fname, fulldest)
+                else:
+                    shutil.copy(fname, dest)
             except Exception as e:
                 ret = QMessageBox.question(self, "BOMBrowser",
                     "Error during the copy of '%s'\nEnd the copy ?"%(fname))
