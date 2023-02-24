@@ -28,6 +28,12 @@ importer_list=import_simple,importer_all
 # - clist: syntax [clist:val1;val2;...] the field has a closed list of
 #                                       predefined values
 # - file: syntax [file] the field can be used to store a path
+# - readonly syntax [readonly] the field is readonly
+#
+# Note: if you want a [ in the field name, you must add a '[]' in the
+#       end of the label. For example:
+#           gvalnames=
+#               gval2:Supplier[1 name[]
 
 gvalnames=
     gval2:Supplier#1 name

@@ -67,7 +67,7 @@ def get_gvalnames2():
         n = n[j+1:]
         if len(n) == 0:
             n = gvalname
-        i = n.find("[")
+        i = n.rfind("[")
         if i < 0:
             ret.append((c, idx, gvalname, n, "free"))
             c += 1

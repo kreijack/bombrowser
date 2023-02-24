@@ -779,6 +779,10 @@ class EditWindow(bbwindow.BBMainWindow):
             for i in values:
                 b.addItem(i)
             return b
+        elif type_.startswith("readonly"):
+            w = QLineEdit()
+            w.setEnabled(False)
+            return w
         else:
             return QLineEdit()
 
