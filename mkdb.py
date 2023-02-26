@@ -134,34 +134,47 @@ rnd = MyRandom()
 dbname="database.sqlite"
 
 def insert_code(c, descr, code, ver='0', iter_=0, default_unit='NR',
-                gval1='', gval2='', date=None, date_to=None):
+                gval1='', gval2='', date=None, date_to=None, drawings=[]):
 
-            if date is None:
-                date = date0
-            if date_to is None:
-                date_to = db.days_to_iso(db.end_of_the_world)
+    if date is None:
+        date = date0
+    if date_to is None:
+        date_to = db.days_to_iso(db.end_of_the_world)
 
-            c.execute("INSERT INTO items(code) VALUES (?)", (
-                code,)
+    c.execute("INSERT INTO items(code) VALUES (?)", (
+        code,)
+    )
+    c.execute("SELECT MAX(id) FROM items")
+    mid = c.fetchone()[0]
+
+    c.execute("""INSERT INTO item_revisions(
+        descr, code_id, ver,
+        iter, default_unit,
+        gval1, gval2,
+        date_from, date_from_days,
+        date_to, date_to_days) VALUES (
+        ?, ?, ?,
+        ?, ?,
+        ?, ?,
+        ?, ?,
+        ?, ?)""",
+        (descr, mid, ver, iter_, default_unit, gval1, gval2,
+         date, db.iso_to_days(date),
+         date_to, db.iso_to_days(date_to))
+    )
+
+    c.execute("SELECT MAX(id) FROM item_revisions")
+    rev_id = c.fetchone()[0]
+
+    if len(drawings) > 0:
+        for fn in drawings:
+            c.execute("""INSERT INTO drawings(
+                            code, revision_id, filename, fullpath
+                         ) VALUES ( ?, ?, ?, ? )
+                      """, (code, rev_id, os.path.basename(fn), os.path.abspath(fn))
             )
-            c.execute("SELECT MAX(id) FROM items")
-            mid = c.fetchone()[0]
 
-            c.execute("""INSERT INTO item_revisions(
-                descr, code_id, ver,
-                iter, default_unit,
-                gval1, gval2,
-                date_from, date_from_days,
-                date_to, date_to_days) VALUES (
-                ?, ?, ?,
-                ?, ?,
-                ?, ?,
-                ?, ?,
-                ?, ?)""",
-                (descr, mid, ver, iter_, default_unit, gval1, gval2,
-                 date, db.iso_to_days(date),
-                 date_to, db.iso_to_days(date_to))
-            )
+    return rev_id
 
 # create screws
 def insert_screws(c):
@@ -376,18 +389,10 @@ def insert_board(c):
         open(fn1, "w").write("Type: board drawing\nCode: %s\nNr components: %d\n"%(
             code, ncomponents))
 
-        insert_code(c,
-                "BOARD %d"%(cnt), "610%03d"%(cnt), 0,
-                0, "NR", "BOARD %d"%(cnt), "BOARDS MANUFACTURER %d"%(cnt %3, )
-        )
-
-        c.execute("SELECT MAX(id) FROM item_revisions")
-        board_id = c.fetchone()[0]
-
-        c.execute("""INSERT INTO drawings(
-                code, revision_id, filename, fullpath
-            ) VALUES ( ?, ?, ?, ? )
-                """, (code, board_id, os.path.basename(fn1), os.path.abspath(fn1))
+        board_id = insert_code(c,
+                "BOARD %d"%(cnt), code, 0,
+                0, "NR", "BOARD %d"%(cnt), "BOARDS MANUFACTURER %d"%(cnt %3, ),
+                drawings = [fn1]
         )
 
         # create the board assy
@@ -426,22 +431,17 @@ def insert_mechanical_components(c):
     cnt=1
     for d in range(mech_number_of_components):
         code = "81%04d"%(cnt)
-        insert_code(c,
-                "MECHANICAL COMPONENT NR.%d"%(d, ), "810%03d"%(cnt), 0,
-                0, "NR", "", "MECHANICAL SUPPLIER %d"%(d % 4,)
-        )
-
-        c.execute("SELECT MAX(id) FROM item_revisions")
-        mech_id = c.fetchone()[0]
 
         fn1 = "documents/drawings/%s_(drw)_rev0.txt"%(code)
         open(fn1, "w").write("Type: mechanical drawing\nCode:%s\n"%(
             code, ))
-        c.execute("""INSERT INTO drawings(
-                code, revision_id, filename, fullpath
-            ) VALUES ( ?, ?, ?, ? )
-                """, (code, mech_id, os.path.basename(fn1), os.path.abspath(fn1))
+
+        insert_code(c,
+                "MECHANICAL COMPONENT NR.%d"%(d, ), code, 0,
+                0, "NR", "", "MECHANICAL SUPPLIER %d"%(d % 4,),
+                drawings = [fn1]
         )
+
         cnt += 1
 
 # create assemblies with drawings and assembling procedure
@@ -473,24 +473,11 @@ def insert_mechanical_assemblies(c):
         open(fn2, "w").write("Type: assembling procedure\nCode: %s\nNr components: %d\n"%(
             code, ncomponents))
 
-        insert_code(c,
+        mech_id = insert_code(c,
                 "MECHANICAL ASSEMBLIES %d - LEVEL %d"%(cnt,
                     cnt/(mech_num_assemblies / mech_num_level) + 1), code, 0,
-                0, "NR", "", "INTERNAL SUPPLIER"
-        )
-
-        c.execute("SELECT MAX(id) FROM item_revisions")
-        mech_id = c.fetchone()[0]
-
-        c.execute("""INSERT INTO drawings(
-                code, revision_id, filename, fullpath
-            ) VALUES ( ?, ?, ?, ? )
-                """, (code, mech_id, os.path.basename(fn1), os.path.abspath(fn1))
-        )
-        c.execute("""INSERT INTO drawings(
-                code, revision_id, filename, fullpath
-            ) VALUES ( ?, ?, ?, ? )
-                """, (code, mech_id, os.path.basename(fn2), os.path.abspath(fn2))
+                0, "NR", "", "INTERNAL SUPPLIER",
+                drawings = [fn1, fn2]
         )
 
         did =set()
@@ -555,18 +542,10 @@ def insert_top_codes(c):
             code, ncomponents))
 
 
-        insert_code(c,
+        top_id = insert_code(c,
                 "TOP ASSEMBLY %d"%(cnt, ), code, 0,
-                0, "NR", "", "INTERNAL SUPPLIER"
-        )
-
-        c.execute("SELECT MAX(id) FROM item_revisions")
-        top_id = c.fetchone()[0]
-
-        c.execute("""INSERT INTO drawings(
-                code, revision_id, filename, fullpath
-            ) VALUES ( ?, ?, ?, ? )
-                """, (code, top_id, os.path.basename(fn1), os.path.abspath(fn1))
+                0, "NR", "", "INTERNAL SUPPLIER",
+                drawings = [fn1]
         )
 
         #up to 127 sub assemblies
@@ -619,19 +598,10 @@ def insert_spare_parts(c):
         open(fn1, "w").write("Type: packaging procedure\nCode: %s\nNr components: %d\n"%(
             code, ncomponents))
 
-
-        insert_code(c,
-                "SPARE PART %d"%(cnt, ), code, 0,
-                0, "NR", "", "INTERNAL SUPPLIER"
-        )
-
-        c.execute("SELECT MAX(id) FROM item_revisions")
-        top_id = c.fetchone()[0]
-
-        c.execute("""INSERT INTO drawings(
-                code, revision_id, filename, fullpath
-            ) VALUES ( ?, ?, ?, ? )
-                """, (code, top_id, os.path.basename(fn1), os.path.abspath(fn1))
+        top_id = insert_code(c,
+            "SPARE PART %d"%(cnt, ), code, 0,
+            0, "NR", "", "INTERNAL SUPPLIER",
+            drawings = [fn1]
         )
 
         ts = datetime.date.fromisoformat(date0).toordinal()
