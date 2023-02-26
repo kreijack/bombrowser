@@ -385,7 +385,7 @@ def insert_board(c):
 
         code = "61%04d"%(cnt)
 
-        fn1 = "documents/boards/%s_(wl)_rev0.txt"%(code)
+        fn1 = "documents/boards/%s_(el)_rev0.txt"%(code)
         open(fn1, "w").write("Type: board drawing\nCode: %s\nNr components: %d\n"%(
             code, ncomponents))
 
@@ -767,7 +767,7 @@ def change_code(c, code_id, new_date):
                 ) VALUES ( ?, ?, ?, ? )
                     """, (code, new_id, os.path.basename(fn1), os.path.abspath(fn1))
             )
-            fn2 = "documents/assembling-procedures/%s_(ass)_rev%s.txt"%(code, new_rev)
+            fn2 = "documents/assembling-procedures/%s_(asm)_rev%s.txt"%(code, new_rev)
             open(fn2, "w").write("Type: assembling procedure\nCode:%s\n"%(
                 code, ))
             c.execute("""INSERT INTO drawings(
