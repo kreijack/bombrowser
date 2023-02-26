@@ -47,9 +47,9 @@ def set_standard_config():
     mech_num_assemblies = 200
     # the assembly components count is
     # mech_assy_components_count_max / 10 + rnd % mech_assy_components_count_max
-    mech_assy_components_count_max = 50
+    mech_assy_components_count_max = 20
     # maximum depth of bom
-    mech_num_level = 10
+    mech_num_level = 7
 
     # number of top code
     top_code_count = 120
