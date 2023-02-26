@@ -885,9 +885,9 @@ def insert_unicode_code(c):
     insert_code(c, s, "TEST-HELLOWORLD", 0,
                 0, "NR", "", "")
     insert_code(c, "all lowercase", "TEST-alllowercase", 0,
-                0, "NR", "", "")
+                0, "NR", "gval1 lower", "gval2 lower")
     insert_code(c, "ALL UPPER CASE", "TEST-ALLUPPERCASE", 0,
-                0, "NR", "", "")
+                0, "NR", "GVAL1 UPPER", "GVAL2 UPPER")
     insert_code(c, "DEGREE SYMBOL '°'", "TEST-DEGREE", 0,
                 0, "NR", "", "")
     insert_code(c, "A-ACUTE 'à'", "TEST-AACUTE", 0,
