@@ -863,6 +863,11 @@ def insert_unicode_code(c):
     insert_code(c, "A-ACUTE 'à'", "TEST-AACUTE", 0,
                 0, "NR", "", "")
 
+    code = "TEST-LONG_FN"
+    fn = "documents/drawings/%s_(drw)_%s_rev%s.txt"%(code, 'xX' * 20, 0)
+    insert_code(c, "LONG FILENAME CODE", code, 0,
+                0, "NR", "", "", drawings=[fn])
+
 def insert_codes_with_date(c):
 
     insert_code(c, "TEST-ASS-A", "TEST-ASS-A", 0,
