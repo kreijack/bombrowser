@@ -23,11 +23,11 @@ from PySide2.QtWidgets import QPushButton, QMainWindow, QTextEdit
 from PySide2.QtWidgets import QVBoxLayout, QApplication, QWidget
 from PySide2.QtCore import Qt
 
-import customize
+import customize, bbwindow
 
-class ShowResult(QMainWindow):
-    def __init__(self, txt='', parent=None):
-        QMainWindow.__init__(self, parent=parent)
+class ShowResult(bbwindow.BBMainWindow):
+    def __init__(self, txt='', bom_descr = '', parent=None):
+        bbwindow.BBMainWindow.__init__(self, parent=parent)
 
         l = QVBoxLayout()
         self._edit = QTextEdit()
@@ -42,6 +42,7 @@ class ShowResult(QMainWindow):
         w.setLayout(l)
         self.setCentralWidget(w)
         self.resize(800, 600)
+        self.setWindowTitle('BOM Checker: ' + bom_descr)
 
         self.setHtml(txt)
 
@@ -74,9 +75,7 @@ def loop_check(root, data):
     return local["res"]
 
 
-def run_bom_tests(root, data):
-
-    global __root_window
+def run_bom_tests(root, data, bom_descr):
 
     QApplication.setOverrideCursor(Qt.WaitCursor)
     res = ""
@@ -93,9 +92,9 @@ def run_bom_tests(root, data):
     else:
         res = "<font color=red><H1>Error</H1></font><br><\n><hr>\n" + res
 
-    __root_window = ShowResult()
-    __root_window.setHtml(res)
-    __root_window.show()
+    w = ShowResult(bom_descr = bom_descr)
+    w.setHtml(res)
+    w.show()
 
 
 if __name__ == '__main__':

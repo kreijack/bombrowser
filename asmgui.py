@@ -628,7 +628,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         w.show()
 
     def _check_bom(self):
-        checker.run_bom_tests(self._top, self._data)
+        checker.run_bom_tests(self._top, self._data, self._top_reference)
 
     def _export_data(self):
         d = ExportDialog(self, self._top, self._data)
