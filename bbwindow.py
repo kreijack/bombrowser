@@ -67,34 +67,25 @@ class BBMainWindow(QMainWindow):
         global _bbmainwindows_list_cnt
         global _bbmainwindows_list
 
-        codewindows = []
-        bomwindows = []
-        diffwindows = []
-        editwindows = []
-        copywindows = []
+        windows = dict()
         for (id_, w, t) in _bbmainwindows_list:
 
             if id_ == self.__bbmainwindow_list_cnt:
                 continue
 
-            if t.startswith(window_title + " - Diff window"):
-                diffwindows.append((t, id_))
-            elif t.startswith(window_title + " - Edit code"):
-                editwindows.append((t, id_))
-            elif (t.startswith(window_title + " - Assembly") or
-                  t.startswith(window_title + " - Search in bom") or
-                  t.startswith(window_title + " - Valid where used") or
-                  t.startswith(window_title + " - Smart where used") or
-                  t.startswith(window_title + " - Where used")):
-                bomwindows.append((t, id_))
-            elif (t.startswith(window_title + " - Copy code:") or
-                  t.startswith(window_title + " - Revise code:")):
-                copywindows.append((t, id_))
-            elif t.startswith(window_title + " - Codes list"):
-                codewindows.append((t, id_))
+            i1 = t.find(" - ")
+            i2 = t.find(":", i1)
+            wkey = t[i1+3:i2]
+            if not wkey in windows:
+                windows[wkey] = []
+            windows[wkey].append((t, id_))
 
-        return (codewindows, bomwindows, diffwindows, editwindows,
-            copywindows)
+        ret = []
+        keys = list(windows.keys())
+        keys.sort()
+        for k in keys:
+            ret.append(windows[k])
+        return ret
 
     def build_windows_menu(self, main_menu, title="Windows", win=None):
         if win is None:
