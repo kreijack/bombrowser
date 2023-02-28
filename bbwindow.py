@@ -77,7 +77,6 @@ class BBMainWindow(QMainWindow):
             win = self
 
         wm = main_menu.addMenu(title)
-        self._build_windows_menu(wm, win)
         wm.aboutToShow.connect(
             lambda : self._build_windows_menu(wm, win))
 
