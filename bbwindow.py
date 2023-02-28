@@ -26,59 +26,44 @@ import listcodegui
 
 window_title = "BOMBrowser " + version
 
-_bbmainwindows_list = []
-_bbmainwindows_list_cnt = 0
+_bbmainwindows_list = set()
 
 class BBMainWindow(QMainWindow):
     def __init__(self, parent=None):
-        global _bbmainwindows_list_cnt
         global _bbmainwindows_list
 
         QMainWindow.__init__(self, parent)
-        self.__bbmainwindow_list_cnt = _bbmainwindows_list_cnt
-        _bbmainwindows_list_cnt += 1
 
-        _bbmainwindows_list.append([self.__bbmainwindow_list_cnt,
-            self, ""])
+        _bbmainwindows_list.add(self)
 
     def setWindowTitle(self, title):
-        global _bbmainwindows_list_cnt
-        global _bbmainwindows_list
-
-        QMainWindow.setWindowTitle(self, window_title + " - " + title)
-
-        for i in _bbmainwindows_list:
-            if i[0] == self.__bbmainwindow_list_cnt:
-                i[2] = window_title + " - " + title
-                break
+        t = window_title + " - " + title
+        QMainWindow.setWindowTitle(self, t)
 
     def closeEvent(self, event):
-        global _bbmainwindows_list_cnt
         global _bbmainwindows_list
 
-        for i in range(len(_bbmainwindows_list)):
-            if _bbmainwindows_list[i][0] == self.__bbmainwindow_list_cnt:
-                _bbmainwindows_list.pop(i)
-                break
+        _bbmainwindows_list.remove(self)
 
         QMainWindow.closeEvent(self, event)
 
     def _get_windows_list(self):
-        global _bbmainwindows_list_cnt
         global _bbmainwindows_list
 
         windows = dict()
-        for (id_, w, t) in _bbmainwindows_list:
+        for w in _bbmainwindows_list:
 
-            if id_ == self.__bbmainwindow_list_cnt:
+            if w is self:
                 continue
+
+            t = w.windowTitle()
 
             i1 = t.find(" - ")
             i2 = t.find(":", i1)
             wkey = t[i1+3:i2]
             if not wkey in windows:
                 windows[wkey] = []
-            windows[wkey].append((t, id_))
+            windows[wkey].append((t, w))
 
         ret = []
         keys = list(windows.keys())
@@ -97,32 +82,26 @@ class BBMainWindow(QMainWindow):
             lambda : self._build_windows_menu(wm, win))
 
     def _build_windows_menu(self, m, win):
-
-        global _bbmainwindows_list_cnt
         global _bbmainwindows_list
 
         for a in list(m.actions()):
             m.removeAction(a)
 
         class ShowWindow():
-            def __init__(self, id_):
-                self._id = id_
+            def __init__(self, w):
+                self._w = w
             def __call__(self):
-                for (id_, w, t) in _bbmainwindows_list:
-                    if id_ == self._id:
-                        w.raise_()
-                        w.setWindowState(Qt.WindowActive)
-                        w.showNormal()
-                        w.activateWindow()
-                        w.show()
-                        break
-
+                self._w.raise_()
+                self._w.setWindowState(Qt.WindowActive)
+                self._w.showNormal()
+                self._w.activateWindow()
+                self._w.show()
 
         def close_all_other_windows():
-            for (id_, w, t) in _bbmainwindows_list[:]:
-                if id_ == self.__bbmainwindow_list_cnt:
-                    continue
-                w.close()
+            ws = list(_bbmainwindows_list)
+            for w in ws:
+                if not w is self:
+                    w.close()
 
         a = QAction("Close all other windows", win)
         a.setShortcut("Ctrl+W")
