@@ -174,7 +174,7 @@ def insert_code(c, descr, code, ver='0', iter_=0, default_unit='NR',
                       """, (code, rev_id, os.path.basename(fn), os.path.abspath(fn))
             )
 
-    return rev_id
+    return rev_id, mid
 
 # create screws
 def insert_screws(c):
@@ -369,6 +369,30 @@ def get_min_by_code(c, pattern):
                  (pattern,))
     return c.fetchone()[0]
 
+def make_assembly(c, ass_rid, children):
+    try:
+        a = children[0][1]
+    except:
+        children =[(x, 1) for x in children]
+
+    for child_id, qty in children:
+        c.execute("""INSERT INTO assemblies (
+            unit,
+            child_id, revision_id,
+            qty,
+            each,
+            ref) VALUES (
+            ?,
+            ?, ?,
+            ?,
+            ?,
+            ? )""", (
+                "NR",
+                child_id, ass_rid,
+                qty,
+                1, '//')
+        )
+
 # create boards with drawings
 def insert_board(c):
 
@@ -389,7 +413,7 @@ def insert_board(c):
         open(fn1, "w").write("Type: board drawing\nCode: %s\nNr components: %d\n"%(
             code, ncomponents))
 
-        board_id = insert_code(c,
+        board_id, _ = insert_code(c,
                 "BOARD %d"%(cnt), code, 0,
                 0, "NR", "BOARD %d"%(cnt), "BOARDS MANUFACTURER %d"%(cnt %3, ),
                 drawings = [fn1]
@@ -407,24 +431,7 @@ def insert_board(c):
                     break
             did.add(cid)
 
-            ts = datetime.date.fromisoformat(date0).toordinal()
-
-            c.execute("""INSERT INTO assemblies (
-                unit,
-                child_id, revision_id,
-                qty,
-                each,
-                ref) VALUES (
-                ?,
-                ?, ?,
-                ?,
-                ?,
-                ? )""", (
-                    "NR",
-                    cid, board_id,
-                    (i * cnt % 10) + 1,
-                    0, '//')
-            )
+            make_assembly(c, board_id, [(cid, (i * cnt % 10) + 1),])
 
 # create mechanical componets with drawings
 def insert_mechanical_components(c):
@@ -473,7 +480,7 @@ def insert_mechanical_assemblies(c):
         open(fn2, "w").write("Type: assembling procedure\nCode: %s\nNr components: %d\n"%(
             code, ncomponents))
 
-        mech_id = insert_code(c,
+        mech_id, _ = insert_code(c,
                 "MECHANICAL ASSEMBLIES %d - LEVEL %d"%(cnt,
                     cnt/(mech_num_assemblies / mech_num_level) + 1), code, 0,
                 0, "NR", "", "INTERNAL SUPPLIER",
@@ -502,25 +509,7 @@ def insert_mechanical_assemblies(c):
 
             did.add(cid)
 
-            ts = datetime.date.fromisoformat(date0).toordinal()
-
-            c.execute("""INSERT INTO assemblies (
-                unit,
-                child_id, revision_id,
-                qty,
-                each,
-                ref) VALUES (
-                ?,
-                ?, ?,
-                ?,
-                ?,
-                ? )""", (
-                    "NR",
-                    cid, mech_id,
-                    (i * cnt % 10) + 1,
-                    1,
-                    '//')
-            )
+            make_assembly(c, mech_id, ((cid, (i * cnt % 10) + 1),))
 
 # create top assemblies with packaging procedure
 def insert_top_codes(c):
@@ -542,7 +531,7 @@ def insert_top_codes(c):
             code, ncomponents))
 
 
-        top_id = insert_code(c,
+        top_id, _ = insert_code(c,
                 "TOP ASSEMBLY %d"%(cnt, ), code, 0,
                 0, "NR", "", "INTERNAL SUPPLIER",
                 drawings = [fn1]
@@ -558,25 +547,7 @@ def insert_top_codes(c):
                     break
             did.add(cid)
 
-            ts = datetime.date.fromisoformat(date0).toordinal()
-
-            c.execute("""INSERT INTO assemblies (
-                unit,
-                child_id, revision_id,
-                qty,
-                each,
-                ref) VALUES (
-                ?,
-                ?, ?,
-                ?,
-                ?,
-                ? )""", (
-                    "NR",
-                    cid, top_id,
-                    (i * cnt % 10) + 1,
-                    1,
-                    '//')
-            )
+            make_assembly(c, top_id, ((cid, (i * cnt % 10) + 1),))
 
 # create spare part with packaging procedure
 def insert_spare_parts(c):
@@ -598,7 +569,7 @@ def insert_spare_parts(c):
         open(fn1, "w").write("Type: packaging procedure\nCode: %s\nNr components: %d\n"%(
             code, ncomponents))
 
-        top_id = insert_code(c,
+        top_id, _ = insert_code(c,
             "SPARE PART %d"%(cnt, ), code, 0,
             0, "NR", "", "INTERNAL SUPPLIER",
             drawings = [fn1]
@@ -614,23 +585,7 @@ def insert_spare_parts(c):
                     break
             did.add(cid)
 
-            c.execute("""INSERT INTO assemblies (
-                unit,
-                child_id, revision_id,
-                qty,
-                each,
-                ref) VALUES (
-                ?,
-                ?, ?,
-                ?,
-                ?,
-                ? )""", (
-                    "NR",
-                    cid, top_id,
-                    (i * cnt % 10) + 1,
-                    1,
-                    '//')
-            )
+            make_assembly(c, top_id, ((cid, (i * cnt % 10) + 1),))
 
 def revise_code(c, old_rid, new_date):
 
@@ -865,9 +820,37 @@ def insert_unicode_code(c):
 
     code = "TEST-LONG_FN"
     fn = "documents/drawings/%s_(drw)_%s_rev%s.txt"%(code, 'xX' * 20, 0)
-    insert_code(c, "LONG FILENAME CODE", code, 0,
+    open(fn, "w").write("Long filename\n")
+    _, id_long_fn = insert_code(c, "LONG FILENAME CODE", code, 0,
                 0, "NR", "", "", drawings=[fn])
 
+    code = "TEST-NORMAL-CODE"
+    fn = "documents/drawings/%s_(drw)_rev%s.txt"%(code, 0)
+    open(fn, "w").write("Normal filename\n")
+    _, id_normal = insert_code(c, "NORMAL CODE", code, 0,
+                0, "NR", "", "", drawings=[fn])
+
+    code = "TEST-MISSING-FN"
+    fn = "documents/drawings/%s_(drw)_rev%s.txt"%(code, 0)
+    _, id_missing_file = insert_code(c, "MISSING FILE", code, 0,
+                0, "NR", "", "", drawings=[fn])
+
+    code = "TEST-FILE-TOO-BIG"
+    fn = "documents/drawings/%s_(drw)_rev%s.txt"%(code, 0)
+    with open(fn, "w") as f:
+        f.seek(1024*1024*1024*10);
+        f.write(" ");
+    _, id_file_too_long = insert_code(c, "FILE TOO BIG", code, 0,
+                0, "NR", "", "", drawings=[fn])
+
+    code = "TEST-ASSY-TO-EXPORT"
+    insert_code(c, "TEST ASSY TO EXPORT", code, 0,
+                0, "NR", "", "")
+    c.execute("""SELECT MAX(id) FROM item_revisions""")
+    arid = c.fetchone()[0]
+    make_assembly(c, arid,
+        (id_long_fn, id_missing_file, id_file_too_long, id_normal))
+
 def insert_codes_with_date(c):
 
     insert_code(c, "TEST-ASS-A", "TEST-ASS-A", 0,
@@ -886,17 +869,7 @@ def insert_codes_with_date(c):
     c.execute("""SELECT MAX(id) FROM items""")
     cbid = c.fetchone()[0]
 
-    for child_id in [caid, cbid]:
-        c.execute("""
-            INSERT INTO assemblies(
-                        unit, child_id,
-                        revision_id,
-                        qty, each, ref
-            ) VALUES (
-                ?, ?,
-                ?,
-                ?, ?, ?
-            )""",  ('NR', child_id, aaid, 1, 1, '//'))
+    make_assembly(c, aaid, [caid, cbid])
 
 def insert_codes_with_date(c):
 
@@ -916,17 +889,7 @@ def insert_codes_with_date(c):
     c.execute("""SELECT MAX(id) FROM items""")
     cbid = c.fetchone()[0]
 
-    for child_id in [caid, cbid]:
-        c.execute("""
-            INSERT INTO assemblies(
-                        unit, child_id,
-                        revision_id,
-                        qty, each, ref
-            ) VALUES (
-                ?, ?,
-                ?,
-                ?, ?, ?
-            )""",  ('NR', child_id, aaid, 1, 1, '//'))
+    make_assembly(c, aaid, [caid, cbid])
 
 def insert_codes_with_loop(c):
 
@@ -948,38 +911,9 @@ def insert_codes_with_loop(c):
     c.execute("""SELECT MAX(id) FROM items""")
     cci = c.fetchone()[0]
 
-    c.execute("""
-        INSERT INTO assemblies(
-                    unit, child_id,
-                    revision_id,
-                    qty, each, ref
-        ) VALUES (
-            ?, ?,
-            ?,
-            ?, ?, ?
-        )""",  ('NR', cbi, car, 1, 1, '//'))
-
-    c.execute("""
-        INSERT INTO assemblies(
-                    unit, child_id,
-                    revision_id,
-                    qty, each, ref
-        ) VALUES (
-            ?, ?,
-            ?,
-            ?, ?, ?
-        )""",  ('NR', cci, cbr, 1, 1, '//'))
-
-    c.execute("""
-        INSERT INTO assemblies(
-                    unit, child_id,
-                    revision_id,
-                    qty, each, ref
-        ) VALUES (
-            ?, ?,
-            ?,
-            ?, ?, ?
-        )""",  ('NR', cai, ccr, 1, 1, '//'))
+    make_assembly(c, car,((cbi, 1),))
+    make_assembly(c, cbr,((cci, 1),))
+    make_assembly(c, ccr,((cai, 1),))
 
 def create_db():
     d = db.DB()
