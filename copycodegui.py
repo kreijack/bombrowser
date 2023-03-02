@@ -233,8 +233,13 @@ class _CopyCode(bbwindow.BBMainWindow):
         if not self._check_values():
             return
 
-        reply = QMessageBox.question(self, "Copy/revise confirmation",
-                                "Do you want to copy/revise the code ?",
+        if self._do_copy:
+            reply = QMessageBox.question(self, "Copy confirmation",
+                                "Do you want to copy the code ?",
+                                QMessageBox.Yes, QMessageBox.No);
+        else:
+            reply = QMessageBox.question(self, "Revise confirmation",
+                                "Do you want to revise the code ?",
                                 QMessageBox.Yes, QMessageBox.No);
         if reply == QMessageBox.No:
             return
