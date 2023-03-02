@@ -205,6 +205,10 @@ class CodesWindow(bbwindow.BBMainWindow):
         mainMenu = self.menuBar()
 
         m = mainMenu.addMenu("File")
+        a = QAction("Reload config", self)
+        a.triggered.connect(utils.reload_config_or_warn)
+        m.addAction(a)
+        m.addSeparator()
         a = QAction("Close", self)
         a.setShortcut("Ctrl+Q")
         a.triggered.connect(self.close)

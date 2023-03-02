@@ -44,6 +44,16 @@ def init():
 
     update_cfg(cfg2)
 
+def reload_config():
+    global _cfg
+    oldcfg = _cfg
+    try:
+        init()
+    except:
+        # in case of any error, rollback to the old configuration
+        _cfg = oldcfg
+        raise
+
 def config():
     return _cfg
 

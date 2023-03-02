@@ -266,6 +266,23 @@ def find_filename(filename):
 
     return filename
 
+def reload_config_or_warn():
+    ret = cfg.check_cfg()
+
+    if len(ret) != 1 or ret[0][0] != "OK":
+        message = "ERROR in bombrowser.ini\n"
+        for type_, msg in ret:
+            if type_ == "MORE":
+                message += "WARNING: " + msg + "\n"
+            else:
+                message += "CRITICAL: " + msg + "\n"
+        message += "Abort\n"
+        QMessageBox.critical(None, "BOMBrowser - %s"%(version),
+            message)
+        return
+
+    cfg.reload_config()
+
 def test_bb_match_simple():
     assert(bb_match("abc", "a"))
     assert(bb_match("abc", "a%"))

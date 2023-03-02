@@ -272,6 +272,10 @@ class DiffWindow(bbwindow.BBMainWindow):
         mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu("File")
 
+        a = QAction("Reload config", self)
+        a.triggered.connect(utils.reload_config_or_warn)
+        m.addAction(a)
+        m.addSeparator()
         closeAction = QAction("Close", self)
         closeAction.setShortcut("Ctrl+Q")
         closeAction.triggered.connect(self.close)
