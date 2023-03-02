@@ -82,12 +82,12 @@ class EditDates(QDialog):
         self._table = QTableWidget()
         g.addWidget(self._table, 20, 1, 1, 2)
 
-        b = QPushButton("Cancel")
-        b.clicked.connect(self._cancel)
-        g.addWidget(b, 30, 1)
-
         b = QPushButton("Save")
         b.clicked.connect(self._save)
+        g.addWidget(b, 30, 1)
+
+        b = QPushButton("Cancel")
+        b.clicked.connect(self._cancel)
         g.addWidget(b, 30, 2)
 
         self.setLayout(g)
