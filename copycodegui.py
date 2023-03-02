@@ -27,14 +27,15 @@ import db, editcode, bbwindow
 import utils, selectdategui, cfg
 import bbdate
 
-class CopyCode(bbwindow.BBMainWindow):
-    def __init__(self, rev_id, parent):
+class _CopyCode(bbwindow.BBMainWindow):
+    def __init__(self, rev_id, copy, parent):
         bbwindow.BBMainWindow.__init__(self)
         self._rid = rev_id
         self._results = None
         self._new_code = None
         self._new_rid = None
         self._start_editor = None
+        self._do_copy = copy
 
         self._db = db.DB()
         data = self._db.get_code_by_rid(self._rid)
@@ -122,8 +123,7 @@ class CopyCode(bbwindow.BBMainWindow):
 
         self._cb_copy_rev = QCheckBox("Copy")
         self._cb_copy_rev.stateChanged.connect(self._change_copy_btn)
-        self._cb_copy_rev.setCheckState(Qt.CheckState.Unchecked)
-        grid.addWidget(self._cb_copy_rev, 20, 0)
+        #grid.addWidget(self._cb_copy_rev, 20, 0)
 
         self._cb_copy_docs = QCheckBox("Copy documents")
         self._cb_copy_docs.setCheckState(Qt.CheckState.Checked)
@@ -155,6 +155,11 @@ class CopyCode(bbwindow.BBMainWindow):
         w = QWidget()
         w.setLayout(grid)
         self.setCentralWidget(w)
+
+        if self._do_copy:
+            self._cb_copy_rev.setCheckState(Qt.CheckState.Checked)
+        else:
+            self._cb_copy_rev.setCheckState(Qt.CheckState.Unchecked)
 
         self._change_copy_btn()
         self._change_proto_btn()
@@ -349,7 +354,7 @@ class CopyCode(bbwindow.BBMainWindow):
         return self._start_editor
 
 
-def revise_copy_code(code_id, parent):
+def _revise_copy_code(code_id, copy, parent):
         d = db.DB()
 
         assert(parent)
@@ -365,10 +370,13 @@ def revise_copy_code(code_id, parent):
         data = d.get_code(code_id, date_from_days)
         rid = data["rid"]
 
-        revise_copy_code_by_rid(rid)
-
-def revise_copy_code_by_rid(rid):
-        w = CopyCode(rid, None)
+        w = _CopyCode(rid, copy, None)
         w.show()
+
+def copy_code(code_id, parent):
+    _revise_copy_code(code_id, True, parent)
+
+def revise_code(code_id, parent):
+    _revise_copy_code(code_id, False, parent)
 
 

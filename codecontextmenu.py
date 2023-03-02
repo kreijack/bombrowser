@@ -33,7 +33,15 @@ def _revise_code(code_id, rid, parent):
         data = d.get_code_by_rid(rid)
         code_id = data["id"]
 
-    copycodegui.revise_copy_code(code_id, parent)
+    copycodegui.revise_code(code_id, parent)
+
+def _copy_code(code_id, rid, parent):
+    if code_id is None:
+        d = db.DB()
+        data = d.get_code_by_rid(rid)
+        code_id = data["id"]
+
+    copycodegui.copy_code(code_id, parent)
 
 def _set_diff_from(code_id, rid, parent):
     if not rid is None:
@@ -125,7 +133,9 @@ def generate_codes_context_menu(code_id=None, rid=None, dt=None,
     menu.addAction("Show prototype assembly").triggered.connect(
         lambda : _show_proto_assembly(code_id, rid))
     menu.addSeparator()
-    menu.addAction("Copy/revise code ...").triggered.connect(
+    menu.addAction("Copy code ...").triggered.connect(
+        lambda : _copy_code(code_id, rid, parent))
+    menu.addAction("Revise code ...").triggered.connect(
         lambda : _revise_code(code_id, rid, parent))
     menu.addAction("Edit code ...").triggered.connect(
         lambda : _edit_code(code_id, rid))
