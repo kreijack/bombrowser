@@ -17,11 +17,12 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sys, traceback, re, os, cfg
+import sys, traceback, re, os
 
 from PySide2.QtWidgets import QMessageBox
 
 from version import version
+import db, cfg
 
 def __show_exception(exc_type, exc_value, exc_traceback,
         title, msg):
@@ -282,6 +283,8 @@ def reload_config_or_warn():
         return
 
     cfg.reload_config()
+    data = db.DB().get_config()
+    cfg.update_cfg(data)
 
 def test_bb_match_simple():
     assert(bb_match("abc", "a"))
