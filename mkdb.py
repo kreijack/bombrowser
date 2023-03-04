@@ -916,6 +916,9 @@ def insert_codes_with_loop(c):
     make_assembly(c, ccr,((cai, 1),))
 
 def create_db():
+    dbtype = cfg.config()["BOMBROWSER"]["db"]
+    c = cfg.config()[dbtype.upper()]
+    db.init(dbtype, dict(c))
     d = db.DB()
     d.create_db()
 

@@ -67,6 +67,9 @@ def _init_db():
         d._execute(c, "PRAGMA case_sensitive_like = 1")
         db._globaDBInstance = d
     else:
+        dbtype = cfg.config()["BOMBROWSER"]["db"]
+        c = cfg.config()[dbtype.upper()]
+        db.init(dbtype, dict(c))
         d = db.DB() #_connection_string)
     d.create_db()
     return d
@@ -202,7 +205,6 @@ def test_get_code_by_icase_code():
 
     with Transaction(d) as c:
         _test_insert_items(c)
-        d._execute(c, "PRAGMA case_sensitive_like = 1")
 
     data = d.get_codes_by_like_code_and_descr("", "DESCR46%", case_sensitive=False)
     assert(len(data) == 2)
@@ -218,7 +220,6 @@ def test_get_code_by_icase_code_and_descr_multiple_or_and():
 
     with Transaction(d) as c:
         _test_insert_items(c)
-        d._execute(c, "PRAGMA case_sensitive_like = 1")
 
     data = d.get_codes_by_like_code_and_descr("CODE123;CODE135;CODE124",
                                         "5", case_sensitive=False)
@@ -1643,7 +1644,6 @@ def test_search_revisions_lesser():
 def test_search_revisions_icase_lesser():
     d, c = _create_db()
     data = _create_data_for_search_revisions(c, d)
-    d._execute(c, "PRAGMA case_sensitive_like = 1")
 
     ret = d.search_revisions(gval5="<GVAL 0004", case_sensitive=False)
     assert(len(ret) > 0)
@@ -1722,9 +1722,17 @@ def test_search_revision_invalid_argument():
     assert(ok)
 
 def test_search_revisions_all_icase_values():
+
     d, c = _create_db()
+
+    #
+    # SQLServer by default does search case INsensitive
+    # skip the test
+    #
+    if "SQLSERVER" in db.connection:
+        return
+
     data = _create_data_for_search_revisions(c, d)
-    d._execute(c, "PRAGMA case_sensitive_like = 1")
 
     d._execute(c, "SELECT COUNT(*) FROM items WHERE code = ?", ("TEST-CODE-1", ))
     assert(c.fetchone()[0] == 0)

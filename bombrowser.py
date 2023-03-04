@@ -76,6 +76,9 @@ def main(args):
     app.setFont(f)
 
     try:
+        dbtype = cfg.config()["BOMBROWSER"]["db"]
+        c = cfg.config()[dbtype.upper()]
+        db.init(dbtype, dict(c))
         d = db.DB()
         data = d.get_config()
     except:

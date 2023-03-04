@@ -41,7 +41,6 @@ import traceback
 
 import jdutil
 from utils import xescape, xunescape
-import cfg
 
 def increase_date(d, inc=+1):
     return (datetime.date.fromisoformat(d) +
@@ -2154,90 +2153,60 @@ class DBMySQL(_BaseServer):
 
             return dates
 
+def DB():
 
-def DB(path=None):
+    global _globaDBInstance
 
+    assert(_globaDBInstance)
+    return _globaDBInstance
+
+def init(dbtype, cfg):
     global _globaDBInstance
     global connection
 
-    if _globaDBInstance:
-        return _globaDBInstance
-
-    if path is None:
-        dbtype = cfg.config().get("BOMBROWSER", "db")
-    else:
-        dbtype = path
-    connection, _globaDBInstance = _create_db(dbtype)
+    connection, _globaDBInstance = _create_db(dbtype, cfg)
     return _globaDBInstance
 
-def _create_db(dbtype):
+def _create_db(dbtype, cfg):
 
-    if dbtype.upper().startswith("SQLITE:"):
-        instance = DBSQLite(path[7:])
-        connection = "Server: SQLITE/" + path[7:][-30:]
-
-    elif dbtype.upper().startswith("SQLSERVER:"):
-        instance = DBSQLServer(path[10:])
-        connection = "Server: SQLSERVER/" + path[10:]
-
-    elif dbtype.upper().startswith("ORACLE:"):
-        instance = DBOracleServer(path[7:])
-        connection = "Server: ORACLE/" + path[7:]
-
-    elif dbtype.upper().startswith("DBPG:"):
-        instance = DBPG(path[5:])
-        connection = "Server: PostgreSQL/" + path[5:]
-
-    elif dbtype == "sqlite":
-        path = cfg.config().get("SQLITE", "path")
-        ignore_case_during_search = cfg.config().get("SQLITE", "ignore_case_during_search") != "0"
+    if dbtype == "sqlite":
+        path = cfg["path"]
+        ignore_case_during_search = cfg["ignore_case_during_search"] != "0"
         instance = DBSQLite(path, ignore_case_during_search)
         connection="Server: SQLITE/"+path[-30:]
 
     elif dbtype == "oracle":
-        connection_string = cfg.config().get("ORACLE", "conn")
+        connection_string = cfg["conn"]
         instance = DBOracleServer(connection_string)
         connection = "Server: ORACLE/" + connection_string
 
     elif dbtype == "sqlserver":
-        connection_string = cfg.config().get("SQLSERVER", "conn")
+        connection_string = cfg["conn"]
         instance = DBSQLServer(connection_string)
         connection="Server: SQLSERVER/"+connection_string
 
     elif dbtype == "postgresql":
         import customize
-        d = {
-            "server": cfg.config().get("POSTGRESQL", "server"),
-            "database": cfg.config().get("POSTGRESQL", "database"),
-            "username": cfg.config().get("POSTGRESQL", "username"),
-            "password": cfg.config().get("POSTGRESQL", "password"),
-        }
-        d["password"] = customize.database_password(d["password"])
-        connection_string = "host={server} dbname={database} user={username} password={password}".format(**d)
+        cfg["password"] = customize.database_password(cfg["password"])
+        connection_string = "host={server} dbname={database} user={username} password={password}".format(**cfg)
         connection="Server: PostgreSQL/" + connection_string
         instance = DBPG(connection_string)
 
     elif dbtype == "mysql":
         import customize
-        d = {
-            "server": cfg.config().get("MYSQL", "server"),
-            "database": cfg.config().get("MYSQL", "database"),
-            "username": cfg.config().get("MYSQL", "username"),
-            "password": cfg.config().get("MYSQL", "password"),
-        }
-        d["password"] = customize.database_password(d["password"])
-        connection_string = ";".join([d["server"], d["username"],
-            d["password"], d["database"]])
+        cfg["password"] = customize.database_password(cfg["password"])
+        connection_string = ";".join([cfg["server"], cfg["username"],
+            cfg["password"], cfg["database"]])
         connection="Server: MySQL/" + connection_string
         instance = DBMySQL(connection_string)
 
     elif dbtype == "bbserver":
         import customize
 
-        host = cfg.config().get("REMOTEBBSERVER", "host")
-        port = int(cfg.config().get("REMOTEBBSERVER", "port"))
-        username = cfg.config().get("REMOTEBBSERVER", "username")
-        password = cfg.config().get("REMOTEBBSERVER", "password")
+        host = cfg["host"]
+        port = int(cfg["port"])
+        username = cfg["username"]
+        password = cfg["password"]
         password = customize.database_password(password)
 
         import bbserver
@@ -2302,8 +2271,14 @@ def new_db(d):
 
 
 def main(prgname, args):
+    import cfg
+
+    cfg.init()
+    dbtype = cfg.config()["BOMBROWSER"]["db"]
+    conf = cfg.config()[dbtype.upper()]
 
     if len(args) == 2 and args[0] == "--dump-tables":
+        init(dbtype, dict(conf))
         d = DB()
         dump_tables(args[1], d)
         print("DB dumped")
@@ -2322,6 +2297,7 @@ def main(prgname, args):
                 print("ERROR: exit")
                 return
 
+        init(dbtype, dict(conf))
         d = DB()
         new_db(d)
         print("DB created")
@@ -2340,6 +2316,7 @@ def main(prgname, args):
                 print("ERROR: exit")
                 return
 
+        init(dbtype, dict(conf))
         d = DB()
         restore_tables(args[1], d)
         print("DB restored")
@@ -2349,9 +2326,4 @@ def main(prgname, args):
         print("usage: %s --new-db"%(prgname))
         print("usage: %s --restore-tables <file.zip>"%(prgname))
         sys.exit(0)
-
-if __name__ == "__main__":
-    import cfg
-    cfg.init()
-    main(sys.argv[0], sys.argv[1:])
 
