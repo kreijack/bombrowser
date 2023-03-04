@@ -132,13 +132,14 @@ def generate_codes_context_menu(code_id=None, rid=None, dt=None,
             lambda : _show_this_assembly(code_id, dt, rid))
     menu.addAction("Show prototype assembly").triggered.connect(
         lambda : _show_proto_assembly(code_id, rid))
-    menu.addSeparator()
-    menu.addAction("Copy code ...").triggered.connect(
-        lambda : _copy_code(code_id, rid, parent))
-    menu.addAction("Revise code ...").triggered.connect(
-        lambda : _revise_code(code_id, rid, parent))
-    menu.addAction("Edit code ...").triggered.connect(
-        lambda : _edit_code(code_id, rid))
+    if not db.DB().is_db_read_only():
+        menu.addSeparator()
+        menu.addAction("Copy code ...").triggered.connect(
+            lambda : _copy_code(code_id, rid, parent))
+        menu.addAction("Revise code ...").triggered.connect(
+            lambda : _revise_code(code_id, rid, parent))
+        menu.addAction("Edit code ...").triggered.connect(
+            lambda : _edit_code(code_id, rid))
     menu.addSeparator()
     menu.addAction("Diff from...").triggered.connect(
         lambda : _set_diff_from(code_id, rid, parent))
