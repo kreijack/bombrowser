@@ -274,10 +274,18 @@ class EditDates(QDialog):
                 self._table.cellWidget(0, 5).setText("")
                 self._table.cellWidget(0, 5).setReadOnly(True)
 
+                self._table.item(0, 3).setText("%d"%(db.prototype_iter))
+
                 if self._table.rowCount() > 1:
                     self._table.item(1, 5).setText("")
                     return
             else:
+                if self._table.rowCount() > 1:
+                    max_iter = int(self._table.item(1, 3).text()) + 1
+                else:
+                    max_iter = 0;
+
+                self._table.item(0, 3).setText("%d"%(max_iter))
                 self._table.cellWidget(0, 5).setReadOnly(False)
 
         dt = self._get_table_cell(row, col).text()
@@ -1187,6 +1195,7 @@ class EditWindow(bbwindow.BBMainWindow):
 
         self._from_date_days = data["date_from_days"]
         self._to_date_days = data["date_to_days"]
+        self._iter.setText(str(data["iter"]))
 
         dates = d.get_dates_by_code_id3(self._code_id)
         for i, row in enumerate(dates):
