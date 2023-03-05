@@ -750,12 +750,12 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         def match(k, v):
             if k.startswith("*"):
                 k = k[1:]
-                l = path
+                l = range(len(path))
             else:
-                l = path[-1:]
+                l = [len(path) - 1]
 
-            for idx in range(len(l)):
-                i = l[idx]
+            for idx in l:
+                i = path[idx]
                 tmp = self._data[i]
                 if k in tmp:
                     if v.startswith("!") and str(tmp[k]) != v[1:]:
@@ -766,13 +766,12 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                 if idx == 0:
                     continue
 
-
-                j = l[idx-1]
+                j = path[idx-1]
                 tmp2 = self._data[j]["deps"][i]
                 if k in tmp2:
                     if v.startswith("!") and str(tmp2[k]) != v[1:]:
                         return True
-                    if (tmp2[k]) == v:
+                    if str(tmp2[k]) == v:
                         return True
 
             return False
@@ -780,15 +779,9 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         def apply_actions(actions):
             for action in actions:
                 if action.startswith("bg="):
-                    c = QColor(action[3:])
-                    b = QBrush()
-                    b.setColor(c)
-                    item.setBackground(b)
+                    item.setBackground(QColor(action[3:]))
                 elif action.startswith("fg="):
-                    c = QColor(action[3:])
-                    b = QBrush()
-                    b.setColor(c)
-                    item.setForeground(b)
+                    item.setForeground(QColor(action[3:]))
                 elif action.startswith("italic"):
                     f = item.font()
                     f.setItalic(True)
