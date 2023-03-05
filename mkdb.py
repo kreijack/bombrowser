@@ -134,7 +134,8 @@ rnd = MyRandom()
 dbname="database.sqlite"
 
 def insert_code(c, descr, code, ver='0', iter_=0, default_unit='NR',
-                gval1='', gval2='', date=None, date_to=None, drawings=[]):
+                gval1='', gval2='', date=None, date_to=None, drawings=[],
+                gval3='', gval4=''):
 
     if date is None:
         date = date0
@@ -145,20 +146,22 @@ def insert_code(c, descr, code, ver='0', iter_=0, default_unit='NR',
         code,)
     )
     c.execute("SELECT MAX(id) FROM items")
-    mid = c.fetchone()[0]
+    code_id = c.fetchone()[0]
 
     c.execute("""INSERT INTO item_revisions(
         descr, code_id, ver,
         iter, default_unit,
-        gval1, gval2,
+        gval1, gval2, gval3, gval4,
         date_from, date_from_days,
         date_to, date_to_days) VALUES (
         ?, ?, ?,
         ?, ?,
-        ?, ?,
+        ?, ?, ?, ?,
         ?, ?,
         ?, ?)""",
-        (descr, mid, ver, iter_, default_unit, gval1, gval2,
+        (descr, code_id, ver,
+         iter_, default_unit,
+         gval1, gval2, gval3, gval4,
          date, db.iso_to_days(date),
          date_to, db.iso_to_days(date_to))
     )
@@ -174,7 +177,7 @@ def insert_code(c, descr, code, ver='0', iter_=0, default_unit='NR',
                       """, (code, rev_id, os.path.basename(fn), os.path.abspath(fn))
             )
 
-    return rev_id, mid
+    return rev_id, code_id
 
 # create screws
 def insert_screws(c):
@@ -371,26 +374,30 @@ def get_min_by_code(c, pattern):
 
 def make_assembly(c, ass_rid, children):
     try:
-        a = children[0][1]
+        a = children[0][0]
     except:
-        children =[(x, 1) for x in children]
+        children =[[x, ] for x in children]
 
-    for child_id, qty in children:
+    for row in children:
+        if len(row) == 1:
+            row = list(row) + [1, '', '', '']
+        else:
+            row = list(row) + ['', '', '']
+            row = row[:5]
+        child_id, qty, gaval1, gaval2, gaval3 = row
         c.execute("""INSERT INTO assemblies (
-            unit,
-            child_id, revision_id,
-            qty,
-            each,
-            ref) VALUES (
-            ?,
-            ?, ?,
-            ?,
-            ?,
-            ? )""", (
-                "NR",
-                child_id, ass_rid,
-                qty,
-                1, '//')
+                        unit, child_id, revision_id,
+                        qty, each, ref,
+                        gaval1, gaval2, gaval3
+                     ) VALUES (
+                        ?, ?, ?,
+                        ?, ?, ?,
+                        ?, ?, ?
+                     )""", (
+                        "NR", child_id, ass_rid,
+                        qty, 1, '//',
+                        gaval1, gaval2, gaval3
+                     )
         )
 
 # create boards with drawings
@@ -844,76 +851,57 @@ def insert_unicode_code(c):
                 0, "NR", "", "", drawings=[fn])
 
     code = "TEST-ASSY-TO-EXPORT"
-    insert_code(c, "TEST ASSY TO EXPORT", code, 0,
+    arid, _ = insert_code(c, "TEST ASSY TO EXPORT", code, 0,
                 0, "NR", "", "")
-    c.execute("""SELECT MAX(id) FROM item_revisions""")
-    arid = c.fetchone()[0]
     make_assembly(c, arid,
         (id_long_fn, id_missing_file, id_file_too_long, id_normal))
 
 def insert_codes_with_date(c):
 
-    insert_code(c, "TEST-ASS-A", "TEST-ASS-A", 0,
+    aaid, _ = insert_code(c, "TEST-ASS-A", "TEST-ASS-A", 0,
                 0, "NR", date='2020-01-01', date_to='2021-01-01')
-    c.execute("""SELECT MAX(id) FROM item_revisions""")
-    aaid = c.fetchone()[0]
-
-
-    insert_code(c, "TEST-A", "TEST-A", 0,
+    _, caid = insert_code(c, "TEST-A", "TEST-A", 0,
                 0, "NR", date='2020-01-01')
-    c.execute("""SELECT MAX(id) FROM items""")
-    caid = c.fetchone()[0]
-
-    insert_code(c, "TEST-B", "TEST-B", 0,
+    _, cbid = insert_code(c, "TEST-B", "TEST-B", 0,
                 0, "NR", date='2020-01-01', date_to='2021-01-01')
-    c.execute("""SELECT MAX(id) FROM items""")
-    cbid = c.fetchone()[0]
-
-    make_assembly(c, aaid, [caid, cbid])
-
-def insert_codes_with_date(c):
-
-    insert_code(c, "TEST-ASS-A", "TEST-ASS-A", 0,
-                0, "NR", date='2020-01-01', date_to='2021-01-01')
-    c.execute("""SELECT MAX(id) FROM item_revisions""")
-    aaid = c.fetchone()[0]
-
-
-    insert_code(c, "TEST-A", "TEST-A", 0,
-                0, "NR", date='2020-01-01')
-    c.execute("""SELECT MAX(id) FROM items""")
-    caid = c.fetchone()[0]
-
-    insert_code(c, "TEST-B", "TEST-B", 0,
-                0, "NR", date='2020-01-01', date_to='2021-01-01')
-    c.execute("""SELECT MAX(id) FROM items""")
-    cbid = c.fetchone()[0]
 
     make_assembly(c, aaid, [caid, cbid])
 
 def insert_codes_with_loop(c):
 
-    insert_code(c, "TEST-LOOP-A", "TEST-LOOP-A")
-    c.execute("""SELECT MAX(id) FROM item_revisions""")
-    car = c.fetchone()[0]
-    c.execute("""SELECT MAX(id) FROM items""")
-    cai = c.fetchone()[0]
-
-    insert_code(c, "TEST-LOOP-B", "TEST-LOOP-B")
-    c.execute("""SELECT MAX(id) FROM item_revisions""")
-    cbr = c.fetchone()[0]
-    c.execute("""SELECT MAX(id) FROM items""")
-    cbi = c.fetchone()[0]
-
-    insert_code(c, "TEST-LOOP-C", "TEST-LOOP-C")
-    c.execute("""SELECT MAX(id) FROM item_revisions""")
-    ccr = c.fetchone()[0]
-    c.execute("""SELECT MAX(id) FROM items""")
-    cci = c.fetchone()[0]
+    car, cai = insert_code(c, "TEST-LOOP-A", "TEST-LOOP-A")
+    cbr, cbi = insert_code(c, "TEST-LOOP-B", "TEST-LOOP-B")
+    ccr, cci = insert_code(c, "TEST-LOOP-C", "TEST-LOOP-C")
 
     make_assembly(c, car,((cbi, 1),))
     make_assembly(c, cbr,((cci, 1),))
     make_assembly(c, ccr,((cai, 1),))
+
+def insert_codes_with_color(c):
+    car, _ = insert_code(c, "TEST COLOR A", "TEST-COLOR-A",
+                   gval1='COLOR', gval2='A')
+    _, cbi = insert_code(c, "TEST COLOR B", "TEST-COLOR-B",
+                   gval1='COLOR', gval2='B')
+    _, cci = insert_code(c, "TEST COLOR C", "TEST-COLOR-C",
+                   gval1='COLOR', gval2='C')
+    _, cdi = insert_code(c, "TEST COLOR D", "TEST-COLOR-D",
+                   gval1='COLOR', gval2='D')
+    _, cei = insert_code(c, "TEST COLOR E", "TEST-COLOR-E",
+                   gval1='COLOR', gval2='E')
+    cfr, cfi = insert_code(c, "TEST COLOR F", "TEST-COLOR-F",
+                   gval1='COLOR', gval2='F')
+    _, cgi = insert_code(c, "TEST COLOR G", "TEST-COLOR-G",
+                   gval1='COLOR', gval2='G')
+    make_assembly(c, car,(
+        (cbi, 1, "COLOR", "M"),
+        (cci, 1, "COLOR", "N"),
+        (cdi, 1, "COLOR", "O"),
+        (cei, 10, "COLOR", "P"),
+        (cfi, 10, "COLOR", "Q"),
+    ))
+    make_assembly(c, cfr,(
+        (cgi, 1, "COLOR", "R"),
+    ))
 
 def create_db():
     dbtype = cfg.config()["BOMBROWSER"]["db"]
@@ -998,6 +986,8 @@ def create_db():
         insert_codes_with_date(c)
         print("Insert assembly with a loop")
         insert_codes_with_loop(c)
+        print("Insert assembly with color")
+        insert_codes_with_color(c)
 
 def help_():
     print("usage: mkdb.py --test-db|--big-db|--help")
