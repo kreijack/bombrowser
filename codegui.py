@@ -249,7 +249,6 @@ class CodeWidget(QWidget):
 
     def _copy_str(self, s):
         cb = QApplication.clipboard()
-        cb.clear(mode=cb.Clipboard )
         cb.setText(s, mode=cb.Clipboard)
 
     def _copy_file(self, fn):
@@ -273,7 +272,6 @@ class CodeWidget(QWidget):
             QByteArray(("file:"+fn).encode("utf-8")))
 
         cb = QApplication.clipboard()
-        cb.clear(mode=cb.Clipboard )
         cb.setMimeData(md)
 
     def _copy_info(self):
