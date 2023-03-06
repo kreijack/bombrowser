@@ -903,7 +903,18 @@ def insert_codes_with_color(c):
         (cgi, 1, "COLOR", "R"),
     ))
 
-def create_db():
+def build_bom(top, data):
+    res = []
+
+    def runner(t):
+        res.append(data[t]["code"])
+        for k, v in data[t]["deps"].items():
+            runner(v["code_id"])
+
+    runner(top)
+    return res
+
+def create_db(show_stat):
     dbtype = cfg.config()["BOMBROWSER"]["db"]
     c = cfg.config()[dbtype.upper()]
     db.init(dbtype, dict(c))
@@ -989,24 +1000,57 @@ def create_db():
         print("Insert assembly with color")
         insert_codes_with_color(c)
 
+        if show_stat:
+            print()
+            c.execute("SELECT COUNT(*) FROM items")
+            cnt = c.fetchone()[0]
+            print("Total number of code=", cnt)
+
+            c.execute("SELECT COUNT(*) FROM item_revisions")
+            cnt = c.fetchone()[0]
+            print("Total number of revisions=", cnt)
+
+            # we expect that the biggest assembly are inside the last
+            # top assemblies
+            c.execute("SELECT id FROM items WHERE code LIKE '100%' ORDER BY id ASC")
+            codes = [x[0] for x in c.fetchall()][-10:]
+
+    if show_stat:
+        cnt = 0
+        max_id = -1
+        for code_id in codes:
+            (top, data) = d.get_bom_by_code_id3(code_id, db.end_of_the_world)
+            c = len(build_bom(top, data))
+            if c > cnt:
+                max_id = code_id
+                cnt = c
+        print("Maximum bom size=", cnt, "; code_id=", max_id)
+
 def help_():
-    print("usage: mkdb.py --test-db|--big-db|--help")
+    print("usage: mkdb.py [--stat] --test-db|--big-db|--help")
 
 def main(args):
     args = sys.argv
-    if len(args) == 2:
-        if args[1] == "--test-db":
+    show_stat = False
+    i = 1
+    if len(args) == 1:
+        print("ERROR: missing parameter")
+        help_()
+        return
+
+    while i < len(args):
+        if args[i] == "--test-db":
             set_standard_config()
-        elif args[1] == "--big-db":
+        elif args[i] == "--big-db":
             set_advance_config()
+        elif args[i] == "--stat":
+            show_stat = True
         else:
             print("ERROR: unknown parameter")
             help_()
             return
-    else:
-        print("ERROR: missing parameter")
-        help_()
-        return
-    create_db()
+        i += 1
+
+    create_db(show_stat)
 
 main(sys.argv)
