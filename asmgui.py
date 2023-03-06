@@ -31,7 +31,7 @@ from PySide2.QtCore import Qt, QItemSelectionModel
 from PySide2.QtGui import QDesktopServices
 from PySide2.QtCore import QUrl, QMimeData, QByteArray
 from PySide2.QtWidgets import QComboBox, QCheckBox
-import os, zipfile
+import os, zipfile, time
 
 import pprint, shutil
 
@@ -357,7 +357,6 @@ class ExportDialog(QDialog):
             QByteArray(("file:"+fn).encode("utf-8")))
 
         cb = QApplication.clipboard()
-        cb.clear(mode=cb.Clipboard )
         cb.setMimeData(md)
 
     
@@ -662,9 +661,8 @@ class AssemblyWindow(bbwindow.BBMainWindow):
 
     def _copy_as_template(self, template):
         e = exporter.Exporter(self._top , self._data)
-        cb = QApplication.clipboard()
-        cb.clear(mode=cb.Clipboard )
         data = e.export_as_table_by_template2(template)
+        cb = QApplication.clipboard()
         cb.setText(data, mode=cb.Clipboard)
 
     def _show_up_to(self, lev):
@@ -836,6 +834,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         recursive_error = set()
 
         def rec_update(n, path):
+            cnt = 1
             d = data[n]
             #if self._valid_where_used and d["date_to"] != "":
             #    return None
@@ -852,16 +851,20 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                 if c in path:
                     recursive_error.add((d["code"], d["descr"]))
                     continue
-                ci = rec_update(c, path+[c])
+                ci, cnt2 = rec_update(c, path+[c])
+                cnt += cnt2
                 if not ci is None:
                     i.appendRow(ci)
-            return (i, i2)
 
-        root_items = rec_update(top, [top])
+            return (i, i2), cnt
+
+        root_items, num_items = rec_update(top, [top])
         if root_items is None:
             model.appendRow((QStandardItem("Empty"),))
         else:
             model.appendRow(root_items)
+        num_items += 1
+
         idx = model.indexFromItem(root_items[0])
         self._tree.expandAll()
         self._tree.selectionModel().selectionChanged.connect(self._change_selection)
@@ -886,6 +889,8 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                 "Execute Menu->Tool->Check bom in the assembly window\n" +
                 "for further information."
             )
+
+        return num_items
 
     def _get_path(self):
         idxs = self._tree.selectionModel().selectedIndexes()
@@ -953,8 +958,22 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         self._my_statusbar.showMessage("/".join(map(lambda x : self._data[x]["code"], path)))
 
     def bom_reload(self):
-        if self._bom_reload:
-            self._bom_reload()
+        if not self._bom_reload:
+            return
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            time0 = time.time()
+            top, data, dt = self._bom_reload()
+            time1 = time.time()
+        finally:
+            QApplication.restoreOverrideCursor()
+
+        cnt = self.populate(top, data, dt)
+        time2 = time.time()
+
+        self._my_statusbar.showMessage("%i items in %.2f+%.2f sec"%(
+            cnt, time1-time0, time2-time1))
 
     def set_bom_reload(self, f):
         self._bom_reload = f
@@ -1014,17 +1033,16 @@ def where_used(code_id, mode="where_used"):
 
     w.show()
 
-    def bom_reload():
+    def bom_reload_():
         d = db.DB()
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+
         valid = mode in ["smart_where_used", "valid_where_used"]
         (top, data) = d.get_where_used_from_id_code(code_id, valid)
         if mode == "smart_where_used":
             data = _smart_filter(top, data)
-        w.populate(top, data)
-        QApplication.restoreOverrideCursor()
+        return top, data, None
 
-    w.set_bom_reload(bom_reload)
+    w.set_bom_reload(bom_reload_)
     w.bom_reload()
 
 def valid_where_used(code_id):
@@ -1047,14 +1065,12 @@ def show_assembly(code_id, winParent):
     w = AssemblyWindow(None)
     w.show()
 
-    def bom_reload():
+    def bom_reload_():
         d = db.DB()
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        top, data = d.get_bom_by_code_id3(code_id, date_from_days)
+        return top, data, date_from_days
 
-        data = d.get_bom_by_code_id3(code_id, date_from_days)
-        w.populate(*data, bom_date=date_from_days)
-        QApplication.restoreOverrideCursor()
-    w.set_bom_reload(bom_reload)
+    w.set_bom_reload(bom_reload_)
     w.bom_reload()
 
 def show_latest_assembly(code_id):
@@ -1065,7 +1081,7 @@ def show_latest_assembly(code_id):
     w = AssemblyWindow(None)
     w.show()
 
-    def bom_reload():
+    def bom_reload_():
         d = db.DB()
         dates = d.get_dates_by_code_id3(code_id)
 
@@ -1079,11 +1095,10 @@ def show_latest_assembly(code_id):
         else:
             dt = min(db.prototype_date - 1, dates[0][3])
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        data = d.get_bom_by_code_id3(code_id, dt)
-        w.populate(*data, bom_date=dt)
-        QApplication.restoreOverrideCursor()
-    w.set_bom_reload(bom_reload)
+        top, data = d.get_bom_by_code_id3(code_id, dt)
+        return top, data, dt
+
+    w.set_bom_reload(bom_reload_)
     w.bom_reload()
 
 def show_proto_assembly(code_id):
@@ -1094,15 +1109,14 @@ def show_proto_assembly(code_id):
     w = AssemblyWindow(None)
     w.show()
 
-    def bom_reload():
+    def bom_reload_():
         d = db.DB()
         dates = d.get_dates_by_code_id3(code_id)
         dt = min(db.end_of_the_world, dates[0][3])
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        data = d.get_bom_by_code_id3(code_id, dates[0][3])
-        w.populate(*data, bom_date=db.end_of_the_world)
-        QApplication.restoreOverrideCursor()
-    w.set_bom_reload(bom_reload)
+        top, data = d.get_bom_by_code_id3(code_id, dates[0][3])
+        return top, data, db.end_of_the_world
+
+    w.set_bom_reload(bom_reload_)
     w.bom_reload()
 
 def show_assembly_by_date(code_id, dt):
@@ -1112,12 +1126,10 @@ def show_assembly_by_date(code_id, dt):
 
     w = AssemblyWindow(None)
     w.show()
-    def bom_reload():
+    def bom_reload_():
         d = db.DB()
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        data = d.get_bom_by_code_id3(code_id, dt)
-        w.populate(*data, bom_date=dt)
-        QApplication.restoreOverrideCursor()
-    w.set_bom_reload(bom_reload)
-    w.bom_reload()
+        top, data = d.get_bom_by_code_id3(code_id, dt)
+        return top, data, dt
 
+    w.set_bom_reload(bom_reload_)
+    w.bom_reload()
