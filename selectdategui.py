@@ -50,6 +50,8 @@ class SelectDate(QDialog):
         self._table.setSelectionBehavior(QTableWidget.SelectRows);
         if self._range_selection:
             self._table.setSelectionMode(self._table.ContiguousSelection)
+        else:
+            self._table.setSelectionMode(self._table.SingleSelection)
         self._table.setAlternatingRowColors(True)
 
         grid.addWidget(self._table, 10, 0, 1, 2)
