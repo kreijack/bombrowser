@@ -272,17 +272,15 @@ class DiffWindow(bbwindow.BBMainWindow):
         mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu("File")
 
-        a = QAction("Reload config", self)
-        a.triggered.connect(utils.reload_config_or_warn)
-        m.addAction(a)
-        m.addSeparator()
+        fileMenu.addAction("Reload config").triggered.connect(utils.reload_config_or_warn)
+        fileMenu.addSeparator()
+
         closeAction = QAction("Close", self)
         closeAction.setShortcut("Ctrl+Q")
         closeAction.triggered.connect(self.close)
         exitAction = QAction("Exit", self)
         exitAction.setShortcut("Ctrl+X")
         exitAction.triggered.connect(self._exit_app)
-
         fileMenu.addAction(closeAction)
         fileMenu.addAction(exitAction)
 
@@ -530,7 +528,6 @@ class DiffDialog(QDialog):
         self._ql_date1.setReadOnly(True)
         self._ql_date2.setReadOnly(True)
 
-
         grid.addWidget(self._ql_id1, 1, 1)
         grid.addWidget(self._ql_id2, 2, 1)
         grid.addWidget(self._ql_code1, 1, 2)
@@ -554,16 +551,11 @@ class DiffDialog(QDialog):
 
         self._id1 = -1
         self._id2 = -1
-        self._code1 = ""
-        self._code2 = ""
-        self._date1 = ""
-        self._date2 = ""
 
     def _do_diff(self):
-        print(self._id1 + self._id2 + 0)
-        bom1 = CodeDate(self._id1, self._code1,
+        bom1 = CodeDate(self._id1, self._ql_code1.text(),
                        self._date_from_days1)
-        bom2 = CodeDate(self._id2, self._code2,
+        bom2 = CodeDate(self._id2, self._ql_code2.text(),
                        self._date_from_days2)
         w = DiffWindow(bom1, bom2)
         w.do_diff()
@@ -572,41 +564,33 @@ class DiffDialog(QDialog):
 
     def _do_hide(self):
         self.hide()
-        id_ = -1
-        code = ""
-        date = ""
-        self._id1 = id_
-        self._code1 = code
-        self._date1 = date
+        self._id1 = -1
         self._ql_id1.setText("")
-        self._ql_code1.setText(code)
-        self._ql_date1.setText(date)
-        self._id2 = id_
-        self._code2 = code
-        self._date2 = date
+        self._ql_code1.setText("")
+        self._ql_date1.setText("")
+        self._id2 = -1
         self._ql_id2.setText("")
-        self._ql_code2.setText(code)
-        self._ql_date2.setText(date)
+        self._ql_code2.setText("")
+        self._ql_date2.setText("")
 
     def set_from(self, code_id, code, date, date_from_days):
         self._id1 = code_id
-        self._code1 = code
-        self._date1 = date
         self._ql_id1.setText(str(code_id))
         self._ql_code1.setText(code)
         self._ql_date1.setText(date)
         self._date_from_days1 = date_from_days
 
+        if self._ql_code2.text().strip() != "":
+            self._do_diff()
+
     def set_to(self, code_id, code, date, date_from_days):
         self._id2 = code_id
-        self._code2 = code
-        self._date2 = date
         self._ql_id2.setText(str(code_id))
         self._ql_code2.setText(code)
         self._ql_date2.setText(date)
         self._date_from_days2 = date_from_days
 
-        if self._code1 != "":
+        if self._ql_code1.text().strip() != "":
             self._do_diff()
 
 _diffDialog = None
