@@ -514,12 +514,12 @@ class DiffDialog(QDialog):
 
         grid = QGridLayout()
 
-        self._ql_id1 = QLineEdit(" "*10)
-        self._ql_id2 = QLineEdit(" "*10)
-        self._ql_code1 = QLineEdit(" "*10)
-        self._ql_code2 = QLineEdit(" "*10)
-        self._ql_date1 = QLineEdit(" "*10)
-        self._ql_date2 = QLineEdit(" "*10)
+        self._ql_id1 = QLineEdit("")
+        self._ql_id2 = QLineEdit("")
+        self._ql_code1 = QLineEdit("")
+        self._ql_code2 = QLineEdit("")
+        self._ql_date1 = QLineEdit("")
+        self._ql_date2 = QLineEdit("")
 
         self._ql_id1.setReadOnly(True)
         self._ql_id2.setReadOnly(True)
@@ -580,7 +580,7 @@ class DiffDialog(QDialog):
         self._ql_date1.setText(date)
         self._date_from_days1 = date_from_days
 
-        if self._ql_code2.text().strip() != "":
+        if self._ql_code2.text() != "":
             self._do_diff()
 
     def set_to(self, code_id, code, date, date_from_days):
@@ -590,62 +590,58 @@ class DiffDialog(QDialog):
         self._ql_date2.setText(date)
         self._date_from_days2 = date_from_days
 
-        if self._ql_code1.text().strip() != "":
+        if self._ql_code1.text() != "":
             self._do_diff()
 
 _diffDialog = None
 
-def set_from(code_id, parent):
+def _set_from_to(code_id, parent, mode):
+    global _diffDialog
+
     if not code_id:
         QApplication.beep()
         return
 
-    #d = db.DB()
-    #if not d.is_assembly(code_id):
-    #    QApplication.beep()
-    #    QMessageBox.critical(parent, "BOMBrowser", "The item is not an assembly")
-    #    return
-
-    dlg = selectdategui.SelectDate(code_id, parent)
+    dlg = selectdategui.SelectDate(code_id, parent, range_selection=True)
     ret = dlg.exec_()
     if not ret:
-        return
+        return False
 
-    (code, date_from_days) = dlg.get_code_and_date_from_days()
-    date_from = db.days_to_txt(date_from_days)
+    (code_from, date_from_days, code_to, date_to_days) = \
+        dlg.get_code_and_date_from_days_ranges()
 
-    global _diffDialog
-    if _diffDialog is None:
-        _diffDialog = DiffDialog()
-    _diffDialog.show()
-    _diffDialog.set_from(code_id, code, date_from, date_from_days)
+    if date_to_days is None:
+        # if only one date is selected
+        # uses the intermediate diff from - to dialog
+        date_from = db.days_to_txt(date_from_days)
+
+        if _diffDialog is None:
+            _diffDialog = DiffDialog()
+        _diffDialog.show()
+        if mode == "from":
+            _diffDialog.set_from(code_id, code_from, date_from, date_from_days)
+        else:
+            _diffDialog.set_to(code_id, code_from, date_from, date_from_days)
+    else:
+        # if multiple date are selected
+        # show directly the diff dialog
+        if _diffDialog:
+            _diffDialog.hide()
+
+        bom1 = CodeDate(code_id, code_from, date_from_days)
+        bom2 = CodeDate(code_id, code_to, date_to_days)
+        w = DiffWindow(bom1, bom2)
+        w.do_diff()
+        w.show()
+
+def set_from(code_id, parent):
+    _set_from_to(code_id, parent, mode="from")
 
 def set_to(code_id, parent):
-    if not code_id:
-        QApplication.beep()
-        return
+    _set_from_to(code_id, parent, mode="to")
 
-    #d = db.DB()
-    #if not d.is_assembly(code_id):
-    #    QApplication.beep()
-    #    QMessageBox.critical(parent, "BOMBrowser", "The item is not an assembly")
-    #    return
-
-    dlg = selectdategui.SelectDate(code_id, parent)
-    ret = dlg.exec_()
-    if not ret:
-        return
-
-    (code, date_from_days) = dlg.get_code_and_date_from_days()
-    date_from = db.days_to_txt(date_from_days)
-
+def _set_from_to_by_rid(rid, mode):
     global _diffDialog
-    if _diffDialog is None:
-        _diffDialog = DiffDialog()
-    _diffDialog.show()
-    _diffDialog.set_to(code_id, code, date_from, date_from_days)
-
-def set_to_by_rid(rid):
 
     d = db.DB()
     data = d.get_code_by_rid(rid)
@@ -654,34 +650,18 @@ def set_to_by_rid(rid):
     date_from = db.days_to_txt(data["date_from_days"])
     code = data["code"]
 
-    #if not d.is_assembly(code_id):
-    #    QApplication.beep()
-    #    QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
-    #    return
-
-    global _diffDialog
     if _diffDialog is None:
         _diffDialog = DiffDialog()
+
     _diffDialog.show()
-    _diffDialog.set_to(code_id, code, date_from, date_from_days)
+
+    if mode == "from":
+        _diffDialog.set_from(code_id, code, date_from, date_from_days)
+    else:
+        _diffDialog.set_to(code_id, code, date_from, date_from_days)
 
 def set_from_by_rid(rid):
+    _set_from_to_by_rid(rid, "from")
 
-    d = db.DB()
-    data = d.get_code_by_rid(rid)
-    code_id = data["id"]
-    date_from_days = data["date_from_days"]
-    date_from = db.days_to_txt(data["date_from_days"])
-    code = data["code"]
-
-    #if not d.is_assembly(code_id):
-    #    QApplication.beep()
-    #    QMessageBox.critical(None, "BOMBrowser", "The item is not an assembly")
-    #    return
-
-    global _diffDialog
-    if _diffDialog is None:
-        _diffDialog = DiffDialog()
-    _diffDialog.show()
-    _diffDialog.set_from(code_id, code, date_from, date_from_days)
-
+def set_to_by_rid(rid):
+    _set_from_to_by_rid(rid, "to")

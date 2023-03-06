@@ -25,11 +25,13 @@ from PySide2.QtCore import Qt
 import db
 
 class SelectDate(QDialog):
-    def __init__(self, code_id, parent, only_data_code=False):
+    def __init__(self, code_id, parent, only_data_code=False, range_selection=False):
         QDialog.__init__(self, parent)
         self._code_id = code_id
         self._only_data_code = only_data_code
-        self._return_values = None
+        self._return_values = None, None
+        self._range_selection = range_selection
+        self._return_values2 = None, None
 
         self._init_gui()
         self.show()
@@ -46,6 +48,8 @@ class SelectDate(QDialog):
         self._table = QTableWidget()
         self._table.setSortingEnabled(True)
         self._table.setSelectionBehavior(QTableWidget.SelectRows);
+        if self._range_selection:
+            self._table.setSelectionMode(self._table.ContiguousSelection)
         self._table.setAlternatingRowColors(True)
 
         grid.addWidget(self._table, 10, 0, 1, 2)
@@ -121,13 +125,24 @@ class SelectDate(QDialog):
 
     def _table_clicked(self, to, from_):
 
-        if len(to.indexes()) < 1:
+        indexes = self._table.selectionModel().selectedIndexes()
+
+        if len(indexes) < 1:
             return
 
-        row = to.indexes()[0].row()
-        self._return_values = (self._data[row][0], self._data[row][5])
+        max_row = max([idx.row() for idx in indexes])
+        min_row = min([idx.row() for idx in indexes])
+
+        self._return_values = (self._data[max_row][0], self._data[max_row][5])
+
+        if min_row != max_row:
+            self._return_values2 = (self._data[min_row][0], self._data[min_row][5])
+        else:
+            self._return_values2 = (None, None)
 
     def get_code_and_date_from_days(self):
         return self._return_values
 
+    def get_code_and_date_from_days_ranges(self):
+        return *self._return_values, *self._return_values2
 
