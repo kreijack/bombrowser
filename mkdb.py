@@ -114,7 +114,7 @@ def set_advance_config():
     changes_count = 200
 
     # number of revisions
-    changes_count = 30000
+    changes_count = 3000
 
 cfg.init()
 
