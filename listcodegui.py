@@ -253,9 +253,8 @@ class CodesWindow(bbwindow.BBMainWindow):
 
     def _copy_info_action(self):
         cb = QApplication.clipboard()
-        cb.clear(mode=cb.Clipboard )
-        cb.setText(self._stacked_widget.currentWidget().getTableText(),
-            mode=cb.Clipboard)
+        data = self._stacked_widget.currentWidget().getTableText()
+        cb.setText(data, mode=cb.Clipboard)
 
     def _init_gui(self):
 
@@ -279,7 +278,7 @@ class CodesWindow(bbwindow.BBMainWindow):
 
     def _show_results(self, t, n):
         if n > 0:
-            self._my_statusbar.showMessage("Last search result %d in %.2f sec"%(n, t))
+            self._my_statusbar.showMessage("Last search: %d items in %.2f sec"%(n, t))
         else:
             self._my_statusbar.showMessage("Last search returned 0 result !!!")
 
