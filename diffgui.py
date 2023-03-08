@@ -313,7 +313,10 @@ class DiffWindow(bbwindow.BBMainWindow):
         if code1 != code2:
             data1 = data1.copy()
             data2 = data2.copy()
-            code3 = max([max(data1.keys()), max(data2.keys())])+1
+            # create a code that is not shared between the two bom
+            code3 = "private-code-"
+            while code3 in data1.keys() or code3 in data2.keys():
+                code3 += "x"
             data1[code3] = data1[code1]
             data1[code3]["id"] = code3
             data2[code3] = data2[code2]
