@@ -163,10 +163,6 @@ def _import_csv_parent_child2(data, keyword_map, options):
 
         # ignore other names
 
-    print("colmap=",colmap)
-    print("headers=", headers)
-    print("map1=", map1)
-
     for col in ["code", "qty"] :
         if colmap[col] is None:
             raise Exception("The mandatory column '%s' is missing"%(col))
