@@ -198,6 +198,26 @@ class _BaseServer:
             # for now v0.3 and v0.4 are equal
             assert(self._ver == "0.4" or self._ver == "0.3")
 
+    def update_gavals_gvals_count_by_db(self):
+        global gvals_count, gavals_count
+        for i in range(1, 100):
+            try:
+                with ROCursor(self) as c:
+                    c.execute("SELECT gval%d FROM item_revisions WHERE id=0"%(i))
+                    c.fetchone()
+            except Exception as e:
+                break
+            gvals_count = i
+
+        for i in range(1, 100):
+            try:
+                with ROCursor(self) as c:
+                    c.execute("SELECT gaval%d FROM assemblies WHERE id=0"%(i))
+                    c.fetchone()
+            except Exception as e:
+                break
+            gavals_count = i
+
     # these two methods can be overrided to tweak the data returned by
     # fetchone/fetchall
     def _translate_fetchone_(self, c, x):

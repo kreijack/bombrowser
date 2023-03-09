@@ -137,6 +137,12 @@ def main(args):
 
         i += 1
 
+    # update the gval/gaval counter on the basis of the db
+    # do it AFTER the '--manage-db' option
+    d.update_gavals_gvals_count_by_db()
+    assert(db.gavals_count >= max([x[1] for x in cfg.get_gavalnames()]))
+    assert(db.gvals_count >= max([x[1] for x in cfg.get_gvalnames2()]))
+
     if not dontshowmain:
         w = listcodegui.CodesWindow()
         w.show()
