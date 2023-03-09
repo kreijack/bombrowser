@@ -208,6 +208,15 @@ def _import_csv_parent_child2(data, keyword_map, options):
             else:
                 code_values[v] = str(fields[colmap[v]])
 
+        if "translate" in options:
+            translate = options["translate"]
+            for v in colmap:
+                if not v in translate:
+                    continue
+                if not code_values[v] in translate[v]:
+                    continue
+                code_values[v] = translate[v][code_values[v]]
+
         if not code_values["parent_code"] in bom:
             bom[code_values["parent_code"]] = {
                 "deps": dict(),
@@ -245,6 +254,30 @@ def _import_csv_parent_child2(data, keyword_map, options):
 def import_json(keyword_map):
     return { '0': {} }
 
+def _parse_translate_parameter(s):
+    ret = dict()
+    l = s.split("\n")
+    key = None
+    for i in l:
+        i = i.strip()
+
+        if len(i) == 0:
+            continue
+
+        if i.endswith(":"):
+            assert(len(i) > 1)
+            key = i[:-1]
+            ret[key] = dict()
+            continue
+        assert(key)
+
+        l2 = utils.split_with_escape(i, "=", quote='"')
+        assert(len(l2) == 2)
+
+        ret[key][l2[0]] = l2[1]
+
+    return ret
+
 def get_importer_list():
 
     l = utils.split_with_escape(
@@ -259,6 +292,11 @@ def get_importer_list():
         name = cfg.config()[importer_name].get("name", None)
         type_ = cfg.config()[importer_name].get("type", None)
         map_ = cfg.config()[importer_name].get("map", None)
+        translate = cfg.config()[importer_name].get("translate", None)
+        if translate:
+            translate = _parse_translate_parameter(translate)
+        else:
+            translate = dict()
 
         if map_ is None or type_ is None or name is None:
             print("Importer '%s' is not defined properly"%(importer_name))
@@ -525,6 +563,63 @@ def test_check_presence_of_columns():
         assert("qty3" in str(e))
         excp = True
     assert(excp)
+
+
+def test_parse_translate_parameter_ok():
+    s="\nqty:\na=b\nc=d\n\ngval1:\ne=f\nk=l"
+    ret = _parse_translate_parameter(s)
+    assert("qty" in ret)
+    assert("gval1" in ret)
+    assert(len(ret["qty"].keys()) == 2)
+    assert(len(ret["gval1"].keys()) == 2)
+    assert("a" in ret["qty"])
+    assert(ret["qty"]["c"] == "d")
+    assert("e" in ret["gval1"])
+    assert(ret["gval1"]["k"] == "l")
+
+def test_parse_translate_parameter_fail_no_key():
+    s="\n\na=b\nc=d\n\ngval1:\ne=f\nk=l"
+    ok = False
+    try:
+        ret = _parse_translate_parameter(s)
+    except:
+        ok = True
+    assert(ok)
+
+def test_parse_translate_parameter_fail_no_eq():
+    s="\n\nab:\ncd\n\ngval1:\ne=f\nk=l"
+    ok = False
+    try:
+        ret = _parse_translate_parameter(s)
+    except:
+        ok = True
+    assert(ok)
+
+def test_parse_translate_parameter_ok_quote():
+    s="\n\nab:\n\"c=\"=d\n\ngval1:\ne=f\nk=l"
+    ret = _parse_translate_parameter(s)
+    assert(ret["ab"]["c="] == 'd')
+
+def test_parse_translate_parameter_ok_quote_2():
+    s="\n\nab:\nc=\"=d\"\n\ngval1:\ne=f\nk=l"
+    ret = _parse_translate_parameter(s)
+    assert(ret["ab"]["c"] == '=d')
+
+def test_import_csv_parent_child2_translate():
+    data = """parent_code;parent_descr;code;descr;qty;each;unit;gval1
+Z;0-descr;1;1-descr;1;2;nr;gval-1
+Z;0-descr;2;2-descr;2;3;nr;gval-2
+4;4-descr;2;3-descr;8;9;mt;mt
+Z;0-descr;4;4-descr;1.5;3;gr;gval-4"""
+
+    data = [x.split(";") for x in data.split("\n")]
+
+    bom = _import_csv_parent_child2(data,[], {
+                "translate": { "unit": { "nr" : "NR", "mt": "MT" } }
+    })
+    assert(bom["Z"]["deps"]["1"]["unit"] == "NR")
+    assert(bom["4"]["deps"]["2"]["unit"] == "MT")
+    assert(bom["2"]["gval1"] == "mt")
 
 
 if __name__ == "__main__":

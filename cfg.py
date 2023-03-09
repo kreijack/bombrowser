@@ -242,6 +242,7 @@ def _check_cfg(cfg):
         ('default_unit', False),
         ('ignore_duplicate', False),
         ('skip_first_lines', False),
+        ('translate', False),
     ]
 
     ####
