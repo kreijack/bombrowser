@@ -431,7 +431,7 @@ def test_split_with_escape_quote():
     r = split_with_escape('"abc","defg"', ",", quote='"')
     assert(r == ["abc", "defg"])
 
-def test_split_with_escape_quote():
+def test_split_with_escape_quote_2():
     r = split_with_escape(r'"abcdefg"', ",", quote='"')
     assert(r == ['abcdefg'])
 
