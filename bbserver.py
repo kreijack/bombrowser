@@ -689,7 +689,7 @@ def _run_server():
     host = cfg.config().get("LOCALBBSERVER", "host")
     port = int(cfg.config().get("LOCALBBSERVER", "port"))
     verbose = int(cfg.config().get("LOCALBBSERVER", "verbose"))
-    connection,instance = db._create_db(dbtype)
+    connection,instance = db._create_db(dbtype, cfg.config()[dbtype.upper()])
     _start_server(instance, host, port, verbose)
 
 def start_tests(args):
