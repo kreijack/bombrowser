@@ -184,6 +184,7 @@ class _BaseServer:
     def __init__(self, path):
         self._path = path
         self._conn = None
+        self._read_only = None
 
         self._ver = "empty"
         if "database_props" in self._get_tables_list():
@@ -414,17 +415,20 @@ class _BaseServer:
         return stms
 
     def is_db_read_only(self):
-        read_only = False
-        try:
-            with Transaction(self) as c:
-                c.execute("""INSERT INTO database_props(name, value)
-                             VALUES ('test_ro', 'test_ro')""")
-                # we want only check if this is possible
-                c.rollback()
-        except:
-            read_only = True
+        if self._read_only is None:
+            read_only = False
+            try:
+                with Transaction(self) as c:
+                    c.execute("""INSERT INTO database_props(name, value)
+                                 VALUES ('test_ro', 'test_ro')""")
+                    # we want only check if this is possible
+                    c.rollback()
+            except:
+                read_only = True
 
-        return read_only
+            self._read_only = read_only
+
+        return self._read_only
 
     def create_db(self):
         stms = self._get_db_v0_4()
