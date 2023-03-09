@@ -143,6 +143,8 @@ def _import_csv_parent_child2(data, keyword_map, options):
     }
     for i in range(0, db.gvals_count):
         colmap["gval%d"%(i)] = None
+    for i in range(0, db.gavals_count):
+        colmap["gaval%d"%(i)] = None
 
     for v in keyword_map:
         s1, s2 = v.split(":")
@@ -245,9 +247,13 @@ def _import_csv_parent_child2(data, keyword_map, options):
         for v in code_values:
             if v in ["parent_code", "parent_descr", "qty", "each", "ref"]:
                 continue
-            if colmap[v] is None:
+            elif colmap[v] is None:
                 continue
-            bom[code_values["code"]][v] = code_values[v]
+            elif v.startswith("gaval"):
+                bom[code_values["parent_code"]]["deps"][code_values["code"]][v] = \
+                    code_values[v]
+            else:
+                bom[code_values["code"]][v] = code_values[v]
 
     return bom
 
@@ -621,6 +627,19 @@ Z;0-descr;4;4-descr;1.5;3;gr;gval-4"""
     assert(bom["4"]["deps"]["2"]["unit"] == "MT")
     assert(bom["2"]["gval1"] == "mt")
 
+def test_import_csv_parent_child2_gaval():
+    data = """parent_code;parent_descr;code;descr;qty;each;unit;gaval1
+Z;0-descr;1;1-descr;1;2;nr;gaval-1
+Z;0-descr;2;2-descr;2;3;nr;gaval-2
+4;4-descr;2;3-descr;8;9;mt;mt
+Z;0-descr;4;4-descr;1.5;3;gr;gval-4"""
+
+    data = [x.split(";") for x in data.split("\n")]
+
+    bom = _import_csv_parent_child2(data,[], {})
+    assert(bom["Z"]["deps"]["1"]["gaval1"] == "gaval-1")
+    assert(bom["4"]["deps"]["2"]["unit"] == "mt")
+    assert(not "gaval1" in bom["Z"])
 
 if __name__ == "__main__":
     last = 1
