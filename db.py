@@ -189,14 +189,17 @@ class _BaseServer:
         self._ver = "empty"
         if "database_props" in self._get_tables_list():
             try:
-                with ROCursor(d) as c:
+                with ROCursor(self) as c:
                     c.execute("SELECT value FROM database_props WHERE name='ver' ")
                     self._ver = c.fetchone()[0]
             except:
-                return
+                pass
+            else:
+                # for now v0.3 and v0.4 are equal
+                assert(self._ver == "0.4" or self._ver == "0.3")
 
-            # for now v0.3 and v0.4 are equal
-            assert(self._ver == "0.4" or self._ver == "0.3")
+    def get_db_ver(self):
+        return self._ver
 
     def update_gavals_gvals_count_by_db(self):
         global gvals_count, gavals_count
