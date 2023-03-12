@@ -237,6 +237,9 @@ class DiffWindow(bbwindow.BBMainWindow):
         self._cb_minimal = QCheckBox("Diff only main attributes")
         self._cb_minimal.clicked.connect(self.do_diff)
         hl.addWidget(self._cb_minimal)
+        self._cb_only_shared_prop = QCheckBox("Diff only shared properties")
+        self._cb_only_shared_prop.clicked.connect(self.do_diff)
+        hl.addWidget(self._cb_only_shared_prop)
         hl.addStretch()
 
         grid.addWidget(self._bom1, 10, 1)
@@ -341,6 +344,7 @@ class DiffWindow(bbwindow.BBMainWindow):
         else:
             allowed_keys = None
 
+        only_shared = self._cb_only_shared_prop.isChecked()
 
         self._text.clear()
 
@@ -361,6 +365,10 @@ class DiffWindow(bbwindow.BBMainWindow):
         def is_codes_equal(c1, c2):
             k1 = set(c1.keys())
             k2 = set(c2.keys())
+            if only_shared:
+                k3 = k1.intersection(k2)
+                k1 = k3
+                k2 = k3
             if allowed_keys:
                 k1 = k1.intersection(allowed_keys)
                 k2 = k2.intersection(allowed_keys)
@@ -429,12 +437,19 @@ class DiffWindow(bbwindow.BBMainWindow):
                 # diff between the same code
                 txt += html.escape(dump_code(data1[key])) + "<br>"
 
-                keys = set(data1[key].keys()).union(data2[key].keys())
-                keys.difference_update(item_props_blacklist)
-                keys = list(keys)
-                keys.sort()
-                keys = [x for x in keys if not x.startswith("gval")]
-                keys = keys + [gvalname for (seq, idx, gvalname, caption, type_) in gvals]
+                if only_shared:
+                    keys = set(data1[key].keys()).intersection(data2[key].keys())
+                    keys.difference_update(item_props_blacklist)
+                    keys = list(keys)
+                    keys.sort()
+                else:
+                    keys = set(data1[key].keys()).union(data2[key].keys())
+                    keys.difference_update(item_props_blacklist)
+                    keys = list(keys)
+                    keys.sort()
+                    keys = [x for x in keys if not x.startswith("gval")]
+                    keys = keys + [gvalname for (seq, idx, gvalname, caption, type_) in gvals]
+
                 if allowed_keys:
                     keys = [ x for x in keys if x in allowed_keys]
 
