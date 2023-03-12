@@ -284,13 +284,12 @@ def _parse_translate_parameter(s):
 
     return ret
 
-def get_importer_list():
-
+def _build_importer_list():
     l = utils.split_with_escape(
                     cfg.config()["BOMBROWSER"].get("importer_list"),
                     delimiter=',', quote='"')
     if l == [""]:
-        return None
+        return
     ret = []
     for importer_name in l:
         if not cfg.config().has_section(importer_name):
@@ -314,15 +313,24 @@ def get_importer_list():
 
         name, map_, type_ = map(lambda x : x.strip(), (name, map_, type_))
 
+        options = dict()
         if type_ == "parent_child":
-            options = dict()
+            options["translate"] = translate
             for k in ["default_unit", "skip_first_lines", "ignore_duplicate",
                         "delimiter", "quotechar"]:
                 if k in cfg.config()[importer_name]:
                     options[k] = cfg.config()[importer_name].get(k)
             mapl = [x.strip() for x in map_.split("\n") if len(x.strip()) > 0]
+            yield type_, importer_name, name, mapl, options
+        else: # json
+            yield type_, importer_name, name, map_, options
+
+def get_importer_list():
+    ret = []
+    for type_, importer_name, name, map_, options in _build_importer_list():
+        if type_ == "parent_child":
             ret.append((importer_name, name,
-                utils.Callable(import_csv_parent_child, mapl, options)))
+                utils.Callable(import_csv_parent_child, map_, options)))
         else: # json
             ret.append((importer_name, name,
                 utils.Callable(import_json, map_)))
@@ -330,46 +338,16 @@ def get_importer_list():
     return ret
 
 def get_diff_importer_list():
-
-    l = utils.split_with_escape(
-                    cfg.config()["BOMBROWSER"].get("importer_list"),
-                    delimiter=',', quote='"')
-    if l == [""]:
-        return None
     ret = []
-    for importer_name in l:
-        if not cfg.config().has_section(importer_name):
-            continue
-        name = cfg.config()[importer_name].get("name", None)
-        type_ = cfg.config()[importer_name].get("type", None)
-        map_ = cfg.config()[importer_name].get("map", None)
-
-        if map_ is None or type_ is None or name is None:
-            print("Importer '%s' is not defined properly"%(importer_name))
-            continue
-
-        if not type_ in ["parent_child", "json"]:
-            print("Importer '%s': unknown type '%s'"%(importer_name, type_))
-            continue
-
-        name, map_, type_ = map(lambda x : x.strip(), (name, map_, type_))
-
+    for type_, importer_name, name, map_, options in _build_importer_list():
         if type_ == "parent_child":
-            options = dict()
-            for k in ["default_unit", "skip_first_lines", "ignore_duplicate",
-                        "delimiter", "quotechar"]:
-                if k in cfg.config()[importer_name]:
-                    options[k] = cfg.config()[importer_name].get(k)
-            mapl = [x.strip() for x in map_.split("\n") if len(x.strip()) > 0]
             ret.append((importer_name, name,
                 utils.Callable(_csv_parent_child_get_filename, options.copy()),
-                utils.Callable(_csv_parent_child_import, mapl[:], options.copy()))
+                utils.Callable(_csv_parent_child_import, map_[:], options.copy()))
             )
-        #else: # json
-        #    ret.append((importer_name, name,
-        #        utils.Callable(import_json, map_)))
 
     return ret
+
 
 def test_import_csv_parent_child2():
     import io
