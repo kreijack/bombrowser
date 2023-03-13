@@ -339,7 +339,7 @@ class DiffWindow(bbwindow.BBMainWindow):
 
         if self._cb_minimal.isChecked():
             allowed_keys = [
-                "qty", "descr", "code"
+                "qty", "descr", "code", "ver"
             ]
         else:
             allowed_keys = None
