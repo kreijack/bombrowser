@@ -27,7 +27,7 @@ from PySide2.QtWidgets import QMessageBox, QAction, QDialog
 from PySide2.QtCore import Qt, Signal
 
 import db, utils, selectdategui, bbwindow, cfg, importer, editcode
-
+import utils
 
 class BomImported(QWidget):
 
@@ -87,13 +87,10 @@ class BomImported(QWidget):
                     descr = str(bom[k]["descr"])
                 data.append((str(k), descr))
 
-            QApplication.setOverrideCursor(Qt.ArrowCursor)
-            try:
+            with utils.OverrideCursor(Qt.ArrowCursor):
                 w = editcode.SelectFromList(self, "Select a code for import",
                     ["CODE", "DESCR"], data)
                 w.exec_()
-            finally:
-                QApplication.restoreOverrideCursor()
 
             ret = w.getIndex()
             if ret is None:

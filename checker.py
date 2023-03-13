@@ -23,7 +23,7 @@ from PySide2.QtWidgets import QPushButton, QMainWindow, QTextEdit
 from PySide2.QtWidgets import QVBoxLayout, QApplication, QWidget
 from PySide2.QtCore import Qt
 
-import customize, bbwindow
+import customize, bbwindow, utils
 
 class ShowResult(bbwindow.BBMainWindow):
     def __init__(self, txt='', bom_descr = '', parent=None):
@@ -77,14 +77,11 @@ def loop_check(root, data):
 
 def run_bom_tests(root, data, bom_descr):
 
-    QApplication.setOverrideCursor(Qt.WaitCursor)
-    res = ""
-    try:
+    with utils.OverrideCursor():
+        res = ""
         checkers = [loop_check] + customize.get_bom_checker_list()
         for check in checkers:
             res += check(root, data)
-    finally:
-        QApplication.restoreOverrideCursor()
 
     if res == '':
         res = "<font color=green><H1>Success</H1></font><br><\n>"

@@ -162,19 +162,18 @@ class ExportDialog(QDialog):
 
     def _do_export(self):
     
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        progress = QProgressDialog("Getting information...",
-            "Abort Copy", 0, 100, self)
-        progress.setWindowModality(Qt.WindowModal)
-        progress.forceShow()
-        progress.setValue(0)
+        with utils.OverrideCursor():
+            progress = QProgressDialog("Getting information...",
+                "Abort Copy", 0, 100, self)
+            progress.setWindowModality(Qt.WindowModal)
+            progress.forceShow()
+            progress.setValue(0)
 
-        try:
-            self._do_export1(progress)
-        finally:
-            QApplication.restoreOverrideCursor()
-            progress.close()
-            self.close()
+            try:
+                self._do_export1(progress)
+            finally:
+                progress.close()
+                self.close()
 
     def _do_export_get_info(self, progress):
         progress.setWindowTitle("Extracting data from DB")
@@ -231,9 +230,9 @@ class ExportDialog(QDialog):
                 for i in irregular_files:
                     msg += "Irregular file: %s\n"%(i)
                 msg += "\nEnd the copy ?"
-                QApplication.setOverrideCursor(Qt.ArrowCursor)
-                ret = QMessageBox.question(self, "BOMBrowser", msg)
-                QApplication.restoreOverrideCursor()
+                with utils.OverrideCursor(Qt.ArrowCursor):
+                    ret = QMessageBox.question(self, "BOMBrowser", msg)
+
                 if ret == QMessageBox.Yes:
                     return (1, [])
 
@@ -260,10 +259,10 @@ class ExportDialog(QDialog):
                 else:
                     shutil.copy(fname, dest)
             except Exception as e:
-                QApplication.setOverrideCursor(Qt.ArrowCursor)
-                ret = QMessageBox.question(self, "BOMBrowser",
-                    "Error during the copy of '%s'\nEnd the copy ?"%(fname))
-                QApplication.restoreOverrideCursor()
+                with utils.OverrideCursor(Qt.ArrowCursor):
+                    ret = QMessageBox.question(self, "BOMBrowser",
+                        "Error during the copy of '%s'\nEnd the copy ?"%(fname))
+
                 if ret == QMessageBox.Yes:
                     return 1
 
@@ -332,9 +331,8 @@ class ExportDialog(QDialog):
         if self._cb_copy_link.isChecked():
             self._copy_file(link) 
 
-        QApplication.setOverrideCursor(Qt.ArrowCursor)
-        QMessageBox.information(self, "BOMBrowser", "Export ended")
-        QApplication.restoreOverrideCursor()
+        with utils.OverrideCursor(Qt.ArrowCursor):
+            QMessageBox.information(self, "BOMBrowser", "Export ended")
 
     def _copy_file(self, fn):
         md = QMimeData()
@@ -688,9 +686,8 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                         self._tree.setExpanded(child_idx, True)
                     rec_iterate(child, l+1)
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        rec_iterate(parent_item, 1)
-        QApplication.restoreOverrideCursor()
+        with utils.OverrideCursor():
+            rec_iterate(parent_item, 1)
 
     def _start_find(self):
         self._find = FindDialog(self, self._tree)
@@ -961,13 +958,10 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         if not self._bom_reload:
             return
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        try:
+        with utils.OverrideCursor():
             time0 = time.time()
             top, data, dt = self._bom_reload()
             time1 = time.time()
-        finally:
-            QApplication.restoreOverrideCursor()
 
         cnt = self.populate(top, data, dt)
         time2 = time.time()

@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import sys, traceback, re, os
 
 from PySide2.QtWidgets import QMessageBox
+from PySide2.QtWidgets import QApplication
+from PySide2.QtCore import Qt
 
 from version import version
 import db, cfg
@@ -285,6 +287,16 @@ def reload_config_or_warn():
     cfg.reload_config()
     data = db.DB().get_config()
     cfg.update_cfg(data)
+
+
+class OverrideCursor:
+    def __init__(self, cursor=Qt.WaitCursor):
+        self._cursor = cursor
+    def __enter__(self):
+        QApplication.setOverrideCursor(self._cursor)
+    def __exit__(self, type_, value, traceback):
+        QApplication.restoreOverrideCursor()
+
 
 def test_bb_match_simple():
     assert(bb_match("abc", "a"))

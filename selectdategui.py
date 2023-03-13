@@ -22,7 +22,7 @@ from PySide2.QtWidgets import QGridLayout, QPushButton
 from PySide2.QtWidgets import QDialog, QHeaderView, QApplication
 from PySide2.QtCore import Qt
 
-import db
+import db, utils
 
 class SelectDate(QDialog):
     def __init__(self, code_id, parent, only_data_code=False, range_selection=False):
@@ -37,9 +37,8 @@ class SelectDate(QDialog):
         self.show()
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        self._populate_table()
-        QApplication.restoreOverrideCursor()
+        with utils.OverrideCursor():
+            self._populate_table()
 
     def _init_gui(self):
         grid = QGridLayout()
