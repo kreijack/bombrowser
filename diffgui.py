@@ -86,9 +86,14 @@ class BomImported(QWidget):
                 if "descr" in bom[k]:
                     descr = str(bom[k]["descr"])
                 data.append((str(k), descr))
-            w = editcode.SelectFromList(self, "Select a code for import",
-                ["CODE", "DESCR"], data)
-            w.exec_()
+
+            QApplication.setOverrideCursor(Qt.ArrowCursor)
+            try:
+                w = editcode.SelectFromList(self, "Select a code for import",
+                    ["CODE", "DESCR"], data)
+                w.exec_()
+            finally:
+                QApplication.restoreOverrideCursor()
 
             ret = w.getIndex()
             if ret is None:
