@@ -312,6 +312,10 @@ class DiffWindow(bbwindow.BBMainWindow):
         code1, data1 = self._bom1.getBom()
         code2, data2 = self._bom2.getBom()
 
+        if data2 is None or data1 is None:
+            self._text.setText("Cannot perform diff")
+            return
+
         # put the head of boms to the same ID to ensure to compare the "same" head
         if code1 != code2:
             data1 = data1.copy()
