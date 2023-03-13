@@ -133,7 +133,7 @@ def _import_csv_parent_child2(data, keyword_map, options):
     colmap = {
         "code": None,
         "descr": None,
-        "parent_code": None,
+        "parent": None,
         "parent_descr": None,
         "qty" : None,
         "unit" : None,
@@ -160,6 +160,9 @@ def _import_csv_parent_child2(data, keyword_map, options):
     for i, name in enumerate(headers):
         if name in map1:
             name = map1[name]
+        # for historical reason 'rev' internally is 'ver'
+        if name == 'rev':
+            name = 'ver'
         if  name in colmap:
             colmap[name] = i
 
@@ -179,7 +182,7 @@ def _import_csv_parent_child2(data, keyword_map, options):
             raise Exception("Error at line %d: the number of column is different from the header one"%(linenr))
 
         code_values = {
-            "parent_code": 0,
+            "parent": 0,
             "unit": default_unit,
             "each": 1,
             "ref": ""
@@ -219,19 +222,20 @@ def _import_csv_parent_child2(data, keyword_map, options):
                     continue
                 code_values[v] = translate[v][code_values[v]]
 
-        if not code_values["parent_code"] in bom:
-            bom[code_values["parent_code"]] = {
+        parent_code = code_values["parent"]
+        if not parent_code in bom:
+            bom[parent_code] = {
                 "deps": dict(),
-                "code": code_values["parent_code"],
+                "code": parent_code,
             }
             if "parent_descr" in code_values:
-                bom[code_values["parent_code"]]["descr"] = code_values["parent_descr"]
+                bom[parent_code]["descr"] = code_values["parent_descr"]
 
-        if code_values["code"] in bom[code_values["parent_code"]]["deps"]:
+        if code_values["code"] in bom[parent_code]["deps"]:
             if not ignore_duplicate:
                 raise Exception("Error at line %d: this line is a duplicated"%(linenr))
 
-        bom[code_values["parent_code"]]["deps"][code_values["code"]] = {
+        bom[parent_code]["deps"][code_values["code"]] = {
             "code": code_values["code"],
             "qty": code_values["qty"],
             "each": code_values["each"],
@@ -245,12 +249,12 @@ def _import_csv_parent_child2(data, keyword_map, options):
             }
 
         for v in code_values:
-            if v in ["parent_code", "parent_descr", "qty", "each", "ref"]:
+            if v in ["parent", "parent_descr", "qty", "each", "ref"]:
                 continue
             elif colmap[v] is None:
                 continue
             elif v.startswith("gaval"):
-                bom[code_values["parent_code"]]["deps"][code_values["code"]][v] = \
+                bom[parent_code]["deps"][code_values["code"]][v] = \
                     code_values[v]
             else:
                 bom[code_values["code"]][v] = code_values[v]
@@ -351,11 +355,11 @@ def get_diff_importer_list():
 
 def test_import_csv_parent_child2():
     import io
-    data = """parent_code;parent_descr;code;descr;qty;each;unit;gval1
-Z;0-descr;1;1-descr;1;2;nr;gval-1
-Z;0-descr;2;2-descr;2;3;nr;gval-2
-4;4-descr;3;3-descr;8;9;nr;gval-7
-Z;0-descr;4;4-descr;1.5;3;gr;gval-4"""
+    data = """parent;parent_descr;code;descr;qty;each;unit;gval1;rev
+Z;0-descr;1;1-descr;1;2;nr;gval-1;A
+Z;0-descr;2;2-descr;2;3;nr;gval-2;B
+4;4-descr;3;3-descr;8;9;nr;gval-7;C
+Z;0-descr;4;4-descr;1.5;3;gr;gval-4;D"""
 
     data = [x.split(";") for x in data.split("\n")]
 
@@ -367,6 +371,7 @@ Z;0-descr;4;4-descr;1.5;3;gr;gval-4"""
     assert(bom["Z"]["descr"] == "0-descr")
     assert(bom["1"]["descr"] == "1-descr")
     assert(bom["1"]["gval1"] == "gval-1")
+    assert(bom["4"]["ver"] == "D")
 
     assert("1" in bom["Z"]["deps"])
     assert(bom["Z"]["deps"]["1"]["qty"] == 1)
@@ -383,7 +388,7 @@ Z;0-descr;4;4-descr;1.5;3;gr;gval-4"""
 
 def test_import_csv_parent_child2_error_on_duplicate_row():
     import io
-    s = """parent_code;parent_descr;code;descr;qty;each;unit;gval1
+    s = """parent;parent_descr;code;descr;qty;each;unit;gval1
 0;0-descr;1;1-descr;1;2;nr;gval-1
 0;0-descr;2;2-descr;2;3;nr;gval-2
 4;4-descr;3;3-descr;8;9;nr;gval-7
@@ -412,7 +417,7 @@ def test_import_csv_parent_child2_error_on_duplicate_row():
 
 def test_import_csv_parent_child2_error_on_less_columns():
     import io
-    s = """parent_code;parent_descr;code;descr;qty;each;unit;gval1
+    s = """parent;parent_descr;code;descr;qty;each;unit;gval1
 0;0-descr;1;1-descr;1;2;nr;gval-1
 0;0-descr;2;2-descr;2;3;nr;gval-2
 4;4-descr;3;3-descr;8;9;nr;gval-7
@@ -440,7 +445,7 @@ def test_import_csv_parent_child2_error_on_less_columns():
 
 def test_import_csv_parent_child2_error_on_more_columns():
     import io
-    s = """parent_code;parent_descr;code;descr;qty;each;unit;gval1
+    s = """parent;parent_descr;code;descr;qty;each;unit;gval1
 0;0-descr;1;1-descr;1;2;nr;gval-1
 0;0-descr;2;2-descr;2;3;nr;gval-2
 4;4-descr;3;3-descr;8;9;nr;gval-7
@@ -590,7 +595,7 @@ def test_parse_translate_parameter_ok_quote_2():
     assert(ret["ab"]["c"] == '=d')
 
 def test_import_csv_parent_child2_translate():
-    data = """parent_code;parent_descr;code;descr;qty;each;unit;gval1
+    data = """parent;parent_descr;code;descr;qty;each;unit;gval1
 Z;0-descr;1;1-descr;1;2;nr;gval-1
 Z;0-descr;2;2-descr;2;3;nr;gval-2
 4;4-descr;2;3-descr;8;9;mt;mt
@@ -606,7 +611,7 @@ Z;0-descr;4;4-descr;1.5;3;gr;gval-4"""
     assert(bom["2"]["gval1"] == "mt")
 
 def test_import_csv_parent_child2_gaval():
-    data = """parent_code;parent_descr;code;descr;qty;each;unit;gaval1
+    data = """parent;parent_descr;code;descr;qty;each;unit;gaval1
 Z;0-descr;1;1-descr;1;2;nr;gaval-1
 Z;0-descr;2;2-descr;2;3;nr;gaval-2
 4;4-descr;2;3-descr;8;9;mt;mt

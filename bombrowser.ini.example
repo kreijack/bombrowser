@@ -169,7 +169,7 @@ name=Simple table
 #   unit -> unit
 #   each -> each
 #   ref -> ref
-#   paren -> parent_code
+#   parent -> parent code
 #   drawings -> drawings filenaname
 #   gval1, glval20 -> generic fields
 #   rev -> code revision
@@ -280,7 +280,7 @@ map=
 name=Importer all
 type=parent_child
 map=
-    parent_code:Parent code
+    parent:Parent code
     parent_descr:Parent descritpion
     code:Code
     descr:Description
