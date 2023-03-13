@@ -469,7 +469,9 @@ class DiffWindow(bbwindow.BBMainWindow):
                             if gvalname == name:
                                 name = caption
                                 break
-
+                    # exchange ver -> rev
+                    if name == 'ver':
+                        name = 'rev'
                     if key2 in data1[key]:
                         txt += "&nbsp;" * 5 + makeRed(
                                 "-%s: %s\n"%(name, data1[key][key2]))
