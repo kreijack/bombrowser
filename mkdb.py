@@ -914,6 +914,62 @@ def build_bom(top, data):
     runner(top)
     return res
 
+def make_big_assemblies(c):
+
+    assemblies_params = [
+        # leaf size, bom height
+        (7, 3),
+        (5, 4),
+        (6, 4),
+        (7, 4),
+        (5, 5),
+        (6, 5),
+        (7, 5),
+        (6, 6),
+        (7, 6),
+        (6, 7),
+        (7, 7),
+        (6, 8),
+        (7, 8),
+    ]
+
+    codes_map = dict()
+    def build_assy(leaf_size, bom_deep, cnt):
+        new_code = "BIG-ASSY-%dx%d-%03d"%(leaf_size, bom_deep, cnt)
+        #print("\t", new_code, codes_map)
+        if new_code in codes_map:
+            arid, acid, count = codes_map[new_code]
+            return arid, acid, count
+
+        count = 1
+
+        if bom_deep == 1:
+            arid, acid = insert_code(c,
+                "BIG ASSY COUNT=%7d, %d X %d"%(count, leaf_size, bom_deep),
+                new_code, 0, 0, "NR")
+            codes_map[new_code] = arid, acid, count
+            return arid, acid, count
+
+        codes_id = []
+        cnt2 = 0
+        for i in range(leaf_size):
+            _, code_id, cnt3 = build_assy(leaf_size, bom_deep - 1, cnt2)
+            cnt2 += 1
+            count += cnt3
+            codes_id.append(code_id)
+
+        arid, acid = insert_code(c,
+            "BIG ASSY COUNT=%7d, %d X %d"%(count, leaf_size, bom_deep),
+            new_code, 0, 0, "NR")
+
+        make_assembly(c, arid, codes_id)
+        codes_map[new_code] = arid, acid, count
+
+        return arid, acid, count
+
+    for leaf_size, bom_deep in  assemblies_params:
+        build_assy(leaf_size, bom_deep, 0)
+
 def create_db(show_stat):
     dbtype = cfg.config()["BOMBROWSER"]["db"]
     c = cfg.config()[dbtype.upper()]
@@ -999,6 +1055,9 @@ def create_db(show_stat):
         insert_codes_with_loop(c)
         print("Insert assembly with color")
         insert_codes_with_color(c)
+
+        print("Build big assemblies")
+        make_big_assemblies(c)
 
         if show_stat:
             print()
