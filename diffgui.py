@@ -134,6 +134,8 @@ class CodeDate(QWidget):
     def __init__(self, id_, code, date_days, parent=None):
         QWidget.__init__(self, parent)
         date = db.days_to_txt(date_days)
+        if date=='':
+            date="LATEST"
         self._code = code
         self._id = id_
         self._date = date
