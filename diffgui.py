@@ -322,16 +322,41 @@ class DiffWindow(bbwindow.BBMainWindow):
         if code1 != code2:
             data1 = data1.copy()
             data2 = data2.copy()
+
+            # check that both the bom have the same key (str/str or int/int)
+            assert( isinstance(list(data1.keys())[0], str) ==
+                   isinstance(list(data2.keys())[0], str))
+
             # create a code that is not shared between the two bom
-            code3 = "private-code-"
-            while code3 in data1.keys() or code3 in data2.keys():
-                code3 += "x"
+            if isinstance(list(data1.keys())[0], str):
+                code3 = "private-code-"
+                while code3 in data1.keys() or code3 in data2.keys():
+                    code3 += "x"
+            else:
+                code3 = 9999999999
+                while code3 in data1.keys() or code3 in data2.keys():
+                    code3 *= 9999
+
             data1[code3] = data1[code1]
             data1[code3]["id"] = code3
             data2[code3] = data2[code2]
             data2[code3]["id"] = code3
             data1.pop(code1)
             data2.pop(code2)
+
+            # unlikely, but check that the boms don't have any reference
+            # to the removed code1/code2
+            for code, data in data1.items():
+                if not code1 in data["deps"]:
+                    continue
+                data["deps"][code3] = data["deps"][code1]
+                data["deps"].pop(code1)
+
+            for code, data in data2.items():
+                if not code2 in data["deps"]:
+                    continue
+                data["deps"][code3] = data["deps"][code2]
+                data["deps"].pop(code2)
         else:
             code3 = code1
 
@@ -501,7 +526,7 @@ class DiffWindow(bbwindow.BBMainWindow):
                 txt += "<br>\n"
                 txt += makeRed("-" + dump_code(data1[key])) + "\n"
                 txt += "&nbsp;" * 5 + "[....]<br>\n"
-            else:
+            else: # key in data2.keys()
                 txt += "<br>\n"
                 txt += makeGreen("+" + dump_code(data2[key])) + "\n"
 
@@ -527,6 +552,7 @@ class DiffWindow(bbwindow.BBMainWindow):
 
                 child_ids = list(data2[key]["deps"].keys())
                 child_ids.sort()
+
                 for child_id in child_ids:
                     child =data2[key]["deps"][child_id]
                     txt += "&nbsp;" * 9 + makeGreen("+" +
