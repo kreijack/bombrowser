@@ -75,7 +75,7 @@ class BomImported(QWidget):
         if bom is None:
             QMessageBox.critical(self, "BOMBrowser",
                 "Cannot import data")
-            return
+            return (None, None)
 
         if 0 in bom:
             root = 0
@@ -94,7 +94,7 @@ class BomImported(QWidget):
 
             ret = w.getIndex()
             if ret is None:
-                return
+                return  (None, None)
 
             root = data[ret][0]
         
