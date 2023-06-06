@@ -2770,6 +2770,51 @@ def test_expand_search_str_icase():
     assert("UPPER" in q)
     assert("FOO" in args[0])
 
+def test_expand_search_str_icase_not_for_num():
+    d = _init_db()
+    (q, args) = d._expand_search_str_clauses((
+        ("descr", "0"),
+    ), False)
+    assert("UPPER" in q)
+
+    d = _init_db()
+    (q, args) = d._expand_search_str_clauses((
+        ("descr", "=0"),
+    ), False)
+    assert("UPPER" in q)
+
+
+    d = _init_db()
+    (q, args) = d._expand_search_str_clauses((
+        ("descr", "0"),
+    ), True)
+    assert(not "UPPER" in q)
+
+    (q, args) = d._expand_search_str_clauses((
+        ("descr", "0", int),
+    ), False)
+    assert(not "UPPER" in q)
+
+    (q, args) = d._expand_search_str_clauses((
+        ("descr", ">0", int),
+    ), False)
+    assert(not "UPPER" in q)
+
+    (q, args) = d._expand_search_str_clauses((
+        ("descr", "<0", int),
+    ), False)
+    assert(not "UPPER" in q)
+
+    (q, args) = d._expand_search_str_clauses((
+        ("descr", "=0", int),
+    ), False)
+    assert(not "UPPER" in q)
+
+    (q, args) = d._expand_search_str_clauses((
+        ("descr", "!0", int),
+    ), False)
+    assert(not "UPPER" in q)
+
 def test_update_gavals_gvals_count_by_db():
     my_gavals_count = db.gavals_count
     my_gvals_count = db.gvals_count

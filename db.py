@@ -688,7 +688,7 @@ class _BaseServer:
                     arg = "%" + value + "%"
                 elif len(value) > 0 :
                     op = "="
-                    arg = value  # CHECK: why not f(value) ?
+                    arg = f(value)
                 else:
                     # if we are here, the field is empty and any <=>! are specified
                     continue
