@@ -151,12 +151,12 @@ def get_bomcolors():
 
     return ret
 
-def get_revlistolors():
-    if not "revlistolors" in config()["BOMBROWSER"]:
+def get_revlistcolors():
+    if not "revlistcolors" in config()["BOMBROWSER"]:
         return []
 
     l = [x.strip() for x in
-            config().get("BOMBROWSER", "revlistolors").split("\n")
+            config().get("BOMBROWSER", "revlistcolors").split("\n")
             if len(x.strip()) > 0
         ]
 
@@ -181,7 +181,7 @@ def _check_cfg(cfg):
                 ('gvalnames', True),
                 ('gavalnames', True),
                 ('bomcolors', True),
-                ('revlistolors', True),
+                ('revlistcolors', True),
                 ('scalefont', True),
                 ('btnmaxlength', True),
                 ('ignore_case_during_search', True),

@@ -327,7 +327,7 @@ class RevisionListWidget(QWidget):
             field_map[gvalname] = self._notgvalcols + idx - 1
 
         self._copy_info = ["\t".join(self._search_revision_cols)]
-        revlistcolors = cfg.get_revlistolors()
+        revlistcolors = cfg.get_revlistcolors()
         for row in ret:
             c = 0
             copy_row = ["" for x in self._search_revision_cols]

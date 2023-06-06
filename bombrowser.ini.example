@@ -93,7 +93,7 @@ gavalnames=
 #   any match
 #
 # this parameter handles the aspect of the 'advanced' search revision
-revlistolors=
+revlistcolors=
 #    gval10=:bg=red
 #    gval9=T:bold
 
