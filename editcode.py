@@ -116,7 +116,9 @@ class EditDates(QDialog):
                 else:
                     date_to_days = db.end_of_the_world
             except:
-                utils.show_exception(msg="Error in date format row %d"%(row+1))
+                #utils.show_exception(msg="Error in date format row %d"%(row+1))
+                QMessageBox.critical(self, "BOMBrowser",
+                                     "Error in a date of the row %d"%(row+1))
                 return
 
             if min_date_from_days is None or min_date_from_days > date_from_days:
