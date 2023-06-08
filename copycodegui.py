@@ -212,7 +212,7 @@ class _CopyCode(bbwindow.BBMainWindow):
                 self._last_date_days != db.prototype_date):
                     QMessageBox.critical(self,
                         "BOMBrowser - error",
-                        "The new 'From date' is earlier than the previous ones")
+                        "The new 'From date' is earlier than the oldest revisions")
                     return False
 
         if self._do_copy:
