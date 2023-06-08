@@ -1,3 +1,28 @@
+2023-06-08: v0.4.7
+- check correctness of the ini file bombrowser.ini at startup
+- the date can be inserted using a dedicated gui
+- diff: it is possible invert the sequence between 'to' and 'from'
+- add some statistics of the query in the status line
+- search code/search revision/search in bom now have the same
+  syntax: [!<>=]code1[;[!<>=]code2...]
+  in all the search, '%' and '_' have the same meaning
+  if any jolly character is present, it is assumed that
+  pattern  = %pattern%
+- edit window: if the window is closed before a save, the dialog
+  allows to save.
+- 'copy code' and 'revision code' are two different commands to reduce
+  the confusion
+- shorten the documents file name too long in the buttons
+- improve the export dialog:
+  - better error handling (missing file or file too big)
+  - limit the file size to export
+- add support for case insensitive search
+- add support for forcing to uppercase in code/description
+- allow to colorize the search revision results table
+- allow file upload in the edit window
+- search revision: show documents in the results
+- search revision: allow to search specific document
+
 2022-04-04: v0.4.6
 - add support for oracle db, mysql
 - introduce helper like Transaction/ROCursor to simplify the exception
