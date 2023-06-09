@@ -185,6 +185,7 @@ def _check_cfg(cfg):
                 ('scalefont', True),
                 ('btnmaxlength', True),
                 ('ignore_case_during_search', True),
+                ('list_code_default_mode', True),
         )),
         ('FILES_UPLOAD', (
                 ('method', True),

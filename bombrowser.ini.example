@@ -18,6 +18,10 @@ ignore_case_during_search=0
 templates_list=template_simple,template_all,template_dummy
 importer_list=import_simple,importer_all
 
+# 1 = list code gui, default search mode = advanced
+# 0 = list code gui, default search mode = simple
+list_code_default_mode=1
+
 # The list below is the list name of gvalN (n=1..) fields separated by comma
 # or by a new line if indented. It is allowed to not have all availables
 # felds.

@@ -194,6 +194,8 @@ class CodesWindow(bbwindow.BBMainWindow):
                 self.setWindowTitle("Search in bom: "+bomdesc)
 
         self._init_gui()
+        self._swich_search_mode(int(cfg.config()["BOMBROWSER"]
+                                            ["list_code_default_mode"]))
         self.resize(1024, 600)
 
     def _create_statusbar(self):
@@ -228,16 +230,16 @@ class CodesWindow(bbwindow.BBMainWindow):
 
         a = QAction("Simple", self)
         a.setCheckable(True)
-        a.triggered.connect(lambda : self._stacked_widget.setCurrentIndex(0))
+        a.triggered.connect(lambda : self._swich_search_mode(0))
         ag.addAction(a)
-        a.setChecked(True)
         m.addAction(a)
 
         a = QAction("Advanced", self)
         a.setCheckable(True)
         m.addAction(a)
-        a.triggered.connect(lambda : self._stacked_widget.setCurrentIndex(1))
+        a.triggered.connect(lambda : self._swich_search_mode(1))
         ag.addAction(a)
+        self._menu_search_actions = ag
 
         self._windowsMenu = self.build_windows_menu(mainMenu)
 
@@ -245,6 +247,12 @@ class CodesWindow(bbwindow.BBMainWindow):
         a = QAction("About ...", self)
         a.triggered.connect(lambda : self._show_about(db.connection))
         m.addAction(a)
+
+    def _swich_search_mode(self, mode):
+        assert(mode in [0,1])
+        self._stacked_widget.setCurrentIndex(mode)
+        self._menu_search_actions.actions()[mode].setChecked(True)
+        self._menu_search_actions.actions()[1-mode].setChecked(False)
 
     def _exit_app(self):
         ret = QMessageBox.question(self, "BOMBrowser", "Do you want to exit from the application ?")
