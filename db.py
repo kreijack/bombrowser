@@ -88,13 +88,29 @@ class Transaction:
     def __init__(self, d):
         self._db = d
         self._cursor = None
-        self._to_commit = False
+        self._transaction_ended = False
+
+    def _begin(self):
+        assert(not self._transaction_ended)
+        if self._cursor:
+            return
+
+        self._cursor = self._db._get_cursor()
+        self._db._begin(self._cursor)
+
+        self._db._nested_transaction += 1
+        assert(self._db._nested_transaction == 1)
 
     def execute(self, query, *args):
+        self._begin()
+
         r = self._db._execute(self._cursor, query, *args)
         self.description = self._cursor.description
         return r
+
     def executemany(self, query, *args):
+        self._begin()
+
         r = self._db._executemany(self._cursor, query, *args)
         self.description = self._cursor.description
         return r
@@ -109,35 +125,39 @@ class Transaction:
             self._cursor,
             self._cursor.fetchall())
 
-    def tables(self):
-        return self._cursor.tables()
-
     def commit(self):
-        assert(self._cursor)
-        self._to_commit = False
-        return self._db._commit(self._cursor)
+        assert(not self._transaction_ended)
+
+        r = self._db._commit()
+        self._cursor = None
+
+        self._db._nested_transaction -= 1
+        assert(self._db._nested_transaction == 0)
+
+        return r
 
     def rollback(self):
-        assert(self._cursor)
-        self._to_commit = False
-        return self._db._rollback(self._cursor)
+        assert(not self._transaction_ended)
+
+        r = self._db._rollback()
+
+        self._cursor = None
+
+        self._db._nested_transaction -= 1
+        assert(self._db._nested_transaction == 0)
+
+        return r
 
     def __enter__(self):
-        self._cursor = self._db._get_cursor()
-        self._to_commit = True
-        self._db._begin(self._cursor)
         return self
 
     def __exit__(self, type_, value, traceback):
-        if not self._to_commit:
-            return
-        if value is None:
-            self.commit()
-        else:
-            self.rollback()
-
-        self._cursor = None
-        self._to_commit = False
+        if self._cursor:
+            if value is None:
+                self.commit()
+            else:
+                self.rollback()
+        self._transaction_ended = True
 
 
 class ROCursor:
@@ -175,7 +195,7 @@ class ROCursor:
     def __exit__(self, type_, value, traceback):
         # do a rollback otherwise postgresql screws
         if isinstance(self._db, DBPG):
-            self._db._rollback(self._cursor)
+            self._db._rollback()
         self._db = None
         self._cursor = None
 
@@ -185,21 +205,27 @@ class _BaseServer:
         self._path = path
         self._conn = None
         self._read_only = None
+        self._nested_transaction = 0
 
         self._ver = "empty"
-        if "database_props" in self._get_tables_list():
-            try:
-                with ROCursor(self) as c:
-                    c.execute("SELECT value FROM database_props WHERE name='ver' ")
-                    self._ver = c.fetchone()[0]
-            except:
-                pass
-            else:
-                # for now v0.3 and v0.4 are equal
-                assert(self._ver == "0.4" or self._ver == "0.3")
 
     def get_db_ver(self):
+        if self._ver == "empty":
+            self._ver = self._fetch_rev()
         return self._ver
+
+    def _fetch_db_rev(self):
+        with ROCursor(self) as c:
+            if not "database_props" in self._get_tables_list(c):
+                return "empty"
+            try:
+                c.execute("SELECT value FROM database_props WHERE name='ver' ")
+                v = c.fetchone()[0]
+            except:
+                return "empty"
+        # for now v0.3 and v0.4 are equal
+        assert(v == "0.4" or v == "0.3")
+        return v
 
     def update_gavals_gvals_count_by_db(self):
         global gvals_count, gavals_count
@@ -277,14 +303,14 @@ class _BaseServer:
     def _executemany(self, c, query, *args, **kwargs):
         self._execute_gen(c.executemany, query, *args, **kwargs)
 
-    def _commit(self, c):
-        c.commit()
+    def _commit(self):
+        self._conn.commit()
 
-    def _rollback(self, c):
-        c.rollback()
+    def _rollback(self):
+        self._conn.rollback()
 
     def _begin(self, c):
-        c.begin()
+        c.execute("BEGIN")
 
     def _sql_translate(self, s):
         return s
@@ -1456,12 +1482,12 @@ class _BaseServer:
     def get_config(self):
 
         # allow to start from an empty DB
-        tables = self._get_tables_list()
-        if not "database_props" in tables:
-            return dict()
-
         ret = dict()
         with ROCursor(self) as c:
+            tables = self._get_tables_list(c)
+            if not "database_props" in tables:
+                return dict()
+
             c.execute("""
                 SELECT name, value FROM database_props
             """)
@@ -1725,7 +1751,6 @@ class _BaseServer:
                  date_to, iso_to_days(date_to))
             )
 
-import sqlite3
 import traceback
 
 class DBSQLServer(_BaseServer):
@@ -1743,12 +1768,9 @@ class DBSQLServer(_BaseServer):
             self._insert_table_(c, tname, cs, data)
             c.execute("SET IDENTITY_INSERT " + tname +" OFF" )
 
+    # SQLServer doesn't like BEGIN; it is 'autobegin'
     def _begin(self, c):
         pass
-    def _commit(self, c):
-        self._conn.commit()
-    def _rollback(self, c):
-        self._conn.rollback()
 
     def _exception_handler(self, exc_value):
         msg = str(exc_value)
@@ -1778,21 +1800,17 @@ class DBSQLServer(_BaseServer):
         self._mod = pyodbc
         self._conn = pyodbc.connect(connection_string)
 
-    def _get_tables_list(self):
-        cursor = self._get_cursor()
-        return [row.table_name for row in cursor.tables()]
+    def _get_tables_list(self, c):
+        return [row.table_name for row in c._cursor.tables()]
 
 
 class DBOracleServer(_BaseServer):
     def __init__(self, path=None):
         _BaseServer.__init__(self, path)
 
+    # oracle doesn't like 'BEGIN'
     def _begin(self, c):
         pass
-    def _commit(self, c):
-        self._conn.commit()
-    def _rollback(self, c):
-        self._conn.rollback()
 
     def _exception_handler(self, exc_value):
         msg = str(exc_value)
@@ -1913,14 +1931,13 @@ class DBOracleServer(_BaseServer):
 
         self._conn = cx_Oracle.connect(user, pwd, host)
 
-    def _get_tables_list(self):
-        with ROCursor(self) as c:
-            c.execute("""
-                    SELECT table_name
-                    FROM user_tables
-                """)
+    def _get_tables_list(self, c):
+        c.execute("""
+                SELECT table_name
+                FROM user_tables
+            """)
 
-            return [x[0].lower() for x in c.fetchall()]
+        return [x[0].lower() for x in c.fetchall()]
 
     def _translate_fetchone_(self, c, row):
         tr = [("VARCHAR" in str(x[1])) for x in c.description]
@@ -1951,20 +1968,12 @@ class DBSQLite(_BaseServer):
         _BaseServer.__init__(self, path)
 
     def _open(self, path):
-        self._conn = sqlite3.connect(self._path)
+        import sqlite3
+        self._conn = sqlite3.connect(path)
         self._conn.execute("PRAGMA foreign_keys = ON")
         if not self._ignore_case_during_search:
             self._conn.execute("PRAGMA case_sensitive_like = 1")
         self._mod = sqlite3
-
-    def _commit(self, c):
-        self._conn.commit()
-
-    def _rollback(self, c):
-        self._conn.rollback()
-
-    def _begin(self, c):
-        c.execute("BEGIN")
 
     def _sql_translate(self, stms):
         stms = stms.replace(" IDENTITY", "")
@@ -1974,25 +1983,15 @@ class DBSQLite(_BaseServer):
 
         return stms
 
-    def _get_tables_list(self):
-        with ROCursor(self) as c:
-            c.execute("SELECT name FROM sqlite_master WHERE type='table';")
-            return [x[0] for x in c.fetchall()]
+    def _get_tables_list(self, c):
+        c.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        return [x[0] for x in c.fetchall()]
 
 
 class DBPG(_BaseServer):
     def __init__(self, path=None):
         import psycopg2
         _BaseServer.__init__(self, path)
-
-    def _commit(self, c):
-        self._conn.commit()
-
-    def _rollback(self, c):
-        self._conn.rollback()
-
-    def _begin(self, c):
-        c.execute("BEGIN")
 
     def _insert_table(self, tname, columns, data):
         with Transaction(self) as c:
@@ -2024,16 +2023,15 @@ class DBPG(_BaseServer):
         self._conn = psycopg2.connect(path)
         self._conn.set_client_encoding("UNICODE")
 
-    def _get_tables_list(self):
-        with ROCursor(self) as c:
-            c.execute("""
-            SELECT tablename
-                FROM pg_catalog.pg_tables
-                WHERE schemaname != 'pg_catalog' AND
-                    schemaname != 'information_schema';
-            """)
+    def _get_tables_list(self, c):
+        c.execute("""
+        SELECT tablename
+            FROM pg_catalog.pg_tables
+            WHERE schemaname != 'pg_catalog' AND
+                schemaname != 'information_schema';
+        """)
 
-            return [x[0] for x in c.fetchall()]
+        return [x[0] for x in c.fetchall()]
 
     def get_bom_dates_by_code_id(self, code_id):
         sdates = set()
@@ -2081,15 +2079,6 @@ class DBMySQL(_BaseServer):
     def __init__(self, path=None):
         _BaseServer.__init__(self, path)
 
-    def _commit(self, c):
-        self._conn.commit()
-
-    def _rollback(self, c):
-        self._conn.rollback()
-
-    def _begin(self, c):
-        c.execute("BEGIN")
-
     def _insert_table(self, tname, columns, data):
         with Transaction(self) as c:
             self._insert_table_(c, tname, columns, data)
@@ -2120,24 +2109,15 @@ class DBMySQL(_BaseServer):
         # MySQL return tuple, sometime we need list
         return list(_BaseServer._translate_fetchall_(self, c, rows))
 
-    def create_db(self):
-        # this to avoid error when dropping the index
-        with Transaction(self) as c:
-            for tbname in self.list_main_tables():
-                query = "CREATE TABLE IF NOT EXISTS %s (a INTEGER)"%(tbname)
-                c.execute(query)
-        _BaseServer.create_db(self)
-
     def _open(self, path):
         import MySQLdb
         self._mod = MySQLdb
         self._conn = MySQLdb.connect(*path.split(";"))
         #self._conn.set_client_encoding("UNICODE")
 
-    def _get_tables_list(self):
-        with ROCursor(self) as c:
-            c.execute("""SHOW TABLES""")
-            return [x[0] for x in c.fetchall()]
+    def _get_tables_list(self, c):
+        c.execute("""SHOW TABLES""")
+        return [x[0] for x in c.fetchall()]
 
     def get_bom_dates_by_code_id(self, code_id):
         sdates = set()
