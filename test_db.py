@@ -55,53 +55,24 @@ def _test_insert_items(c):
 
 _use_memory_sqlite=True
 
-def _create_db():
-    d = _init_db()
-    return (d, _get_cursor(d))
-
 def _init_db():
-    if _use_memory_sqlite:
-        d = db.DBSQLite(":memory:")
-        # simulate a case sensitive DB
-        c = d._conn.cursor()
-        d._execute(c, "PRAGMA case_sensitive_like = 1")
-        db._globaDBInstance = d
-    else:
-        dbtype = cfg.config()["BOMBROWSER"]["db"]
-        c = cfg.config()[dbtype.upper()]
-        db.init(dbtype, dict(c))
-        d = db.DB() #_connection_string)
+    if not db._globaDBInstance:
+        if _use_memory_sqlite:
+            db.init("sqlite", {'path': ":memory:", 'ignore_case_during_search':0})
+        else:
+            dbtype = cfg.config()["BOMBROWSER"]["db"]
+            c = cfg.config()[dbtype.upper()]
+            db.init(dbtype, dict(c))
+
+    d = db.DB() #_connection_string)
     d.create_db()
     return d
 
-def _get_cursor(d):
-    cursor = d._conn.cursor()
-
-    class MyCursor:
-        def __init__(self, c, d):
-            self._cursor = c
-            self._db = d
-        def execute(self, query, *args):
-            q2=self._db._sql_translate(query)
-            return self._cursor.execute(q2, *args)
-        def fetchone(self):
-            return self._cursor.fetchone()
-        def fetchall(self):
-            return self._cursor.fetchall()
-        def commit(self, c):
-            return self._db._commit(c)
-        def rollback(self, c):
-            return self._db._rollback(c)
-        def begin(self, c):
-            return self._db._begin(c)
-
-    mc = MyCursor(cursor, d)
-    return mc
-
 def test_double_recreate_db():
-    d, c = _create_db()
-    assert("database_props" in d._get_tables_list())
-    d, c = _create_db()
+    d = _init_db()
+    with ROCursor(d) as c:
+        assert("database_props" in d._get_tables_list(c))
+    d = _init_db()
 
 def test_get_code():
     d = _init_db()
@@ -638,11 +609,10 @@ def _create_code_revision(c, code, nr=10):
     return code_id, dates
 
 def test_update_dates():
-    d, c = _create_db()
-
-    code = "TEST-CODE"
-    code_id, dates_good = _create_code_revision(c, code)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        code = "TEST-CODE"
+        code_id, dates_good = _create_code_revision(c, code)
 
     assert(len(dates_good))
 
@@ -650,66 +620,68 @@ def test_update_dates():
 
     d.update_dates(dates)
 
-    c.execute("""
-        SELECT COUNT(*)
-        FROM item_revisions
-        WHERE code_id = ?
-          AND date_from_days = ?
-    """, (code_id, db.prototype_date))
-    assert(c.fetchone()[0] == 0)
+    with Transaction(d) as c:
+        c.execute("""
+            SELECT COUNT(*)
+            FROM item_revisions
+            WHERE code_id = ?
+              AND date_from_days = ?
+        """, (code_id, db.prototype_date))
+        assert(c.fetchone()[0] == 0)
 
-    c.execute("""
-        SELECT COUNT(*)
-        FROM item_revisions
-        WHERE code_id = ?
-          AND iter= ?
-    """, (code_id, db.prototype_iter))
-    assert(c.fetchone()[0] == 0)
+        c.execute("""
+            SELECT COUNT(*)
+            FROM item_revisions
+            WHERE code_id = ?
+              AND iter= ?
+        """, (code_id, db.prototype_iter))
+        assert(c.fetchone()[0] == 0)
 
 def test_update_dates_insert_prototype_after_a_normal():
-    d, c = _create_db()
+    d = _init_db()
+    with Transaction(d) as c:
+        code = "TEST-CODE"
+        code_id, dates = _create_code_revision(c, code)
 
-    code = "TEST-CODE"
-    code_id, dates = _create_code_revision(c, code)
-    d._commit(c)
 
     # insert normal
     d.update_dates(dates)
 
-    # insert a prototype
+        # insert a prototype
 
-    dates[0][1] = db.days_to_iso(db.prototype_date)
-    dates[0][2] = db.prototype_date
-    dates[0][3] = ""
-    dates[0][4] = db.end_of_the_world
+    with Transaction(d) as c:
+        dates[0][1] = db.days_to_iso(db.prototype_date)
+        dates[0][2] = db.prototype_date
+        dates[0][3] = ""
+        dates[0][4] = db.end_of_the_world
 
-    dates[1][3] = ""
-    dates[1][4] = db.prototype_date - 1
+        dates[1][3] = ""
+        dates[1][4] = db.prototype_date - 1
 
-    d.update_dates(dates)
+        d.update_dates(dates)
 
-    c.execute("""
-        SELECT COUNT(*)
-        FROM item_revisions
-        WHERE code_id = ?
-          AND date_from_days = ?
-    """, (code_id, db.prototype_date))
-    assert(c.fetchone()[0] == 1)
+        c.execute("""
+            SELECT COUNT(*)
+            FROM item_revisions
+            WHERE code_id = ?
+              AND date_from_days = ?
+        """, (code_id, db.prototype_date))
+        assert(c.fetchone()[0] == 1)
 
-    c.execute("""
-        SELECT COUNT(*)
-        FROM item_revisions
-        WHERE code_id = ?
-          AND iter= ?
-    """, (code_id, db.prototype_iter))
-    assert(c.fetchone()[0] == 1)
+        c.execute("""
+            SELECT COUNT(*)
+            FROM item_revisions
+            WHERE code_id = ?
+              AND iter= ?
+        """, (code_id, db.prototype_iter))
+        assert(c.fetchone()[0] == 1)
 
 def test_update_dates_insert_normal_after_prototype():
-    d, c = _create_db()
+    d = _init_db()
+    with Transaction(d) as c:
+        code = "TEST-CODE"
+        code_id, dates_good = _create_code_revision(c, code)
 
-    code = "TEST-CODE"
-    code_id, dates_good = _create_code_revision(c, code)
-    d._commit(c)
 
     # insert a prototype
     dates = [ x[:] for x in dates_good]
@@ -727,20 +699,20 @@ def test_update_dates_insert_normal_after_prototype():
     dates = [ x[:] for x in dates_good]
     d.update_dates(dates)
 
-    c.execute("""
-        SELECT COUNT(*)
-        FROM item_revisions
-        WHERE code_id = ?
-          AND iter= ?
-    """, (code_id, db.prototype_iter))
-    assert(c.fetchone()[0] == 0)
+    with Transaction(d) as c:
+        c.execute("""
+            SELECT COUNT(*)
+            FROM item_revisions
+            WHERE code_id = ?
+              AND iter= ?
+        """, (code_id, db.prototype_iter))
+        assert(c.fetchone()[0] == 0)
 
 def test_update_dates_fail_to_less_from():
-    d, c = _create_db()
-
-    code = "TEST-CODE"
-    code_id, dates = _create_code_revision(c, code)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        code = "TEST-CODE"
+        code_id, dates = _create_code_revision(c, code)
 
     # _to < _from
     dates[0][4] = dates[0][2] - 1
@@ -758,11 +730,12 @@ def test_update_dates_fail_to_less_from():
     d.update_dates(dates)
 
 def test_update_dates_fail_previous_before_after():
-    d, c = _create_db()
+    d = _init_db()
+    with Transaction(d) as c:
 
-    code = "TEST-CODE"
-    code_id, dates = _create_code_revision(c, code)
-    d._commit(c)
+        code = "TEST-CODE"
+        code_id, dates = _create_code_revision(c, code)
+
     # swap two rows
     tmp = dates[1][2]
     dates[1][2] = dates[0][2]
@@ -776,11 +749,11 @@ def test_update_dates_fail_previous_before_after():
     assert(failed)
 
 def test_update_dates_fail_2_equal_rows():
-    d, c = _create_db()
+    d = _init_db()
+    with Transaction(d) as c:
+        code = "TEST-CODE"
+        code_id, dates = _create_code_revision(c, code)
 
-    code = "TEST-CODE"
-    code_id, dates = _create_code_revision(c, code)
-    d._commit(c)
     # two row equals
     dates[1][2] = dates[0][2]
 
@@ -792,11 +765,12 @@ def test_update_dates_fail_2_equal_rows():
     assert(failed)
 
 def test_update_dates_fail_overlapped_date_revisions():
-    d, c = _create_db()
+    d = _init_db()
+    with Transaction(d) as c:
 
-    code = "TEST-CODE"
-    code_id, dates = _create_code_revision(c, code)
-    d._commit(c)
+        code = "TEST-CODE"
+        code_id, dates = _create_code_revision(c, code)
+
     # _to(n+1) == _from(n) - 1
     dates[1][4] = dates[0][2]
 
@@ -812,11 +786,12 @@ def test_update_dates_fail_overlapped_date_revisions():
     d.update_dates(dates)
 
 def test_update_dates_fail_from_grather_proto():
-    d, c = _create_db()
+    d = _init_db()
+    with Transaction(d) as c:
 
-    code = "TEST-CODE"
-    code_id, dates = _create_code_revision(c, code)
-    d._commit(c)
+        code = "TEST-CODE"
+        code_id, dates = _create_code_revision(c, code)
+
     # from > prototype date
     dates[0][2] = db.prototype_date + 1
     dates[1][4] = db.prototype_date
@@ -834,11 +809,11 @@ def test_update_dates_fail_from_grather_proto():
     d.update_dates(dates)
 
 def test_update_dates_fail_to_grather_end():
-    d, c = _create_db()
+    d = _init_db()
+    with Transaction(d) as c:
 
-    code = "TEST-CODE"
-    code_id, dates = _create_code_revision(c, code)
-    d._commit(c)
+        code = "TEST-CODE"
+        code_id, dates = _create_code_revision(c, code)
 
     # to > end_of_the_worlf
     dates[0][4] = db.end_of_the_world + 1
@@ -855,18 +830,19 @@ def test_update_dates_fail_to_grather_end():
     d.update_dates(dates)
 
 def test_update_dates_change_to_prototype():
-    d, c = _create_db()
+    d = _init_db()
+    with Transaction(d) as c:
 
-    code = "TEST-CODE"
-    code_id, dates = _create_code_revision(c, code)
-    d._commit(c)
+        code = "TEST-CODE"
+        code_id, dates = _create_code_revision(c, code)
 
-    c.execute("""
-        SELECT COUNT(*)
-        FROM item_revisions
-        WHERE iter = ?
-    """, (db.prototype_iter, ))
-    cnt = c.fetchone()[0]
+    with ROCursor(d) as c:
+        c.execute("""
+            SELECT COUNT(*)
+            FROM item_revisions
+            WHERE iter = ?
+        """, (db.prototype_iter, ))
+        cnt = c.fetchone()[0]
     assert(cnt == 0)
 
     # transform the first entry in a prototype
@@ -875,20 +851,21 @@ def test_update_dates_change_to_prototype():
 
     d.update_dates(dates)
 
-    c.execute("""
-        SELECT COUNT(*)
-        FROM item_revisions
-        WHERE iter = ?
-    """, (db.prototype_iter, ))
-    cnt = c.fetchone()[0]
-    assert(cnt == 1)
+    with ROCursor(d) as c:
+        c.execute("""
+            SELECT COUNT(*)
+            FROM item_revisions
+            WHERE iter = ?
+        """, (db.prototype_iter, ))
+        cnt = c.fetchone()[0]
+        assert(cnt == 1)
 
 def test_update_dates_change_from_prototype():
-    d, c = _create_db()
+    d = _init_db()
+    with Transaction(d) as c:
 
-    code = "TEST-CODE"
-    code_id, dates = _create_code_revision(c, code)
-    d._commit(c)
+        code = "TEST-CODE"
+        code_id, dates = _create_code_revision(c, code)
 
     # transform the first entry in a prototype
     dates[0][2] = db.prototype_date
@@ -896,13 +873,14 @@ def test_update_dates_change_from_prototype():
 
     d.update_dates(dates)
 
-    c.execute("""
-        SELECT COUNT(*)
-        FROM item_revisions
-        WHERE iter = ?
-    """, (db.prototype_iter, ))
-    cnt = c.fetchone()[0]
-    assert(cnt == 1)
+    with ROCursor(d) as c:
+        c.execute("""
+            SELECT COUNT(*)
+            FROM item_revisions
+            WHERE iter = ?
+        """, (db.prototype_iter, ))
+        cnt = c.fetchone()[0]
+        assert(cnt == 1)
 
     # transform the first entry in a prototype
     dates[0][2] = db.iso_to_days("2040-01-01")
@@ -910,13 +888,14 @@ def test_update_dates_change_from_prototype():
 
     d.update_dates(dates)
 
-    c.execute("""
-        SELECT COUNT(*)
-        FROM item_revisions
-        WHERE iter = ?
-    """, (db.prototype_iter, ))
-    cnt = c.fetchone()[0]
-    assert(cnt == 0)
+    with ROCursor(d) as c:
+        c.execute("""
+            SELECT COUNT(*)
+            FROM item_revisions
+            WHERE iter = ?
+        """, (db.prototype_iter, ))
+        cnt = c.fetchone()[0]
+        assert(cnt == 0)
 
 def _test_insert_assembly_for_updates_date(c):
     """
@@ -961,11 +940,11 @@ def _get_code_id(c, code):
     return c.fetchone()[0]
 
 def test_update_dates_with_assembly():
-    d, c = _create_db()
-    _test_insert_assembly_for_updates_date(c)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        _test_insert_assembly_for_updates_date(c)
 
-    code_id = _get_code_id(c, "A")
+        code_id = _get_code_id(c, "A")
     dates = [[x[4], db.days_to_iso(x[2]), x[2], db.days_to_iso(x[3]), x[3]]
         for x in d.get_dates_by_code_id3(code_id)]
 
@@ -981,11 +960,11 @@ def test_update_dates_with_assembly():
     assert(dates[2][3] == db.iso_to_days("2020-01-15"))
 
 def test_update_dates_with_assembly_fail_date_earlier_child():
-    d, c = _create_db()
-    _test_insert_assembly_for_updates_date(c)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        _test_insert_assembly_for_updates_date(c)
 
-    code_id = _get_code_id(c, "A")
+        code_id = _get_code_id(c, "A")
     dates = [[x[4], db.days_to_iso(x[2]), x[2], db.days_to_iso(x[3]), x[3]]
         for x in d.get_dates_by_code_id3(code_id)]
 
@@ -1008,11 +987,11 @@ def test_update_dates_with_assembly_fail_date_earlier_child():
     d.update_dates(dates)
 
 def test_update_dates_with_assembly_fail_date_later_child():
-    d, c = _create_db()
-    _test_insert_assembly_for_updates_date(c)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        _test_insert_assembly_for_updates_date(c)
 
-    code_id = _get_code_id(c, "A")
+        code_id = _get_code_id(c, "A")
     dates = [[x[4], db.days_to_iso(x[2]), x[2], db.days_to_iso(x[3]), x[3]]
         for x in d.get_dates_by_code_id3(code_id)]
 
@@ -1036,11 +1015,11 @@ def test_update_dates_with_assembly_fail_date_later_child():
     d.update_dates(dates)
 
 def test_update_dates_with_assembly_fail_date_earlier_parent():
-    d, c = _create_db()
-    _test_insert_assembly_for_updates_date(c)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        _test_insert_assembly_for_updates_date(c)
 
-    code_id = _get_code_id(c, "A")
+        code_id = _get_code_id(c, "A")
     dates = [[x[4], db.days_to_iso(x[2]), x[2], db.days_to_iso(x[3]), x[3]]
         for x in d.get_dates_by_code_id3(code_id)]
 
@@ -1064,11 +1043,11 @@ def test_update_dates_with_assembly_fail_date_earlier_parent():
     d.update_dates(dates)
 
 def test_update_dates_with_assembly_fail_date_later_parent():
-    d, c = _create_db()
-    _test_insert_assembly_for_updates_date(c)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        _test_insert_assembly_for_updates_date(c)
 
-    code_id = _get_code_id(c, "A")
+        code_id = _get_code_id(c, "A")
     dates = [[x[4], db.days_to_iso(x[2]), x[2], db.days_to_iso(x[3]), x[3]]
         for x in d.get_dates_by_code_id3(code_id)]
 
@@ -1090,30 +1069,30 @@ def test_update_dates_with_assembly_fail_date_later_parent():
     dates[2][2] = db.iso_to_days(dates[2][1])
 
 def test_delete_code():
-    d, c = _create_db()
-    _test_insert_assembly_for_updates_date(c)
-    d._commit(c)
-
-    code_id = _get_code_id(c, "D")
+    d = _init_db()
+    with Transaction(d) as c:
+        _test_insert_assembly_for_updates_date(c)
+        code_id = _get_code_id(c, "D")
 
     ret = d.delete_code(code_id)
 
     assert(ret == "")
+    with ROCursor(d) as c:
+        c.execute("""
+            SELECT COUNT(*)
+            FROM items
+            WHERE code = ?
+        """, ("D", ))
 
-    c.execute("""
-        SELECT COUNT(*)
-        FROM items
-        WHERE code = ?
-    """, ("D", ))
-
-    assert(c.fetchone()[0] == 0)
+        assert(c.fetchone()[0] == 0)
 
 def test_delete_code_fail_has_parents():
-    d, c = _create_db()
-    _test_insert_assembly_for_updates_date(c)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        _test_insert_assembly_for_updates_date(c)
 
-    code_id = _get_code_id(c, "A")
+    with ROCursor(d) as c:
+        code_id = _get_code_id(c, "A")
 
     ret = d.delete_code(code_id)
 
@@ -1136,102 +1115,110 @@ def _check_code_dates(c, code):
         assert(dates[i][0] > dates[i+1][1])
 
 def test_delete_revision_remove_first():
-    d, c = _create_db()
-    code_id, dates = _create_code_revision(c, "TEST-CODE", 3)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        code_id, dates = _create_code_revision(c, "TEST-CODE", 3)
 
-    c.execute("SELECT COUNT(*) FROM item_revisions")
-    cnt = c.fetchone()[0]
-    assert(cnt == 3)
+    with ROCursor(d) as c:
 
-    c.execute("SELECT MIN(date_from_days) FROM item_revisions")
-    date_from_min = c.fetchone()[0]
-    c.execute("SELECT MAX(date_to_days) FROM item_revisions")
-    date_to_max = c.fetchone()[0]
+        c.execute("SELECT COUNT(*) FROM item_revisions")
+        cnt = c.fetchone()[0]
+        assert(cnt == 3)
 
-    ret = d.delete_code_revision(dates[0][0])
-    assert(ret == "")
-    c.execute("SELECT COUNT(*) FROM item_revisions")
-    cnt = c.fetchone()[0]
-    assert(cnt == 2)
+        c.execute("SELECT MIN(date_from_days) FROM item_revisions")
+        date_from_min = c.fetchone()[0]
+        c.execute("SELECT MAX(date_to_days) FROM item_revisions")
+        date_to_max = c.fetchone()[0]
 
-    _check_code_dates(c, "TEST-CODE")
-    c.execute("SELECT MIN(date_from_days) FROM item_revisions")
-    assert(date_from_min == c.fetchone()[0])
-    c.execute("SELECT MAX(date_to_days) FROM item_revisions")
-    assert(date_to_max == c.fetchone()[0])
+        ret = d.delete_code_revision(dates[0][0])
+        assert(ret == "")
+        c.execute("SELECT COUNT(*) FROM item_revisions")
+        cnt = c.fetchone()[0]
+        assert(cnt == 2)
+
+        _check_code_dates(c, "TEST-CODE")
+        c.execute("SELECT MIN(date_from_days) FROM item_revisions")
+        assert(date_from_min == c.fetchone()[0])
+        c.execute("SELECT MAX(date_to_days) FROM item_revisions")
+        assert(date_to_max == c.fetchone()[0])
 
 def test_delete_revision_remove_last():
-    d, c = _create_db()
-    code_id, dates = _create_code_revision(c, "TEST-CODE", 3)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        code_id, dates = _create_code_revision(c, "TEST-CODE", 3)
 
-    c.execute("SELECT COUNT(*) FROM item_revisions")
-    cnt = c.fetchone()[0]
-    assert(cnt == 3)
+    with ROCursor(d) as c:
+        c.execute("SELECT COUNT(*) FROM item_revisions")
+        cnt = c.fetchone()[0]
+        assert(cnt == 3)
 
-    c.execute("SELECT MIN(date_from_days) FROM item_revisions")
-    date_from_min = c.fetchone()[0]
-    c.execute("SELECT MAX(date_to_days) FROM item_revisions")
-    date_to_max = c.fetchone()[0]
+        c.execute("SELECT MIN(date_from_days) FROM item_revisions")
+        date_from_min = c.fetchone()[0]
+        c.execute("SELECT MAX(date_to_days) FROM item_revisions")
+        date_to_max = c.fetchone()[0]
 
-    ret = d.delete_code_revision(dates[2][0])
-    assert(ret == "")
-    c.execute("SELECT COUNT(*) FROM item_revisions")
-    cnt = c.fetchone()[0]
-    assert(cnt == 2)
+        ret = d.delete_code_revision(dates[2][0])
+        assert(ret == "")
+        c.execute("SELECT COUNT(*) FROM item_revisions")
+        cnt = c.fetchone()[0]
+        assert(cnt == 2)
 
-    _check_code_dates(c, "TEST-CODE")
-    c.execute("SELECT MIN(date_from_days) FROM item_revisions")
-    assert(date_from_min == c.fetchone()[0])
-    c.execute("SELECT MAX(date_to_days) FROM item_revisions")
-    assert(date_to_max == c.fetchone()[0])
+        _check_code_dates(c, "TEST-CODE")
+        c.execute("SELECT MIN(date_from_days) FROM item_revisions")
+        assert(date_from_min == c.fetchone()[0])
+        c.execute("SELECT MAX(date_to_days) FROM item_revisions")
+        assert(date_to_max == c.fetchone()[0])
 
 def test_delete_revision_remove_middle():
-    d, c = _create_db()
-    code_id, dates = _create_code_revision(c, "TEST-CODE", 3)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        code_id, dates = _create_code_revision(c, "TEST-CODE", 3)
 
-    c.execute("SELECT COUNT(*) FROM item_revisions")
-    cnt = c.fetchone()[0]
-    assert(cnt == 3)
+    with ROCursor(d) as c:
 
-    c.execute("SELECT MIN(date_from_days) FROM item_revisions")
-    date_from_min = c.fetchone()[0]
-    c.execute("SELECT MAX(date_to_days) FROM item_revisions")
-    date_to_max = c.fetchone()[0]
+        c.execute("SELECT COUNT(*) FROM item_revisions")
+        cnt = c.fetchone()[0]
+        assert(cnt == 3)
 
-    ret = d.delete_code_revision(dates[1][0])
-    assert(ret == "")
-    c.execute("SELECT COUNT(*) FROM item_revisions")
-    cnt = c.fetchone()[0]
-    assert(cnt == 2)
+        c.execute("SELECT MIN(date_from_days) FROM item_revisions")
+        date_from_min = c.fetchone()[0]
+        c.execute("SELECT MAX(date_to_days) FROM item_revisions")
+        date_to_max = c.fetchone()[0]
 
-    _check_code_dates(c, "TEST-CODE")
-    c.execute("SELECT MIN(date_from_days) FROM item_revisions")
-    assert(date_from_min == c.fetchone()[0])
-    c.execute("SELECT MAX(date_to_days) FROM item_revisions")
-    assert(date_to_max == c.fetchone()[0])
+        ret = d.delete_code_revision(dates[1][0])
+        assert(ret == "")
+        c.execute("SELECT COUNT(*) FROM item_revisions")
+        cnt = c.fetchone()[0]
+        assert(cnt == 2)
+
+        _check_code_dates(c, "TEST-CODE")
+        c.execute("SELECT MIN(date_from_days) FROM item_revisions")
+        assert(date_from_min == c.fetchone()[0])
+        c.execute("SELECT MAX(date_to_days) FROM item_revisions")
+        assert(date_to_max == c.fetchone()[0])
 
 def test_delete_revision_fail_remove_one():
-    d, c = _create_db()
-    code_id, dates = _create_code_revision(c, "TEST-CODE", 1)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        code_id, dates = _create_code_revision(c, "TEST-CODE", 1)
 
-    c.execute("SELECT COUNT(*) FROM item_revisions")
-    cnt = c.fetchone()[0]
-    assert(cnt == 1)
+    with ROCursor(d) as c:
 
-    ret = d.delete_code_revision(dates[0][0])
-    assert(ret == "ISALONE")
-    c.execute("SELECT COUNT(*) FROM item_revisions")
-    cnt = c.fetchone()[0]
-    assert(cnt == 1)
+        c.execute("SELECT COUNT(*) FROM item_revisions")
+        cnt = c.fetchone()[0]
+        assert(cnt == 1)
+
+        ret = d.delete_code_revision(dates[0][0])
+        assert(ret == "ISALONE")
+        c.execute("SELECT COUNT(*) FROM item_revisions")
+        cnt = c.fetchone()[0]
+        assert(cnt == 1)
 
 def test_delete_revision_fail_remove_one_with_proto():
-    d, c = _create_db()
-    code_id, dates = _create_code_revision(c, "TEST-CODE", 2)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        code_id, dates = _create_code_revision(c, "TEST-CODE", 2)
+
 
     dates[0][2] = db.prototype_date
     dates[1][4] = dates[0][2] - 1
@@ -1241,8 +1228,10 @@ def test_delete_revision_fail_remove_one_with_proto():
     ret = d.delete_code_revision(dates[1][0])
 
     assert(ret == "ONLYPROTOTYPE")
-    c.execute("SELECT COUNT(*) FROM item_revisions")
-    cnt = c.fetchone()[0]
+
+    with ROCursor(d) as c:
+        c.execute("SELECT COUNT(*) FROM item_revisions")
+        cnt = c.fetchone()[0]
     assert(cnt == 2)
 
 def _create_simple_assy_with_drawings(c):
@@ -1271,28 +1260,30 @@ def _create_simple_assy_with_drawings(c):
     return m
 
 def test_copy_code_simple():
-    d, c = _create_db()
-    rids = _create_simple_assy_with_drawings(c)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        rids = _create_simple_assy_with_drawings(c)
+
 
     new_rid = d.copy_code("NEW-A", rids["A"], "New-A", 0,
         new_date_from_days=db.iso_to_days("2021-01-01"))
 
-    c.execute("SELECT COUNT(*) FROM items WHERE code=?",("NEW-A",))
-    assert(c.fetchone()[0] == 1)
+    with ROCursor(d) as c:
+        c.execute("SELECT COUNT(*) FROM items WHERE code=?",("NEW-A",))
+        assert(c.fetchone()[0] == 1)
 
-    # check assemblies
-    c.execute("SELECT COUNT(*) FROM assemblies WHERE revision_id=?",(new_rid,))
-    assert(c.fetchone()[0] == 2)
+        # check assemblies
+        c.execute("SELECT COUNT(*) FROM assemblies WHERE revision_id=?",(new_rid,))
+        assert(c.fetchone()[0] == 2)
 
-    # check drawings
-    c.execute("SELECT COUNT(*) FROM drawings WHERE revision_id=?",(new_rid,))
-    assert(c.fetchone()[0] == 2)
+        # check drawings
+        c.execute("SELECT COUNT(*) FROM drawings WHERE revision_id=?",(new_rid,))
+        assert(c.fetchone()[0] == 2)
 
 def test_copy_code_fail_exists_already():
-    d, c = _create_db()
-    rids = _create_simple_assy_with_drawings(c)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        rids = _create_simple_assy_with_drawings(c)
 
     failed = False
     try:
@@ -1303,16 +1294,16 @@ def test_copy_code_fail_exists_already():
     assert(failed)
 
 def test_copy_code_fail_too_late():
-    d, c = _create_db()
-    rids = _create_simple_assy_with_drawings(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        rids = _create_simple_assy_with_drawings(c)
 
-    crid = rids["C"]
-    c.execute("""
-        UPDATE item_revisions
-        SET date_to_days = ?
-        WHERE id = ?
-    """,(db.iso_to_days("2021-01-01"), crid))
-    d._commit(c)
+        crid = rids["C"]
+        c.execute("""
+            UPDATE item_revisions
+            SET date_to_days = ?
+            WHERE id = ?
+        """,(db.iso_to_days("2021-01-01"), crid))
 
     failed = False
     try:
@@ -1325,10 +1316,9 @@ def test_copy_code_fail_too_late():
     assert(failed)
 
 def test_copy_code_fail_too_early():
-    d, c = _create_db()
-    rids = _create_simple_assy_with_drawings(c)
-
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        rids = _create_simple_assy_with_drawings(c)
 
     failed = False
     try:
@@ -1340,28 +1330,28 @@ def test_copy_code_fail_too_early():
     assert(failed)
 
 def test_revise_code_simple():
-    d, c = _create_db()
-    rids = _create_simple_assy_with_drawings(c)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        rids = _create_simple_assy_with_drawings(c)
 
     new_rid = d.revise_code(rids["A"], "New-A", 0,
         new_date_from_days=db.iso_to_days("2021-01-01"))
 
-     # check assemblies
-    c.execute("SELECT COUNT(*) FROM assemblies WHERE revision_id=?",(new_rid,))
-    assert(c.fetchone()[0] == 2)
+    with ROCursor(d) as c:
+        # check assemblies
+        c.execute("SELECT COUNT(*) FROM assemblies WHERE revision_id=?",(new_rid,))
+        assert(c.fetchone()[0] == 2)
 
-    # check drawings
-    c.execute("SELECT COUNT(*) FROM drawings WHERE revision_id=?",(new_rid,))
-    assert(c.fetchone()[0] == 2)
+        # check drawings
+        c.execute("SELECT COUNT(*) FROM drawings WHERE revision_id=?",(new_rid,))
+        assert(c.fetchone()[0] == 2)
 
-    _check_code_dates(c, "A")
+        _check_code_dates(c, "A")
 
 def test_revise_code_fail_too_early():
-    d, c = _create_db()
-    rids = _create_simple_assy_with_drawings(c)
-
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        rids = _create_simple_assy_with_drawings(c)
 
     failed = False
     try:
@@ -1372,10 +1362,9 @@ def test_revise_code_fail_too_early():
     assert(failed)
 
 def test_revise_code_fail_connot_find_old_rev():
-    d, c = _create_db()
-    rids = _create_simple_assy_with_drawings(c)
-
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        rids = _create_simple_assy_with_drawings(c)
 
     failed = False
     try:
@@ -1387,10 +1376,10 @@ def test_revise_code_fail_connot_find_old_rev():
 
 
 def test_revise_code_fail_connot_make_2nd_proto():
-    d, c = _create_db()
-    code = "TEST-CODE"
-    code_id, dates = _create_code_revision(c, code)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        code = "TEST-CODE"
+        code_id, dates = _create_code_revision(c, code)
 
     dates[0][2] = db.prototype_date
     dates[1][4] = dates[0][2] - 1
@@ -1405,10 +1394,10 @@ def test_revise_code_fail_connot_make_2nd_proto():
     assert(failed)
 
 def test_revise_code_fail_too_early_with_proto():
-    d, c = _create_db()
-    code = "TEST-CODE"
-    code_id, dates = _create_code_revision(c, code)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        code = "TEST-CODE"
+        code_id, dates = _create_code_revision(c, code)
 
     dates[0][2] = db.prototype_date
     dates[1][4] = dates[0][2] - 1
@@ -1423,10 +1412,10 @@ def test_revise_code_fail_too_early_with_proto():
     assert(failed)
 
 def test_revise_code_with_only_proto():
-    d, c = _create_db()
-    code = "TEST-CODE"
-    code_id, dates = _create_code_revision(c, code, 1)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        code = "TEST-CODE"
+        code_id, dates = _create_code_revision(c, code, 1)
 
     dates[0][2] = db.prototype_date
     d.update_dates(dates)
@@ -1435,14 +1424,14 @@ def test_revise_code_with_only_proto():
     new_rid = d.revise_code(dates[0][0], "New-A", 0,
         new_date_from_days=db.iso_to_days("1990-01-01"))
 
-    _check_code_dates(c, code)
+    with ROCursor(d) as c:
+        _check_code_dates(c, code)
 
 def test_update_by_rid2():
-
-    d, c = _create_db()
-    code = "TEST-CODE"
-    code_id, dates = _create_code_revision(c, code, 1)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        code = "TEST-CODE"
+        code_id, dates = _create_code_revision(c, code, 1)
 
     rid = dates[0][0]
 
@@ -1471,13 +1460,12 @@ def test_update_by_rid2():
         assert(gvals[i] == data["gval%d"%(i+1)])
 
 def test_update_by_rid2_with_children():
-
-    d, c = _create_db()
-    code = "TEST-CODE"
-    code2 = "TEST-CODE-2"
-    code_id, dates = _create_code_revision(c, code, 1)
-    code_id2, dates = _create_code_revision(c, code2, 1)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        code = "TEST-CODE"
+        code2 = "TEST-CODE-2"
+        code_id, dates = _create_code_revision(c, code, 1)
+        code_id2, dates = _create_code_revision(c, code2, 1)
 
     rid = dates[0][0]
 
@@ -1520,11 +1508,10 @@ def test_update_by_rid2_with_children():
         assert(children[0][7+i] == gavals[i])
 
 def test_update_by_rid2_with_drawings():
-
-    d, c = _create_db()
-    code = "TEST-CODE"
-    code_id, dates = _create_code_revision(c, code, 1)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        code = "TEST-CODE"
+        code_id, dates = _create_code_revision(c, code, 1)
 
     rid = dates[0][0]
 
@@ -1546,12 +1533,13 @@ def test_update_by_rid2_with_drawings():
     assert("dira/filea" in dwgs[0][1])
     assert("dirb/fileb" in dwgs[1][1])
 
-def _create_data_for_search_revisions(c, d):
-    code1 = "test-code-1"
-    code2 = "test-code-2"
-    code_id1, dates1 = _create_code_revision(c, code1, 4)
-    code_id2, dates2 = _create_code_revision(c, code2, 5)
-    d._commit(c)
+def _create_data_for_search_revisions(d):
+    with Transaction(d) as c:
+        code1 = "test-code-1"
+        code2 = "test-code-2"
+        code_id1, dates1 = _create_code_revision(c, code1, 4)
+        code_id2, dates2 = _create_code_revision(c, code2, 5)
+
     # prepare a data set
     data = dict()
     cnt = 0
@@ -1587,21 +1575,21 @@ def _create_data_for_search_revisions(c, d):
     return data
 
 def test_search_revision_multiple_drawings():
-    d, c = _create_db()
-    _create_data_for_search_revisions(c, d)
+    d = _init_db()
+    _create_data_for_search_revisions(d)
 
     ret = d.search_revisions()
     assert(len(ret) == 10)
 
 def test_search_revisions_empty():
-    d, c = _create_db()
+    d = _init_db()
 
     ret = d.search_revisions()
     assert(len(ret) == 0)
 
 def test_search_revisions_by_rid():
-    d, c = _create_db()
-    data = _create_data_for_search_revisions(c, d)
+    d = _init_db()
+    data = _create_data_for_search_revisions(d)
 
     for rid in data.keys():
 
@@ -1622,8 +1610,8 @@ def test_search_revisions_by_rid():
         assert(row[1] > rid0)
 
 def test_search_revisions_greather():
-    d, c = _create_db()
-    data = _create_data_for_search_revisions(c, d)
+    d = _init_db()
+    data = _create_data_for_search_revisions(d)
 
     ret = d.search_revisions(gval5=">gval 0004")
     assert(len(ret) > 0)
@@ -1632,8 +1620,8 @@ def test_search_revisions_greather():
         assert(row[13] > "gval 0004")
 
 def test_search_revisions_lesser():
-    d, c = _create_db()
-    data = _create_data_for_search_revisions(c, d)
+    d = _init_db()
+    data = _create_data_for_search_revisions(d)
 
     ret = d.search_revisions(gval5="<gval 0004")
     assert(len(ret) > 0)
@@ -1642,8 +1630,8 @@ def test_search_revisions_lesser():
         assert(row[13] < "gval 0004")
 
 def test_search_revisions_icase_lesser():
-    d, c = _create_db()
-    data = _create_data_for_search_revisions(c, d)
+    d = _init_db()
+    data = _create_data_for_search_revisions(d)
 
     ret = d.search_revisions(gval5="<GVAL 0004", case_sensitive=False)
     assert(len(ret) > 0)
@@ -1652,8 +1640,8 @@ def test_search_revisions_icase_lesser():
         assert(row[13] < "gval 0004")
 
 def test_search_revisions_ne():
-    d, c = _create_db()
-    data = _create_data_for_search_revisions(c, d)
+    d = _init_db()
+    data = _create_data_for_search_revisions(d)
 
     ret = d.search_revisions(gval5="!gval 0004")
     assert(len(ret) > 0)
@@ -1662,8 +1650,8 @@ def test_search_revisions_ne():
         assert(row[13] != "gval 0004")
 
 def test_search_revisions_eq():
-    d, c = _create_db()
-    data = _create_data_for_search_revisions(c, d)
+    d = _init_db()
+    data = _create_data_for_search_revisions(d)
 
     ret = d.search_revisions(gval5="gval 0004")
 
@@ -1678,16 +1666,16 @@ def test_search_revisions_eq():
         assert(row[13] == "gval 0004")
 
 def test_search_revisions_not_found():
-    d, c = _create_db()
-    data = _create_data_for_search_revisions(c, d)
+    d = _init_db()
+    data = _create_data_for_search_revisions(d)
 
     ret = d.search_revisions(gval5="INVALID_VALUE")
 
     assert(len(ret) == 0)
 
 def test_search_revisions_all_values():
-    d, c = _create_db()
-    data = _create_data_for_search_revisions(c, d)
+    d = _init_db()
+    data = _create_data_for_search_revisions(d)
     arg_names = ["rid", "rev", "descr"]
     arg_names += ["gval%d"%(i+1) for i in range(db.gvals_count)]
 
@@ -1707,8 +1695,8 @@ def test_search_revisions_all_values():
     assert(len(ret) == 2)
 
 def test_search_revision_invalid_argument():
-    d, c = _create_db()
-    data = _create_data_for_search_revisions(c, d)
+    d = _init_db()
+    data = _create_data_for_search_revisions(d)
 
     ret = d.search_revisions(code="test-code-1")
     assert(len(ret) > 2)
@@ -1722,20 +1710,21 @@ def test_search_revision_invalid_argument():
     assert(ok)
 
 def test_search_revisions_all_icase_values():
-
-    d, c = _create_db()
-
+    d = _init_db()
     #
-    # SQLServer by default does search case INsensitive
+    # SQLServer, MySQL, MariaDB by default do search case INsensitive
     # skip the test
     #
-    if "SQLSERVER" in db.connection:
+    if isinstance(d, db.DBSQLServer):
+        return
+    if isinstance(d, db.DBMySQL):
         return
 
-    data = _create_data_for_search_revisions(c, d)
+    data = _create_data_for_search_revisions(d)
 
-    d._execute(c, "SELECT COUNT(*) FROM items WHERE code = ?", ("TEST-CODE-1", ))
-    assert(c.fetchone()[0] == 0)
+    with ROCursor(d) as c:
+        c.execute("SELECT COUNT(*) FROM items WHERE code = ?", ("TEST-CODE-1", ))
+        assert(c.fetchone()[0] == 0)
 
     arg_names = ["rid", "rev", "descr"]
     arg_names += ["gval%d"%(i+1) for i in range(db.gvals_count)]
@@ -1760,8 +1749,8 @@ def test_search_revisions_all_icase_values():
     # TBD dates
 
 def test_search_revisions_and_drawings_by_drawings():
-    d, c = _create_db()
-    data = _create_data_for_search_revisions(c, d)
+    d = _init_db()
+    data = _create_data_for_search_revisions(d)
 
     ret = d.search_revisions()
     assert(len(ret)) > 2
@@ -1776,8 +1765,8 @@ def test_search_revisions_and_drawings_by_drawings():
     assert(len(ret)) == 2
 
 def test_search_revisions_by_drawings():
-    d, c = _create_db()
-    data = _create_data_for_search_revisions(c, d)
+    d = _init_db()
+    data = _create_data_for_search_revisions(d)
 
     ret = d.search_revisions(doc="%fullpath%")
     assert(len(ret)) == 3
@@ -1836,15 +1825,16 @@ def test_gavals():
         c.execute("SELECT COUNT(gaval%d) FROM assemblies"%(db.gavals_count))
         c.fetchone()
 
-        ret = False
-        try:
-            with ROCursor(d) as c2:
-                c2.execute("SELECT COUNT(gaval0) FROM assemblies")
-                c2.fetchone()
-        except:
-            ret = True
-        assert(ret)
+    ret = False
+    try:
+        with ROCursor(d) as c2:
+            c2.execute("SELECT COUNT(gaval0) FROM assemblies")
+            c2.fetchone()
+    except:
+        ret = True
+    assert(ret)
 
+    with ROCursor(d) as c:
         c.execute("SELECT COUNT(gaval%d) FROM assemblies"%(db.gavals_count))
         c.fetchone()
 
@@ -2101,7 +2091,6 @@ def test_constraint_item_prop_references_rev_id():
                 DELETE FROM item_revisions WHERE id=?
             """, (id2,))
         except d._mod.IntegrityError as e:
-            d._rollback(c)
             return
 
     assert(False)
@@ -2299,7 +2288,6 @@ def test_context_manager_basic_many():
 
 def test_context_manager_many_fail_constraint():
     d = _init_db()
-
     try:
         with Transaction(d) as c:
             c.executemany("INSERT INTO items (code) VALUES (?)",[
@@ -2317,7 +2305,6 @@ def test_context_manager_many_fail_constraint():
 
 def test_context_manager_many_fail_constraint2():
     d = _init_db()
-
     try:
         with Transaction(d) as c:
             c.executemany("INSERT INTO items (code) VALUES (?)",[
@@ -2491,18 +2478,19 @@ def test_context_manager_rocursor_error_on_drop():
         assert(False)
 
 def test_restore_db_with_different_endline():
-    d, c = _create_db()
-    rids = _create_simple_assy_with_drawings(c)
-    d._commit(c)
+    d = _init_db()
+    with Transaction(d) as c:
+        rids = _create_simple_assy_with_drawings(c)
 
-    c.execute("SELECT COUNT(*) FROM items")
-    ci = c.fetchone()[0]
-    c.execute("SELECT COUNT(*) FROM item_revisions")
-    cr = c.fetchone()[0]
-    c.execute("SELECT COUNT(*) FROM assemblies")
-    ca = c.fetchone()[0]
-    c.execute("SELECT COUNT(*) FROM drawings")
-    cd = c.fetchone()[0]
+    with ROCursor(d) as c:
+        c.execute("SELECT COUNT(*) FROM items")
+        ci = c.fetchone()[0]
+        c.execute("SELECT COUNT(*) FROM item_revisions")
+        cr = c.fetchone()[0]
+        c.execute("SELECT COUNT(*) FROM assemblies")
+        ca = c.fetchone()[0]
+        c.execute("SELECT COUNT(*) FROM drawings")
+        cd = c.fetchone()[0]
 
     assert(cd > 0)
 
@@ -2525,19 +2513,21 @@ def test_restore_db_with_different_endline():
     z2.close()
 
     d.create_db()
-    c.execute("SELECT COUNT(*) FROM drawings")
-    assert(0 == c.fetchone()[0])
+    with ROCursor(d) as c:
+        c.execute("SELECT COUNT(*) FROM drawings")
+        assert(0 == c.fetchone()[0])
 
     try:
         db.restore_tables(tmpfilename2, d, quiet=True)
-        c.execute("SELECT COUNT(*) FROM items")
-        assert(ci == c.fetchone()[0])
-        c.execute("SELECT COUNT(*) FROM item_revisions")
-        assert(cr == c.fetchone()[0])
-        c.execute("SELECT COUNT(*) FROM assemblies")
-        assert(ca == c.fetchone()[0])
-        c.execute("SELECT COUNT(*) FROM drawings")
-        assert(cd == c.fetchone()[0])
+        with ROCursor(d) as c:
+            c.execute("SELECT COUNT(*) FROM items")
+            assert(ci == c.fetchone()[0])
+            c.execute("SELECT COUNT(*) FROM item_revisions")
+            assert(cr == c.fetchone()[0])
+            c.execute("SELECT COUNT(*) FROM assemblies")
+            assert(ca == c.fetchone()[0])
+            c.execute("SELECT COUNT(*) FROM drawings")
+            assert(cd == c.fetchone()[0])
 
     finally:
         if os.path.exists(tmpfilename):
@@ -2912,7 +2902,6 @@ def main():
             name = arg[:j]
             arg = arg[j+1:]
             cfg.update_cfg({sec:{name:arg}})
-
         else:
             break
         i += 1
