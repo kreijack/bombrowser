@@ -168,7 +168,7 @@ class Exporter:
             captions.append(cp)
 
         if "drawings" in columns and len(self._drawings) == 0:
-            d = db.DB()
+            d = db.get_db_instance()
             fnl = []
             for k, v in self._data.items():
                 rid = v["rid"]

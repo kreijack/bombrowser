@@ -68,7 +68,7 @@ class SelectDate(QDialog):
         self.resize(600,400)
 
     def _populate_table(self):
-        d = db.DB()
+        d = db.get_db_instance()
 
                # code descr  rev   iter  date_from,            date_from_days
         data = [(r[0], r[1], r[5], r[6], db.days_to_txt(r[2]), r[2])

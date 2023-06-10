@@ -21,7 +21,7 @@ import asmgui, editcode, copycodegui, diffgui, db
 
 def _edit_code(code_id, rid):
     if code_id is None:
-        d = db.DB()
+        d = db.get_db_instance()
         data = d.get_code_by_rid(rid)
         code_id = data["id"]
 
@@ -29,7 +29,7 @@ def _edit_code(code_id, rid):
 
 def _revise_code(code_id, rid, parent):
     if code_id is None:
-        d = db.DB()
+        d = db.get_db_instance()
         data = d.get_code_by_rid(rid)
         code_id = data["id"]
 
@@ -37,7 +37,7 @@ def _revise_code(code_id, rid, parent):
 
 def _copy_code(code_id, rid, parent):
     if code_id is None:
-        d = db.DB()
+        d = db.get_db_instance()
         data = d.get_code_by_rid(rid)
         code_id = data["id"]
 
@@ -59,7 +59,7 @@ def _set_diff_to(code_id, rid, parent):
 
 def _show_assembly(code_id, rid, parent):
     if code_id is None:
-        d = db.DB()
+        d = db.get_db_instance()
         data = d.get_code_by_rid(rid)
         code_id = data["id"]
 
@@ -67,7 +67,7 @@ def _show_assembly(code_id, rid, parent):
 
 def _show_this_assembly(code_id, date_from_days, rid):
     if code_id is None:
-        d = db.DB()
+        d = db.get_db_instance()
         data = d.get_code_by_rid(rid)
         code_id = data["id"]
         date_from_days = data["date_from_days"]
@@ -76,7 +76,7 @@ def _show_this_assembly(code_id, date_from_days, rid):
 
 def _show_latest_assembly(code_id, rid):
     if code_id is None:
-        d = db.DB()
+        d = db.get_db_instance()
         data = d.get_code_by_rid(rid)
         code_id = data["id"]
 
@@ -84,7 +84,7 @@ def _show_latest_assembly(code_id, rid):
 
 def _show_proto_assembly(code_id, rid):
     if code_id is None:
-        d = db.DB()
+        d = db.get_db_instance()
         data = d.get_code_by_rid(rid)
         code_id = data["id"]
 
@@ -92,7 +92,7 @@ def _show_proto_assembly(code_id, rid):
 
 def _show_where_used(code_id, rid):
     if code_id is None:
-        d = db.DB()
+        d = db.get_db_instance()
         data = d.get_code_by_rid(rid)
         code_id = data["id"]
 
@@ -100,7 +100,7 @@ def _show_where_used(code_id, rid):
 
 def _show_valid_where_used(code_id, rid):
     if code_id is None:
-        d = db.DB()
+        d = db.get_db_instance()
         data = d.get_code_by_rid(rid)
         code_id = data["id"]
 
@@ -108,7 +108,7 @@ def _show_valid_where_used(code_id, rid):
 
 def _show_smart_where_used(code_id, rid):
     if code_id is None:
-        d = db.DB()
+        d = db.get_db_instance()
         data = d.get_code_by_rid(rid)
         code_id = data["id"]
 
@@ -132,7 +132,7 @@ def generate_codes_context_menu(code_id=None, rid=None, dt=None,
             lambda : _show_this_assembly(code_id, dt, rid))
     menu.addAction("Show prototype assembly").triggered.connect(
         lambda : _show_proto_assembly(code_id, rid))
-    if not db.DB().is_db_read_only():
+    if not db.get_db_instance().is_db_read_only():
         menu.addSeparator()
         menu.addAction("Copy code ...").triggered.connect(
             lambda : _copy_code(code_id, rid, parent))

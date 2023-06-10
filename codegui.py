@@ -46,7 +46,7 @@ class CodeWidget(QWidget):
 
     def populate(self, id_, date_from_days, qty, each, unit, ref, gavals=dict()):
 
-        d = db.DB()
+        d = db.get_db_instance()
         data = d.get_code(id_, date_from_days)
 
         if not data or len(data) < 1:
@@ -294,7 +294,7 @@ class CodesWidget(CodeWidget):
     def populate(self, code_id):
         self._code_id = code_id
 
-        d = db.DB()
+        d = db.get_db_instance()
         dates = d.get_dates_by_code_id3(self._code_id)
         if not dates or len(dates) < 1:
             QMessageBox.critical(self, "BOMBrowser",

@@ -974,7 +974,7 @@ def create_db(show_stat):
     dbtype = cfg.config()["BOMBROWSER"]["db"]
     c = cfg.config()[dbtype.upper()]
     db.init(dbtype, dict(c))
-    d = db.DB()
+    d = db.get_db_instance()
     d.create_db()
 
     xrmdir("documents")

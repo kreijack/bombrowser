@@ -79,7 +79,7 @@ def main(args):
         dbtype = cfg.config()["BOMBROWSER"]["db"]
         c = cfg.config()[dbtype.upper()]
         db.init(dbtype, dict(c))
-        d = db.DB()
+        d = db.get_db_instance()
         data = d.get_config()
     except:
         utils.show_exception(msg="Cannot connect to database\nAbort\n")

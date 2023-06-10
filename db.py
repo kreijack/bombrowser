@@ -2163,7 +2163,7 @@ class DBMySQL(_BaseServer):
 
             return dates
 
-def DB():
+def get_db_instance():
 
     global _globaDBInstance
 
@@ -2289,7 +2289,7 @@ def main(prgname, args):
 
     if len(args) == 2 and args[0] == "--dump-tables":
         init(dbtype, dict(conf))
-        d = DB()
+        d = get_db_instance()
         dump_tables(args[1], d)
         print("DB dumped")
 
@@ -2308,7 +2308,7 @@ def main(prgname, args):
                 return
 
         init(dbtype, dict(conf))
-        d = DB()
+        d = get_db_instance()
         new_db(d)
         print("DB created")
 
@@ -2327,7 +2327,7 @@ def main(prgname, args):
                 return
 
         init(dbtype, dict(conf))
-        d = DB()
+        d = get_db_instance()
         restore_tables(args[1], d)
         print("DB restored")
 

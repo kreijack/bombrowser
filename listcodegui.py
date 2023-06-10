@@ -117,7 +117,7 @@ class CodesListWidget(QWidget):
                         (ds == "" or utils.bb_match(v["descr"], ds, case_sensitive=self._case_sens))):
                             ret.append((v["id"], v["code"], v["descr"], v["ver"], v["iter"]))
         else:
-                d = db.DB()
+                d = db.get_db_instance()
                 ret = d.get_codes_by_like_code_and_descr(cs, ds, case_sensitive=self._case_sens)
 
         if not ret or len(ret) == 0:

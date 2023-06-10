@@ -188,7 +188,7 @@ class ExportDialog(QDialog):
         bigger_files = []
         irregular_files = []
         fnl = []
-        d = db.DB()
+        d = db.get_db_instance()
         for k in self._data:
             rid = self._data[k]["rid"]
             drawings = d.get_drawings_by_rid(rid)
@@ -1028,7 +1028,7 @@ def where_used(code_id, mode="where_used"):
     w.show()
 
     def bom_reload_():
-        d = db.DB()
+        d = db.get_db_instance()
 
         valid = mode in ["smart_where_used", "valid_where_used"]
         (top, data) = d.get_where_used_from_id_code(code_id, valid)
@@ -1060,7 +1060,7 @@ def show_assembly(code_id, winParent):
     w.show()
 
     def bom_reload_():
-        d = db.DB()
+        d = db.get_db_instance()
         top, data = d.get_bom_by_code_id3(code_id, date_from_days)
         return top, data, date_from_days
 
@@ -1076,7 +1076,7 @@ def show_latest_assembly(code_id):
     w.show()
 
     def bom_reload_():
-        d = db.DB()
+        d = db.get_db_instance()
         dates = d.get_dates_by_code_id3(code_id)
 
         # get the prototype date ONLY if there is the only option
@@ -1104,7 +1104,7 @@ def show_proto_assembly(code_id):
     w.show()
 
     def bom_reload_():
-        d = db.DB()
+        d = db.get_db_instance()
         dates = d.get_dates_by_code_id3(code_id)
         dt = min(db.end_of_the_world, dates[0][3])
         top, data = d.get_bom_by_code_id3(code_id, dates[0][3])
@@ -1121,7 +1121,7 @@ def show_assembly_by_date(code_id, dt):
     w = AssemblyWindow(None)
     w.show()
     def bom_reload_():
-        d = db.DB()
+        d = db.get_db_instance()
         top, data = d.get_bom_by_code_id3(code_id, dt)
         return top, data, dt
 

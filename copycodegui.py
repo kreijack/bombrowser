@@ -37,7 +37,7 @@ class _CopyCode(bbwindow.BBMainWindow):
         self._start_editor = None
         self._do_copy = copy
 
-        self._db = db.DB()
+        self._db = db.get_db_instance()
         data = self._db.get_code_by_rid(self._rid)
 
         self._old_code = data["code"]
@@ -216,7 +216,7 @@ class _CopyCode(bbwindow.BBMainWindow):
                     return False
 
         if self._do_copy:
-            d = db.DB()
+            d = db.get_db_instance()
             data = d.get_codes_by_code(self._l_new_code.text(),
                                         case_sensitive=self._case_sens)
             if not data is None and len(data) != 0:
@@ -244,7 +244,7 @@ class _CopyCode(bbwindow.BBMainWindow):
         if reply == QMessageBox.No:
             return
 
-        d = db.DB()
+        d = db.get_db_instance()
 
         code = self._l_new_code.text().strip()
         descr = self._l_new_descr.text().strip()
@@ -332,7 +332,7 @@ class _CopyCode(bbwindow.BBMainWindow):
 
 
 def _revise_copy_code(code_id, copy, parent):
-        d = db.DB()
+        d = db.get_db_instance()
 
         assert(parent)
         w = selectdategui.SelectDate(code_id, parent, only_data_code=True)

@@ -95,7 +95,7 @@ class EditDates(QDialog):
 
     def _save(self):
 
-        d = db.DB()
+        d = db.get_db_instance()
 
         dates = []
         row_cnt = self._table.rowCount()
@@ -185,7 +185,7 @@ class EditDates(QDialog):
         self.reject()
 
     def _populate(self):
-        d = db.DB()
+        d = db.get_db_instance()
         data = d.get_dates_by_code_id3(self._code_id)
 
         self._table.clear()
@@ -718,7 +718,7 @@ class EditWindow(bbwindow.BBMainWindow):
         self._drawings_table.add_drawings(list(files))
 
     def _populate_dates_list_info(self):
-        d = db.DB()
+        d = db.get_db_instance()
         self._dates_list_info = d.get_dates_by_code_id3(self._code_id)
         assert(len(self._dates_list_info))
 
@@ -1111,7 +1111,7 @@ class EditWindow(bbwindow.BBMainWindow):
         if reply != QMessageBox.Yes:
             return
 
-        d = db.DB()
+        d = db.get_db_instance()
         try:
             ret = d.delete_code(self._code_id)
 
@@ -1148,7 +1148,7 @@ class EditWindow(bbwindow.BBMainWindow):
         if reply != QMessageBox.Yes:
             return
 
-        d = db.DB()
+        d = db.get_db_instance()
         try:
             ret = d.delete_code_revision(self._rid)
         except:
@@ -1189,7 +1189,7 @@ class EditWindow(bbwindow.BBMainWindow):
         self._refresh_date()
 
     def _refresh_date(self):
-        d = db.DB()
+        d = db.get_db_instance()
         data = d.get_code_by_rid(self._rid)
 
         self.setWindowTitle("Edit code: %s @ %s"%(
@@ -1225,7 +1225,7 @@ class EditWindow(bbwindow.BBMainWindow):
         return path
 
     def _save_changes_prepare_data(self):
-        d = db.DB()
+        d = db.get_db_instance()
 
         # gvals values
         gvals = ["" for i in range(db.gvals_count)]
@@ -1316,7 +1316,7 @@ class EditWindow(bbwindow.BBMainWindow):
         if self._descr_force_uppercase:
             descr = descr.upper()
 
-        d = db.DB()
+        d = db.get_db_instance()
 
         try:
             d.update_by_rid2(self._rid, descr.strip(),
@@ -1417,7 +1417,7 @@ class EditWindow(bbwindow.BBMainWindow):
 
     def _populate_table(self, rid):
         self._rid = rid
-        d = db.DB()
+        d = db.get_db_instance()
 
         data = d.get_code_by_rid(self._rid)
 
@@ -1485,7 +1485,7 @@ class EditWindow(bbwindow.BBMainWindow):
                 i.setText(str(v))
 
         if col == 2:
-            d = db.DB()
+            d = db.get_db_instance()
             i = table.item(row, 2)
             codes = d.get_codes_by_code(i.text(), case_sensitive=self._case_sens)
 

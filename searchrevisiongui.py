@@ -202,7 +202,7 @@ class RevisionListWidget(QWidget):
         return ret
 
     def _search_revisions_join_docs(self, **dd):
-        d = db.DB()
+        d = db.get_db_instance()
         ret = d.search_revisions(**dd, case_sensitive=self._case_sens)
 
         prev_row = None

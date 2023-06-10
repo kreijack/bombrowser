@@ -164,7 +164,7 @@ class CodeDate(QWidget):
         self.setLayout(g)
 
     def _get_bom(self):
-        d = db.DB()
+        d = db.get_db_instance()
         return d.get_bom_by_code_id3(self._id, self._date_days)
 
     def _do_refresh(self):
@@ -697,7 +697,7 @@ def set_to(code_id, parent):
 def _set_from_to_by_rid(rid, mode):
     global _diffDialog
 
-    d = db.DB()
+    d = db.get_db_instance()
     data = d.get_code_by_rid(rid)
     code_id = data["id"]
     date_from_days = data["date_from_days"]

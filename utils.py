@@ -285,7 +285,7 @@ def reload_config_or_warn():
         return
 
     cfg.reload_config()
-    data = db.DB().get_config()
+    data = db.get_db_instance().get_config()
     cfg.update_cfg(data)
 
 

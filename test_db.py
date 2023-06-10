@@ -64,7 +64,7 @@ def _init_db():
             c = cfg.config()[dbtype.upper()]
             db.init(dbtype, dict(c))
 
-    d = db.DB() #_connection_string)
+    d = db.get_db_instance() #_connection_string)
     d.create_db()
     return d
 
@@ -2887,7 +2887,7 @@ def main():
     i = 1
     while i < len(sys.argv):
         if sys.argv[i] == "--create":
-            d = getdb.DB()
+            d = db.get_db_instance()
             d.create_db()
             sys.exit()
         elif sys.argv[i] == "--use-ini-config":
