@@ -158,6 +158,7 @@ class Transaction:
             else:
                 self.rollback()
         self._transaction_ended = True
+        self._db = None
 
 
 class ROCursor:
@@ -173,6 +174,9 @@ class ROCursor:
         assert(not "CREATE" in query)
 
     def execute(self, query, *args):
+        if not self._cursor:
+            self._cursor = self._db._get_cursor()
+
         self._check_query(query)
         r = self._db._execute(self._cursor, query, *args)
         self.description = self._cursor.description
@@ -189,7 +193,6 @@ class ROCursor:
             self._cursor.fetchall())
 
     def __enter__(self):
-        self._cursor = self._db._get_cursor()
         return self
 
     def __exit__(self, type_, value, traceback):
