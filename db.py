@@ -1817,7 +1817,7 @@ class DBSQLServer(_BaseServer):
         self._conn = pyodbc.connect(connection_string)
 
     def _get_tables_list(self, c):
-        return [row.table_name for row in c._cursor.tables()]
+        return [row.table_name for row in self._get_cursor().tables()]
 
 
 class DBOracleServer(_BaseServer):
