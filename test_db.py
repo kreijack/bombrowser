@@ -2864,7 +2864,6 @@ def test_update_gavals_gvals_count_by_db():
         d = _init_db()
         db.gavals_count += 7
         db.gvals_count += 7
-
         d.update_gavals_gvals_count_by_db()
         assert(db.gavals_count == my_gavals_count)
         assert(db.gvals_count == my_gvals_count)

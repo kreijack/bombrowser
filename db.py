@@ -241,23 +241,27 @@ class _BaseServer:
 
     def update_gavals_gvals_count_by_db(self):
         global gvals_count, gavals_count
-        for i in range(1, 100):
-            try:
-                with ROCursor(self) as c:
-                    c.execute("SELECT gval%d FROM item_revisions WHERE id=0"%(i))
-                    c.fetchone()
-            except Exception as e:
-                break
-            gvals_count = i
+        with ROCursor(self) as c:
+            c.execute("SELECT * FROM item_revisions WHERE id=0")
+            descr = [str(x[0]).upper() for x in c.description]
 
-        for i in range(1, 100):
-            try:
-                with ROCursor(self) as c:
-                    c.execute("SELECT gaval%d FROM assemblies WHERE id=0"%(i))
-                    c.fetchone()
-            except Exception as e:
-                break
-            gavals_count = i
+        n = -1
+        for d in descr:
+            if d.startswith("GVAL"):
+                n = max(int(d[4:]), n)
+        assert(n>0)
+        gvals_count = n
+
+        with ROCursor(self) as c:
+            c.execute("SELECT * FROM assemblies WHERE id=0")
+            descr = [str(x[0]).upper() for x in c.description]
+
+        n = -1
+        for d in descr:
+            if d.startswith("GAVAL"):
+                n = max(int(d[5:]), n)
+        assert(n>0)
+        gavals_count = n
 
     # these two methods can be overrided to tweak the data returned by
     # fetchone/fetchall
