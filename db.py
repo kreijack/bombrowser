@@ -1952,14 +1952,11 @@ class DBOracleServer(_BaseServer):
         return [x[0].lower() for x in c.fetchall()]
 
     def _translate_fetchone_(self, c, row):
-        tr = [("VARCHAR" in str(x[1])) for x in c.description]
-
-        def f(y, i):
-            if tr[i] and y is None:
-                return ''
-            return y
-
-        return list([f(x, i) for (i, x) in enumerate(row)])
+        # if the query refers to a non existent column,
+        # the query return None
+        if row is None:
+            return None
+        return self._translate_fetchall_(c, [row])[0]
 
     def _translate_fetchall_(self, c, rows):
         tr = [("VARCHAR" in str(x[1])) for x in c.description]
