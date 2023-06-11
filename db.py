@@ -1390,24 +1390,32 @@ class _BaseServer:
         l = [x[2] for x in dates]
         l1 = l[:]
         l1.sort(reverse=True)
-        assert(l == l1)
+        if l != l1:
+            raise DBException("DATEERROR: date_from are not sorted")
 
         will_be_proto = max(l1) == prototype_date
-        assert(max(l1) <= prototype_date)
+        if max(l1) > prototype_date:
+            raise DBException("DATEERROR: date_from > prototype date")
         l = [x[4] for x in dates]
-        assert(max(l) <= end_of_the_world)
+        if max(l) > end_of_the_world:
+            raise DBException("DATEERROR: date_to > end_of_the_world date")
 
         # check that the date_to are in order
         l = [x[4] for x in dates]
         l1 = l[:]
         l1.sort(reverse=True)
-        assert(l == l1)
+        if l != l1:
+            raise DBException("DATEERROR: date_to are not sorted")
+
         # check that date_from(n) > date_to(n+1)
         for i in range(len(dates)-1):
-            assert(dates[i][2] == dates[i+1][4] + 1)
+            if dates[i][2] != dates[i+1][4] + 1:
+                raise DBException("DATEERROR: date_from[n] != date_to[n+1]+1")
+
         # check that date_from <= date_to
         for row in dates:
-            assert(row[2] <= row[4])
+            if row[2] > row[4]:
+                raise DBException("DATEERROR: date_from > date_to")
 
         with Transaction(self) as c:
 
@@ -1428,7 +1436,8 @@ class _BaseServer:
             l = [x[1] for x in res]
             l1 = l[:]
             l1.sort(reverse=True)
-            assert(l1==l)
+            if l1 != l:
+                raise DBException("DATEERROR: iter in db are not sorted")
 
             was_proto = max(l) == prototype_iter
 
@@ -1446,13 +1455,21 @@ class _BaseServer:
                      max_date_to_days = date_to_days
 
                 for (cid, cdate_from_days, cdate_to_days) in self._get_children_dates_range_by_rid(c, rid):
+                    if cdate_from_days > date_from_days:
+                        raise DBException("DATEERROR: children date_from > parent date_from")
                     assert(cdate_from_days <= date_from_days)
+                    if cdate_to_days < date_to_days:
+                        raise DBException("DATEERROR: children date_to < parent date_to")
                     assert(cdate_to_days >= date_to_days)
 
             # check that the date range has a wider life than
             # any parents
             for (pid, pdate_from_days, pdate_to_days) in self._get_parent_dates_range_by_code_id(c, code_id):
+                if pdate_from_days < min_date_from_days:
+                    raise DBException("DATEERROR: parent date_from < min children date_from")
                 assert(pdate_from_days >= min_date_from_days)
+                if pdate_to_days > max_date_to_days:
+                    raise DBException("DATEERROR: parent date_from < min children date_from")
                 assert(pdate_to_days <= max_date_to_days)
 
             # ok insert the data

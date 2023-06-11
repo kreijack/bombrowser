@@ -716,13 +716,12 @@ def test_update_dates_fail_to_less_from():
     # _to < _from
     dates[0][4] = dates[0][2] - 1
 
-    failed = False
     try:
         d.update_dates(dates)
-    except:
-        failed = True
-    assert(failed)
-
+    except db.DBException as e:
+        assert("DATEERROR" in str(e))
+    else:
+        assert False, "It should raise"
 
     # go back to ensure that otherwise every thing is ok
     dates[0][4] = dates[0][2]
@@ -740,12 +739,13 @@ def test_update_dates_fail_previous_before_after():
     dates[1][2] = dates[0][2]
     dates[0][2] = tmp
 
-    failed = False
     try:
         d.update_dates(dates)
-    except:
-        failed = True
-    assert(failed)
+    except db.DBException as e:
+        assert("DATEERROR" in str(e))
+    else:
+        assert False, "It should raise"
+
 
 def test_update_dates_fail_2_equal_rows():
     d = _init_db()
@@ -756,12 +756,12 @@ def test_update_dates_fail_2_equal_rows():
     # two row equals
     dates[1][2] = dates[0][2]
 
-    failed = False
     try:
         d.update_dates(dates)
-    except:
-        failed = True
-    assert(failed)
+    except db.DBException as e:
+        assert("DATEERROR" in str(e))
+    else:
+        assert False, "It should raise"
 
 def test_update_dates_fail_overlapped_date_revisions():
     d = _init_db()
@@ -773,12 +773,12 @@ def test_update_dates_fail_overlapped_date_revisions():
     # _to(n+1) == _from(n) - 1
     dates[1][4] = dates[0][2]
 
-    failed = False
     try:
         d.update_dates(dates)
-    except:
-        failed = True
-    assert(failed)
+    except db.DBException as e:
+        assert("DATEERROR" in str(e))
+    else:
+        assert False, "It should raise"
 
     # go back to ensure that otherwise every thing is ok
     dates[1][4] = dates[0][2] - 1
@@ -795,12 +795,12 @@ def test_update_dates_fail_from_grather_proto():
     dates[0][2] = db.prototype_date + 1
     dates[1][4] = db.prototype_date
 
-    failed = False
     try:
         d.update_dates(dates)
-    except:
-        failed = True
-    assert(failed)
+    except db.DBException as e:
+        assert("DATEERROR" in str(e))
+    else:
+        assert False, "It should raise"
 
     # go back to ensure that otherwise every thing is ok
     dates[0][2] = db.prototype_date
@@ -817,12 +817,12 @@ def test_update_dates_fail_to_grather_end():
     # to > end_of_the_worlf
     dates[0][4] = db.end_of_the_world + 1
 
-    failed = False
     try:
         d.update_dates(dates)
-    except:
-        failed = True
-    assert(failed)
+    except db.DBException as e:
+        assert("DATEERROR" in str(e))
+    else:
+        assert False, "It should raise"
 
     # go back to ensure that otherwise every thing is ok
     dates[0][4] = db.end_of_the_world
@@ -971,13 +971,12 @@ def test_update_dates_with_assembly_fail_date_earlier_child():
     dates[2][1] = "2020-01-09"
     dates[2][2] = db.iso_to_days(dates[2][1])
 
-    failed = False
     try:
         d.update_dates(dates)
-    except:
-        failed = True
-
-    assert(failed)
+    except db.DBException as e:
+        assert("DATEERROR" in str(e))
+    else:
+        assert False, "It should raise"
 
     # check that if we change this date, everything is ok
     # A cannot be earlier than C (2020-01-10..end_of_the_world)
@@ -998,13 +997,12 @@ def test_update_dates_with_assembly_fail_date_later_child():
     dates[0][3] = "2020-01-30"
     dates[0][4] = db.iso_to_days(dates[0][3])
 
-    failed = False
     try:
         d.update_dates(dates)
-    except:
-        failed = True
-
-    assert(failed)
+    except db.DBException as e:
+        assert("DATEERROR" in str(e))
+    else:
+        assert False, "It should raise"
 
     # check that if we change this date, everything is ok
     # A cannot be later than B (2020-01-05,..2020-01-25)
@@ -1026,13 +1024,12 @@ def test_update_dates_with_assembly_fail_date_earlier_parent():
     dates[0][3] = "2020-01-21"
     dates[0][4] = db.iso_to_days(dates[0][3])
 
-    failed = False
     try:
         d.update_dates(dates)
-    except:
-        failed = True
-
-    assert(failed)
+    except db.DBException as e:
+        assert("DATEERROR" in str(e))
+    else:
+        assert False, "It should raise"
 
     # check that if we change this date, everything is ok
     # A cannot be end early than E (2020-01-11..2020-01-22)
@@ -1054,13 +1051,12 @@ def test_update_dates_with_assembly_fail_date_later_parent():
     dates[2][1] = "2020-01-12"
     dates[2][2] = db.iso_to_days(dates[2][1])
 
-    failed = False
     try:
         d.update_dates(dates)
-    except:
-        failed = True
-
-    assert(failed)
+    except db.DBException as e:
+        assert("DATEERROR" in str(e))
+    else:
+        assert False, "It should raise"
 
     # check that if we change this date, everything is ok
     # A cannot be later than D (2020-01-11..2020-01-18)
@@ -1838,6 +1834,7 @@ def test_gavals():
         c.fetchone()
 
         ret = False
+        # FIXME
         try:
             with ROCursor(d) as c2:
                 c2.execute("SELECT COUNT(gaval%d) FROM assemblies"%(db.gavals_count+1))
