@@ -2563,6 +2563,8 @@ def test_postgres_screws():
             c.fetchone()
     except:
         pass
+    else:
+        assert False, "This should raise an exception"
 
     with Transaction(d) as c:
         _test_insert_assembly(c)
@@ -2687,13 +2689,8 @@ def test_expand_search_str_clauses_int():
     assert(not "AND" in q)
     assert("id <> ?" in q)
 
-    try:
-        args[0] + 1
-    except:
-        test_is_int_passed = False
-    else:
-        test_is_int_passed = True
-    assert(test_is_int_passed)
+    assert(isinstance(args[0], int))
+    assert(not isinstance(args[0], str))
 
 def test_expand_search_str_clauses_begin_with_equal():
     d = _init_db()
