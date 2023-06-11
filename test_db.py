@@ -2899,6 +2899,9 @@ def run_test(filters, modules, prefix=""):
             for name, obj in _list_tests(modules):
                 print(name)
             return
+        elif i.startswith("-"):
+            print("ERROR: Unknown switch", i)
+            return
         else:
             lfilters.append(i)
 
@@ -2937,6 +2940,7 @@ def main():
     global _use_db
 
     i = 1
+    args = []
     while i < len(sys.argv):
         if sys.argv[i] == "--create":
             d = db.get_db_instance()
@@ -2957,10 +2961,10 @@ def main():
             arg = arg[j+1:]
             cfg.update_cfg({sec:{name:arg}})
         else:
-            break
+            args.append(sys.argv[i])
         i += 1
 
-    run_test(sys.argv[i:], sys.modules[__name__])
+    run_test(args, sys.modules[__name__])
     sys.exit(0)
 
 if __name__ == "__main__":
