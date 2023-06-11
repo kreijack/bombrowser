@@ -76,6 +76,7 @@ gvals_count = 20
 gavals_count = 3
 connection="Server: <UNDEF>"
 _globaDBInstance = None
+_nested_transaction = 0
 
 class DBException(RuntimeError):
     pass
@@ -88,67 +89,65 @@ class Transaction:
     def __init__(self, d):
         self._db = d
         self._cursor = None
-        self._transaction_ended = False
+        self._inside_context = False
 
-    def _begin(self):
-        assert(not self._transaction_ended)
+    def begin(self):
+        assert(self._inside_context == True)
         if self._cursor:
             return
 
         self._cursor = self._db._get_cursor()
         self._db._begin(self._cursor)
 
-        self._db._nested_transaction += 1
-        assert(self._db._nested_transaction == 1)
-
     def execute(self, query, *args):
-        self._begin()
+        self.begin()
 
         r = self._db._execute(self._cursor, query, *args)
         self.description = self._cursor.description
         return r
 
     def executemany(self, query, *args):
-        self._begin()
+        self.begin()
 
         r = self._db._executemany(self._cursor, query, *args)
         self.description = self._cursor.description
         return r
 
     def fetchone(self):
+        assert(self._inside_context == True)
         return self._db._translate_fetchone_(
             self._cursor,
             self._cursor.fetchone())
 
     def fetchall(self):
+        assert(self._inside_context == True)
         return self._db._translate_fetchall_(
             self._cursor,
             self._cursor.fetchall())
 
     def commit(self):
-        assert(not self._transaction_ended)
+        assert(self._inside_context == True)
 
         r = self._db._commit()
         self._cursor = None
 
-        self._db._nested_transaction -= 1
-        assert(self._db._nested_transaction == 0)
-
         return r
 
     def rollback(self):
-        assert(not self._transaction_ended)
+        assert(self._inside_context == True)
 
         r = self._db._rollback()
 
         self._cursor = None
 
-        self._db._nested_transaction -= 1
-        assert(self._db._nested_transaction == 0)
-
         return r
 
     def __enter__(self):
+        global _nested_transaction
+        assert(_nested_transaction == 0)
+        _nested_transaction += 1
+
+        self._inside_context = True
         return self
 
     def __exit__(self, type_, value, traceback):
@@ -157,14 +156,20 @@ class Transaction:
                 self.commit()
             else:
                 self.rollback()
-        self._transaction_ended = True
+        self._cursor = None
+        self._inside_context = False
         self._db = None
+
+        global _nested_transaction
+        assert(_nested_transaction == 1)
+        _nested_transaction -= 1
 
 
 class ROCursor:
     def __init__(self, d):
         self._db = d
         self._cursor = None
+        self._inside_context = False
 
     def _check_query(self, query):
         assert(not "INSERT" in query)
@@ -174,6 +179,7 @@ class ROCursor:
         assert(not "CREATE" in query)
 
     def execute(self, query, *args):
+        assert(self._inside_context == True)
         if not self._cursor:
             self._cursor = self._db._get_cursor()
 
@@ -183,16 +189,19 @@ class ROCursor:
         return r
 
     def fetchone(self):
+        assert(self._inside_context == True)
         return self._db._translate_fetchone_(
             self._cursor,
             self._cursor.fetchone())
 
     def fetchall(self):
+        assert(self._inside_context == True)
         return self._db._translate_fetchall_(
             self._cursor,
             self._cursor.fetchall())
 
     def __enter__(self):
+        self._inside_context = True
         return self
 
     def __exit__(self, type_, value, traceback):
@@ -201,6 +210,7 @@ class ROCursor:
             self._db._rollback()
         self._db = None
         self._cursor = None
+        self._inside_context = False
 
 class _BaseServer:
 
@@ -208,7 +218,6 @@ class _BaseServer:
         self._path = path
         self._conn = None
         self._read_only = None
-        self._nested_transaction = 0
 
         self._ver = "empty"
 

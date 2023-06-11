@@ -24,6 +24,7 @@ import os
 import zipfile
 from db import Transaction, ROCursor
 import cfg
+import traceback
 
 def _test_insert_items(c):
     codes = [('code123', "descr456", 0), ('code124', "descr457", 0),
@@ -643,23 +644,22 @@ def test_update_dates_insert_prototype_after_a_normal():
         code = "TEST-CODE"
         code_id, dates = _create_code_revision(c, code)
 
-
     # insert normal
     d.update_dates(dates)
 
-        # insert a prototype
+    # insert a prototype
 
-    with Transaction(d) as c:
-        dates[0][1] = db.days_to_iso(db.prototype_date)
-        dates[0][2] = db.prototype_date
-        dates[0][3] = ""
-        dates[0][4] = db.end_of_the_world
+    dates[0][1] = db.days_to_iso(db.prototype_date)
+    dates[0][2] = db.prototype_date
+    dates[0][3] = ""
+    dates[0][4] = db.end_of_the_world
 
-        dates[1][3] = ""
-        dates[1][4] = db.prototype_date - 1
+    dates[1][3] = ""
+    dates[1][4] = db.prototype_date - 1
 
-        d.update_dates(dates)
+    d.update_dates(dates)
 
+    with ROCursor(d) as c:
         c.execute("""
             SELECT COUNT(*)
             FROM item_revisions
@@ -2357,9 +2357,12 @@ def test_context_manager_syntax_error():
         with Transaction(d) as c:
             c.execute("INSERT INTO items (code) VALUES ('123')")
             # syntax error
-            c.execute("INafdasdfaffSERT INTO items (code) VALUES ('123')")
-    except:
-        pass
+            c.execute("WRONGSQL INTO items (code) VALUES ('123')")
+    except Exception:
+        _, _, tb = sys.exc_info()
+        tb_info = traceback.extract_tb(tb)
+        filename, line, func, text = tb_info[0]
+        assert("WRONGSQL" in text)
     else:
         assert(False)
 
@@ -2377,8 +2380,11 @@ def test_context_manager_rollback_after_block():
 
     try:
         c.rollback()
-    except:
-        pass
+    except AssertionError:
+        _, _, tb = sys.exc_info()
+        tb_info = traceback.extract_tb(tb)
+        filename, line, func, text = tb_info[-1]
+        assert("_inside_context" in text)
     else:
         assert(False)
 
@@ -2396,8 +2402,11 @@ def test_context_manager_commit_after_block():
 
     try:
         c.commit()
-    except:
-        pass
+    except AssertionError:
+        _, _, tb = sys.exc_info()
+        tb_info = traceback.extract_tb(tb)
+        filename, line, func, text = tb_info[-1]
+        assert("_inside_context" in text)
     else:
         assert(False)
 
@@ -2428,8 +2437,11 @@ def test_context_manager_rocursor_after_block():
 
     try:
         c.execute("SELECT COUNT(*) FROM items")
-    except:
-        pass
+    except AssertionError:
+        _, _, tb = sys.exc_info()
+        tb_info = traceback.extract_tb(tb)
+        filename, line, func, text = tb_info[-1]
+        assert("_inside_context" in text)
     else:
         assert(False)
 
@@ -2439,8 +2451,11 @@ def test_context_manager_rocursor_error_on_insert():
     try:
         with ROCursor(d) as c:
             c.execute("INSERT INTO items (code) VALUES ('xxx')")
-    except:
-        pass
+    except AssertionError:
+        _, _, tb = sys.exc_info()
+        tb_info = traceback.extract_tb(tb)
+        filename, line, func, text = tb_info[-1]
+        assert("INSERT" in text)
     else:
         assert(False)
 
@@ -2450,8 +2465,11 @@ def test_context_manager_rocursor_error_on_update():
     try:
         with ROCursor(d) as c:
             c.execute("UPDATE items set code='xxx'")
-    except:
-        pass
+    except AssertionError:
+        _, _, tb = sys.exc_info()
+        tb_info = traceback.extract_tb(tb)
+        filename, line, func, text = tb_info[-1]
+        assert("UPDATE" in text)
     else:
         assert(False)
 
@@ -2461,8 +2479,11 @@ def test_context_manager_rocursor_error_on_delete():
     try:
         with ROCursor(d) as c:
             c.execute("DELETE items")
-    except:
-        pass
+    except AssertionError:
+        _, _, tb = sys.exc_info()
+        tb_info = traceback.extract_tb(tb)
+        filename, line, func, text = tb_info[-1]
+        assert("DELETE" in text)
     else:
         assert(False)
 
@@ -2472,10 +2493,42 @@ def test_context_manager_rocursor_error_on_drop():
     try:
         with ROCursor(d) as c:
             c.execute("DROP TABLE items")
-    except:
-        pass
+    except AssertionError:
+        _, _, tb = sys.exc_info()
+        tb_info = traceback.extract_tb(tb)
+        filename, line, func, text = tb_info[-1]
+        assert("DROP" in text)
     else:
         assert(False)
+
+def test_context_manager_transaction_without_with():
+    d = _init_db()
+    t = Transaction(d)
+    try:
+        t.execute("DELETE FROM items")
+    except AssertionError:
+        _, _, tb = sys.exc_info()
+        tb_info = traceback.extract_tb(tb)
+        filename, line, func, text = tb_info[-1]
+        assert("_inside_context" in text)
+    else:
+        assert False, "Transaction without 'with' shold Except"
+
+def test_context_manager_transaction_nested_transaction():
+    d = _init_db()
+    try:
+        with Transaction(d) as c:
+            c.execute("DELETE FROM items")
+            with Transaction(d) as c2:
+                c2.execute("DELETE FROM items")
+    except AssertionError:
+        _, _, tb = sys.exc_info()
+        tb_info = traceback.extract_tb(tb)
+        filename, line, func, text = tb_info[-1]
+        assert("_nested_transaction" in text)
+    else:
+        assert False, "Nested trasaction shold Except"
+
 
 def test_restore_db_with_different_endline():
     d = _init_db()
