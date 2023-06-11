@@ -1965,7 +1965,7 @@ def test_constraint_items_code_unique():
         except d._mod.IntegrityError as e:
             return
 
-    assert(False)
+    raise Exception("It should raise an exception")
 
 def test_constraint_item_rev_reference_code_id():
 
@@ -1988,7 +1988,7 @@ def test_constraint_item_rev_reference_code_id():
         except d._mod.IntegrityError as e:
             return
 
-        assert(False)
+        raise Exception("It should raise an exception")
 
 def test_constraint_item_rev_iter_code_id_unique():
 
@@ -2017,7 +2017,7 @@ def test_constraint_item_rev_iter_code_id_unique():
         except d._mod.IntegrityError as e:
             return
 
-    assert(False)
+    raise Exception("It should raise an exception")
 
 def test_constraint_item_prop_references_rev_id():
 
@@ -2047,7 +2047,7 @@ def test_constraint_item_prop_references_rev_id():
         except d._mod.IntegrityError as e:
             return
 
-    assert(False)
+    raise Exception("It should raise an exception")
 
 def test_constraint_item_prop_rev_id_descr_unique():
 
@@ -2084,7 +2084,7 @@ def test_constraint_item_prop_rev_id_descr_unique():
         except d._mod.IntegrityError as e:
             return
 
-    assert(False)
+    raise Exception("It should raise an exception")
 
 def test_constraint_assemblies_references_code_id():
 
@@ -2120,7 +2120,7 @@ def test_constraint_assemblies_references_code_id():
         except d._mod.IntegrityError as e:
             return
 
-    assert(False)
+    raise Exception("It should raise an exception")
 
 def test_constraint_assemblies_references_rev_id():
 
@@ -2157,7 +2157,7 @@ def test_constraint_assemblies_references_rev_id():
         except d._mod.IntegrityError as e:
             return
 
-    assert(False)
+    raise Exception("It should raise an exception")
 
 def test_constraint_assemblies_unique_revision_id_code_id():
 
@@ -2188,7 +2188,7 @@ def test_constraint_assemblies_unique_revision_id_code_id():
         except d._mod.IntegrityError as e:
             return
 
-    assert(False)
+    raise Exception("It should raise an exception")
 
 def test_constraint_drawings_references_rev_id():
     d = _init_db()
@@ -2219,7 +2219,7 @@ def test_constraint_drawings_references_rev_id():
         except d._mod.IntegrityError as e:
             return
 
-        assert(False)
+        raise Exception("It should raise an exception")
 
 def test_context_manager_basic():
     d = _init_db()
@@ -2251,7 +2251,7 @@ def test_context_manager_many_fail_constraint():
     except d._mod.IntegrityError:
         pass
     else:
-        assert(False)
+        raise Exception("It should raise an exception")
 
     with ROCursor(d) as c:
         c.execute("SELECT COUNT(*) FROM items")
@@ -2271,7 +2271,7 @@ def test_context_manager_many_fail_constraint2():
     except d._mod.IntegrityError:
         pass
     else:
-        assert(False)
+        raise Exception("It should raise an exception")
 
     with ROCursor(d) as c:
         c.execute("SELECT COUNT(*) FROM items")
@@ -2293,7 +2293,7 @@ def test_context_manager_constraint_fail():
     except d._mod.IntegrityError:
         pass
     else:
-        assert(False)
+        raise Exception("It should raise an exception")
 
     with Transaction(d) as c:
         c.execute("SELECT COUNT(*) FROM items")
@@ -2318,7 +2318,7 @@ def test_context_manager_syntax_error():
         filename, line, func, text = tb_info[0]
         assert("WRONGSQL" in text)
     else:
-        assert(False)
+        raise Exception("It should raise an exception")
 
     with Transaction(d) as c:
         c.execute("SELECT COUNT(*) FROM items")
@@ -2334,13 +2334,10 @@ def test_context_manager_rollback_after_block():
 
     try:
         c.rollback()
-    except AssertionError:
-        _, _, tb = sys.exc_info()
-        tb_info = traceback.extract_tb(tb)
-        filename, line, func, text = tb_info[-1]
-        assert("_inside_context" in text)
+    except db.DBException as e:
+        assert "NOTINCONTEXT" in str(e)
     else:
-        assert(False)
+        raise Exception("It should raise an exception")
 
     with Transaction(d) as c:
         c.execute("SELECT COUNT(*) FROM items")
@@ -2356,13 +2353,10 @@ def test_context_manager_commit_after_block():
 
     try:
         c.commit()
-    except AssertionError:
-        _, _, tb = sys.exc_info()
-        tb_info = traceback.extract_tb(tb)
-        filename, line, func, text = tb_info[-1]
-        assert("_inside_context" in text)
+    except db.DBException as e:
+        assert "NOTINCONTEXT" in str(e)
     else:
-        assert(False)
+        raise Exception("It should raise an exception")
 
     with Transaction(d) as c:
         c.execute("SELECT COUNT(*) FROM items")
@@ -2391,13 +2385,10 @@ def test_context_manager_rocursor_after_block():
 
     try:
         c.execute("SELECT COUNT(*) FROM items")
-    except AssertionError:
-        _, _, tb = sys.exc_info()
-        tb_info = traceback.extract_tb(tb)
-        filename, line, func, text = tb_info[-1]
-        assert("_inside_context" in text)
+    except db.DBException as e:
+        assert "NOTINCONTEXT" in str(e)
     else:
-        assert(False)
+        raise Exception("It should raise an exception")
 
 def test_context_manager_rocursor_error_on_insert():
     d = _init_db()
@@ -2405,13 +2396,10 @@ def test_context_manager_rocursor_error_on_insert():
     try:
         with ROCursor(d) as c:
             c.execute("INSERT INTO items (code) VALUES ('xxx')")
-    except AssertionError:
-        _, _, tb = sys.exc_info()
-        tb_info = traceback.extract_tb(tb)
-        filename, line, func, text = tb_info[-1]
-        assert("INSERT" in text)
+    except db.DBException as e:
+        assert("INSERT" in str(e))
     else:
-        assert(False)
+        raise Exception("It should raise an exception")
 
 def test_context_manager_rocursor_error_on_update():
     d = _init_db()
@@ -2419,13 +2407,10 @@ def test_context_manager_rocursor_error_on_update():
     try:
         with ROCursor(d) as c:
             c.execute("UPDATE items set code='xxx'")
-    except AssertionError:
-        _, _, tb = sys.exc_info()
-        tb_info = traceback.extract_tb(tb)
-        filename, line, func, text = tb_info[-1]
-        assert("UPDATE" in text)
+    except db.DBException as e:
+        assert("UPDATE" in str(e))
     else:
-        assert(False)
+        raise Exception("It should raise an exception")
 
 def test_context_manager_rocursor_error_on_delete():
     d = _init_db()
@@ -2433,13 +2418,10 @@ def test_context_manager_rocursor_error_on_delete():
     try:
         with ROCursor(d) as c:
             c.execute("DELETE items")
-    except AssertionError:
-        _, _, tb = sys.exc_info()
-        tb_info = traceback.extract_tb(tb)
-        filename, line, func, text = tb_info[-1]
-        assert("DELETE" in text)
+    except db.DBException as e:
+        assert("DELETE" in str(e))
     else:
-        assert(False)
+        raise Exception("It should raise an exception")
 
 def test_context_manager_rocursor_error_on_drop():
     d = _init_db()
@@ -2447,24 +2429,18 @@ def test_context_manager_rocursor_error_on_drop():
     try:
         with ROCursor(d) as c:
             c.execute("DROP TABLE items")
-    except AssertionError:
-        _, _, tb = sys.exc_info()
-        tb_info = traceback.extract_tb(tb)
-        filename, line, func, text = tb_info[-1]
-        assert("DROP" in text)
+    except db.DBException as e:
+        assert("DROP" in str(e))
     else:
-        assert(False)
+        raise Exception("It should raise an exception")
 
 def test_context_manager_transaction_without_with():
     d = _init_db()
     t = Transaction(d)
     try:
         t.execute("DELETE FROM items")
-    except AssertionError:
-        _, _, tb = sys.exc_info()
-        tb_info = traceback.extract_tb(tb)
-        filename, line, func, text = tb_info[-1]
-        assert("_inside_context" in text)
+    except db.DBException as e:
+        assert "NOTINCONTEXT" in str(e)
     else:
         raise Exception("Transaction without 'with' shold Except")
 
@@ -2475,11 +2451,8 @@ def test_context_manager_transaction_nested_transaction():
             c.execute("DELETE FROM items")
             with Transaction(d) as c2:
                 c2.execute("DELETE FROM items")
-    except AssertionError:
-        _, _, tb = sys.exc_info()
-        tb_info = traceback.extract_tb(tb)
-        filename, line, func, text = tb_info[-1]
-        assert("_nested_transaction" in text)
+    except db.DBException as e:
+        assert "ENESTEDTRANSACTION" in str(e)
     else:
         raise Exception("Nested trasaction shold Except")
 

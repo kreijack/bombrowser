@@ -94,7 +94,9 @@ class Transaction:
         self._inside_context = False
 
     def begin(self):
-        assert(self._inside_context == True)
+        if not self._inside_context:
+            raise DBException("NOTINCONTEXT")
+
         if self._cursor:
             return
 
@@ -116,19 +118,24 @@ class Transaction:
         return r
 
     def fetchone(self):
-        assert(self._inside_context == True)
+        if not self._inside_context:
+            raise DBException("NOTINCONTEXT")
+
         return self._db._translate_fetchone_(
             self._cursor,
             self._cursor.fetchone())
 
     def fetchall(self):
-        assert(self._inside_context == True)
+        if not self._inside_context:
+            raise DBException("NOTINCONTEXT")
+
         return self._db._translate_fetchall_(
             self._cursor,
             self._cursor.fetchall())
 
     def commit(self):
-        assert(self._inside_context == True)
+        if not self._inside_context:
+            raise DBException("NOTINCONTEXT")
 
         r = self._db._commit()
         self._cursor = None
@@ -136,7 +143,8 @@ class Transaction:
         return r
 
     def rollback(self):
-        assert(self._inside_context == True)
+        if not self._inside_context:
+            raise DBException("NOTINCONTEXT")
 
         r = self._db._rollback()
 
@@ -146,7 +154,8 @@ class Transaction:
 
     def __enter__(self):
         global _nested_transaction
-        assert(_nested_transaction == 0)
+        if _nested_transaction != 0:
+            raise DBException("ENESTEDTRANSACTION")
         _nested_transaction += 1
 
         self._inside_context = True
@@ -163,7 +172,8 @@ class Transaction:
         self._db = None
 
         global _nested_transaction
-        assert(_nested_transaction == 1)
+        if _nested_transaction != 1:
+            raise DBException("ENESTEDTRANSACTION")
         _nested_transaction -= 1
 
 
@@ -174,14 +184,14 @@ class ROCursor:
         self._inside_context = False
 
     def _check_query(self, query):
-        assert(not "INSERT" in query)
-        assert(not "UPDATE" in query)
-        assert(not "DELETE" in query)
-        assert(not "DROP" in query)
-        assert(not "CREATE" in query)
+        for w in ["INSERT", "UPDATE", "DELETE", "DROP", "CREATE"]:
+            if w in query:
+                raise DBException("NOTALLOWEDQUERY: It is not allowed to use %s"%(w))
 
     def execute(self, query, *args):
-        assert(self._inside_context == True)
+        if not self._inside_context:
+            raise DBException("NOTINCONTEXT")
+
         if not self._cursor:
             self._cursor = self._db._get_cursor()
 
@@ -191,13 +201,17 @@ class ROCursor:
         return r
 
     def fetchone(self):
-        assert(self._inside_context == True)
+        if not self._inside_context:
+            raise DBException("NOTINCONTEXT")
+
         return self._db._translate_fetchone_(
             self._cursor,
             self._cursor.fetchone())
 
     def fetchall(self):
-        assert(self._inside_context == True)
+        if not self._inside_context:
+            raise DBException("NOTINCONTEXT")
+
         return self._db._translate_fetchall_(
             self._cursor,
             self._cursor.fetchall())
