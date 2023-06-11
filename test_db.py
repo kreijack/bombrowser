@@ -2938,6 +2938,11 @@ def main():
     cfg.init()
     global _use_db
 
+    all_dbs = ["postgresql", "mysql", "oracle", "sqlserver",
+                                "sqlitememory", "sqlite"]
+
+    dbs_list = ["sqlitememory"]
+
     i = 1
     args = []
     while i < len(sys.argv):
@@ -2945,10 +2950,13 @@ def main():
             d = db.get_db_instance()
             d.create_db()
             sys.exit()
-        elif sys.argv[i][:9] == "--use-db=":
-            _use_db=sys.argv[i][9:]
-            assert(_use_db in ["postgresql", "mysql", "oracle", "sqlserver",
-                                "sqlitememory", "sqlite"])
+        elif sys.argv[i] == "--use-db=all":
+            dbs_list = all_dbs
+        elif sys.argv[i].startswith("--use-db="):
+            dbs=sys.argv[i][9:].split(",")
+            for argdb in dbs:
+                assert(argdb in all_dbs)
+            dbs_list = dbs
         elif sys.argv[i] == "--cfg":
             i += 1
             arg = sys.argv[i]
@@ -2963,7 +2971,11 @@ def main():
             args.append(sys.argv[i])
         i += 1
 
-    run_test(args, sys.modules[__name__])
+    for argdb in dbs_list:
+        db._globaDBInstance = None
+        _use_db = argdb
+        prefix = _use_db
+        run_test(args, sys.modules[__name__], prefix)
     sys.exit(0)
 
 if __name__ == "__main__":
