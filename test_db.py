@@ -721,7 +721,7 @@ def test_update_dates_fail_to_less_from():
     except db.DBException as e:
         assert("DATEERROR" in str(e))
     else:
-        assert False, "It should raise"
+        raise Exception("It should raise")
 
     # go back to ensure that otherwise every thing is ok
     dates[0][4] = dates[0][2]
@@ -744,7 +744,7 @@ def test_update_dates_fail_previous_before_after():
     except db.DBException as e:
         assert("DATEERROR" in str(e))
     else:
-        assert False, "It should raise"
+        raise Exception("It should raise")
 
 
 def test_update_dates_fail_2_equal_rows():
@@ -761,7 +761,7 @@ def test_update_dates_fail_2_equal_rows():
     except db.DBException as e:
         assert("DATEERROR" in str(e))
     else:
-        assert False, "It should raise"
+        raise Exception("It should raise")
 
 def test_update_dates_fail_overlapped_date_revisions():
     d = _init_db()
@@ -778,7 +778,7 @@ def test_update_dates_fail_overlapped_date_revisions():
     except db.DBException as e:
         assert("DATEERROR" in str(e))
     else:
-        assert False, "It should raise"
+        raise Exception("It should raise")
 
     # go back to ensure that otherwise every thing is ok
     dates[1][4] = dates[0][2] - 1
@@ -800,7 +800,7 @@ def test_update_dates_fail_from_grather_proto():
     except db.DBException as e:
         assert("DATEERROR" in str(e))
     else:
-        assert False, "It should raise"
+        raise Exception("It should raise")
 
     # go back to ensure that otherwise every thing is ok
     dates[0][2] = db.prototype_date
@@ -822,7 +822,7 @@ def test_update_dates_fail_to_grather_end():
     except db.DBException as e:
         assert("DATEERROR" in str(e))
     else:
-        assert False, "It should raise"
+        raise Exception("It should raise")
 
     # go back to ensure that otherwise every thing is ok
     dates[0][4] = db.end_of_the_world
@@ -976,7 +976,7 @@ def test_update_dates_with_assembly_fail_date_earlier_child():
     except db.DBException as e:
         assert("DATEERROR" in str(e))
     else:
-        assert False, "It should raise"
+        raise Exception("It should raise")
 
     # check that if we change this date, everything is ok
     # A cannot be earlier than C (2020-01-10..end_of_the_world)
@@ -1002,7 +1002,7 @@ def test_update_dates_with_assembly_fail_date_later_child():
     except db.DBException as e:
         assert("DATEERROR" in str(e))
     else:
-        assert False, "It should raise"
+        raise Exception("It should raise")
 
     # check that if we change this date, everything is ok
     # A cannot be later than B (2020-01-05,..2020-01-25)
@@ -1029,7 +1029,7 @@ def test_update_dates_with_assembly_fail_date_earlier_parent():
     except db.DBException as e:
         assert("DATEERROR" in str(e))
     else:
-        assert False, "It should raise"
+        raise Exception("It should raise")
 
     # check that if we change this date, everything is ok
     # A cannot be end early than E (2020-01-11..2020-01-22)
@@ -1056,7 +1056,7 @@ def test_update_dates_with_assembly_fail_date_later_parent():
     except db.DBException as e:
         assert("DATEERROR" in str(e))
     else:
-        assert False, "It should raise"
+        raise Exception("It should raise")
 
     # check that if we change this date, everything is ok
     # A cannot be later than D (2020-01-11..2020-01-18)
@@ -1702,7 +1702,7 @@ def test_search_revision_invalid_argument():
     except db.DBException as e:
         assert("unknow argument" in str(e))
     else:
-        assert False, "It should raise an exception"
+        raise Exception("It should raise an exception")
 
 def test_search_revisions_all_icase_values():
     d = _init_db()
@@ -2466,7 +2466,7 @@ def test_context_manager_transaction_without_with():
         filename, line, func, text = tb_info[-1]
         assert("_inside_context" in text)
     else:
-        assert False, "Transaction without 'with' shold Except"
+        raise Exception("Transaction without 'with' shold Except")
 
 def test_context_manager_transaction_nested_transaction():
     d = _init_db()
@@ -2481,7 +2481,7 @@ def test_context_manager_transaction_nested_transaction():
         filename, line, func, text = tb_info[-1]
         assert("_nested_transaction" in text)
     else:
-        assert False, "Nested trasaction shold Except"
+        raise Exception("Nested trasaction shold Except")
 
 
 def test_restore_db_with_different_endline():
@@ -2564,7 +2564,7 @@ def test_postgres_screws():
     except:
         pass
     else:
-        assert False, "This should raise an exception"
+        raise Exception("This should raise an exception")
 
     with Transaction(d) as c:
         _test_insert_assembly(c)
