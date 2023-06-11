@@ -26,6 +26,20 @@ from db import Transaction, ROCursor
 import cfg
 import traceback
 
+_use_db="sqlitememory"
+
+def _init_db():
+    if not db._globaDBInstance:
+        if _use_db == "sqlitememory":
+            db.init("sqlite", {'path': ":memory:", 'ignore_case_during_search':0})
+        else:
+            c = cfg.config()[_use_db.upper()]
+            db.init(_use_db, dict(c))
+
+    d = db.get_db_instance() #_connection_string)
+    d.create_db()
+    return d
+
 def _test_insert_items(c):
     codes = [('code123', "descr456", 0), ('code124', "descr457", 0),
             ('code135', "descr468", 0), ('code136', "descr469", 0),
@@ -53,21 +67,6 @@ def _test_insert_items(c):
                 ver, "NR",
                 "FOR1COD", "FOR1NAME"
             ))
-
-_use_memory_sqlite=True
-
-def _init_db():
-    if not db._globaDBInstance:
-        if _use_memory_sqlite:
-            db.init("sqlite", {'path': ":memory:", 'ignore_case_during_search':0})
-        else:
-            dbtype = cfg.config()["BOMBROWSER"]["db"]
-            c = cfg.config()[dbtype.upper()]
-            db.init(dbtype, dict(c))
-
-    d = db.get_db_instance() #_connection_string)
-    d.create_db()
-    return d
 
 def test_double_recreate_db():
     d = _init_db()
@@ -2935,7 +2934,7 @@ def run_test(filters, modules, prefix=""):
 
 def main():
     cfg.init()
-    global _use_memory_sqlite
+    global _use_db
 
     i = 1
     while i < len(sys.argv):
@@ -2943,8 +2942,10 @@ def main():
             d = db.get_db_instance()
             d.create_db()
             sys.exit()
-        elif sys.argv[i] == "--use-ini-config":
-            _use_memory_sqlite=False
+        elif sys.argv[i][:9] == "--use-db=":
+            _use_db=sys.argv[i][9:]
+            assert(_use_db in ["postgresql", "mysql", "oracle", "sqlserver",
+                                "sqlitememory", "sqlite"])
         elif sys.argv[i] == "--cfg":
             i += 1
             arg = sys.argv[i]
