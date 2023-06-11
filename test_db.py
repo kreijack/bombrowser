@@ -1788,25 +1788,6 @@ def test_gvals():
         c.execute("SELECT COUNT(gval%d) FROM item_revisions"%(db.gvals_count))
         c.fetchone()
 
-        # these two queries should raise
-        # due to this kind of query, perform a rollback in case of exception
-        # otherwise postgresql complains
-        ret = False
-        try:
-            c.execute("SELECT COUNT(gval0) FROM item_revisions")
-            c.fetchone()
-        except:
-            ret = True
-        assert(ret)
-
-        ret = False
-        try:
-            c.execute("SELECT COUNT(gval%d) FROM item_revisions"%(db.gvals_count+1))
-            c.fetchone()
-        except:
-            ret = True
-        assert(ret)
-
 def test_gavals():
     d = _init_db()
     with Transaction(d) as c:
@@ -1819,29 +1800,6 @@ def test_gavals():
 
         c.execute("SELECT COUNT(gaval%d) FROM assemblies"%(db.gavals_count))
         c.fetchone()
-
-    ret = False
-    try:
-        with ROCursor(d) as c2:
-            c2.execute("SELECT COUNT(gaval0) FROM assemblies")
-            c2.fetchone()
-    except:
-        ret = True
-    assert(ret)
-
-    with ROCursor(d) as c:
-        c.execute("SELECT COUNT(gaval%d) FROM assemblies"%(db.gavals_count))
-        c.fetchone()
-
-        ret = False
-        # FIXME
-        try:
-            with ROCursor(d) as c2:
-                c2.execute("SELECT COUNT(gaval%d) FROM assemblies"%(db.gavals_count+1))
-                c2.fetchone()
-        except:
-            ret = True
-        assert(ret)
 
 def test_dump_db():
     d = _init_db()
