@@ -81,9 +81,11 @@ _nested_transaction = 0
 class DBException(RuntimeError):
     pass
 
+
 class DBExceptionWithTraceback(DBException):
     def __init__(self, arg):
         DBException.__init__(self, arg)
+
 
 class Transaction:
     def __init__(self, d):
@@ -211,6 +213,7 @@ class ROCursor:
         self._db = None
         self._cursor = None
         self._inside_context = False
+
 
 class _BaseServer:
 
@@ -1767,7 +1770,6 @@ class _BaseServer:
                  date_to, iso_to_days(date_to))
             )
 
-import traceback
 
 class DBSQLServer(_BaseServer):
     def __init__(self, path=None):
@@ -2173,6 +2175,7 @@ class DBMySQL(_BaseServer):
 
             return dates
 
+
 def get_db_instance():
 
     global _globaDBInstance
@@ -2288,7 +2291,6 @@ def dump_tables(nf, d, quiet=False):
 def new_db(d):
     d.create_db()
     d.create_first_code()
-
 
 def main(prgname, args):
     import cfg
