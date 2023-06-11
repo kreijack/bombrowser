@@ -1722,6 +1722,8 @@ class _BaseServer:
         arg_names += ["gval%d"%(i+1) for i in range(gvals_count)]
 
         # check that nobody is passing not supported argument
+        if len(set(kwargs.keys()).difference(set(arg_names))) != 0:
+            raise DBException("ARGUMENTERROR: unknow arguments: %r"%(kwargs.keys()))
         assert(len(set(kwargs.keys()).difference(set(arg_names))) == 0)
 
         for k in kwargs:

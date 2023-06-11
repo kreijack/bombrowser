@@ -1699,10 +1699,10 @@ def test_search_revision_invalid_argument():
     ok = False
     try:
         ret = d.search_revisions(code_unknown="test-code-1")
-    except:
-        ok = True
-
-    assert(ok)
+    except db.DBException as e:
+        assert("unknow argument" in str(e))
+    else:
+        assert False, "It should raise an exception"
 
 def test_search_revisions_all_icase_values():
     d = _init_db()
