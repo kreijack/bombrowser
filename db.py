@@ -1888,7 +1888,7 @@ class DBOracleServer(_BaseServer):
                        EXECUTE IMMEDIATE 'DROP INDEX %s';
                     EXCEPTION
                        WHEN index_not_exists THEN NULL;
-                    END
+                    END;
                 """%(iname)
             if "DROP TABLE IF EXISTS " in l:
                 i = l.find("DROP TABLE IF EXISTS ")
@@ -1902,7 +1902,7 @@ class DBOracleServer(_BaseServer):
                        EXECUTE IMMEDIATE 'DROP TABLE %s';
                     EXCEPTION
                        WHEN table_does_not_exist THEN NULL;
-                    END
+                    END;
                 """%(iname)
 
             if " VARCHAR" in l:
