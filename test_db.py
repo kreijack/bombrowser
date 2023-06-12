@@ -25,6 +25,8 @@ import zipfile
 from db import Transaction, ROCursor
 import cfg
 import traceback
+import threading
+import time
 
 _use_db="sqlitememory"
 
@@ -2795,6 +2797,86 @@ def test_update_gavals_gvals_count_by_db():
     finally:
         db.gavals_count = my_gavals_count
         db.gvals_count = my_gvals_count
+
+def test_transaction_isolation_level_repeatable_read():
+    # sqlite doesn't support transaction split in different thread
+    if "sqlite" in _use_db:
+        return
+    # sqlite doesn't support transaction >= repeatable read
+    if "sqlserver" in _use_db:
+        return
+
+    def get_db():
+        d = db._create_db(_use_db,
+            dict(cfg.config()[_use_db.upper()]))
+        return d[1]
+
+    d = get_db()
+    c = d._get_cursor()
+
+    # do that, because we need to 'translate' the sql below
+    # in the oracle dialect
+    d._execute(c, "DROP TABLE IF EXISTS test_tx_level")
+
+    c.execute("""
+            CREATE TABLE test_tx_level (
+                a INTEGER,
+                b INTEGER)
+        """)
+    c.execute("INSERT INTO test_tx_level(a,b) VALUES (1,2)")
+    c.execute("INSERT INTO test_tx_level(a,b) VALUES (3,2)")
+    c.execute("COMMIT")
+
+    res = []
+    sync2 = [1]
+    def thread2():
+        d = get_db()
+        c2 = d._get_cursor()
+        # step 1
+        d._begin(c2)
+        assert(sync2[0] == 1)
+        c2.execute("SELECT a,b FROM test_tx_level WHERE b=2")
+        res1 = list(c2.fetchall())
+        sync2[0] = 2
+
+        time.sleep(0.5)
+
+        # step 3
+        assert(sync2[0] == 3)
+        c2.execute("SELECT a,b FROM test_tx_level WHERE b=2")
+        res2 = list(c2.fetchall())
+        sync2[0] == 4
+        res.append(res1)
+        res.append(res2)
+
+    def thread1():
+        d = get_db()
+        c1 = d._get_cursor()
+        # step 1
+        d._begin(c1)
+
+        time.sleep(0.2)
+
+        #step 2
+        assert(sync2[0] == 2)
+        c1.execute("UPDATE test_tx_level SET a=4 WHERE b=2")
+        sync2[0] = 3
+
+        time.sleep(0.5)
+
+        # step 4
+        c1.execute("COMMIT")
+
+    t1 = threading.Thread(target=thread1)
+    t2 = threading.Thread(target=thread2)
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+
+    assert(len(res) == 2)
+    assert(res[0] == res[1])
+
 
 #------
 
