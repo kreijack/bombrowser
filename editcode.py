@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
 import  sys, os, re, shutil
+import copy
 
 from PySide2.QtWidgets import  QComboBox, QAbstractScrollArea
 from PySide2.QtWidgets import  QTableView, QTableWidgetItem, QLabel
@@ -692,6 +693,7 @@ class EditWindow(bbwindow.BBMainWindow):
         self._children_modified = False
         self._drawing_modified = False
         self._gavals = cfg.get_gavalnames()
+        self._old_copy = None
 
         self._init_gui()
 
@@ -948,6 +950,7 @@ class EditWindow(bbwindow.BBMainWindow):
                 return
             if ret == QMessageBox.Yes:
                 ret = self._save_changes()
+
                 if ret != "OK":
                     event.ignore()
                     return
@@ -980,7 +983,7 @@ class EditWindow(bbwindow.BBMainWindow):
                     self._dates_list.setCurrentIndex(self._dates_list_last_index)
                     return
 
-        self._populate_table(rid)
+        self._populate_table_by_rid(rid)
         self._dates_list_last_index = i
 
     def _create_menu(self):
@@ -1006,9 +1009,10 @@ class EditWindow(bbwindow.BBMainWindow):
         a = QAction("Delete code...", self)
         a.triggered.connect(self._delete_code)
         m.addAction(a)
-        #a = QAction("Promote a prototype...", self)
-        #m.triggered.connect(lambda x: True)
-        #m.addAction(a)
+        m.addSeparator()
+        a = QAction("Undo", self)
+        a.triggered.connect(self._do_undo)
+        m.addAction(a)
 
         il = importer.get_importer_list() + customize.get_edit_window_importer_list()
         if len(il):
@@ -1025,6 +1029,10 @@ class EditWindow(bbwindow.BBMainWindow):
         a = QAction("About ...", self)
         a.triggered.connect(lambda : self._show_about(db.connection))
         m.addAction(a)
+
+    def _do_undo(self):
+        self._populate_table_by_data(self._old_copy[0], self._old_copy[1],
+                                     self._old_copy[2] )
 
     def _import_from(self, name, callable_):
 
@@ -1319,19 +1327,33 @@ class EditWindow(bbwindow.BBMainWindow):
         d = db.get_db_instance()
 
         try:
-            d.update_by_rid2(self._rid, descr.strip(),
+            ret = d.update_by_rid2(self._rid, descr.strip(),
                 self._ver.text(), self._unit.text(),
-                gvals, drawings, children
+                gvals, drawings, children,
+                self._old_copy
             )
+
+            if ret == "DATACHANGED":
+                r = QMessageBox.question(self, "BOMBrowser",
+                    "The data was changed by another user. Are you sure to overwrite it ?")
+                if r == QMessageBox.Yes:
+                    ret = d.update_by_rid2(self._rid, descr.strip(),
+                        self._ver.text(), self._unit.text(),
+                        gvals, drawings, children,
+                        None
+                    )
+
         except:
             utils.show_exception(msg="Error during the data saving\n")
             return "ERROR"
 
-        QMessageBox.information(self, "BOMBrowser",
+        if ret == "OK":
+            QMessageBox.information(self, "BOMBrowser",
                 "Data saved")
-        self._populate_table(self._rid)
 
-        return "OK"
+        #self._populate_table(self._rid)
+
+        return ret
 
     def _children_populate_row(self, row, child_id, code, descr, qty,
                                 each, unit, ref, gvls):
@@ -1415,11 +1437,18 @@ class EditWindow(bbwindow.BBMainWindow):
         self._children_table.cellChanged.connect(self._children_cell_changed)
 
 
-    def _populate_table(self, rid):
+    def _populate_table_by_rid(self, rid):
         self._rid = rid
         d = db.get_db_instance()
 
-        data = d.get_code_by_rid(self._rid)
+        x = d.get_full_revision_by_rid(self._rid)
+        x = x[0], list(x[1]), list(x[2])
+        self._old_copy = copy.deepcopy(x)
+        data, children, drawings = x
+
+        self._populate_table_by_data(data, children, drawings)
+
+    def _populate_table_by_data(self, data, children, drawings):
 
         self.setWindowTitle("Edit code: %s @ %s"%(
             data["code"], data["date_from"]))
@@ -1440,12 +1469,9 @@ class EditWindow(bbwindow.BBMainWindow):
             self._gvals[i][1].setText(data[self._gvals[i][0]])
 
         # children
-
-        children = list(d.get_children_by_rid(self._rid))
         self._populate_children(children)
-        # drawings
 
-        drawings = list(d.get_drawings_by_rid(self._rid))
+        # drawings
         self._drawings_table.clear()
         self._drawings_table.horizontalHeader().setStretchLastSection(True)
         self._drawings_table.setSortingEnabled(True)
