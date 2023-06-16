@@ -623,6 +623,13 @@ class _BaseServer:
 
         return data
 
+    def get_full_revision_by_rid(self, rid):
+        with ROCursor(self) as cur:
+            r = self._get_code_by_rid(cur, rid)
+            c = self._get_children_by_rid(cur, rid)
+            d = self._get_drawings_by_rid(cur, rid)
+        return (r, c, d)
+
     def get_code_by_rid(self, rid):
         with ROCursor(self) as c:
             return self._get_code_by_rid(c, rid)
@@ -1054,17 +1061,22 @@ class _BaseServer:
 
     def get_drawings_by_rid(self, rev_id):
         with ROCursor(self) as c:
-            c.execute("""
-                SELECT filename, fullpath
-                FROM drawings
-                WHERE revision_id = ?
-                """, (rev_id,))
+            ret = self._get_drawings_by_rid(c, rev_id)
+        return ret
 
-            res = c.fetchall()
-            if not res:
-                return []
-            else:
-                return res
+    def _get_drawings_by_rid(self, c, rev_id):
+        c.execute("""
+            SELECT filename, fullpath
+            FROM drawings
+            WHERE revision_id = ?
+            ORDER BY id
+            """, (rev_id,))
+
+        res = c.fetchall()
+        if not res:
+            return []
+        else:
+            return res
 
     def get_bom_dates_by_code_id(self, code_id):
         sdates = set()
@@ -1332,31 +1344,44 @@ class _BaseServer:
 
     def get_children_by_rid(self, rid):
         with ROCursor(self) as c:
-            gval_query = "".join([",a.gaval%d"%(i+1) for i in range(gavals_count)])
-            c.execute("""
-                SELECT a.child_id, i.code, r2.descr, a.qty, a.each, a.unit,
-                       a.ref %s
-                FROM assemblies AS a
-                LEFT JOIN (
-                    SELECT code_id, MAX(iter) AS iter
-                    FROM item_revisions
-                    GROUP BY code_id
-                ) AS r
-                  ON r.code_id = a.child_id
-                LEFT JOIN items AS i
-                  ON a.child_id = i.id
-                LEFT JOIN item_revisions AS r2
-                  ON r2.code_id = a.child_id AND r2.iter = r.iter
-                WHERE a.revision_id = ?
-                ORDER BY a.id
-            """%(gval_query), (rid,))
+            r = self._get_children_by_rid(c, rid)
+        return r
 
-            return c.fetchall()
+    def _get_children_by_rid(self, c, rid):
+        gval_query = "".join([",a.gaval%d"%(i+1) for i in range(gavals_count)])
+        c.execute("""
+            SELECT a.child_id, i.code, r2.descr, a.qty, a.each, a.unit,
+                   a.ref %s
+            FROM assemblies AS a
+            LEFT JOIN (
+                SELECT code_id, MAX(iter) AS iter
+                FROM item_revisions
+                GROUP BY code_id
+            ) AS r
+              ON r.code_id = a.child_id
+            LEFT JOIN items AS i
+              ON a.child_id = i.id
+            LEFT JOIN item_revisions AS r2
+              ON r2.code_id = a.child_id AND r2.iter = r.iter
+            WHERE a.revision_id = ?
+            ORDER BY a.id
+        """%(gval_query), (rid,))
+
+        return c.fetchall()
 
     def update_by_rid2(self, rid, descr, ver, default_unit,
-            gvals, drawings=[], children=[]):
+            gvals, drawings=[], children=[], prev_values = None):
 
         with Transaction(self) as c:
+            if prev_values:
+                data_, children_, drawings_ = prev_values
+                if data_ != self._get_code_by_rid(c, rid):
+                    return "DATACHANGED"
+                if children_ != self._get_children_by_rid(c, rid):
+                    return "DATACHANGED"
+                if drawings_ != self._get_drawings_by_rid(c, rid):
+                    return "DATACHANGED"
+
             gval_query = ", ".join(["gval%d = ?"%(i+1) for i in range(gvals_count)])
             c.execute("""
                 UPDATE item_revisions SET
@@ -1394,6 +1419,8 @@ class _BaseServer:
                 # (code_id, qty, each, unit)
                 c.executemany(q, [(rid, code_id, qty, each, ref, unit, *gvs)
                         for (code_id, qty, each, unit, ref, gvs) in children])
+
+        return "OK"
 
     def update_dates(self, dates):
         # dates[] = [

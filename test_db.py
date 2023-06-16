@@ -498,6 +498,41 @@ def test_get_children_by_rid():
     assert("I" in [x[1] for x in children])
     assert("L" in [x[1] for x in children])
 
+def test_get_full_revision_by_rid():
+    d = _init_db()
+
+    with Transaction(d) as c:
+        _test_insert_assembly(c)
+
+    id_ = d.get_codes_by_code("C")[0][0]
+    rid = d.get_code(id_, db.iso_to_days("2020-01-10"))["rid"]
+    children = [[x[0], x[3], x[4], x[5], x[6],  x[7:]]
+                    for x in d.get_children_by_rid(rid)]
+    gvals = ["2-new gval %d"%(i) for i in range(db.gvals_count)]
+    d.update_by_rid2(rid, "new descr", "new ver", "new-unit",
+            gvals, children = children, drawings = [
+                ("filea", "dira/filea"),
+                ("fileb", "dirb/fileb"),
+            ]
+    )
+
+    rv, children, dwgs = d.get_full_revision_by_rid(rid)
+
+    assert(rv["rid"] == rid)
+    assert(rv["descr"] == "new descr")
+    assert(rv["ver"] == "new ver")
+
+    assert(len(children) == 2)
+    assert("F" in [x[1] for x in children])
+    assert("G" in [x[1] for x in children])
+
+    assert(len(dwgs) == 2)
+    dwgs.sort()
+    assert("filea" in dwgs[0][0])
+    assert("fileb" in dwgs[1][0])
+    assert("dira/filea" in dwgs[0][1])
+    assert("dirb/fileb" in dwgs[1][1])
+
 def test_where_used():
     d = _init_db()
 
@@ -1446,8 +1481,9 @@ def test_update_by_rid2():
 
     gvals = ["2-new gval %d"%(i) for i in range(db.gvals_count)]
 
-    d.update_by_rid2(rid, "2-new descr", "2-new ver", "2-n-unit",
+    r = d.update_by_rid2(rid, "2-new descr", "2-new ver", "2-n-unit",
             gvals)
+    assert(r == "OK")
 
     data = d.get_code_by_rid(rid)
     assert(data["descr"] == "2-new descr")
@@ -1455,6 +1491,34 @@ def test_update_by_rid2():
     assert(data["unit"] == "2-n-unit")
     for i in range(db.gvals_count):
         assert(gvals[i] == data["gval%d"%(i+1)])
+
+def test_update_by_rid2_after_a_change():
+
+    d = _init_db()
+    with Transaction(d) as c:
+        code = "TEST-CODE"
+        code_id, dates = _create_code_revision(c, code, 1)
+
+    rid = dates[0][0]
+
+    gvals = ["new gval %d"%(i) for i in range(db.gvals_count)]
+
+    d.update_by_rid2(rid, "new descr", "new ver", "new-unit",
+            gvals)
+
+    (rv1, ch1, dwg1) = d.get_full_revision_by_rid(rid)
+
+    r = d.update_by_rid2(rid, "new descr2", "new ver", "new-unit",
+            gvals)
+    assert(r == "OK")
+
+    r = d.update_by_rid2(rid, "new descr3", "new ver", "new-unit",
+            gvals, prev_values = (rv1, ch1, dwg1))
+    assert(r == "DATACHANGED")
+
+    (rv1, ch1, dwg1) = d.get_full_revision_by_rid(rid)
+    assert(rv1["descr"] == "new descr2")
+
 
 def test_update_by_rid2_with_children():
     d = _init_db()
