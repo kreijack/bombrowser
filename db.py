@@ -1059,7 +1059,7 @@ class _BaseServer:
             top = (code0, xdate_from_days0)
             return (top, data)
 
-    def get_drawings_by_rid(self, rev_id):
+    def get_drawings_and_urls_by_rid(self, rev_id):
         with ROCursor(self) as c:
             ret = self._get_drawings_by_rid(c, rev_id)
         return ret

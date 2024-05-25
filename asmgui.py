@@ -187,12 +187,13 @@ class ExportDialog(QDialog):
         missing_files = []
         bigger_files = []
         irregular_files = []
+        urls = []
         fnl = []
         d = db.get_db_instance()
         for k in self._data:
             rid = self._data[k]["rid"]
-            drawings = d.get_drawings_by_rid(rid)
-            fnl += [utils.find_filename(x[1]) for x in drawings]
+            drawings_and_urls = d.get_drawings_and_urls_by_rid(rid)
+            fnl += [utils.find_filename(x[1]) for x in drawings_and_urls]
 
         fnl2 = []
         progress.setMaximum(len(fnl) + 1)
@@ -205,6 +206,10 @@ class ExportDialog(QDialog):
             if progress.wasCanceled():
                 progress.close()
                 return (1, [])
+
+            if utils.is_url(fname):
+                urls.append(fname)
+                continue
 
             if not os.path.exists(fname):
                 missing_files.append(fname)

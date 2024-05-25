@@ -46,7 +46,7 @@ class Exporter:
     def __init__(self, rootnode, data):
         self._data = data
         self._rootnode = rootnode
-        self._drawings = dict()
+        self._drawings_and_urls = dict()
 
     def export_as_json(self, nf):
         f = open(nf, "w")
@@ -117,8 +117,8 @@ class Exporter:
                 row += [item["ver"]]
             elif col=="drawings":
                 rid = item["rid"]
-                if rid in self._drawings:
-                    l = self._drawings[rid]
+                if rid in self._drawings_and_urls:
+                    l = self._drawings_and_urls[rid]
                 else:
                     l = []
                 row += [", ".join(l)]
@@ -167,14 +167,18 @@ class Exporter:
             columns.append(cl)
             captions.append(cp)
 
-        if "drawings" in columns and len(self._drawings) == 0:
+        if "drawings" in columns and len(self._drawings_and_urls) == 0:
             d = db.get_db_instance()
             fnl = []
             for k, v in self._data.items():
                 rid = v["rid"]
-                l = d.get_drawings_by_rid(rid)
-                if len(l):
-                    self._drawings[rid] = [os.path.basename(x[1]) for x in l]
+                self._drawings_and_urls[rid] = []
+                for descr, url in d.get_drawings_and_urls_by_rid(rid):
+                    if utils.is_url(url):
+                        self._drawings_and_urls[rid].append(url)
+                    else:
+                        self._drawings_and_urls[rid].append(
+                            os.path.basename(url))
 
         sortby=int(cfg.config()[template_name].get("sortby", -1))
         unique=int(cfg.config()[template_name].get("unique", 0))

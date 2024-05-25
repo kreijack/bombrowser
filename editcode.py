@@ -404,6 +404,57 @@ class CopyFilesDialog(QDialog):
         return res
 
 
+class EditDrawing(QDialog):
+    def __init__(self, descr, url, parent):
+        QDialog.__init__(self, parent)
+
+        self._init_gui()
+
+        self._url.setText(url)
+        self._descr.setText(descr)
+
+        self.setWindowTitle("BOMBrowser: enter URL")
+        self.resize(800,0)
+
+    def _init_gui(self):
+
+        g = QGridLayout()
+
+        g1 = QGridLayout()
+
+        g1.addWidget(QLabel("Description"), 1, 1)
+        self._descr = QLineEdit()
+        g1.addWidget(self._descr, 1, 2, 1, 4)
+
+        g1.addWidget(QLabel("URL"), 2, 1)
+        self._url = QLineEdit()
+        g1.addWidget(self._url, 2, 2, 1, 4)
+
+        g.addLayout(g1, 10, 1, 1, 3)
+
+        b = QPushButton("Save")
+        b.clicked.connect(self._save)
+        g.addWidget(b, 30, 1)
+
+        b = QPushButton("Cancel")
+        b.clicked.connect(self._cancel)
+        g.addWidget(b, 30, 3)
+
+        self._res = None
+
+        self.setLayout(g)
+        self.setAttribute(Qt.WA_DeleteOnClose)
+
+    def getResult(self):
+        return self._res
+
+    def _save(self):
+        self._res = (self._descr.text(), self._url.text())
+        self.accept()
+
+    def _cancel(self):
+        self.reject()
+
 class DrawingTable(QTableWidget):
 
     rowChanged = Signal()
@@ -512,6 +563,13 @@ class DrawingTable(QTableWidget):
         m.triggered.connect(self._link_drawing_with_dialog)
         m = contextMenu.addAction("Add drawings...")
         m.triggered.connect(self._add_drawing_with_dialog)
+        m = contextMenu.addAction("Add url...")
+        m.triggered.connect(self._add_url)
+
+        contextMenu.addSeparator()
+
+        m = contextMenu.addAction("Edit drawing...")
+        m.triggered.connect(self._edit_drawing)
 
         contextMenu.addSeparator()
 
@@ -552,7 +610,11 @@ class DrawingTable(QTableWidget):
         rows = list(set([idx.row() for idx in idxs]))
         for r in rows:
             path = self.item(r, 1).text()
-            QDesktopServices.openUrl(QUrl.fromLocalFile(path))
+            if utils.is_url(path):
+                QDesktopServices.openUrl(QUrl(path))
+            else:
+                QDesktopServices.openUrl(QUrl.fromLocalFile(path))
+
 
     def _delete_drawing(self):
         idxs = self.selectedIndexes()
@@ -567,6 +629,30 @@ class DrawingTable(QTableWidget):
 
         self.rowChanged.emit()
 
+    def _edit_drawing(self):
+        idxs = self.selectedIndexes()
+        if len(idxs) == 0:
+            return
+
+        rows = list(set([idx.row() for idx in idxs]))
+        rows.sort(reverse=True)
+
+        r = rows[0]
+        url = self.item(r, 1).text()
+        descr = self.item(r, 0).text()
+
+        dlg = EditDrawing(descr, url, self)
+        dlg.exec_()
+
+        ret = dlg.getResult()
+        if not ret:
+            return
+
+        descr, url = ret
+        self.item(r, 1).setText(url)
+        self.item(r, 0).setText(descr)
+        self.rowChanged.emit()
+
     def _add_drawing_with_dialog(self):
         (fns, _) = QFileDialog.getOpenFileNames(self, "Select a file")
         if len(fns):
@@ -576,6 +662,25 @@ class DrawingTable(QTableWidget):
         (fns, _) = QFileDialog.getOpenFileNames(self, "Select a file")
         for fn in fns:
             self._add_filename_to_table(fn)
+
+    def _add_url(self):
+        url = "<Insert description>"
+        descr = "<Insert description>"
+
+        dlg = EditDrawing(descr, url, self)
+        dlg.exec_()
+
+        ret = dlg.getResult()
+        if not ret:
+            return
+
+        descr, url = ret
+
+        row = self.rowCount()
+        self.setRowCount(row+1)
+        self.setItem(row, 0, QTableWidgetItem(descr))
+        self.setItem(row, 1, QTableWidgetItem(url))
+        self.rowChanged.emit()
 
     def _add_filename_to_table(self, fn):
         row = self.rowCount()

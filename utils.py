@@ -291,6 +291,10 @@ class OverrideCursor:
     def __exit__(self, type_, value, traceback):
         QApplication.restoreOverrideCursor()
 
+def is_url(url):
+    return  (url.lower().startswith("ftp://") or
+             url.lower().startswith("http://") or
+             url.lower().startswith("https://"))
 
 def test_bb_match_simple():
     assert(bb_match("abc", "a"))

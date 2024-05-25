@@ -173,7 +173,7 @@ class RemoteSQLServer:
             "search_revisions",
             "get_children_by_rid",
             "get_bom_dates_by_code_id",
-            "get_drawings_by_rid",
+            "get_drawings_and_urls_by_rid",
             "get_where_used_from_id_code",
             "get_bom_by_code_id3",
             "get_children_dates_range_by_rid",
@@ -485,7 +485,7 @@ def test_050_get_codes_by_like_code_and_descr():
     res = r.get_codes_by_like_code_and_descr('0%', '%')
     assert(len(res) == 1)
 
-def test_060_get_drawings_by_rid():
+def test_060_get_drawings_and_urls_by_rid():
     r = _test_get_conn()
     r.create_db()
     r.create_first_code()
@@ -500,7 +500,7 @@ def test_060_get_drawings_by_rid():
         drawings=[("a", "b"), ("a", "b")],
         children=[])
 
-    res = r.get_drawings_by_rid(rid)
+    res = r.get_drawings_and_urls_by_rid(rid)
     assert(len(res) == 2)
 
 def test_050_get_code():

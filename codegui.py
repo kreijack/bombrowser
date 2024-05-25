@@ -80,8 +80,8 @@ class CodeWidget(QWidget):
         for (seq, idx, gavalname, caption, type_) in gavalnames:
             self._gavalnames.append((caption, gavalname))
 
-        self._drawings = [(x[0], utils.find_filename(x[1]))
-                for x in d.get_drawings_by_rid(self._data["rid"])]
+        self._drawings_and_urls = [(x[0], utils.find_filename(x[1]))
+                for x in d.get_drawings_and_urls_by_rid(self._data["rid"])]
 
         self._update_widget()
 
@@ -191,7 +191,7 @@ class CodeWidget(QWidget):
             row += 1
 
         maxlen = int(cfg.config()["BOMBROWSER"]["btnmaxlength"])
-        for drw in self._drawings:
+        for drw in self._drawings_and_urls:
             n = drw[0]
             if maxlen > 3 and len(n) > maxlen:
                 n = n[:maxlen-3]+"..."
@@ -205,17 +205,21 @@ class CodeWidget(QWidget):
 
             b.clicked.connect(Opener(self._open_file, drw[1]))
             txt += "  Drawing: %s\n"%(drw[0])
-            b.setToolTip("File: %s\nFullpath: %s"%(
-                drw[0], drw[1]))
+            if utils.is_url(drw[1]):
+                b.setToolTip("Description: %s\nURL: %s"%(
+                    drw[0], drw[1]))
+            else:
+                b.setToolTip("File: %s\nFullpath: %s"%(
+                    drw[0], drw[1]))
 
             b.setContextMenuPolicy(Qt.CustomContextMenu)
             b.customContextMenuRequested.connect(
-                Opener(self._btn_context_menu, drw[1], b)
+                Opener(self._btn_context_menu, drw[0], drw[1], b)
             )
             grid.addWidget(b, row, 0, 1, 2)
             row += 1
 
-        if self._drawings:
+        if self._drawings_and_urls:
             grid.addWidget(QHLine(), row, 0, 1, 2)
             row += 1
 
@@ -225,25 +229,33 @@ class CodeWidget(QWidget):
 
         self._text_info = txt
 
-    def _btn_context_menu(self, point, fullpath, btn):
-        name = os.path.basename(fullpath)
-        dirname = os.path.dirname(fullpath)
+    def _btn_context_menu(self, point, descr, url, btn):
         popMenu = QMenu(self)
-        a = QAction('Open dir', self)
-        a.triggered.connect(lambda : self._open_file(dirname))
-        popMenu.addAction(a)
-        a = QAction('Copy filename', self)
-        a.triggered.connect(lambda : self._copy_str(name))
-        popMenu.addAction(a)
-        a = QAction('Copy dirname', self)
-        a.triggered.connect(lambda : self._copy_str(dirname))
-        popMenu.addAction(a)
-        a = QAction('Copy full path', self)
-        a.triggered.connect(lambda : self._copy_str(fullpath))
-        popMenu.addAction(a)
-        a = QAction('Copy file', self)
-        a.triggered.connect(lambda : self._copy_file(fullpath))
-        popMenu.addAction(a)
+        if utils.is_url(url):
+            a = QAction('Copy description', self)
+            a.triggered.connect(lambda : self._copy_str(descr))
+            popMenu.addAction(a)
+            a = QAction('Copy URL', self)
+            a.triggered.connect(lambda : self._copy_str(url))
+            popMenu.addAction(a)
+        else:
+            name = os.path.basename(url)
+            dirname = os.path.dirname(url)
+            a = QAction('Open dir', self)
+            a.triggered.connect(lambda : self._open_file(dirname))
+            popMenu.addAction(a)
+            a = QAction('Copy filename', self)
+            a.triggered.connect(lambda : self._copy_str(name))
+            popMenu.addAction(a)
+            a = QAction('Copy dirname', self)
+            a.triggered.connect(lambda : self._copy_str(dirname))
+            popMenu.addAction(a)
+            a = QAction('Copy full path', self)
+            a.triggered.connect(lambda : self._copy_str(fullpath))
+            popMenu.addAction(a)
+            a = QAction('Copy file', self)
+            a.triggered.connect(lambda : self._copy_file(fullpath))
+            popMenu.addAction(a)
 
         popMenu.exec_(btn.mapToGlobal(point))
 
@@ -254,22 +266,25 @@ class CodeWidget(QWidget):
     def _copy_file(self, fn):
         md = QMimeData()
 
-        # the life is sometime very complicated !
+        if utils.is_url(fn):
+            md.setText(fn)
+        else:
+            # the life is sometime very complicated !
 
-        # windows
-        md.setUrls([QUrl.fromLocalFile(fn)])
-        # mate
-        md.setData("x-special/mate-copied-files",
-            QByteArray(("copy\nfile://"+fn).encode("utf-8")))
-        # nautilus
-        md.setText("x-special/nautilus-clipboard\ncopy\nfile://"+
-            fn+"\n")
-        # gnome
-        md.setData("x-special/gnome-copied-files",
-            QByteArray(("copy\nfile://"+fn).encode("utf-8")))
-        # dolphin
-        md.setData("text/uri-list",
-            QByteArray(("file:"+fn).encode("utf-8")))
+            # windows
+            md.setUrls([QUrl.fromLocalFile(fn)])
+            # mate
+            md.setData("x-special/mate-copied-files",
+                QByteArray(("copy\nfile://"+fn).encode("utf-8")))
+            # nautilus
+            md.setText("x-special/nautilus-clipboard\ncopy\nfile://"+
+                fn+"\n")
+            # gnome
+            md.setData("x-special/gnome-copied-files",
+                QByteArray(("copy\nfile://"+fn).encode("utf-8")))
+            # dolphin
+            md.setData("text/uri-list",
+                QByteArray(("file:"+fn).encode("utf-8")))
 
         cb = QApplication.clipboard()
         cb.setMimeData(md)
@@ -278,7 +293,10 @@ class CodeWidget(QWidget):
         self._copy_str(self._text_info)
 
     def _open_file(self, nf):
-        QDesktopServices.openUrl(QUrl.fromLocalFile(nf))
+        if utils.is_url(nf):
+            QDesktopServices.openUrl(QUrl(nf))
+        else:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(nf))
 
 
 class CodesWidget(CodeWidget):
