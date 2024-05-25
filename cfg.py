@@ -24,35 +24,32 @@ _cfg = None
 
 def init():
 
-    line = open("bombrowser.ini").readline().strip()
-    if line != "# -- BOMBROWSER.ini -- v4":
-        raise Exception("Incorrect version of bombrowser.ini\nMinimum v4 required")
-
     global _cfg
     _cfg = configparser.ConfigParser()
-    _cfg.read_file(open("bombrowser.ini"))
 
-    if not os.path.exists("bombrowser-local.ini"):
+    if os.path.exists("bombrowser.forward"):
+        files = [open("bombrowser.forward").read().strip()]
+    else:
+        files = ["bombrowser.ini", "bombrowser.local.ini"]
+
+    for fn in files:
+        if not os.path.exists(fn):
+            continue
+
+        _merge_config_text(fn, open(fn).read())
+
+def _merge_config_text(fn, cfg_txt):
+    lines = cfg_txt.split("\n")
+    if len(lines) == 0:
         return
-
-    line = open("bombrowser-local.ini").readline().strip()
+    line = lines[0].strip()
     if line != "# -- BOMBROWSER.ini -- v4":
-        raise Exception("Incorrect version of bombrowser-local.ini\nMinimum v4 required")
+        raise Exception("Incorrect version of '%s'\nMinimum v4 required"%(fn))
 
     cfg2 = configparser.ConfigParser()
-    cfg2.read_file(open("bombrowser-local.ini"))
+    cfg2.read_string(cfg_txt)
 
-    update_cfg(cfg2)
-
-def reload_config():
-    global _cfg
-    oldcfg = _cfg
-    try:
-        init()
-    except:
-        # in case of any error, rollback to the old configuration
-        _cfg = oldcfg
-        raise
+    _update_cfg(cfg2)
 
 def config():
     return _cfg
@@ -125,7 +122,7 @@ def get_gavalnames():
 
     return ret
 
-def update_cfg(data):
+def _update_cfg(data):
     for key1 in data:
         row1 = data[key1]
         for key2 in row1:
@@ -309,9 +306,20 @@ def _check_cfg(cfg):
     return ret
 
 def check_cfg():
-    init()
     return _check_cfg(config())
 
+def reload_and_check_cfg():
+    cfg_copy = _cfg
+    try:
+        init()
+        r = _check_cfg(_cfg)
+    except:
+        _cfg = cfg_copy
+        raise
+
+    if len(ret) != 1 or ret[0][0] != "OK":
+        _cfg = cfg_copy
+    return r
 
 def _build_checker():
     cfg = configparser.ConfigParser()

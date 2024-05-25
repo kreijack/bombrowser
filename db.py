@@ -1556,31 +1556,6 @@ class _BaseServer:
                       AND code_id = ?
                 """, (prototype_iter, prototype_date, code_id))
 
-    def get_config(self):
-
-        # allow to start from an empty DB
-        ret = dict()
-        with ROCursor(self) as c:
-            tables = self._get_tables_list(c)
-            if not "database_props" in tables:
-                return dict()
-
-            c.execute("""
-                SELECT name, value FROM database_props
-            """)
-            for (key, value) in c.fetchall():
-                if not key.startswith("cfg."):
-                    continue
-                key = key[4:] # skip cfg.
-                key1,key2 = key.split(".")
-
-                if not key1 in ret:
-                    ret[key1] = dict()
-
-                ret[key1][key2] = value
-
-            return ret
-
     def delete_code(self, code_id):
         with Transaction(self) as c:
             c.execute("""

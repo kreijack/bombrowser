@@ -270,8 +270,7 @@ def find_filename(filename):
     return filename
 
 def reload_config_or_warn():
-    ret = cfg.check_cfg()
-
+    ret = cfg.reload_and_check_cfg()
     if len(ret) != 1 or ret[0][0] != "OK":
         message = "ERROR in bombrowser.ini\n"
         for type_, msg in ret:
@@ -283,11 +282,6 @@ def reload_config_or_warn():
         QMessageBox.critical(None, "BOMBrowser - %s"%(version),
             message)
         return
-
-    cfg.reload_config()
-    data = db.get_db_instance().get_config()
-    cfg.update_cfg(data)
-
 
 class OverrideCursor:
     def __init__(self, cursor=Qt.WaitCursor):

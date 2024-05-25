@@ -171,7 +171,6 @@ class RemoteSQLServer:
     def __init__(self, db):
         self._read_only_methods = [
             "search_revisions",
-            "get_config",
             "get_children_by_rid",
             "get_bom_dates_by_code_id",
             "get_drawings_by_rid",
@@ -477,14 +476,6 @@ def test_050_update_dates_exception():
     except BaseException as e:
         excepted = True
     assert(excepted)
-
-def test_050_get_config():
-    r = _test_get_conn()
-    r.create_db()
-    r.create_first_code()
-
-    res = r.get_config()
-    # check only that no exception is raised
 
 def test_050_get_codes_by_like_code_and_descr():
     r = _test_get_conn()

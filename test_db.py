@@ -588,20 +588,6 @@ def test_valid_where_used():
     assert(find_in_bom("H"))
     assert(find_in_bom("O"))
 
-def test_get_config():
-    d = _init_db()
-
-    with Transaction(d) as c:
-        c.execute("""
-            INSERT INTO database_props(name, value)
-            VALUES ('cfg.test_sect.test_key', 'test-value')
-        """)
-
-    ret = d.get_config()
-    cfg.update_cfg(ret)
-
-    assert(cfg.config()["test_sect"]["test_key"] == 'test-value')
-
 def _create_code_revision(c, code, nr=10):
 
     c.execute("""INSERT INTO items(code) VALUES (?)""",( code,))
@@ -3037,7 +3023,7 @@ def main():
             j = arg.find("=")
             name = arg[:j]
             arg = arg[j+1:]
-            cfg.update_cfg({sec:{name:arg}})
+            cfg._update_cfg({sec:{name:arg}})
         else:
             args.append(sys.argv[i])
         i += 1

@@ -44,13 +44,15 @@ def main(args):
 
     sys.excepthook = utils._show_exception
 
-    if not os.path.exists("bombrowser.ini"):
+    try:
+        cfg.init()
+    except Exception as e:
         QMessageBox.critical(None, "BOMBrowser - %s"%(version.version),
-            "Cannot find 'bombrowser.ini'")
+            "Cannot load configuration: may be bombrowser.ini is missing ?\nAbort\n")
+        print(e)
         return
 
     ret = cfg.check_cfg()
-
     if len(ret) != 1 or ret[0][0] != "OK":
         message = "ERROR in bombrowser.ini\n"
         for type_, msg in ret:
@@ -63,13 +65,6 @@ def main(args):
             message)
         return
 
-    try:
-        cfg.init()
-    except:
-        QMessageBox.critical(None, "BOMBrowser - %s"%(version.version),
-            "Cannot load configuration: may be bombrowser.ini is missing ?\nAbort\n")
-        return
-
     fontscale = float(cfg.config()["BOMBROWSER"].get("scalefont", "1.0"))
     f = app.font()
     f.setPointSize(f.pointSize() * fontscale)
@@ -79,13 +74,9 @@ def main(args):
         dbtype = cfg.config()["BOMBROWSER"]["db"]
         c = cfg.config()[dbtype.upper()]
         db.init(dbtype, dict(c))
-        d = db.get_db_instance()
-        data = d.get_config()
     except:
         utils.show_exception(msg="Cannot connect to database\nAbort\n")
         return
-
-    cfg.update_cfg(data)
 
     i = 1
     dontshowmain = False
@@ -139,7 +130,7 @@ def main(args):
 
     # update the gval/gaval counter on the basis of the db
     # do it AFTER the '--manage-db' option
-    d.update_gavals_gvals_count_by_db()
+    db.get_db_instance().update_gavals_gvals_count_by_db()
     assert(db.gavals_count >= max([x[1] for x in cfg.get_gavalnames()]))
     assert(db.gvals_count >= max([x[1] for x in cfg.get_gvalnames2()]))
 
