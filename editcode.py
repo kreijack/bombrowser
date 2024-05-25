@@ -1016,7 +1016,7 @@ class EditWindow(bbwindow.BBMainWindow):
         hl.addWidget(b)
         hl.addStretch()
         b= QPushButton("Save...")
-        b.clicked.connect(self._save_changes)
+        b.clicked.connect(self._save_changes_btn)
         hl.addWidget(b)
 
         g.addLayout(hl , 100, 10, 1, 4)
@@ -1087,6 +1087,12 @@ class EditWindow(bbwindow.BBMainWindow):
 
         self._populate_table_by_rid(rid)
         self._dates_list_last_index = i
+
+    def _save_changes_btn(self):
+        ret = self._save_changes()
+        if ret == "OK":
+            # to mark all data saved
+            self._populate_table_by_rid(self._rid)
 
     def _create_menu(self):
         mainMenu = self.menuBar()
@@ -1452,8 +1458,6 @@ class EditWindow(bbwindow.BBMainWindow):
         if ret == "OK":
             QMessageBox.information(self, "BOMBrowser",
                 "Data saved")
-
-        #self._populate_table(self._rid)
 
         return ret
 
