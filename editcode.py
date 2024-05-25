@@ -196,7 +196,7 @@ class EditDates(QDialog):
         self._table.setSelectionMode(self._table.SingleSelection)
         self._table.setColumnCount(6)
         self._table.setRowCount(len(data))
-        self._table.setHorizontalHeaderLabels(["id", "Description",
+        self._table.setHorizontalHeaderLabels(["rid", "Description",
             "Rev", "Iter", "From date", "To date"])
 
         row = 0
