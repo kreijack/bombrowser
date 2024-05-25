@@ -24,9 +24,8 @@ from PySide2.QtWidgets import QGridLayout, QWidget, QApplication
 from PySide2.QtWidgets import QAction, QFrame
 from PySide2.QtWidgets import QPushButton, QMessageBox
 from PySide2.QtWidgets import QComboBox, QMenu
-from PySide2.QtGui import QDesktopServices
 
-from PySide2.QtCore import Qt, QMimeData, QUrl, QByteArray
+from PySide2.QtCore import Qt, QMimeData
 
 import db, cfg, utils
 
@@ -203,7 +202,7 @@ class CodeWidget(QWidget):
                 def __call__(self, *args0):
                     self._obj(*args0, *self._args)
 
-            b.clicked.connect(Opener(self._open_file, drw[1]))
+            b.clicked.connect(Opener(utils.open_file_or_url, drw[1]))
             txt += "  Drawing: %s\n"%(drw[0])
             if utils.is_url(drw[1]):
                 b.setToolTip("Description: %s\nURL: %s"%(
@@ -242,7 +241,7 @@ class CodeWidget(QWidget):
             name = os.path.basename(url)
             dirname = os.path.dirname(url)
             a = QAction('Open dir', self)
-            a.triggered.connect(lambda : self._open_file(dirname))
+            a.triggered.connect(lambda : utils.open_file_or_url(dirname))
             popMenu.addAction(a)
             a = QAction('Copy filename', self)
             a.triggered.connect(lambda : self._copy_str(name))
@@ -251,10 +250,10 @@ class CodeWidget(QWidget):
             a.triggered.connect(lambda : self._copy_str(dirname))
             popMenu.addAction(a)
             a = QAction('Copy full path', self)
-            a.triggered.connect(lambda : self._copy_str(fullpath))
+            a.triggered.connect(lambda : self._copy_str(url))
             popMenu.addAction(a)
             a = QAction('Copy file', self)
-            a.triggered.connect(lambda : self._copy_file(fullpath))
+            a.triggered.connect(lambda : self._copy_file(url))
             popMenu.addAction(a)
 
         popMenu.exec_(btn.mapToGlobal(point))
@@ -269,34 +268,13 @@ class CodeWidget(QWidget):
         if utils.is_url(fn):
             md.setText(fn)
         else:
-            # the life is sometime very complicated !
-
-            # windows
-            md.setUrls([QUrl.fromLocalFile(fn)])
-            # mate
-            md.setData("x-special/mate-copied-files",
-                QByteArray(("copy\nfile://"+fn).encode("utf-8")))
-            # nautilus
-            md.setText("x-special/nautilus-clipboard\ncopy\nfile://"+
-                fn+"\n")
-            # gnome
-            md.setData("x-special/gnome-copied-files",
-                QByteArray(("copy\nfile://"+fn).encode("utf-8")))
-            # dolphin
-            md.setData("text/uri-list",
-                QByteArray(("file:"+fn).encode("utf-8")))
+            utils.copy_file_to_clipboard(fn, md)
 
         cb = QApplication.clipboard()
         cb.setMimeData(md)
 
     def _copy_info(self):
         self._copy_str(self._text_info)
-
-    def _open_file(self, nf):
-        if utils.is_url(nf):
-            QDesktopServices.openUrl(QUrl(nf))
-        else:
-            QDesktopServices.openUrl(QUrl.fromLocalFile(nf))
 
 
 class CodesWidget(CodeWidget):

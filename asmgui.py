@@ -27,9 +27,7 @@ from PySide2.QtWidgets import QGridLayout, QApplication, QPushButton
 from PySide2.QtWidgets import QMessageBox, QAction, QDialog, QHeaderView
 from PySide2.QtGui import QStandardItemModel, QStandardItem, QColor, QBrush
 from PySide2.QtCore import Qt, QItemSelectionModel
-
-from PySide2.QtGui import QDesktopServices
-from PySide2.QtCore import QUrl, QMimeData, QByteArray
+from PySide2.QtCore import QMimeData
 from PySide2.QtWidgets import QComboBox, QCheckBox
 import os, zipfile, time
 
@@ -331,7 +329,7 @@ class ExportDialog(QDialog):
             progress.setValue(len(fnl) + 1)
         
         if self._cb_open_dest_folder.isChecked():
-            QDesktopServices.openUrl(QUrl.fromLocalFile(dest))
+            utils.open_file_or_url(dest)
         
         if self._cb_copy_link.isChecked():
             self._copy_file(link) 
@@ -341,24 +339,7 @@ class ExportDialog(QDialog):
 
     def _copy_file(self, fn):
         md = QMimeData()
-
-        # the life is sometime very complicated !
-
-        # windows
-        md.setUrls([QUrl.fromLocalFile(fn)])
-        # mate
-        md.setData("x-special/mate-copied-files",
-            QByteArray(("copy\nfile://"+fn).encode("utf-8")))
-        # nautilus
-        md.setText("x-special/nautilus-clipboard\ncopy\nfile://"+
-            fn+"\n")
-        # gnome
-        md.setData("x-special/gnome-copied-files",
-            QByteArray(("copy\nfile://"+fn).encode("utf-8")))
-        # dolphin
-        md.setData("text/uri-list",
-            QByteArray(("file:"+fn).encode("utf-8")))
-
+        utils.copy_file_to_clipboard(fn, md)
         cb = QApplication.clipboard()
         cb.setMimeData(md)
 

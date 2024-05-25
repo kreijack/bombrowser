@@ -26,9 +26,9 @@ from PySide2.QtWidgets import  QGridLayout, QApplication, QWidget, QFileDialog
 from PySide2.QtWidgets import  QMessageBox, QAction, QLineEdit
 from PySide2.QtWidgets import  QPushButton, QHBoxLayout, QTabWidget, QDialog
 from PySide2.QtWidgets import  QHeaderView, QMenu, QGroupBox, QTableWidget
-from PySide2.QtGui import  QColor, QDesktopServices
+from PySide2.QtGui import  QColor
 from PySide2.QtCore import  QItemSelectionModel, QItemSelection
-from PySide2.QtCore import  QUrl, Signal, Qt, QEvent
+from PySide2.QtCore import  Signal, Qt, QEvent
 
 import  utils, listcodegui, db, cfg
 import  importer, customize, bbwindow, codecontextmenu
@@ -610,10 +610,7 @@ class DrawingTable(QTableWidget):
         rows = list(set([idx.row() for idx in idxs]))
         for r in rows:
             path = self.item(r, 1).text()
-            if utils.is_url(path):
-                QDesktopServices.openUrl(QUrl(path))
-            else:
-                QDesktopServices.openUrl(QUrl.fromLocalFile(path))
+            utils.open_file_or_url(path)
 
 
     def _delete_drawing(self):

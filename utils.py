@@ -21,7 +21,8 @@ import sys, traceback, re, os
 
 from PySide2.QtWidgets import QMessageBox
 from PySide2.QtWidgets import QApplication
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, QUrl, QByteArray
+from PySide2.QtGui import QDesktopServices
 
 from version import version
 import db, cfg
@@ -295,6 +296,31 @@ def is_url(url):
     return  (url.lower().startswith("ftp://") or
              url.lower().startswith("http://") or
              url.lower().startswith("https://"))
+
+def copy_file_to_clipboard(fn, md):
+    # the life is sometime very complicated !
+
+    # windows
+    md.setUrls([QUrl.fromLocalFile(fn)])
+    # mate
+    md.setData("x-special/mate-copied-files",
+        QByteArray(("copy\nfile://"+fn).encode("utf-8")))
+    # nautilus
+    md.setText("x-special/nautilus-clipboard\ncopy\nfile://"+
+        fn+"\n")
+    # gnome
+    md.setData("x-special/gnome-copied-files",
+        QByteArray(("copy\nfile://"+fn).encode("utf-8")))
+    # dolphin
+    md.setData("text/uri-list",
+        QByteArray(("file:"+fn).encode("utf-8")))
+
+
+def open_file_or_url(url):
+    if is_url(url):
+        QDesktopServices.openUrl(QUrl(url))
+    else:
+        QDesktopServices.openUrl(QUrl.fromLocalFile(url))
 
 def test_bb_match_simple():
     assert(bb_match("abc", "a"))
