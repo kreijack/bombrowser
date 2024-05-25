@@ -661,7 +661,7 @@ class DrawingTable(QTableWidget):
             self._add_filename_to_table(fn)
 
     def _add_url(self):
-        url = "<Insert description>"
+        url = "<Insert URL>"
         descr = "<Insert description>"
 
         dlg = EditDrawing(descr, url, self)
