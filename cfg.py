@@ -28,9 +28,11 @@ def init():
     _cfg = configparser.ConfigParser()
 
     if os.path.exists("bombrowser.forward"):
-        files = [open("bombrowser.forward").read().strip()]
+        files = [open("bombrowser.forward").read().strip(),
+                 "bombrowser.local.ini"]
     else:
-        files = ["bombrowser.ini", "bombrowser.local.ini"]
+        files = ["bombrowser.ini",
+                 "bombrowser.local.ini"]
 
     for fn in files:
         if not os.path.exists(fn):
