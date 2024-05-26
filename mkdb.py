@@ -171,10 +171,15 @@ def insert_code(c, descr, code, ver='0', iter_=0, default_unit='NR',
 
     if len(drawings) > 0:
         for fn in drawings:
+            if isinstance(fn, tuple) or isinstance(fn, list):
+                descr, url = fn
+            else:
+                url = os.path.abspath(fn)
+                descr = os.path.basename(fn)
             c.execute("""INSERT INTO drawings(
                             code, revision_id, filename, fullpath
                          ) VALUES ( ?, ?, ?, ? )
-                      """, (code, rev_id, os.path.basename(fn), os.path.abspath(fn))
+                      """, (code, rev_id, descr, url)
             )
 
     return rev_id, code_id
@@ -825,6 +830,7 @@ def insert_unicode_code(c):
     insert_code(c, "A-ACUTE 'à'", "TEST-AACUTE", 0,
                 0, "NR", "", "")
 
+def insert_assy_with_code_with_file_or_url(c):
     code = "TEST-LONG_FN"
     fn = "documents/drawings/%s_(drw)_%s_rev%s.txt"%(code, 'xX' * 20, 0)
     open(fn, "w").write("Long filename\n")
@@ -850,11 +856,17 @@ def insert_unicode_code(c):
     _, id_file_too_long = insert_code(c, "FILE TOO BIG", code, 0,
                 0, "NR", "", "", drawings=[fn])
 
+    code = "CODE_WITH_URL"
+    _, id_with_url = insert_code(c, "CODE WITH URL", code, 0,
+                0, "NR", "", "", drawings=[("google", "https://www.google.com")])
+
     code = "TEST-ASSY-TO-EXPORT"
     arid, _ = insert_code(c, "TEST ASSY TO EXPORT", code, 0,
                 0, "NR", "", "")
     make_assembly(c, arid,
-        (id_long_fn, id_missing_file, id_file_too_long, id_normal))
+        (id_long_fn, id_missing_file, id_file_too_long, id_normal, id_with_url))
+
+
 
 def insert_codes_with_date(c):
 
@@ -1049,6 +1061,8 @@ def create_db(show_stat):
 
         print("Insert unicode codes")
         insert_unicode_code(c)
+        print("Insert assy with code with strange file/url")
+        insert_assy_with_code_with_file_or_url(c)
         print("Insert code with date")
         insert_codes_with_date(c)
         print("Insert assembly with a loop")
