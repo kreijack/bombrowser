@@ -260,9 +260,8 @@ class CodesWindow(bbwindow.BBMainWindow):
             sys.exit(0)
 
     def _copy_info_action(self):
-        cb = QApplication.clipboard()
         data = self._stacked_widget.currentWidget().getTableText()
-        cb.setText(data, mode=cb.Clipboard)
+        utils.copy_text_to_clipboard(data)
 
     def _init_gui(self):
 

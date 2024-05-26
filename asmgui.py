@@ -27,7 +27,6 @@ from PySide2.QtWidgets import QGridLayout, QApplication, QPushButton
 from PySide2.QtWidgets import QMessageBox, QAction, QDialog, QHeaderView
 from PySide2.QtGui import QStandardItemModel, QStandardItem, QColor, QBrush
 from PySide2.QtCore import Qt, QItemSelectionModel
-from PySide2.QtCore import QMimeData
 from PySide2.QtWidgets import QComboBox, QCheckBox
 import os, zipfile, time
 
@@ -332,16 +331,10 @@ class ExportDialog(QDialog):
             utils.open_file_or_url(dest)
         
         if self._cb_copy_link.isChecked():
-            self._copy_file(link) 
+            utils.copy_file_to_clipboard(link)
 
         with utils.OverrideCursor(Qt.ArrowCursor):
             QMessageBox.information(self, "BOMBrowser", "Export ended")
-
-    def _copy_file(self, fn):
-        md = QMimeData()
-        utils.copy_file_to_clipboard(fn, md)
-        cb = QApplication.clipboard()
-        cb.setMimeData(md)
 
     
 class FindDialog(QDialog):
@@ -646,8 +639,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
     def _copy_as_template(self, template):
         e = exporter.Exporter(self._top , self._data)
         data = e.export_as_table_by_template2(template)
-        cb = QApplication.clipboard()
-        cb.setText(data, mode=cb.Clipboard)
+        utils.copy_text_to_clipboard(data)
 
     def _show_up_to(self, lev):
         if lev == -1:

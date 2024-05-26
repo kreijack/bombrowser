@@ -21,7 +21,7 @@ import sys, traceback, re, os
 
 from PySide2.QtWidgets import QMessageBox
 from PySide2.QtWidgets import QApplication
-from PySide2.QtCore import Qt, QUrl, QByteArray
+from PySide2.QtCore import Qt, QUrl, QByteArray, QMimeData
 from PySide2.QtGui import QDesktopServices
 
 from version import version
@@ -297,7 +297,8 @@ def is_url(url):
              url.lower().startswith("http://") or
              url.lower().startswith("https://"))
 
-def copy_file_to_clipboard(fn, md):
+def copy_file_to_clipboard(fn):
+    md = QMimeData()
     # the life is sometime very complicated !
 
     # windows
@@ -314,7 +315,12 @@ def copy_file_to_clipboard(fn, md):
     # dolphin
     md.setData("text/uri-list",
         QByteArray(("file:"+fn).encode("utf-8")))
+    cb = QApplication.clipboard()
+    cb.setMimeData(md)
 
+def copy_text_to_clipboard(txt):
+    cb = QApplication.clipboard()
+    cb.setText(txt, mode=cb.Clipboard)
 
 def open_file_or_url(url):
     if is_url(url):

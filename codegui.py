@@ -20,12 +20,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import os
 
 from PySide2.QtWidgets import QLabel
-from PySide2.QtWidgets import QGridLayout, QWidget, QApplication
+from PySide2.QtWidgets import QGridLayout, QWidget
 from PySide2.QtWidgets import QAction, QFrame
 from PySide2.QtWidgets import QPushButton, QMessageBox
 from PySide2.QtWidgets import QComboBox, QMenu
 
-from PySide2.QtCore import Qt, QMimeData
+from PySide2.QtCore import Qt
 
 import db, cfg, utils
 
@@ -232,10 +232,10 @@ class CodeWidget(QWidget):
         popMenu = QMenu(self)
         if utils.is_url(url):
             a = QAction('Copy description', self)
-            a.triggered.connect(lambda : self._copy_str(descr))
+            a.triggered.connect(lambda : utils.copy_text_to_clipboard(descr))
             popMenu.addAction(a)
             a = QAction('Copy URL', self)
-            a.triggered.connect(lambda : self._copy_str(url))
+            a.triggered.connect(lambda : utils.copy_text_to_clipboard(url))
             popMenu.addAction(a)
         else:
             name = os.path.basename(url)
@@ -244,37 +244,22 @@ class CodeWidget(QWidget):
             a.triggered.connect(lambda : utils.open_file_or_url(dirname))
             popMenu.addAction(a)
             a = QAction('Copy filename', self)
-            a.triggered.connect(lambda : self._copy_str(name))
+            a.triggered.connect(lambda : utils.copy_text_to_clipboard(name))
             popMenu.addAction(a)
             a = QAction('Copy dirname', self)
-            a.triggered.connect(lambda : self._copy_str(dirname))
+            a.triggered.connect(lambda : utils.copy_text_to_clipboard(dirname))
             popMenu.addAction(a)
             a = QAction('Copy full path', self)
-            a.triggered.connect(lambda : self._copy_str(url))
+            a.triggered.connect(lambda : utils.copy_text_to_clipboard(url))
             popMenu.addAction(a)
             a = QAction('Copy file', self)
-            a.triggered.connect(lambda : self._copy_file(url))
+            a.triggered.connect(lambda : utils.copy_file_to_clipboard(url))
             popMenu.addAction(a)
 
         popMenu.exec_(btn.mapToGlobal(point))
 
-    def _copy_str(self, s):
-        cb = QApplication.clipboard()
-        cb.setText(s, mode=cb.Clipboard)
-
-    def _copy_file(self, fn):
-        md = QMimeData()
-
-        if utils.is_url(fn):
-            md.setText(fn)
-        else:
-            utils.copy_file_to_clipboard(fn, md)
-
-        cb = QApplication.clipboard()
-        cb.setMimeData(md)
-
     def _copy_info(self):
-        self._copy_str(self._text_info)
+        utils.copy_text_to_clipboard(self._text_info)
 
 
 class CodesWidget(CodeWidget):
