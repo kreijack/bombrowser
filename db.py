@@ -394,6 +394,7 @@ class _BaseServer:
 
                 -- the line below will be expanded on the basis of
                 -- the global module variable 'gvals_count'
+                -- sync the size with the one in bombrowser_admin.py
                 gval1           VARCHAR(255) DEFAULT '',
 
                 FOREIGN KEY (code_id) REFERENCES items(id)
@@ -430,6 +431,7 @@ class _BaseServer:
 
                 -- the line below will be expanded on the basis of
                 -- the global module variable 'gavals_count'
+                -- sync the size with the one in bombrowser_admin.py
                 gaval1          VARCHAR(255) DEFAULT '',
 
                 FOREIGN KEY (child_id) REFERENCES items(id),
@@ -534,9 +536,9 @@ class _BaseServer:
     def _insert_table_(self, c, tname, columns, data):
         c.execute("DELETE FROM " + tname)
         c.execute("SELECT * FROM "+ tname)
-        real_colnames = [desc[0] for desc in c.description]
+        real_colnames = [desc[0].upper() for desc in c.description]
+        columns = [x.upper() for x in columns]
         c.fetchall()
-
         # handle the case where the columns from the backup are
         # differents to the databases ones (i.e. different gaval values)
         final_colnames = []
