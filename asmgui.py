@@ -512,10 +512,11 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                 a.triggered.connect(utils.Callable(self._export_as_template, name))
             m.addAction(a)
 
-        m.addSeparator()
-        a = QAction("Export data ...", self)
-        a.triggered.connect(self._export_data)
-        m.addAction(a)
+        if customize.has_export_data_be_visible():
+            m.addSeparator()
+            a = QAction("Export data ...", self)
+            a.triggered.connect(self._export_data)
+            m.addAction(a)
         m.addSeparator()
         a = QAction("Reload config", self)
         a.triggered.connect(utils.reload_config_or_warn)

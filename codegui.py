@@ -27,7 +27,7 @@ from PySide2.QtWidgets import QComboBox, QMenu
 
 from PySide2.QtCore import Qt
 
-import db, cfg, utils
+import db, cfg, utils, customize
 
 class QHLine(QFrame):
     def __init__(self):
@@ -189,12 +189,20 @@ class CodeWidget(QWidget):
             grid.addWidget(QHLine(), row, 0, 1, 2)
             row += 1
 
+        skip = not customize.has_drawing_button_be_enabled(self._data)
         maxlen = int(cfg.config()["BOMBROWSER"]["btnmaxlength"])
         for drw in self._drawings_and_urls:
             n = drw[0]
             if maxlen > 3 and len(n) > maxlen:
                 n = n[:maxlen-3]+"..."
             b = QPushButton(n)
+            grid.addWidget(b, row, 0, 1, 2)
+            row += 1
+
+            if skip:
+                b.setEnabled(False)
+                continue
+
             class Opener:
                 def __init__(self, obj, *args):
                     self._obj = obj
@@ -215,8 +223,6 @@ class CodeWidget(QWidget):
             b.customContextMenuRequested.connect(
                 Opener(self._btn_context_menu, drw[0], drw[1], b)
             )
-            grid.addWidget(b, row, 0, 1, 2)
-            row += 1
 
         if self._drawings_and_urls:
             grid.addWidget(QHLine(), row, 0, 1, 2)

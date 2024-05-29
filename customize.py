@@ -39,6 +39,21 @@ def get_asm_tool_menu_list():
     """
     return []
 
+def has_export_data_be_visible():
+    """
+        return True if the Assembly window -> File menu -> export data command
+        has to be visible.
+    """
+    return True
+
+
+def has_drawing_button_be_enabled(item):
+    """
+        return True if the codegu / drawing buttons
+        have to be visible.
+    """
+    return True
+
 # ----
 
 try:
@@ -64,3 +79,9 @@ if found:
 
     if hasattr(customize_ext, 'get_asm_tool_menu_list'):
         get_asm_tool_menu_list = customize_ext.get_asm_tool_menu_list
+
+    if hasattr(customize_ext, 'has_export_data_be_visible'):
+        has_export_data_be_visible = customize_ext.has_export_data_be_visible
+
+    if hasattr(customize_ext, 'has_drawing_button_be_enabled'):
+        has_drawing_button_be_enabled = customize_ext.has_drawing_button_be_enabled
