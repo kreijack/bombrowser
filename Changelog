@@ -7,6 +7,7 @@
 - bugfix around Transaction
 - allow to set the db to use during the automatic test
 - add bombrowser_admin.py to manage the DB
+- add hooks to {dis,en}able Export data and drawing buttons
 
 2023-06-08: v0.4.7
 - check correctness of the ini file bombrowser.ini at startup
