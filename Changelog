@@ -1,7 +1,7 @@
 2024-05-26: v1.0.0
 - allow to point to another configuration file using bombrowser.forward
 - add support fo an URL (http[s]:// or ftp://) instead of a file as
-  attachement
+  attachment
 - check if the data is changed by another user before saving in edit window
 - allow to set as the default search mode (Simple or Advance)
 - bugfix around Transaction
