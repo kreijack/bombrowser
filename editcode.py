@@ -426,7 +426,7 @@ class EditDrawing(QDialog):
         self._descr = QLineEdit()
         g1.addWidget(self._descr, 1, 2, 1, 4)
 
-        g1.addWidget(QLabel("URL"), 2, 1)
+        g1.addWidget(QLabel("Path/URL"), 2, 1)
         self._url = QLineEdit()
         g1.addWidget(self._url, 2, 2, 1, 4)
 
@@ -1585,7 +1585,7 @@ class EditWindow(bbwindow.BBMainWindow):
         self._drawings_table.setAlternatingRowColors(True)
         self._drawings_table.setColumnCount(2)
         self._drawings_table.setRowCount(len(drawings))
-        self._drawings_table.setHorizontalHeaderLabels(["Name", "Path"])
+        self._drawings_table.setHorizontalHeaderLabels(["Description", "Path/URL"])
 
         row = 0
         for (name, path) in drawings:
