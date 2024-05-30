@@ -54,6 +54,12 @@ def has_drawing_button_be_enabled(item):
     """
     return True
 
+def get_ext_config_check_table():
+    """
+        return the extension of the config check table
+    """
+    return []
+
 # ----
 
 try:
@@ -82,6 +88,9 @@ if found:
 
     if hasattr(customize_ext, 'has_export_data_be_visible'):
         has_export_data_be_visible = customize_ext.has_export_data_be_visible
+
+    if hasattr(customize_ext, 'get_ext_config_check_table'):
+        get_ext_config_check_table = customize_ext.get_ext_config_check_table
 
     if hasattr(customize_ext, 'has_drawing_button_be_enabled'):
         has_drawing_button_be_enabled = customize_ext.has_drawing_button_be_enabled

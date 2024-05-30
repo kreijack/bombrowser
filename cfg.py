@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import configparser
 import os
 
+import customize
+
 _cfg = None
 
 def init():
@@ -170,6 +172,15 @@ def get_revlistcolors():
 
 def _check_cfg(cfg):
     ret = []
+
+    #  Syntax
+    #   [ (<section-name>, (
+    #           (<option-name>, <mandatory=true/false>),
+    #           [...]
+    #           )),
+    #     [...]
+    #   ]
+    #
     check_table = [
         ('BOMBROWSER', (
                 ('db', True),
@@ -244,6 +255,8 @@ def _check_cfg(cfg):
         ('skip_first_lines', False),
         ('translate', False),
     ]
+
+    check_table = check_table + customize.get_ext_config_check_table()
 
     ####
 
