@@ -34,11 +34,21 @@ class AdminWindow(QMainWindow):
         QMainWindow.__init__(self)
 
         self._init_gui()
-        self._refresh_columns_number()
+
+        if self._is_db_empty():
+            for x in self._non_init_db_gb:
+                x.setEnabled(False)
+        else:
+            self._refresh_columns_number()
 
         self._log_append("Connection: %s\n"%(db.connection))
 
         self.setWindowTitle("BOMBrowser database admin")
+
+    def _is_db_empty(self):
+        d = db.get_db_instance()
+        with db.ROCursor(d) as c:
+            return not "database_props" in d._get_tables_list(c)
 
     def _init_gui(self):
 
@@ -108,6 +118,8 @@ class AdminWindow(QMainWindow):
         g.addWidget(gb3, 30, 1, 1, 5)
         g.addWidget(gb4, 40, 1, 1, 5)
 
+        self._non_init_db_gb = [gb1, gb2, gb4]
+
         self._log = QTextEdit()
         g.addWidget(self._log, 100, 1, 1, 5)
         g.setRowStretch(100, 100)
@@ -138,9 +150,15 @@ class AdminWindow(QMainWindow):
             self._log_append("Init database:")
             self._log_append("----------------------------")
 
-            self._automatic_backup()
+            if not self._is_db_empty():
+                self._automatic_backup()
 
             db.new_db(db.get_db_instance())
+
+        for x in self._non_init_db_gb:
+            x.setEnabled(True)
+
+        self._refresh_columns_number()
         self._log_append("The database was initialized\n")
 
     def _info_database(self):
