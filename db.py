@@ -1288,20 +1288,23 @@ class _BaseServer:
         # a single query like:
         #     INSERT ... SELECT ... FROM .. ORDER BY
         # It doesn't like ORDER BY. So split it in two query
-        c.execute("""SELECT
+        gaval_query = " ".join([",gaval%d"%(i+1) for i in range(gavals_count)])
+        q = """SELECT
                 unit,
                 child_id,
                 ?,
                 qty,
                 each,
                 ref
+                %s
             FROM assemblies
             WHERE revision_id = ?
             ORDER BY id
-        """, (new_rid, old_rid))
+        """%(gaval_query)
+        c.execute(q, (new_rid, old_rid))
         res = c.fetchall()
         if len(res) > 0:
-            c.executemany("""
+            q = """
                 INSERT INTO assemblies (
                     unit,
                     child_id,
@@ -1309,8 +1312,10 @@ class _BaseServer:
                     qty,
                     each,
                     ref
-                ) VALUES (?, ?, ?, ?, ?, ?)
-            """, res)
+                    %s
+                ) VALUES (?, ?, ?, ?, ?, ? %s)
+            """%(gaval_query, ",? " * gavals_count)
+            c.executemany(q, res)
 
         if copy_docs:
             c.execute("""

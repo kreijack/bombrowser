@@ -1268,6 +1268,9 @@ def _create_simple_assy_with_drawings(c):
             WHERE code_id = ?
         """,(_id,))
         _rid = c.fetchone()[0]
+
+        c.execute("UPDATE item_revisions SET gval1=? WHERE id=?", (code, _rid))
+
         m[code] = _rid
         for i in range(2):
             c.execute("""
@@ -1275,13 +1278,15 @@ def _create_simple_assy_with_drawings(c):
                 VALUES (?, ?, ?)
             """, ("name-%s-%d"%(code, i), "name2-%s-%d"%(code, i), _rid))
 
+
+    c.execute("UPDATE assemblies SET gaval1=? WHERE revision_id=?", ('x', m["A"]))
+
     return m
 
 def test_copy_code_simple():
     d = _init_db()
     with Transaction(d) as c:
         rids = _create_simple_assy_with_drawings(c)
-
 
     new_rid = d.copy_code("NEW-A", rids["A"], "New-A", 0,
         new_date_from_days=db.iso_to_days("2021-01-01"))
@@ -1293,6 +1298,28 @@ def test_copy_code_simple():
         # check assemblies
         c.execute("SELECT COUNT(*) FROM assemblies WHERE revision_id=?",(new_rid,))
         assert(c.fetchone()[0] == 2)
+
+        c.execute("SELECT child_id, gaval1 FROM assemblies WHERE revision_id=?",(new_rid,))
+        l_new = list(c.fetchall())
+        l_new.sort()
+
+        c.execute("SELECT child_id, gaval1 FROM assemblies WHERE revision_id=?",(rids["A"],))
+        l_old = list(c.fetchall())
+        l_old.sort()
+
+        assert(l_old == l_new)
+
+        # check item_revisions
+        c.execute("SELECT default_unit, gval1 FROM item_revisions WHERE id=?",(new_rid,))
+        l_new = list(c.fetchall())
+        l_new.sort()
+
+        c.execute("SELECT default_unit, gval1 FROM item_revisions WHERE id=?",(rids["A"],))
+        l_old = list(c.fetchall())
+        l_old.sort()
+
+        assert(l_old == l_new)
+
 
         # check drawings
         c.execute("SELECT COUNT(*) FROM drawings WHERE revision_id=?",(new_rid,))
