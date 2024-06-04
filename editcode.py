@@ -1317,10 +1317,14 @@ class EditWindow(bbwindow.BBMainWindow):
 
         dates = d.get_dates_by_code_id3(self._code_id)
         for i, row in enumerate(dates):
-            code, descr, date_from_days, date_to_days = row[:4]
+            code, descr, date_from_days, date_to_days, rid = row[:5]
             self._dates_list.setItemText(i, "%s .. %s"%(
                     db.days_to_txt(date_from_days),
                     db.days_to_txt(date_to_days)))
+
+            if rid == self._old_copy[0]["rid"]:
+                self._old_copy[0]["date_from_days"] = date_from_days
+                self._old_copy[0]["date_to_days"] = date_to_days
 
     def _mangle_path(self, path):
         if not os.path.exists(path):
