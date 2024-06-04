@@ -564,7 +564,7 @@ def _test_make_assembly():
         ['x' for x in range(db.gvals_count)],
         drawings=[],
         children=[(
-            ccode_id, 1, 1, "NR", 0, ["y" for i in range(db.gavals_count)]
+            ccode_id, 1, 1, "NR", 0, *["y" for i in range(db.gavals_count)]
         )])
 
     return r

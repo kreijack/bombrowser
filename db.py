@@ -1423,9 +1423,9 @@ class _BaseServer:
                 """%( "".join([",gaval%d "%(x+1) for x in range(gavals_count)]),
                     "".join([",? " for x in range(gavals_count)]),
                 )
-                # (code_id, qty, each, unit)
-                c.executemany(q, [(rid, code_id, qty, each, ref, unit, *gvs)
-                        for (code_id, qty, each, unit, ref, gvs) in children])
+                args = [(rid, code_id, qty, each, ref, unit, *gvs)
+                        for (code_id, qty, each, unit, ref, *gvs) in children]
+                c.executemany(q, args)
 
         return "OK"
 

@@ -1414,7 +1414,7 @@ class EditWindow(bbwindow.BBMainWindow):
 
             codes_set.add(code)
 
-            children.append((code_id, qty, each, unit, ref, gavals_values))
+            children.append((code_id, qty, each, unit, ref, *gavals_values))
 
         return (None, (gvals, drawings, children))
 

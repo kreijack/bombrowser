@@ -323,12 +323,8 @@ class _CopyCode(bbwindow.BBMainWindow):
         x = d.get_full_revision_by_rid(self._new_rid)
         data, children, drawings = x[0], list(x[1]), list(x[2])
 
-        gvals = []
-        for i in range(1, db.gvals_count +1):
-            key = "gval%d"%(i)
-            gvals.append(params2.get(key, data.get(key, "")))
-
-        for key in ["descr", "ver", "unit"]:
+        gval_names = ["gval%d"%(i) for i in range(1, db.gvals_count +1)]
+        for key in ["descr", "ver", "unit"] + gval_names:
             if key in params2:
                 data[key] = params2[key]
 
@@ -339,11 +335,11 @@ class _CopyCode(bbwindow.BBMainWindow):
                 key="gaval%d"%(i)
                 if key in params2:
                     line[6+i] = params2[key]
-            children2.append([line[0], line[3], line[4], line[5], line[6]] + [line[7:]])
+            children2.append([line[0], *line[3:]])
 
         d.update_by_rid2(self._new_rid, data["descr"],
             data["ver"], data["unit"],
-            gvals, drawings, children2,
+            [data[i] for i in gval_names], drawings, children2,
             None
         )
 

@@ -506,7 +506,7 @@ def test_get_full_revision_by_rid():
 
     id_ = d.get_codes_by_code("C")[0][0]
     rid = d.get_code(id_, db.iso_to_days("2020-01-10"))["rid"]
-    children = [[x[0], x[3], x[4], x[5], x[6],  x[7:]]
+    children = [[x[0], *x[3:]]
                     for x in d.get_children_by_rid(rid)]
     gvals = ["2-new gval %d"%(i) for i in range(db.gvals_count)]
     d.update_by_rid2(rid, "new descr", "new ver", "new-unit",
@@ -1548,7 +1548,7 @@ def test_update_by_rid2_with_children():
 
     d.update_by_rid2(rid, "new descr", "new ver", "new-unit",
             gvals, children = [
-                (code_id, 2, 3, 'xNR', 'xREF', gavals)
+                (code_id, 2, 3, 'xNR', 'xREF', *gavals)
     ])
 
     root, bom = d.get_bom_by_code_id3(code_id2, dates[0][2])
