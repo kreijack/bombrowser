@@ -3,11 +3,13 @@
 - add support fo an URL (http[s]:// or ftp://) instead of a file as
   attachment
 - check if the data is changed by another user before saving in edit window
+- add undo in edit code
 - allow to set as the default search mode (Simple or Advance)
 - bugfix around Transaction
 - allow to set the db to use during the automatic test
 - add bombrowser_admin.py to manage the DB
 - add hooks to {dis,en}able Export data and drawing buttons
+- add default options for copy/revise code action
 
 2023-06-08: v0.4.7
 - check correctness of the ini file bombrowser.ini at startup
