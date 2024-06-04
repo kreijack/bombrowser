@@ -196,6 +196,8 @@ def _check_cfg(cfg):
                 ('btnmaxlength', True),
                 ('ignore_case_during_search', True),
                 ('list_code_default_mode', True),
+                ('after_copy_set_values_to', False),
+                ('after_revise_set_values_to', False),
         )),
         ('FILES_UPLOAD', (
                 ('method', True),

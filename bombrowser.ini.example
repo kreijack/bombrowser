@@ -119,6 +119,18 @@ scalefont=1.2
 # to the drawings; 0 to not set a limit
 btnmaxlength=30
 
+# the following two options allow to set a default for the fields after a
+# revise/copy
+# refer to the g[a]valnames for the fields name and their meaning
+after_copy_set_values_to=
+    gval11=Draft
+    gval7=Foo
+    gaval2=Bar
+    descr=Fantastic descr
+
+after_revise_set_values_to=
+    gval7=Foo2
+
 [SQLITE]
 path=database.sqlite
 # pay attention that this is in 'or' with BOMBROWSER.ignore_case_during_search

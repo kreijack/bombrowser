@@ -268,6 +268,7 @@ class _CopyCode(bbwindow.BBMainWindow):
                     new_date_from_days=newdate)
                 self._new_code = code
                 self._new_rid = new_rid
+                self._update_parameters(d, "after_copy_set_values_to")
             else:
                 new_rid = d.revise_code(self._rid,
                     descr,
@@ -275,9 +276,9 @@ class _CopyCode(bbwindow.BBMainWindow):
                     self._cb_copy_props.checkState() == Qt.CheckState.Checked,
                     self._cb_copy_docs.checkState() == Qt.CheckState.Checked,
                     new_date_from_days=newdate)
-
-            self._new_code = code
-            self._new_rid = new_rid
+                self._new_code = code
+                self._new_rid = new_rid
+                self._update_parameters(d, "after_revise_set_values_to")
         except db.DBException as e:
             QMessageBox.critical(self,
                 "BOMBrowser - error",
@@ -305,6 +306,46 @@ class _CopyCode(bbwindow.BBMainWindow):
             else:
                 QMessageBox.information(None, "BOMBrowser",
                     "Success: the code was revised")
+
+    def _update_parameters(self, d, param):
+        if not param in cfg.config()["BOMBROWSER"]:
+            return
+        prms = cfg.config()["BOMBROWSER"][param].strip()
+        if len(prms) == 0:
+            return
+
+        params2 = dict()
+        for k, v in [map(lambda x: x.strip(), x.split("="))
+                    for x in prms.split("\n")
+                    if len(x.strip()) > 0]:
+            params2[k] = v;
+
+        x = d.get_full_revision_by_rid(self._new_rid)
+        data, children, drawings = x[0], list(x[1]), list(x[2])
+
+        gvals = []
+        for i in range(1, db.gvals_count +1):
+            key = "gval%d"%(i)
+            gvals.append(params2.get(key, data.get(key, "")))
+
+        for key in ["descr", "ver", "unit"]:
+            if key in params2:
+                data[key] = params2[key]
+
+        children2 = []
+        for line in children:
+            line = list(line[:])
+            for i in range(1, db.gavals_count +1):
+                key="gaval%d"%(i)
+                if key in params2:
+                    line[6+i] = params2[key]
+            children2.append([line[0], line[3], line[4], line[5], line[6]] + [line[7:]])
+
+        d.update_by_rid2(self._new_rid, data["descr"],
+            data["ver"], data["unit"],
+            gvals, drawings, children2,
+            None
+        )
 
     def getNewCode(self):
         return self._new_code
