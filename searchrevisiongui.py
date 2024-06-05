@@ -48,31 +48,30 @@ class RevisionListWidget(QWidget):
         self._case_sens = cfg.config()["BOMBROWSER"]["ignore_case_during_search"] == "0"
 
         self._data = dict()
+        # this is in the order of the search fields
         self._field_names = [
             ("code", "Code"), ("descr", "Description", 6),
             ("id", "id"), ("rid", "rid"),
             ("rev", "Rev"), ("iter_", "Iteration"),
             ("date_from_days", "Date from"),
-            ("date_to_days", "Date to")]
-
-        if bom is None:
-            self._field_names += [("doc", "Document")]
+            ("date_to_days", "Date to"),
+            ("doc", "Document")]
 
         for (seq, idx, gvalname, caption, type_) in cfg.get_gvalnames2():
             self._field_names.append((gvalname, caption))
         self._dates = dict()
-        self._search_revision_cols = ["id", "rid", "Code","Description",
-            "Rev", "Iteration", "Date from", "Date to"]
 
-        if self._bom is None:
-            self._search_revision_cols += ["Documents"]
+        # this is in the order of the columns table
+        # keep in sync with self._search_in_bom(), fns[]
+        self._search_revision_cols = ["id", "rid", "Code","Description",
+            "Rev", "Iteration", "Date from", "Date to", "Documents"]
 
         self._notgvalcols = len(self._search_revision_cols)
 
         for (seq, idx, gvalname, caption, type_) in cfg.get_gvalnames2():
             self._search_revision_cols.append(caption)
 
-        #assert(len(self._search_revision_cols) == len(self._field_names) )
+        assert(len(self._search_revision_cols) == len(self._field_names))
 
         self._init_gui()
 
@@ -168,12 +167,13 @@ class RevisionListWidget(QWidget):
 
     def _search_in_bom(self, pattern):
         ret = []
+        # keep in sync with self._search_revision_cols
         fns = ["id", "rid", "code","descr",
-            "ver", "iter", "date_from_days", "date_to_days"]
+            "ver", "iter", "date_from_days", "date_to_days", "doc"]
 
         fns += ["" for x in cfg.get_gvalnames2()]
         for (seq, idx, gvalname, caption, type_) in cfg.get_gvalnames2():
-            fns[8 + idx -1] = gvalname
+            fns[self._notgvalcols + idx -1] = gvalname
 
         for k, v in self._bom.items():
             match = True

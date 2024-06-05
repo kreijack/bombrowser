@@ -18,7 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
 
-import sys, tempfile
+import sys, tempfile, copy
 
 from PySide2.QtWidgets import QScrollArea, QStatusBar, QProgressDialog
 from PySide2.QtWidgets import QMenu, QFileDialog, QAbstractItemView
@@ -594,7 +594,21 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         m.addAction(a)
 
     def _advanced_search(self):
-        w = listcodegui.CodesWindow(bom=self._data, bomdesc=self._top_reference)
+        bom=copy.deepcopy(self._data)
+        with utils.OverrideCursor():
+            d = db.get_db_instance()
+            for k, v in bom.items():
+                rid = v["rid"]
+                drawings_and_urls = []
+                for descr, url in d.get_drawings_and_urls_by_rid(rid):
+                    if utils.is_url(url):
+                        drawings_and_urls.append(url)
+                    else:
+                        drawings_and_urls.append(
+                            os.path.basename(url))
+                v["doc"] = ", ".join(drawings_and_urls)
+
+        w = listcodegui.CodesWindow(bom=bom, bomdesc=self._top_reference)
         w.show()
 
     def _diff_bom(self, importer_name, name, open_fn, import_fn):
