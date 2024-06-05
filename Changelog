@@ -1,4 +1,4 @@
-2024-05-26: v1.0.0
+2024-06-05: v1.0.2
 - allow to point to another configuration file using bombrowser.forward
 - add support fo an URL (http[s]:// or ftp://) instead of a file as
   attachment
@@ -10,6 +10,7 @@
 - add bombrowser_admin.py to manage the DB
 - add hooks to {dis,en}able Export data and drawing buttons
 - add default options for copy/revise code action
+- allow to search in documents bom
 
 2023-06-08: v0.4.7
 - check correctness of the ini file bombrowser.ini at startup
