@@ -987,9 +987,10 @@ class _BaseServer:
                 ON r.code_id = c.id
 
             WHERE a.child_id = ?
-              AND r.date_to_days = ?
+              AND r.date_to_days >= ?
+              AND r.date_from_days < ?
             ORDER BY c.code, r.date_from_days DESC
-            """, (id_code, end_of_the_world))
+            """, (id_code, prototype_date - 1, prototype_date))
 
         res = c.fetchall()
         if not res:
