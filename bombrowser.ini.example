@@ -123,13 +123,12 @@ btnmaxlength=30
 # revise/copy
 # refer to the g[a]valnames for the fields name and their meaning
 after_copy_set_values_to=
-    gval11=Draft
-    gval7=Foo
-    gaval2=Bar
-    descr=Fantastic descr
+    gval6=
+    gval5=
 
 after_revise_set_values_to=
-    gval7=Foo2
+    gval6=
+    gval5=
 
 [SQLITE]
 path=database.sqlite
