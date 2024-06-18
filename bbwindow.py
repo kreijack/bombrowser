@@ -133,7 +133,7 @@ class BBMainWindow(QMainWindow):
         msgBox.setWindowTitle("BOMBrowser - about");
         msgBox.setTextFormat(Qt.RichText)
         msgBox.setText(window_title + "\n"
-            "Copyright 2020,2021 G.Baroncelli<br>"
+            "Copyright 2020,2021,2022,2023,2024 G.Baroncelli<br>"
             "<br>"
             "<a href=https://gitlab.com/kreijack/bombrowser>"
             "https://gitlab.com/kreijack/bombrowser</a><br><br>" +
