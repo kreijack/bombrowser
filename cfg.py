@@ -56,6 +56,7 @@ def _merge_config_text(fn, cfg_txt):
     _update_cfg(cfg2)
 
 def config():
+    global _cfg
     return _cfg
 
 def get_gvalnames2():
@@ -127,6 +128,7 @@ def get_gavalnames():
     return ret
 
 def _update_cfg(data):
+    global _cfg
     for key1 in data:
         row1 = data[key1]
         for key2 in row1:
@@ -326,17 +328,18 @@ def check_cfg():
     return _check_cfg(config())
 
 def reload_and_check_cfg():
+    global _cfg
     cfg_copy = _cfg
     try:
         init()
-        r = _check_cfg(_cfg)
+        ret = _check_cfg(_cfg)
     except:
         _cfg = cfg_copy
         raise
 
     if len(ret) != 1 or ret[0][0] != "OK":
         _cfg = cfg_copy
-    return r
+    return ret
 
 def _build_checker():
     cfg = configparser.ConfigParser()
