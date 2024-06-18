@@ -9,8 +9,10 @@
 - allow to set the db to use during the automatic test
 - add bombrowser_admin.py to manage the DB
 - add hooks to {dis,en}able Export data and drawing buttons
-- add default options for copy/revise code action
 - allow to search in documents bom
+- allow to set a default for some fields when revising a code or when copying
+  a code
+- bug: copy also the gavals during the code copying or revising
 
 2023-06-08: v0.4.7
 - check correctness of the ini file bombrowser.ini at startup
