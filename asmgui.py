@@ -608,7 +608,16 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                             os.path.basename(url))
                 v["doc"] = ", ".join(drawings_and_urls)
 
-        w = listcodegui.CodesWindow(bom=bom, bomdesc=self._top_reference)
+        if self._mode == "asm":
+            caption = "in bom: " + self._top_reference
+        elif self._mode == "where_used":
+            caption = "in 'Where used': " + self._top_reference
+        elif self._mode == "valid_where_used":
+            caption = "in 'Valid where used': " + self._top_reference
+        elif self._mode == "smart_where_used":
+            caption = "in 'Smart where used': " + self._top_reference
+
+        w = listcodegui.CodesWindow(bom=bom, bomdesc=caption)
         w.show()
 
     def _diff_bom(self, importer_name, name, open_fn, import_fn):

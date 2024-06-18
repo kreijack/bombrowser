@@ -191,7 +191,7 @@ class CodesWindow(bbwindow.BBMainWindow):
         if bom is None:
                 self.setWindowTitle("Codes list")
         else:
-                self.setWindowTitle("Search in bom: "+bomdesc)
+                self.setWindowTitle("Search "+bomdesc)
 
         self._init_gui()
         self._swich_search_mode(int(cfg.config()["BOMBROWSER"]
