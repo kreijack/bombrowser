@@ -165,7 +165,9 @@ class CodeDate(QWidget):
 
     def _get_bom(self):
         d = db.get_db_instance()
-        return d.get_bom_by_code_id3(self._id, self._date_days)
+        ret_code, bom = d.get_bom_by_code_id3(self._id, self._date_days)
+        utils.add_drawings_to_bom(bom)
+        return (ret_code, bom)
 
     def _do_refresh(self):
         self._ret_code, self._ret_data = self._get_bom()

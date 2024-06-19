@@ -328,6 +328,19 @@ def open_file_or_url(url):
     else:
         QDesktopServices.openUrl(QUrl.fromLocalFile(url))
 
+def add_drawings_to_bom(bom):
+    d = db.get_db_instance()
+    for k, v in bom.items():
+        rid = v["rid"]
+        drawings_and_urls = []
+        for descr, url in d.get_drawings_and_urls_by_rid(rid):
+            if is_url(url):
+                drawings_and_urls.append(url)
+            else:
+                drawings_and_urls.append(
+                    os.path.basename(url))
+        v["doc"] = ", ".join(drawings_and_urls)
+
 def test_bb_match_simple():
     assert(bb_match("abc", "a"))
     assert(bb_match("abc", "a%"))
