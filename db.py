@@ -2285,12 +2285,38 @@ def _create_db(dbtype, cfg):
 def restore_tables(nf, d, quiet=False):
     import zipfile
     with zipfile.ZipFile(nf) as z:
-        d.create_db()
         fntables = [i[:-4] for i in z.namelist() if i.endswith(".csv")]
         fntables.sort()
         l = d.list_main_tables()
         l.sort()
         assert(l==fntables)
+
+        gval = 0
+        gaval = 0
+
+        with z.open("item_revisions.csv") as f:
+            line = f.readline().decode('utf-8').rstrip("\n\r")
+            for i in line.split("\t"):
+                if i.lower().startswith("gval"):
+                    gval = int(i[4:])
+
+        with z.open("assemblies.csv") as f:
+            line = f.readline().decode('utf-8').rstrip("\n\r")
+            for i in line.split("\t"):
+                if i.lower().startswith("gaval"):
+                    gaval = int(i[5:])
+
+        global gvals_count, gavals_count
+
+        print
+
+        if gaval > gavals_count:
+            gavals_count = gaval
+        if gval > gvals_count:
+            gvals_count = gval
+
+        d.create_db()
+
         if not quiet:
             print()
         for table in d.list_main_tables():
