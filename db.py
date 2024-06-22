@@ -2375,13 +2375,27 @@ def main(prgname, args):
         print("DB dumped")
 
     elif len(args) >= 1 and args[0] == "--new-db":
-        if len(args) == 2:
-            if args[1] == "--yes-really-i-know-what-i-want":
-                pass
+        global gavals_count, gvals_count
+
+        gval = gaval = 0
+        skip_check = False
+        for arg in args[1:]:
+            if arg.startswith("--gval_count="):
+                gval = int(arg[13:])
+            elif arg.startswith("--gaval_count="):
+                gaval = int(arg[14:])
+            elif arg.startswith("--yes-really-i-know-what-i-want"):
+                skip_check = True
             else:
-                print("ERROR: exit")
+                print("ERROR: Unknow arg %s"%(arg))
                 return
-        else:
+
+        if gavals_count < gaval:
+            gavals_count = gaval
+        if gvals_count < gval:
+            gvals_count = gval
+
+        if not skip_check:
             print("Enter 'yes-really-i-know-what-i-want' > ", end='')
             s = input()
             if s != 'yes-really-i-know-what-i-want':
@@ -2414,7 +2428,7 @@ def main(prgname, args):
 
     else:
         print("usage: %s --dump-tables <file.zip>"%(prgname))
-        print("usage: %s --new-db"%(prgname))
+        print("usage: %s --new-db [--gval_count=nn][--gaval_count=nn]"%(prgname))
         print("usage: %s --restore-tables <file.zip>"%(prgname))
         sys.exit(0)
 
