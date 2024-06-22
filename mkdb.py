@@ -982,11 +982,17 @@ def make_big_assemblies(c):
     for leaf_size, bom_deep in  assemblies_params:
         build_assy(leaf_size, bom_deep, 0)
 
-def create_db(show_stat):
+def create_db(show_stat, gval, gaval):
     dbtype = cfg.config()["BOMBROWSER"]["db"]
     c = cfg.config()[dbtype.upper()]
     db.init(dbtype, dict(c))
     d = db.get_db_instance()
+
+    if gval > db.gvals_count:
+        db.gvals_count = gval
+    if gaval > db.gavals_count:
+        db.gavals_count = gaval
+
     d.create_db()
 
     xrmdir("documents")
@@ -1111,6 +1117,7 @@ def main(args):
         help_()
         return
 
+    gval = gaval = 0
     while i < len(args):
         if args[i] == "--test-db":
             set_standard_config()
@@ -1118,12 +1125,16 @@ def main(args):
             set_advance_config()
         elif args[i] == "--stat":
             show_stat = True
+        elif args[i].startswith("--gaval_count="):
+            gaval = int(args[i][14:])
+        elif args[i].startswith("--gval_count="):
+            gval = int(args[i][13:])
         else:
             print("ERROR: unknown parameter")
             help_()
             return
         i += 1
 
-    create_db(show_stat)
+    create_db(show_stat, gval, gaval)
 
 main(sys.argv)
