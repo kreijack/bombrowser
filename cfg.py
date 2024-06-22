@@ -36,11 +36,15 @@ def init():
         files = ["bombrowser.ini",
                  "bombrowser.local.ini"]
 
+    found = False
     for fn in files:
         if not os.path.exists(fn):
             continue
 
+        found = True
         _merge_config_text(fn, open(fn).read())
+
+    assert(found)
 
 def _merge_config_text(fn, cfg_txt):
     lines = cfg_txt.split("\n")
