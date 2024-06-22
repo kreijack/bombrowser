@@ -2407,6 +2407,14 @@ def main(prgname, args):
         new_db(d)
         print("DB created")
 
+    elif len(args) == 1 and args[0] == "--info-db":
+        init(dbtype, dict(conf))
+        d = get_db_instance()
+        d.update_gavals_gvals_count_by_db()
+
+        print("number of 'gval' columns:  %d"%(gvals_count))
+        print("number of 'gaval' columns: %d"%(gavals_count))
+
     elif len(args) >= 2 and args[0] == "--restore-tables":
         if len(args) == 3:
             if args[1] == "--yes-really-i-know-what-i-want":
@@ -2430,5 +2438,6 @@ def main(prgname, args):
         print("usage: %s --dump-tables <file.zip>"%(prgname))
         print("usage: %s --new-db [--gval_count=nn][--gaval_count=nn]"%(prgname))
         print("usage: %s --restore-tables <file.zip>"%(prgname))
+        print("usage: %s --info-db"%(prgname))
         sys.exit(0)
 
