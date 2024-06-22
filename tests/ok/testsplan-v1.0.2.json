@@ -1,0 +1,3533 @@
+
+# max-id: 500
+# first-free-id: 501
+# test-passed: 401
+# total-test: 401
+
+[{'level': 1, 'title': 'BOMBrowser tests list'},
+ {'level': 2,
+  'chapter_number': '1',
+  'title': 'Index',
+  'other': '- 1 - Index\n'
+           '- 2 - Preface\n'
+           '- 3 - Test setup\n'
+           '- 4 - BOMBrowser - Codes list\n'
+           "- 5 - 'Code gui' panel\n"
+           '- 6 - BOMBrowser - Assembly\n'
+           '- 7 - BOMBrowser - Valid where used\n'
+           '- 8 - BOMBrowser - Where used\n'
+           '- 9 - BOMBrowser - Select date (empty)\n'
+           '- 10 - BOMBrowser - Diff window\n'
+           '- 11 - BOMBrowser - Copy/revise code\n'
+           '- 12 - BOMBrowser - Edit code\n'
+           '- 13 - BOMBrowser - Edit date\n'
+           '- 14 - Generic test\n'
+           '- 15 - Export test\n'
+           '- 16 - Import test\n'
+           '- 17 - Window menu test\n'
+           '- 18 - Advanced search in the BOM\n'
+           '- 19 - Export data from assemblies\n'
+           '- 20 - Create/Dump/Restore database\n'
+           '- Conclusion'},
+ {'chapter_number': '2',
+  'title': 'Preface',
+  'other': 'This tests list assumes that you are working with the test '
+           'database generated\n'
+           'by mkdb.py.\n'
+           'This tests list is related to the v1.0.2 code'},
+ {'chapter_number': '3',
+  'title': 'Test setup',
+  'other': 'Before executing the tests, be sure that some bombrowser.init '
+           'parameters are set as following:\n'
+           '\n'
+           'BOMBROWSER.description_force_uppercase=1\n'
+           'BOMBROWSER.code_force_uppercase=1\n'
+           'BOMBROWSER.ignore_case_during_search=1\n'
+           'BOMBROWSER.db=sqlite\n'
+           'SQLITE.ignore_case_during_search=0\n'
+           '\n'
+           'Setup the DB as:\n'
+           '\n'
+           'python mkdb.py --test_db\n'},
+ {'chapter_number': '4', 'title': 'BOMBrowser - Codes list'},
+ {'level': 3,
+  'chapter_number': '4.1',
+  'title': 'search a code',
+  'descr': "Insert the code '820037' in the 'Code' field and press **ENTER**",
+  'expect': 'The code 820037 is showed',
+  'passed': True},
+ {'chapter_number': '4.2',
+  'title': 'search a code (2)',
+  'descr': "Insert the code '820038' in the 'Code' field and press the button "
+           "**'Search'**",
+  'expect': 'The code 820038 is showed',
+  'passed': True},
+ {'chapter_number': '4.3',
+  'title': 'search a code by description',
+  'descr': "Clear the 'Code' field\n"
+           "Insert the code 'BOARD 14' in the 'Description' field and press "
+           "the button 'Search'",
+  'expect': 'The code 610014 - "BOARD 14" is showed',
+  'passed': True},
+ {'chapter_number': '4.4',
+  'title': 'search a code by description with a jolly character',
+  'descr': "Insert the code '%BOARD%13' in the 'Description' field and press "
+           'ENTER',
+  'expect': 'The code 610013 - "BOARD 13" is showed',
+  'passed': True},
+ {'chapter_number': '4.5',
+  'title': 'search a code with a jolly character',
+  'descr': "- Insert the code '%6%' in the 'Code' field\n"
+           "- press the button 'Search'",
+  'expect': "The codes that contains '6' are showed",
+  'passed': True},
+ {'chapter_number': '4.6',
+  'title': 'search a code and a description with a jolly character',
+  'descr': "- Insert the code '%6%' in the 'Code' field\n"
+           '- insert %BOARD% in the description filed\n'
+           "- press the button 'Search'",
+  'expect': "The codes that contains '6' and the description which contains "
+            'BOARD are showed',
+  'passed': True},
+ {'chapter_number': '4.7',
+  'title': 'assembly',
+  'descr': "- Insert the code '820037' in the 'Code' field\n"
+           "- press the button 'Search'\n"
+           '- press the right mouse button on the first entry\n'
+           '- select the "Show assembly by date" command.',
+  'expect': '- The "BOMBrowser: select date" dialog is showed\n'
+            '- this dialog contains a list of 820037 codes.',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.8',
+  'descr': '- repeat the steps in the first test\n'
+           '- select the "Show latest assembly" command.',
+  'expect': '- The "BOMBrowser: assembly window" dialog is showed\n'
+            '- the bom showed is related to the latest revision (i.e all the '
+            'items have a not defined "Date to" date)',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.9',
+  'descr': '- repeat the steps in the first test\n'
+           '- select the "Show prototype assembly" command.',
+  'expect': '- The "BOMBrowser: assembly window" dialog is showed\n'
+            '- the bom showed is related to the latest revision (i.e all the '
+            'items have a not defined "Date to" date) with the exception of '
+            'few items which have as "date from" the prototype one',
+  'passed': True},
+ {'chapter_number': '4.10',
+  'title': 'where used',
+  'descr': "- Insert the code '810036' in the 'Code' field,\n"
+           "- press the button 'Search'\n"
+           '- press the right mouse button on the first entry\n'
+           '- select the "Where used" command.',
+  'expect': 'The "BOMBrowser - Where used" window is showed',
+  'passed': True},
+ {'chapter_number': '4.11',
+  'title': 'where used (2)',
+  'descr': "- Insert the code '100037' in the 'Code' field\n"
+           "- press the button 'Search'\n"
+           '- press the right mouse button on the first entry\n'
+           '- select the "Where used" command.',
+  'expect': 'The "BOMBrowser - Where used" window is showed. Only one code '
+            '(100037) is showed.',
+  'passed': True},
+ {'chapter_number': '4.12',
+  'title': 'valid where used',
+  'descr': "- Insert the code '810036' in the 'Code' field\n"
+           "- press the button 'Search'\n"
+           '- press the right mouse button on the first entry\n'
+           '- select the "Valid where used" command.',
+  'expect': 'The "BOMBrowser - Valid where used" window is showed',
+  'passed': True},
+ {'chapter_number': '4.13',
+  'title': 'valid where used (2)',
+  'descr': "- Insert the code '100037' in the 'Code' field\n"
+           "- and press the button 'Search'\n"
+           '- press the right mouse button on the first entry\n'
+           '- select the "Valid where used" command.',
+  'expect': 'The "BOMBrowser - Valid where used" window is showed. Only one '
+            'code (100037) is showed.',
+  'passed': True},
+ {'chapter_number': '4.14',
+  'title': 'Copy/revise code',
+  'descr': "- Insert the code '810031' in the 'Code' field,\n"
+           "- press the button 'Search'\n"
+           '- press the right mouse button on the first entry\n'
+           '- select the "Copy code" (or "Revise a code") command.',
+  'expect': 'The "BOMBrowser: select date" dialog is showed; this contains a '
+            'list of the code 810031.',
+  'passed': True},
+ {'chapter_number': '4.15',
+  'title': 'edit code',
+  'descr': "- Insert the code '810036' in the 'Code' field\n"
+           "- and press the button 'Search'\n"
+           '- press the right mouse button on the first entry\n'
+           '- select the "Edit code" command.',
+  'expect': 'The "BOMBrowser - Edit code" window showed; this contains the '
+            'code 810036 properties.',
+  'passed': True},
+ {'chapter_number': '4.16',
+  'title': 'diff from',
+  'descr': "- Insert the code '810031' in the 'Code' field\n"
+           "- press the button 'Search'\n"
+           '- press the right mouse button on the first entry\n'
+           '- select the "Diff from" command.',
+  'expect': 'The "BOMBrowser: select date" dialog is showed; this dialog '
+            'contains a list of 810031 codes.',
+  'passed': True},
+ {'chapter_number': '4.17',
+  'title': 'diff from (2x)',
+  'descr': "- Insert the code '820036' in the 'Code' field\n"
+           "- press the button 'Search'\n"
+           '- press the right mouse button on the first entry\n'
+           '- select the "Diff from" command.',
+  'expect': 'The "BOMBrowser: select date" dialog is showed; this dialog '
+            'contains a list of 820036 codes.',
+  'passed': True},
+ {'chapter_number': '4.18',
+  'title': 'diff to',
+  'descr': "- Insert the code '810031' in the 'Code' field\n"
+           "- press the button 'Search'\n"
+           '- press the right mouse button on the first entry\n'
+           '- select the "Diff to" command.',
+  'expect': 'The "BOMBrowser: select date" dialog is showed; this dialog '
+            'contains a list of 810031codes.',
+  'passed': True},
+ {'chapter_number': '4.19',
+  'title': 'diff to (2x)',
+  'descr': "- Insert the code '820036' in the 'Code' field\n"
+           "- press the button 'Search'\n"
+           '- press the right mouse button on the first entry\n'
+           '- select the "Diff to" command.',
+  'expect': 'The "BOMBrowser: select date" dialog is showed; this dialog '
+            'contains a list of 820036 codes.',
+  'passed': True},
+ {'chapter_number': '4.20',
+  'title': 'menu->help->about',
+  'descr': 'In the menu select the Help and About subcommand',
+  'expect': '- The "about" dialog is showed. The dialog contains:\n'
+            '- the current version and the copyright code.\n'
+            '- a text that showed the used connection',
+  'passed': True},
+ {'chapter_number': '4.21',
+  'title': 'menu->window',
+  'descr': '- insert code 820037\n'
+           '- press the right mouse button on the first entry\n'
+           '- select the "Show assembly by date" command\n'
+           '- select the first date and doubleckick on it\n'
+           '- go back to the "BOMBrowser - code list"\n'
+           '- press the right mouse button on the first entry\n'
+           '- select the "Where used" command.\n'
+           '- go back to the "BOMBrowser - code list"\n'
+           '- press the right mouse button on the first entry\n'
+           '- select the "Valid where used" command.\n'
+           '- go back to the "BOMBrowser - code list"\n'
+           '- press the right mouse button on the first entry\n'
+           '- select the "Edit code" command.\n'
+           '- Five windows are opened. Select the "Windows menu" in the '
+           '"BOMBrowser - Codes list" window:',
+  'expect': 'in the menu are showed the four windows: BOMBrowser - Where used, '
+            'BOM Browser - Valid where used, BOMBrowser assembly, BOMBrowser - '
+            'edit',
+  'passed': True},
+ {'chapter_number': '4.22',
+  'title': 'menu->file->close',
+  'descr': '- insert code 820037\n'
+           '- press the right mouse button on the first entry and select the '
+           '"Where used" command.\n'
+           '- Two windows are opened. Select the "File->close" in the '
+           '"BOMBrowser - Codes list" window:',
+  'expect': '- The "BOMBrowser - Codes" list is closed. "BOMBrowser - Where '
+            'used" is opened.',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.23',
+  'descr': '- after the steps above, in the previous opened "where used '
+           'window", press CTRL-L',
+  'expect': '- The "BOMBrowser - Codes" appears',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.24',
+  'descr': '- after the steps above, re-close "BOMBrowser - Codes list" '
+           'window.\n'
+           '- in the previous opened "where used window", select from the '
+           'windows menu the "new codes list window"',
+  'expect': '- The "BOMBrowser - Codes list" appears',
+  'passed': True},
+ {'chapter_number': '4.25',
+  'title': 'Test 1.24 -Ctrl-Q  menu->file->close',
+  'descr': '- insert code 820037\n'
+           '- press the right mouse button on the first entry and select the '
+           '"Where used" command.\n'
+           '- Two windows are opened. Set the focus to the "BOMBrowser - Codes '
+           'list"\n'
+           '- press CTRL-Q',
+  'expect': 'The "BOMBrowser - Codes list" is closed. "BOMBrowser - Where '
+            'used" is opened.',
+  'passed': True},
+ {'chapter_number': '4.26',
+  'title': 'menu->file->exit',
+  'descr': '- insert code 820037\n'
+           '- press the right mouse button on the first entry and select the '
+           '"Where used" command.\n'
+           '- Two windows are opened. Select the "File->Exit" in the '
+           '"BOMBrowser - Codes list" window:',
+  'expect': 'a dialog BOMBrowser asking about the possibility to exit is '
+            'showed.',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.27',
+  'descr': '- After the steps above,  Press No',
+  'expect': 'The codes list window is still opened',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.28',
+  'descr': '- Repeat the step above until the dialog is showed, then press yes',
+  'expect': 'The application is ended. No window is showed',
+  'passed': True},
+ {'chapter_number': '4.29',
+  'title': 'Menu->edit->copy',
+  'descr': '- insert code %6% and press ENTER;\n'
+           '- select menu->edit->copy table values\n'
+           '- Paste the clipboard in an editor',
+  'expect': '- check that there is the same table showed in the BOMBrowser - '
+            'Codes list (fields TAB separated).\n'
+            '- Check that the number of row are the same +1 of the "BOMBrowser '
+            '- Codes list" widow (there is the header)',
+  'passed': True},
+ {'chapter_number': '4.30',
+  'title': 'Code gui',
+  'descr': '- insert code 8200% and press ENTER\n- Select the first entry',
+  'expect': 'the information of the selected code is showed in the right panel',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.31',
+  'descr': '- after the steps above, select the 2nd entry.',
+  'expect': 'the information of the 2nd selected codes are showed in the right '
+            'panel',
+  'passed': True},
+ {'chapter_number': '4.32',
+  'title': 'Status bar',
+  'descr': '- insert code 8200% and press ENTER',
+  'expect': 'in the status bar appears the number of the results, and the '
+            'times required for the query',
+  'passed': True},
+ {'chapter_number': '4.33',
+  'title': 'Status bar',
+  'descr': '- insert code CODE_INVALID and press ENTER',
+  'expect': '- in the status bar appears the number of the results (0)\n'
+            '- the previous results are not cleaned',
+  'passed': True},
+ {'chapter_number': '4.34',
+  'title': 'Revision search',
+  'descr': '- select from the menu "Search mode->advanced"\n'
+           '- insert code 8200% and press "Search"',
+  'expect': 'in the status bar appears the number of the results, and the time '
+            'required by the query.',
+  'passed': True},
+ {'chapter_number': '4.35',
+  'title': 'Revision search',
+  'descr': '- select from the menu "Search mode->advanced"\n'
+           '- insert code CODE_INVALID and press "Search"',
+  'expect': 'in the status bar appears the number of the results (0)',
+  'passed': True},
+ {'chapter_number': '4.36',
+  'title': 'Revision search',
+  'descr': '- select from the menu "Search mode->advanced"\n'
+           '- insert code CODE_INVALI2D and press "Search"',
+  'expect': '- in the status bar appears the number of the results (0)\n'
+            '- the previous results are not cleaned',
+  'passed': True},
+ {'chapter_number': '4.37',
+  'title': 'Revision search',
+  'descr': '- select from the menu "Search mode->advanced"\n'
+           '- insert code 820012 and press "Search"',
+  'expect': '- in the status bar appears the number of the results (>= 3)\n'
+            '- in the results table, appears the different revisions of the '
+            'searched code',
+  'passed': True},
+ {'chapter_number': '4.38',
+  'title': 'Revision search',
+  'descr': '- select from the menu "Search mode->advanced"\n'
+           '- insert code 8200% and press "Search"',
+  'expect': '- in the results table, appears the codes (and their revisions) '
+            'which start from 8200..',
+  'passed': True},
+ {'chapter_number': '4.39',
+  'title': 'Revision search',
+  'descr': '- select from the menu "Search mode->advanced"\n'
+           '- insert code >820000 and press "Search"',
+  'expect': '- in the results table, appears the codes greather than 820000',
+  'passed': True},
+ {'chapter_number': '4.40',
+  'title': 'Revision search',
+  'descr': '- select from the menu "Search mode->advanced"\n'
+           '- insert date-from 2003-06-04 and press "Search"',
+  'expect': '- in the results table, it appears the codes which have as date '
+            'from 2003-06-04',
+  'passed': True},
+ {'chapter_number': '4.41',
+  'title': 'Revision search',
+  'descr': '- select from the menu "Search mode->advanced"\n'
+           '- insert date-from \'>2003-06-04\' and press "Search"',
+  'expect': '- in the results table, appears the codes which have as date from '
+            'greather than 2003-06-04 (or prototype )',
+  'passed': True},
+ {'chapter_number': '4.42',
+  'title': 'Revision search',
+  'descr': '- select from the menu "Search mode->advanced"\n'
+           '- insert code >820000 and press ENTER\n'
+           '- select a code',
+  'expect': '- depending the code selected, the right panel "code gui" change '
+            'their values accordling',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.43',
+  'descr': '- Selected a different code',
+  'expect': '- depending the code selected, the right panel "code gui" change '
+            'their values accordling',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.44',
+  'descr': '- Repeat the test #2 several times',
+  'expect': '- the Expected results#2 apply',
+  'passed': True},
+ {'chapter_number': '4.45',
+  'title': 'Revision search',
+  'descr': '- select from the menu "Search mode->advanced"\n'
+           '- insert code >820000 and press ENTER\n'
+           '- select a code\n'
+           '- press the RMB, and select "show latest assembly"',
+  'expect': '- The assembling window is showed.\n'
+            '- The date of the top code is >= to the one of the code selected '
+            'in the previous step',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.46',
+  'descr': '- repeat the steps above until the RMB press\n'
+           '- press the RMB, and select "where used"',
+  'expect': '- The where used window is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.47',
+  'descr': '- repeat the steps above until the RMB press\n'
+           '- press the RMB, and select "valid where used"',
+  'expect': '- The valid where used window is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.48',
+  'descr': '- repeat the steps above until the RMB press\n'
+           '- press the RMB, and select "show assembly by date"',
+  'expect': '- The "select date" dialog is opened (press cancel and return the '
+            'previous window)',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.49',
+  'descr': '- repeat the steps above until the RMB press\n'
+           '- select a code with multiple date, having the smaller date from\n'
+           '- press the RMB, and select "show this assembly"',
+  'expect': '- The "assembly window" is showed\n'
+            '- the assembly is the one dated with the date from of the '
+            'selected code\n'
+            '- The date in the title window of the "assembly window" is the '
+            'same "date from" of the selected revision',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.50',
+  'descr': '- repeat the steps above until the RMB press\n'
+           '- press the RMB, and select "show prototype assembly"',
+  'expect': '- The "prototype assembly window" is showed\n'
+            '- Go through the items and check that some items are prototype',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.51',
+  'descr': '- repeat the steps above until the RMB press\n'
+           '- press the RMB, and select "copy code" (or "revise a code")',
+  'expect': '- The "select date" dialog is opened (press cancel and return the '
+            'previous window)',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.52',
+  'descr': '- repeat the steps above until the RMB press\n'
+           '- press the RMB, and select "edit code"',
+  'expect': '- The "edit code" window is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.53',
+  'descr': '- repeat the steps above until the RMB press\n'
+           '- press the RMB, and select "diff from"\n'
+           '- press the RMB, and select "diff to"\n'
+           '(different revision of the same code)',
+  'expect': '- The diff window is showed',
+  'passed': True},
+ {'chapter_number': '4.54',
+  'title': 'RMB menu error',
+  'other': 'Dropped in v0.4.3b4'},
+ {'chapter_number': '4.55',
+  'title': 'RMB menu error',
+  'other': 'Dropped in v0.4.3b4'},
+ {'chapter_number': '4.56',
+  'title': 'search <',
+  'descr': '- select from the menu "Search mode->advanced"\n'
+           '- insert code <5000 and press ENTER\n',
+  'expect': '- All codes less than 5000 are showed (alphanumeric comparation)',
+  'passed': True},
+ {'chapter_number': '4.57',
+  'title': 'search !',
+  'descr': '- select from the menu "Search mode->advanced"\n'
+           '- insert code !820001 and press ENTER\n',
+  'expect': '- All codes less different from 820001 are showed',
+  'passed': True},
+ {'chapter_number': '4.58',
+  'title': 'search =',
+  'descr': '- select from the menu "Search mode->advanced"\n'
+           '- insert code =820012 and press ENTER',
+  'expect': '- Only the code 820012 (in all its revisions) is showed',
+  'passed': True},
+ {'chapter_number': '4.59',
+  'title': 'search =',
+  'descr': '- select from the menu "Search mode->advanced"\n'
+           '- insert Document = asm and press ENTER',
+  'expect': '- Only the assemblies revision are showed (revisions which have a '
+            "document with 'asm' in the filename)",
+  'passed': True},
+ {'chapter_number': '4.60', 'title': "'Search revision' color"},
+ {'level': 4,
+  'chapter_number': '4.60.1',
+  'title': 'Search revision color (prep)',
+  'prep': 'it is assumed the following configuration in bombrowser.ini:\n'
+          '\n'
+          'revlistcolors=\n'
+          '    gval1=COLOR,gval2=!A:fg=green\n'
+          '    gval1=COLOR,gval2=A:bg=pink\n'
+          '    gval1=COLOR,gval2=B:bold,fg=blue\n'
+          '    gval1=COLOR,gval2=C:italic\n'},
+ {'chapter_number': '4.60.2',
+  'title': 'Search for CODE-COLORS-xxx',
+  'descr': 'In search revision window (search mode= advanced), search for code '
+           '%COLOR%',
+  'expect': 'The CODE-COLORS-xxxx codes are showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.60.3',
+  'descr': 'Look at the color of the 1st row',
+  'expect': 'The first row (TEST-COLOR-A), bg=pink\n'
+            '(gval1=COLOR,gval2=A:bg=pink)',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.60.4',
+  'descr': 'Look at the color of the 2nd row',
+  'expect': 'The 2nd row (TEST-COLOR-B), fg=blue, bold\n'
+            '(gval1=COLOR,gval2=B:bold,fg=blue)',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.60.5',
+  'descr': 'Look at the color of the 3rd row',
+  'expect': 'The 3nd row (TEST-COLOR-C), fg=green, italic\n'
+            '(gval1=COLOR,gval2=C:italic, gval1=COLOR,gval2=!A:fg=green)',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '4.60.6',
+  'descr': 'Look at the color of 4th row',
+  'expect': 'The 4th row (TEST-COLOR-D), fg=green\n'
+            '(gval1=COLOR,gval2=!A:fg=green)',
+  'passed': True},
+ {'level': 2, 'chapter_number': '5', 'title': "'Code gui' panel"},
+ {'level': 3,
+  'chapter_number': '5.1',
+  'title': 'general',
+  'descr': '- In the "BOMBrowser - codes list" window insert code 8200%\n'
+           '- press ENTER\n'
+           '- Select the first entry (820000)',
+  'expect': 'on the left panel there are the information of the selected code '
+            '(check title and code)',
+  'passed': True},
+ {'chapter_number': '5.2',
+  'title': 'multiple revision',
+  'descr': '- In the "BOMBrowser - codes list" window insert code 8200%\n'
+           '- press ENTER\n'
+           '- sort by REV\n'
+           '- Select the most revisised entry (the latest one)\n'
+           '- Select another date in the rightmost combobox',
+  'expect': 'The information on the panel are changed accordly (check the '
+            'date)',
+  'passed': True},
+ {'chapter_number': '5.3',
+  'title': 'multiple revision (2)',
+  'descr': '- In the "BOMBrowser - codes list" window insert code 8200%\n'
+           '- press ENTER\n'
+           '- sort by REV\n'
+           '- Select the most revised entry (the latest one)\n',
+  'expect': 'The right combo box button, contains all the dates of the '
+            'revisions code (check with the date of the edit dialog)',
+  'passed': True},
+ {'chapter_number': '5.4',
+  'title': 'documents',
+  'descr': '- In the "BOMBrowser - codes list" window insert code 8200%\n'
+           '- press ENTER\n'
+           '- Select the 2nd entry (820001)',
+  'expect': 'In the bottom part are showed two buttons with two documens',
+  'passed': True},
+ {'chapter_number': '5.5',
+  'title': 'documents (2x)',
+  'descr': '- In the "BOMBrowser - codes list" window insert code 8200%\n'
+           '- press ENTER\n'
+           '- Select the 2nd entry (820001)\n'
+           '- Press a document button',
+  'expect': 'Clicking one button document, the related document is opened',
+  'passed': True},
+ {'chapter_number': '5.6',
+  'title': 'Copy info..',
+  'descr': '- In the "BOMBrowser - codes list" window insert code 8200%\n'
+           '- press ENTER\n'
+           '- Select the 2nd entry (820001)\n'
+           '- Press copy info button',
+  'expect': 'Pasting the clipboard content in a editor, the relevant '
+            'information are showed',
+  'passed': True},
+ {'chapter_number': '5.7',
+  'title': 'Check tool tip',
+  'descr': '- In the "BOMBrowser - codes list" window insert code 820000\n'
+           '- move the mouse pointer over the "Code - gui", drawing button',
+  'expect': '- a tooltip appears showing file name and full path',
+  'passed': True},
+ {'chapter_number': '5.8',
+  'title': 'RMB menu of drawing button',
+  'descr': '- In the "BOMBrowser - codes list" window insert code 820000\n'
+           '- move the mouse pointer over the Code gui drawings buttons, press '
+           'the RMB\n'
+           '- select "Open dir"',
+  'expect': '- the directory containing the file is opened',
+  'passed': True},
+ {'chapter_number': '5.9',
+  'title': 'RMB menu of drawing button',
+  'descr': '- In the "BOMBrowser - codes list" window insert code 820000\n'
+           '- move the mouse pointer over the Code, press the RMB\n'
+           '- select "Copy filename"\n'
+           '- paste it in an editor',
+  'expect': '- the filename is pasted',
+  'passed': True},
+ {'chapter_number': '5.10',
+  'title': 'RMB menu of drawing button',
+  'descr': '- In the "BOMBrowser - codes list" window insert code 820000\n'
+           '- move the mouse pointer over the Code, press the RMB\n'
+           '- select "Copy dirname"\n'
+           '- paste it in an editor',
+  'expect': '- the dirname is pasted',
+  'passed': True},
+ {'chapter_number': '5.11',
+  'title': 'RMB menu of drawing button',
+  'descr': '- In the "BOMBrowser - codes list" window insert code 820000\n'
+           '- move the mouse pointer over the Code, press the RMB\n'
+           '- select "Copy full path"\n'
+           '- paste it in an editor',
+  'expect': '- the full path (filename+dirname) is pasted',
+  'passed': True},
+ {'chapter_number': '5.12',
+  'title': 'RMB menu of drawing button',
+  'descr': '- In the "BOMBrowser - codes list" window insert code 820000\n'
+           '- move the mouse pointer over the Code, press the RMB\n'
+           '- select "Copy file"\n'
+           '- paste it in a folder',
+  'expect': '- the file is copied',
+  'passed': True},
+ {'chapter_number': '5.13',
+  'title': 'Long filename',
+  'descr': '- Set the parameter btnmaxlength=10\n'
+           '- In the "BOMBrowser - codes list" window insert code '
+           'TEST-LONG_FN\n'
+           '- look to the button label\n',
+  'expect': '- check that the filename is ended with "..."',
+  'passed': True},
+ {'chapter_number': '5.14',
+  'title': 'Long filename',
+  'descr': '- Set the parameter btnmaxlength=0\n'
+           '- In the "BOMBrowser - codes list" window insert code '
+           'TEST-LONG_FN\n'
+           '- look to the button label\n',
+  'expect': '- check that the filename is NOT ended with "..."',
+  'passed': True},
+ {'chapter_number': '5.15',
+  'title': 'URL',
+  'prep': 'Search the code CODE_WITH_URL',
+  'descr': 'In the code gui, move the mouse over the button with the URL',
+  'expect': 'A tool tip with URL and description will appear',
+  'passed': True},
+ {'after': 'True',
+  'chapter_number': '5.16',
+  'descr': 'Press the right mosuse button over the drawing button',
+  'expect': 'A menu showing "Copy description" and "Copy URL" is showed',
+  'passed': True},
+ {'after': 'True',
+  'chapter_number': '5.17',
+  'descr': 'Select "Copy description", then paste the clipboard on an editor',
+  'expect': 'The content pasted is the description',
+  'passed': True},
+ {'after': 'True',
+  'chapter_number': '5.18',
+  'descr': 'Select "Copy URL", then paste the clipboard on an editor',
+  'expect': 'The content pasted is the URL',
+  'passed': True},
+ {'after': 'True',
+  'chapter_number': '5.19',
+  'descr': 'Press the button with the URL',
+  'expect': 'A web browser is opened, pointing the URL',
+  'passed': True},
+ {'level': 2, 'chapter_number': '6', 'title': 'BOMBrowser - Assembly'},
+ {'level': 3,
+  'chapter_number': '6.1',
+  'title': 'select date',
+  'descr': '- insert code "820037" in "BOMBrowser - Code list"\n'
+           '- press the right mouse button on the first entry\n'
+           '- select the "Show assembly by date" command.\n'
+           '- "The BOMBrowser: Select Date" dialog is showed.\n'
+           '- Check that it is a modal-less dialog trying to click in the '
+           '"parent"  window menu',
+  'expect': 'The click can raise action (eg. open a menu)',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.2',
+  'descr': '- after the step above, press the cancel button',
+  'expect': '- the dialog disappear and the "codes list" window is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.3',
+  'descr': '- repeat the steps above until the "show assembly by date" dialog '
+           'appears\n'
+           '- Select the first item\n'
+           '- press the "Select" button.',
+  'expect': '- The "BOMBrowser - Assembly" window appears\n'
+            '- Check that the date in the window title is the same that you '
+            'selected',
+  'passed': True},
+ {'chapter_number': '6.4',
+  'title': 'show assembly',
+  'descr': '- insert code "810037" in "BOMBrowser - Code list"\n'
+           '- press the right mouse button on the first entry\n'
+           '- select the "Show assembly by date" command.\n'
+           '- press "Select"',
+  'expect': '- The "BOMBrowser - Assembly" window appears\n'
+            '- only one code (810037) is showed',
+  'passed': True},
+ {'chapter_number': '6.5',
+  'title': 'show assembly (2)',
+  'descr': '- insert code "820037" in "BOMBrowser - Code list"\n'
+           '- press the right mouse button on the first entry\n'
+           '- select the "Show assembly by date" command.\n'
+           '- "The BOMBrowser: Select Date" dialog is showed.\n'
+           '- Select the first item\n'
+           '- press the "Select" button".\n'
+           '- The Assembly window appears; Select an item which is an '
+           'assembly \n'
+           '- then RMB click and then execute "Show Assembly by date".',
+  'expect': 'A new "Select date" window is showed.',
+  'passed': True},
+ {'chapter_number': '6.6',
+  'title': 'where used (2)',
+  'descr': '- insert code "100000" in "BOMBrowser - Code list"\n'
+           '- press the right mouse button on the first entry\n'
+           '- select the "Show assembly by date" command.\n'
+           '- "The BOMBrowser: Select Date" dialog is showed.\n'
+           '- Select the first item, and press the "Select button". The '
+           'Assembly window appears\n'
+           '- Select a code below the top one(100000); then RMB and then '
+           'execute "Where used"',
+  'expect': 'a where used window appears',
+  'passed': True},
+ {'chapter_number': '6.7',
+  'title': 'valid where used (2)',
+  'descr': '- insert code "100000" in "BOMBrowser - Code list"\n'
+           '- press the right mouse button on the first entry\n'
+           '- select the "Show assembly by date" command.\n'
+           '- "The BOMBrowser: Select Date" dialog is showed.\n'
+           '- Select the first item, and press the "Select button". The '
+           'Assembly window\n'
+           'appears\n'
+           '- Select a code below the top one(100000); then RMB and then '
+           'execute\n'
+           '"Valid where used"',
+  'expect': 'a "valid where used" window appears',
+  'passed': True},
+ {'chapter_number': '6.8',
+  'title': 'menu->help->about',
+  'descr': 'In the menu select the Help and About subcommand',
+  'expect': 'The "about" dialog is showed. The dialog contains the current '
+            'version and the copyright code.',
+  'passed': True},
+ {'chapter_number': '6.9',
+  'title': 'menu->window',
+  'descr': '- insert code 820037 in "BOMBrowser - Codes list"\n'
+           '- press the right mouse button on the first entry\n'
+           '- select the "Show assembly by date" command\n'
+           '- select the first date doubleckicking on it.\n'
+           'Two windows are opened. Select the "Windows menu" in the '
+           '"BOMBrowser - Assembly" window:',
+  'expect': 'in the menu only one  window is showed: "BOM Browser - Codes '
+            'list".',
+  'passed': True},
+ {'chapter_number': '6.10',
+  'title': 'menu->file->close',
+  'descr': '- insert code 820037 in "BOMBrowser - Codes list"\n'
+           '- press the right mouse button on the first entry\n'
+           '- select the "Show assembly by date" command\n'
+           '- select the first date doubleckicking on it.\n'
+           '- Two windows are opened. Select the "File->Close" in the '
+           '"BOMBrowser - Assembly" window:',
+  'expect': 'The "BOMBrowser - Assembly" list is closed. "BOMBrowser - Codes '
+            'list" is opened.',
+  'passed': True},
+ {'chapter_number': '6.11',
+  'title': 'Test 3.14 -Ctrl-Q  menu->file->close',
+  'descr': '- insert code 820037 in "BOMBrowser - Codes list"\n'
+           '- press the right mouse button on the first entry\n'
+           '- select the "Show assembly by date" command\n'
+           '- select the first date doubleckicking on it.\n'
+           '- two windows are opened. Set the focus to the "BOMBrowser - '
+           'Assembly", then press CTRL-Q',
+  'expect': 'The "BOMBrowser - Assembly" is closed. "BOMBrowser - Codes list" '
+            'is opened.',
+  'passed': True},
+ {'chapter_number': '6.12',
+  'title': 'menu->file->exit',
+  'descr': '- insert code 820037 in "BOMBrowser - Codes list"\n'
+           '- press the right mouse button on the first entry\n'
+           '- select the "Show latest assembly" command\n'
+           '- Two windows are opened. Select the "File->Exit" in the '
+           '"BOMBrowser - Assembly" window:',
+  'expect': 'a dialog BOMBrowser asking about the possibility to exit is '
+            'showed.',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.13',
+  'descr': '- After the steops above,  Press No',
+  'expect': 'the assembly windows is NOT closed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.14',
+  'descr': '- After the steops above,  Select the "File->Exit" in the '
+           '"BOMBrowser - Assembly" window:\n'
+           '- a dialog BOMBrowser asking about the possibility to exit is '
+           'showed. Press yes',
+  'expect': 'The application is ended. No window is showed',
+  'passed': True},
+ {'chapter_number': '6.15',
+  'title': 'menu->file->exit',
+  'descr': '- insert code 820037 in "BOMBrowser - Codes list"\n'
+           '- press the right mouse button on the first entry\n'
+           '- select the "Show assembly by date" command\n'
+           '- select the first date doubleckicking on it.\n'
+           '- Two windows are opened. Press CTRL-X',
+  'expect': 'a dialog BOMBrowser asking about the possibility to exit is '
+            'showed.',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.16',
+  'descr': '- After the steops above,  Press No',
+  'expect': 'the assembly windows is NOT closed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.17',
+  'descr': '- Press CTRL-X again\n'
+           '- a dialog BOMBrowser asking about the possibility to exit is '
+           'showed. Press yes',
+  'expect': 'The application is ended. No window is showed',
+  'passed': True},
+ {'chapter_number': '6.18',
+  'title': 'menu->file->export as json',
+  'descr': '- insert code 820037 in "BOMBrowser - Codes list"\n'
+           '- press the right mouse button on the first entry\n'
+           '- select the "Show assembly by date" command\n'
+           '- select the first date doubleckicking on it.\n'
+           '- Select File->export as json\n'
+           '- Save the file and reopen it in a editor',
+  'expect': 'The file is in a JSON format',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.19',
+  'descr': 'Test description #2\n'
+           '- Select File->export bom...\n'
+           '- Save the file (with a .csv extension) and reopen it in a editor',
+  'expect': '- The file is in a CVS (SEMICOLON separated fields) format',
+  'passed': True},
+ {'chapter_number': '6.20',
+  'title': 'menu->view->show up level 1',
+  'descr': '- insert code 820099 in "BOMBrowser - Codes list"\n'
+           '- press the right mouse button on the first entry\n'
+           '- select the "Show assembly" command\n'
+           '- select the first date doubleckicking on it.\n'
+           '- Select View->show up level 1',
+  'expect': 'The bom is collapsed to showing only the first level (top code '
+            'and its children)',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.21',
+  'descr': '- Select View->show up level 2',
+  'expect': 'The bom is collapsed to showing only the two levels (top code and '
+            'its children, and their children)',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.22',
+  'descr': '- Select View->show all level',
+  'expect': 'The bom is showing all levels',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.23',
+  'descr': '- Press CTRL-1',
+  'expect': 'The bom is collapsed to showing only the first level (top code '
+            'and its children)',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.24',
+  'descr': '- Press CTRL-2',
+  'expect': 'The bom is collapsed to showing only the two levels (top code and '
+            'its children, and their children)',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.25',
+  'descr': '- Press CTRL-A',
+  'expect': 'The bom is showing all levels',
+  'passed': True},
+ {'id': 105,
+  'chapter_number': '6.26',
+  'title': 'Find',
+  'prep': '- insert code 820099 in "BOMBrowser - Codes list"\n'
+          '- press the right mouse button on the first entry\n'
+          '- select the "Show assembly by date" command\n'
+          '- select the first date doubleckicking on it.\n'
+          '- the BOMBrowser Assembly window is showed'},
+ {'level': 4,
+  'chapter_number': '6.26.1',
+  'title': 'find ctrl-f',
+  'prep_id': 105,
+  'descr': 'press CTRL-F',
+  'expect': 'The find dialog is showed',
+  'passed': True},
+ {'chapter_number': '6.26.2',
+  'title': 'find',
+  'prep_id': 105,
+  'descr': 'Select from the menu Search->Find',
+  'expect': 'The find dialog is showed',
+  'passed': True},
+ {'chapter_number': '6.26.3',
+  'title': 'cancel',
+  'prep_id': 105,
+  'descr': '- Select Search->Find\n'
+           '- The find dialog is showed\n'
+           '- Press "Close" button',
+  'expect': 'The find dialog is closed',
+  'passed': True},
+ {'chapter_number': '6.26.4',
+  'title': 'find a code',
+  'prep_id': 105,
+  'descr': '- Select Search->Find\n'
+           '- The find dialog is showed\n'
+           "- Insert the code '810092'\n"
+           '- Press "next" 3 times',
+  'expect': 'A different instance of the code 810092 is showed each time',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.26.5',
+  'descr': '- Press "prev" 2 times',
+  'expect': 'A different instance of the code 810092 is showed each time',
+  'passed': True},
+ {'id': 110,
+  'chapter_number': '6.26.6',
+  'title': 'find a code',
+  'prep': '- insert code 820099 in "BOMBrowser - Codes list"\n'
+          '- press the right mouse button on the first entry\n'
+          '- select the "Show assembly by date" command\n'
+          '- select the first date doubleckicking on it.\n'
+          '- the BOMBrowser Assembly window is showed',
+  'descr': '- Select Search->Find\n'
+           '- The find dialog is showed\n'
+           "- Insert the code '810092'\n"
+           '- Press "next" 5 times\n'
+           '- Press "prev" 5 times',
+  'expect': 'After the last action a dialog "Data not found" is showed',
+  'passed': True},
+ {'chapter_number': '6.26.7',
+  'title': 'find a code',
+  'prep_id': 110,
+  'descr': '- Select Search->Find\n'
+           '- The find dialog is showed\n'
+           "- Insert the code '810092'\n"
+           '- Press "next" going below the bom until a dialog "Data not found" '
+           'is showed',
+  'expect': 'After the last action a dialog "Data not found" is showed',
+  'passed': True},
+ {'level': 3,
+  'chapter_number': '6.27',
+  'title': 'show latest assembly',
+  'descr': '- in "Code list" window, select the code 820017\n'
+           '- select the code\n'
+           '- look at right panel codegui. Check that the "Date to" is blank\n'
+           '- if not, edit the code and change the "Date to" date accordling\n'
+           '- from the RBM menu select "Show latest assembly"',
+  'expect': '- The window "Assembly" is showed\n'
+            '- The date on the title is replaced by "LATEST"\n'
+            '- Each code listed, has the "date to" date empty',
+  'passed': True},
+ {'chapter_number': '6.28',
+  'title': 'show latest assembly',
+  'descr': '- in "Code list" window, select the code 100017\n'
+           '- select the code\n'
+           '- look at right panel codegui. Check that the "Date to" of the '
+           '**last revision** is **not** blank\n'
+           '- IF NOT, edit the code and change the "Date to" date accordling\n'
+           '- from the RBM menu select "Show latest assembly"',
+  'expect': '- The window "Assembly" is showed\n'
+            '- The date on the title is replaced by the "Date to" value',
+  'passed': True},
+ {'chapter_number': '6.29',
+  'title': 'Menu file -> export data',
+  'descr': '- open as "latest assembly" in Assembly window the code 820000\n'
+           '- Select File, then "Export data..."',
+  'expect': '- A "Export" dialog appear',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.30',
+  'descr': '- after the step above, press Close',
+  'expect': '- Nothing',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.31',
+  'descr': '- repeat the step above, but instead pressing Cancel, select a '
+           'directory and press "Export"',
+  'expect': '- In the selected folder, the assemblies files are copied',
+  'passed': True},
+ {'chapter_number': '6.32',
+  'title': 'Menu file -> export data with url',
+  'descr': '- open as "latest assembly" in Assembly window the code '
+           'TEST-ASSY-TO-EXPORT\n'
+           '- Select File, then "Export data..."\n'
+           '- Then in the new dialog press the "Export" button',
+  'expect': '- An error dialog appear, but without any reference to the '
+            'CODE_WITH_URL',
+  'passed': True},
+ {'chapter_number': '6.33', 'title': 'Show prototype assembly'},
+ {'id': 118,
+  'level': 4,
+  'chapter_number': '6.33.1',
+  'title': 'Show prototype assembly',
+  'prep': '- look at the code 610005 in the codes list window\n'
+          '- Check in the code gui right panel, that the code has two date and '
+          'that it is not a prototype',
+  'descr': '- look at the code 610005 in the codes list window\n'
+           '- From the RMB menu, select "Show prototype assembly"',
+  'expect': '- the assembly window is showed\n'
+            '- looking at the dates of the "code gui" right panel, for some '
+            'code the "prototype" date from is showed',
+  'passed': True},
+ {'chapter_number': '6.33.2',
+  'title': 'Show prototype assembly',
+  'prep_id': 118,
+  'descr': '- look at the code 610005 in the codes list window\n'
+           '- From the RMB menu, select "Show latest assembly"',
+  'expect': '- the assembly window is showed\n'
+            '- looking at the dates of the "code gui" right panel, for any '
+            "code the  'date to' is NOT showed: i.e. all code are not "
+            'prototype',
+  'passed': True},
+ {'level': 3,
+  'chapter_number': '6.34',
+  'title': 'Check for loop',
+  'descr': '- look at the code TEST-LOOP-A in the codes list window\n'
+           '- From the RMB menu, select "Show latest assembly"\n',
+  'expect': 'A dialog reporting a loop error is showed. The message suggeststo '
+            'execute menu->Tools->Check bom',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.35',
+  'descr': '- Select menu->Tools->Check bom',
+  'expect': "A report saying 'ERROR loop detected' is showed",
+  'passed': True},
+ {'chapter_number': '6.36', 'title': 'BOM Color'},
+ {'level': 4,
+  'chapter_number': '6.36.1',
+  'title': 'Bom color (prep)',
+  'prep': 'it is assumed the following configuration in bombrowser.ini:\n'
+          '\n'
+          'bomcolors=\n'
+          '    gval1=COLOR,gval2=!A:fg=green\n'
+          '    gval1=COLOR,gval2=A:bg=pink\n'
+          '    gval1=COLOR,gval2=B:bold,fg=blue\n'
+          '    gval1=COLOR,gval2=C:italic\n'
+          '    gval1=COLOR,gaval2=Q:fg=red\n'
+          '    gval1=COLOR,qty=10.0=Q:bg=black\n'
+          '    gval1=COLOR,*gval2=F,gval2=G:bg=#00FFFF,fg=black'},
+ {'chapter_number': '6.36.2',
+  'title': 'Bom color',
+  'descr': 'Show the latest assembly "TEST-COLOR-A"',
+  'expect': 'The first row (TEST-COLOR-A) is fg=black, bg=pink\n'
+            '(gval1=COLOR,gval2=A:bg=pink)',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.36.3',
+  'descr': 'Look at the bom color',
+  'expect': 'The 2nd row (TEST-COLOR-B) is fg=blue, bold\n'
+            '(gval1=COLOR,gval2=B:bold,fg=blue)',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.36.4',
+  'descr': 'Look at the bom color',
+  'expect': 'The 3rd row (TEST-COLOR-C) is fg=green, italic\n'
+            '(gval1=COLOR,gval2=C:italic, gval1=COLOR,gval2=!A:fg=green)',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.36.5',
+  'descr': 'Look at the bom color',
+  'expect': 'The 4th row (TEST-COLOR-D) is fg=green\n'
+            '(gval1=COLOR,gval2=!A:fg=green)',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.36.6',
+  'descr': 'Look at the bom color',
+  'expect': 'The 5th row (TEST-COLOR-E) is fg=green, bg=black\n'
+            '(gval1=COLOR,gval2=!A:fg=green, gval1=COLOR,qty=10.0=Q:bg=black)',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.36.7',
+  'descr': 'Look at the bom color',
+  'expect': 'The 6th row (TEST-COLOR-F) is fg=red, bg=black\n'
+            '(gval1=COLOR,gaval2=Q:fg=red, gval1=COLOR,qty=10.0=Q:bg=black)',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '6.36.8',
+  'descr': 'Look at the bom color',
+  'expect': 'The 7th row (TEST-COLOR-G) is fg=black, bg=cyan (#00ffff)\n'
+            '(gval1=COLOR,*gval2=F,gval2=G:bg=#00FFFF,fg=black)',
+  'passed': True},
+ {'level': 3,
+  'chapter_number': '6.37',
+  'title': 'Copy assembly',
+  'descr': '- Open the assembly "TEST-ASSY-TO-EXPORT"\n'
+           '- From the menu, select Edit->Copy BOM (Full table)\n'
+           '- Paste the clipboard in a text editor',
+  'expect': 'The content of the BOM is copied:\n'
+            '- The file paths are arranged to show only the file name (NOT the '
+            'path)\n'
+            '- The URL are showed as is\n',
+  'passed': True},
+ {'level': 2, 'chapter_number': '7', 'title': 'BOMBrowser - Valid where used'},
+ {'level': 3,
+  'chapter_number': '7.1',
+  'title': 'Test 4.1',
+  'descr': 'in the "Codes list" window search for the code 820017. Then '
+           'select  the right click menu command "Valid where used"',
+  'expect': '- the "valid where used" window is showed\n'
+            '- each code showed  has a "end to" date empty\n'
+            '- no code are repeated (at first level)',
+  'passed': True},
+ {'level': 2, 'chapter_number': '8', 'title': 'BOMBrowser - Where used'},
+ {'level': 3,
+  'chapter_number': '8.1',
+  'title': 'Test 5.1',
+  'descr': 'in the "Codes list" window search for the code 820017. Then '
+           'select  the right click menu command "Where used"',
+  'expect': '- the where used window is showed\n'
+            '- few codes showed (the top node doesn\'t matter) have a "end to" '
+            'date not empty. These code sometime are repeated',
+  'passed': True},
+ {'level': 2,
+  'chapter_number': '9',
+  'title': 'BOMBrowser - Select date',
+  'other': 'This test is covered by the ones of the Assembly window'},
+ {'chapter_number': '10', 'title': 'BOMBrowser - Diff window'},
+ {'level': 3,
+  'chapter_number': '10.1',
+  'title': 'diff the same code',
+  'descr': '- in the "Codes list" window search for the codes 82%.\n'
+           '- then select a code with multiple revision (e.g. 820012)\n'
+           '- then right click menu command "Diff from"',
+  'expect': '- a select date dialog is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '10.2',
+  'descr': '- after the previous step, select the **2nd** date\n'
+           '- then press select',
+  'expect': '- A small diff dialog is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '10.3',
+  'descr': '- after the previous step, select the same code in the codes list '
+           'window\n'
+           '- then right click menu command "Diff to"',
+  'expect': '- a select date dialog is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '10.4',
+  'descr': '- after the previous step, select the **1st** date\n'
+           '- then press select',
+  'expect': '- The previous small dialog is closed\n'
+            '- A new window called "Diff window" is showed\n'
+            '- In the title bar there are showed the codes and the two '
+            'selected date\n'
+            '- In the top part of the window there are showed the code and the '
+            'two selected date\n'
+            '- in the body of the windows it is showed the colorized diff of '
+            'the two boms',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '10.5',
+  'descr': '- search in the body window the selected code',
+  'expect': '- below the code are showed the differences between the code:\n'
+            '- the dates are different\n'
+            '- the iterations are different\n'
+            '- other differences are possible',
+  'passed': True},
+ {'chapter_number': '10.6',
+  'title': 'diff two different codes',
+  'descr': '- in the "Codes list" window search for the codes 82%.\n'
+           '- then select a code with multiple revision (e.g. 820012)\n'
+           '- then right click menu command "Diff from"',
+  'expect': '- a select date dialog is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '10.7',
+  'descr': '- after the previous step, select the **2nd** date\n'
+           '- then press select',
+  'expect': '- A small diff dialog is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '10.8',
+  'descr': '- after the previous step, select a different code (e.g. 820011) '
+           'in the codes list window\n'
+           '- then right click menu command "Diff to"',
+  'expect': '- a select date dialog is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '10.9',
+  'descr': '- after the previous step, select the **1st** date\n'
+           '- then press select',
+  'expect': '- The previous small dialog is closed\n'
+            '- A new window called "Diff window" is showed\n'
+            '- In the title bar there are showed the codes and the two '
+            'selected date\n'
+            '- In the top part of the window there are showed the code and the '
+            'two selected date\n'
+            '- in the body of the windows there is showed the colorized diff '
+            'of the two boms',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '10.10',
+  'descr': '- search in the body window the 1st selected code',
+  'expect': '- below the code are showed the differences between the code:\n'
+            '- the codes are different\n'
+            '- other differences are possible',
+  'passed': True},
+ {'chapter_number': '10.11',
+  'title': 'diff two different codes',
+  'descr': '- open a diff window as described in the previous test\n'
+           '- search in the body window the 1st selected code\n'
+           "- annotate which properties are marked with '-' and which one with "
+           "'+'\n"
+           "- press the button '<->'\n"
+           '- search in the body the 2nd selected code',
+  'expect': "- the previous values marked with '-' are marked with '+'\n"
+            "- the previous values marked with '+' are marked with '-'",
+  'passed': True},
+ {'chapter_number': '10.12',
+  'title': 'diff option: diff only top code',
+  'descr': '- open a diff window against two different *revision* of the code '
+           '820154\n'
+           '- check the checkbox "Diff only the top code"',
+  'expect': '- only the top code is showed\n'
+            "- the differents 'date_from' are showed (other fields may be "
+            'showed)',
+  'passed': True},
+ {'chapter_number': '10.13',
+  'title': 'diff option: diff only top code',
+  'descr': '- open a diff window against two codes:  - 820017\n'
+           '  - 820018\n'
+           '- check the checkbox "Diff only the top code"',
+  'expect': '- only the top code is showed\n'
+            "- the differents 'code' and 'descr' are showed (other fields may "
+            'be showed)',
+  'passed': True},
+ {'chapter_number': '10.14',
+  'title': 'diff option: diff only main attributes',
+  'descr': '- open a diff window against two different date of the code '
+           '820017\n'
+           '- check the checkbox "Diff only main attributes',
+  'expect': 'only the main attributes are showed:\n'
+            '- description\n'
+            '- qty\n'
+            '- code\n'
+            '- ver\n',
+  'passed': True},
+ {'chapter_number': '10.15',
+  'title': 'diff documents',
+  'prep': '- revise the code 810086\n'
+          '- in the edit dialog, remove the attached document',
+  'descr': '- diff the latest revisions with the previous one of the '
+           'code820086\n',
+  'expect': 'The diff dialog report that the documents set are different '
+            'between the two codes',
+  'passed': True},
+ {'level': 2, 'chapter_number': '11', 'title': 'BOMBrowser - Copy revise code'},
+ {'level': 3, 'chapter_number': '11.1', 'title': 'BOMBrowser - Copy code'},
+ {'level': 4,
+  'chapter_number': '11.1.1',
+  'title': 'Copy code select date dialog',
+  'descr': 'Test description\n'
+           '- insert code 820040 in the "BOMBrowser codes list" window\n'
+           '- press search\n'
+           '- press the right mouse button on the first entry and select "Copy '
+           'code..." command',
+  'expect': 'A "BOM Browser select date dialog" appears',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '11.1.2',
+  'descr': '- after the step above, press cancel',
+  'expect': '- the dialog disappears',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '11.1.3',
+  'descr': '- repeat the steps above until the appearing of the dialog\n'
+           '- press select',
+  'expect': 'The Copy windows appears',
+  'passed': True},
+ {'chapter_number': '11.1.4',
+  'title': 'date dialog',
+  'other': 'Integrated in 8.4'},
+ {'chapter_number': '11.1.5',
+  'title': 'Copy code window',
+  'descr': 'Test description\n'
+           '- insert code 820045 in the "BOMBrowser codes list" window\n'
+           '- press search\n'
+           '- press the right mouse button on the first entry and select "Copy '
+           'code..." command\n'
+           '- A "BOM Browser select date dialog" appears; double click on the '
+           '*first* entry',
+  'expect': '- The Copy windows appears\n'
+            '- the "old-Iter" are the same as the one selected in the "Select '
+            'date" window',
+  'passed': True},
+ {'chapter_number': '11.1.6',
+  'title': 'Copy code window',
+  'descr': 'Test description\n'
+           '- insert code 820045 in the "BOMBrowser codes list" window\n'
+           '- press search\n'
+           '- press the right mouse button on the first entry and select "Copy '
+           'code..." command\n'
+           '- A "BOM Browser select date dialog" appears; double click on the '
+           '*second* entry\n'
+           '- The Copy/revise windows appears',
+  'expect': 'the "Iter" are the same as the one selected in the "Select date" '
+            'window',
+  'passed': True},
+ {'chapter_number': '11.1.7', 'title': 'Copy code window'},
+ {'chapter_number': '11.1.8',
+  'title': 'Cancel',
+  'prep': '- insert code 820045 in the "BOMBrowser codes list" window\n'
+          '- press search\n'
+          '- press the right mouse button on the first entry and select "Copy '
+          'code..." command\n'
+          '- A "BOM Browser select date dialog" appears; double click on the '
+          '*first* entry\n'
+          '- The Copy windows appears',
+  'descr': 'press Close button',
+  'expect': 'an exit confirmation dialog will appears',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '11.1.9',
+  'descr': '- after the steps above, press **YES**',
+  'expect': 'the "Copy windows" is closed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '11.1.10',
+  'descr': '- repeat the steps above until the dialog appearance\n'
+           '- an exit confirmation dialog will appears; press **NO**',
+  'expect': 'the dialog is closed; the "Copy windows" is opened',
+  'passed': True},
+ {'id': 148,
+  'chapter_number': '11.1.11',
+  'title': 'Copy code window',
+  'prep': '- insert code 820040 in the "BOMBrowser codes list" window\n'
+          '- press search\n'
+          '- press the right mouse button on the first entry and select "Copy '
+          'code..." command\n'
+          '- A "BOM Browser select date dialog" appears; double click on the '
+          '*first* entry\n'
+          '- The Copy windows appears',
+  'descr': '- check the editability of the following fields: New/Code, '
+           'New/Iter, New/Description, New/Rev, New/Date from',
+  'expect': '*ONLY* the field New/Code, New/Description, New/Date from and '
+            'New/Rev are editable',
+  'passed': True},
+ {'chapter_number': '11.1.12',
+  'title': 'Copy code window',
+  'prep_id': 148,
+  'descr': '- check the field New/Iter',
+  'expect': 'The field New/Iter is 0',
+  'passed': True},
+ {'chapter_number': '11.1.13',
+  'title': 'Copy error',
+  'prep_id': 148,
+  'descr': '- check that the Old/code is equal to the new/code\n'
+           '- press "Copy code" button',
+  'expect': '- An error dialog appears saying that the code already exists\n'
+            '- pressing OK, the Copy  window still exists',
+  'passed': True},
+ {'chapter_number': '11.1.14',
+  'title': 'Confirmation dialog / success',
+  'prep_id': 148,
+  'descr': '- change the new/code in 82004A"\n'
+           '- unmark the checkbox "start edit dialog after copy/revision"\n'
+           '- press "Copy code" button\n'
+           '- A confirmation dialog appears; press no',
+  'expect': 'the  confirmation dialog disappear; the "BOMBrowser - copy  code" '
+            'windows is opened.',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '11.1.15',
+  'descr': '- after the steps above, pres again "Copy button"\n'
+           '- a confirmation dialog appears; press yes',
+  'expect': 'A successfull dialog appears',
+  'passed': True},
+ {'id': 155,
+  'chapter_number': '11.1.16',
+  'title': 'Confirmation dialog / success (2)',
+  'prep': '- insert code 820040 in the "BOMBrowser codes list" window\n'
+          '- press search\n'
+          '- press the right mouse button on the first entry and select "Copy '
+          'code..." command\n'
+          '- A "BOM Browser select date dialog" appears; double click on the '
+          '*first* entry\n'
+          '- The Copy windows appears',
+  'descr': '- mark the checkbox "start edit dialog after copy/revision"\n'
+           '- change the new/code in 82004B"\n'
+           '- press "Copy code" button\n'
+           '- A confirmation dialog appears; press yes',
+  'expect': '- The editor of the new code appears.\n'
+            '- There are attached document and a children list',
+  'passed': True},
+ {'chapter_number': '11.1.17',
+  'title': 'Confirmation dialog / success (3)',
+  'prep_id': 155,
+  'descr': '- change the new/code in 82004C"\n'
+           '- unmark the "Copy document" checkbox\n'
+           '- press "Copy code" button\n'
+           '- A confirmation dialog appears; press yes',
+  'expect': '- The editor of the new code appears.\n'
+            '- There are NOT attached document.\n'
+            '- There are children list.',
+  'passed': True},
+ {'chapter_number': '11.1.18',
+  'title': 'Copy a code / date error',
+  'prep_id': 155,
+  'descr': "- enter an incorrect date (eg. '99-99-1')\n"
+           '- press "Copy code" button',
+  'expect': '- An error dialog appears saying that the date format is '
+            'incorrect\n'
+            '- pressing OK, the Copy / Revise window still exists',
+  'passed': True},
+ {'chapter_number': '11.1.19',
+  'title': 'copy a code (in proto mode)',
+  'descr': '- copy the code "820041" from the code list window\n'
+           '- set the "new/code" field to a new one (i.e. it must no exist)\n'
+           '- check the button "P" ("Prototype")\n'
+           '- press "Copy code" button\n'
+           '- A confirmation dialog appears; press yes',
+  'expect': '- The editor of the code appears.\n'
+            '- The date in date selector reports only prototype\n'
+            '- There is only **one** date in the combobox list\n'
+            '- The date in the titlebar  reports prototype',
+  'passed': True},
+ {'level': 3, 'chapter_number': '11.2', 'title': 'BOMBrowser - Revise code'},
+ {'id': 500,
+  'level': 4,
+  'chapter_number': '11.2.1',
+  'title': 'Revise code window',
+  'prep': '- insert code 820040 in the "BOMBrowser codes list" window\n'
+          '- press search\n'
+          '- press the right mouse button on the first entry and select '
+          '"Revise code..." command\n'
+          '- A "BOM Browser select date dialog" appears; double click on the '
+          '*first* entry\n'
+          '- The Revise windows appears',
+  'descr': 'Check the editability of the following fields: New/Code, New/Iter, '
+           'New/Description, New/Rev, New/Date from',
+  'expect': '*ONLY* New/Description, New/date from and New/rev are editable',
+  'passed': True},
+ {'chapter_number': '11.2.2',
+  'title': 'Copy/revise code window',
+  'prep_id': 500,
+  'descr': 'check the field New/Iter',
+  'expect': 'The field New/Iter is Old/Iter + 1',
+  'passed': True},
+ {'chapter_number': '11.2.3',
+  'title': 'Revise a code / date error',
+  'prep_id': 500,
+  'descr': "- enter an incorrect date (eg. '99-99-1')\n"
+           '- press "Revise code" button',
+  'expect': '- An error dialog appears saying that the date format is '
+            'incorrect\n'
+            '- pressing OK, the Copy / Revise window still exists',
+  'passed': True},
+ {'chapter_number': '11.2.4',
+  'title': 'Revise a code / date error',
+  'prep_id': 500,
+  'descr': '- enter an date equal to the Old/Date from\n'
+           '- press "Revise code" button\n',
+  'expect': '- An error dialog appears saying that the date is earlier than '
+            'the old one\n'
+            '- pressing OK, the Copy / Revise window still exists',
+  'passed': True},
+ {'level': 3,
+  'chapter_number': '11.3',
+  'title': 'Revise a code',
+  'descr': '- revise the code "820042" from the code list window\n'
+           '- adjust the "new/from date" field to "old/from date" + 1 (or '
+           'more, in any case a value different from the default one)\n'
+           '- set the new/rev field to the default one + "bis_" as prefix\n'
+           '- set the "new/description" field to the default one + "bis_" as '
+           'prefix\n'
+           '- press "Revise code" button\n'
+           '- A confirmation dialog appears; press yes',
+  'expect': '- The editor of the code appears.\n'
+            '- There are attached document.\n'
+            '- There are children list.\n'
+            '- The "From date" in the revision list combobox is equal to the '
+            'one of the previous dialog\n'
+            '- The "Description" in the editor window is equal to the one of '
+            "the previous dialog (with 'bis_' as prefix)\n"
+            '- The "Rev" in the editor window is equal to the one of the '
+            "previous dialog (with 'bis_' as prefix)",
+  'passed': True},
+ {'chapter_number': '11.4',
+  'title': 'revise a code (in proto mode)',
+  'descr': '- revise the code "820041" from the code list window\n'
+           '- check the checkbox "Prototype"\n'
+           '- press "Revise code" button\n'
+           '- A confirmation dialog appears; press yes',
+  'expect': '- The editor of the code appears.\n'
+            '- The date in date selector reports also prototype',
+  'passed': True},
+ {'chapter_number': '11.5',
+  'title': 'revise a prototype code to prototype',
+  'descr': '- revise the code "820004" from the code list window (the code has '
+           'already a prototype revision, if not create a prototype revision)\n'
+           '- check the checkbox "Prototype"\n'
+           '- press "Revise code" button\n',
+  'expect': '- a dialog error reports that a prototype already exists',
+  'passed': True},
+ {'chapter_number': '11.6',
+  'title': 'revise a prototype code to not prototype',
+  'descr': '- revise the code "820004" from the code list window (the code has '
+           'already a prototype revision; if not create, a prototype '
+           'revision)\n'
+           'In the select date dialog select the 2nd date (NOT the prototype '
+           'one)\n'
+           '- set a date\n'
+           '- press "Revise code" button\n'
+           '- press Yes',
+  'expect': '- an edit dialog is showed\n'
+            '- check thet the new date exists before the prototype one',
+  'passed': True},
+ {'chapter_number': '11.7',
+  'title': 'Revise a code when some field will be reset',
+  'prep': '-Pay attention to have the following settings:\n'
+          '  gvalnames=\n'
+          '      [...]\n'
+          '      gval6:Mfg.2\n'
+          '      gval5:Mfg.2 PN\n'
+          '      [...]\n'
+          '  \n'
+          '  after_copy_set_values_to=\n'
+          '       gval6=\n'
+          '       gval5=ZZZZ\n'
+          '  \n'
+          '  after_revise_set_values_to=\n'
+          '       gval6=\n'
+          '       gval5=ZZZZ\n'
+          '  \n'
+          '- edit the code 810077, and set Mfg.2 to "aaa" and mfg2 PN to '
+          '"bbb"revise the code "820004"',
+  'descr': '- revise the code 810088',
+  'expect': '- in the edit dialog, check that the field Mfg.2 is empty and '
+            'Mfg.2 PN is equal to ZZZZ',
+  'passed': True},
+ {'chapter_number': '11.8',
+  'title': 'Copy a code when some field will be reset',
+  'prep': '-Pay attention to have the following settings:\n'
+          '  gvalnames=\n'
+          '      [...]\n'
+          '      gval6:Mfg.2\n'
+          '      gval5:Mfg.2 PN\n'
+          '      [...]\n'
+          '  \n'
+          '  after_copy_set_values_to=\n'
+          '       gval6=\n'
+          '       gval5=ZZZ\n'
+          '  \n'
+          '  after_revise_set_values_to=\n'
+          '       gval6=\n'
+          '       gval5=ZZZZ\n'
+          '  \n'
+          '- edit the code 810077, and set Mfg.2 to "aaa" and mfg2 PN to '
+          '"bbb"revise the code "820004"',
+  'descr': '- copy the code 810088 into 810088-bis',
+  'expect': '- in the edit dialog, check that the field Mfg.2 is empty and '
+            'Mfg.2 PN is equal to ZZZZ',
+  'passed': True},
+ {'chapter_number': '11.9',
+  'title': 'revise a code and its gavals',
+  'prep': '-Pay attention to have the following settings:\n'
+          '  gavalnames=\n'
+          '      [...]\n'
+          '      gaval1:Planned[clist:1;0]\n'
+          '      [...]\n'
+          '  \n'
+          '- edit the code 820078:\n'
+          '  - set "0" to the first two rows of the  children in column '
+          '"Planned"\n'
+          '  - set "1" to the 3rd row of the  children in column "Planned"\n',
+  'descr': '- revise the code 820078',
+  'expect': '- in the edit dialog, check that the field Planned of the '
+            'children\n'
+            '  are equal to the ones changed',
+  'passed': True},
+ {'id': 166,
+  'level': 2,
+  'chapter_number': '12',
+  'title': 'BomBrowser - Edit code',
+  'prep': '- insert code 820001 in the "BOMBrowser codes list" window\n'
+          '- press search\n'
+          '- press the right mouse button on the first entry and select "Edit '
+          'code..." command\n'
+          '- The Edit code windows appears'},
+ {'id': 167,
+  'level': 3,
+  'chapter_number': '12.1',
+  'title': 'Edit code / Rev field',
+  'prep_id': 166,
+  'descr': '- change the "rev" field prefixing it with "bis_"\n'
+           '- press "save..." button\n'
+           '- press "ok"\n'
+           '- press "close"\n'
+           '- reopen the edit window on the same code as described in the '
+           '"preparatory steps"',
+  'expect': 'the "rev" field is like the one changed',
+  'passed': True},
+ {'chapter_number': '12.2',
+  'title': 'Edit code / Default unit field',
+  'prep_id': 166,
+  'descr': '- change the "Default unit" field prefixing it with "bis_"\n'
+           '- press "save..." button\n'
+           '- press "ok"\n'
+           '- press "close"\n'
+           '- reopen the edit window on the same code as described in the '
+           '"preparatory steps"',
+  'expect': 'the "Default unit" field is like the one changed',
+  'passed': True},
+ {'chapter_number': '12.3',
+  'title': 'Edit code / Description field',
+  'prep_id': 166,
+  'descr': '- change the "Description" field prefixing it with "bis_"\n'
+           '- press "save..." button\n'
+           '- press "ok"\n'
+           '- press "close"\n'
+           '- reopen the edit window on the same code as described in the '
+           '"preparatory steps"',
+  'expect': 'the "Description" field is like the one changed',
+  'passed': True},
+ {'chapter_number': '12.4',
+  'title': 'Edit code / Generic properties field',
+  'prep_id': 167,
+  'descr': '- repeat the test above for all the "Generic properties" fields',
+  'expect': 'the "generic property" field is like the one changed',
+  'passed': True},
+ {'chapter_number': '12.5',
+  'title': 'Add/Del/View a drawing',
+  'prep_id': 166,
+  'descr': '- click with the RMB on the drawing list panel\n'
+           '- execute the command "add drawing", adding a file as drawing\n'
+           '- press "save..." button\n'
+           '- press "ok"\n'
+           '- press "close"\n'
+           '- reopen the edit window on the same code as described in the '
+           '"preparatory steps"',
+  'expect': 'the added drawing is still present',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.6',
+  'descr': '- click with the RMB on the drawing list panel\n'
+           '- drag and drop a file in the drawing panel\n'
+           '- press "save..." button\n'
+           '- press "ok"\n'
+           '- press "close"\n'
+           '- reopen the edit window on the same code as described in the '
+           '"preparatory steps"',
+  'expect': 'the added drawing is still present',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.7',
+  'descr': '- click with the RMB on the drawing list panel\n'
+           '- execute the command "add drawing", selecting MULTIPLE files\n'
+           '- press "save..." button\n'
+           '- press "ok"\n'
+           '- press "close"\n'
+           '- reopen the edit window on the same code as described in the '
+           '"preparatory steps"',
+  'expect': 'the added drawings are present',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.8',
+  'descr': '- click with the RMB on the drawing list panel\n'
+           '- execute the command "delete drawing" on a drawing\n'
+           '- press "save..." button\n'
+           '- press "ok"\n'
+           '- press "close"\n'
+           '- reopen the edit window on the same code as described in the '
+           '"preparatory steps"',
+  'expect': 'the removed drawing is not present',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.9',
+  'descr': '- click with the RMB on the drawing list panel\n'
+           '- execute the command "delete drawing" on mutiple drawings\n'
+           '- press "save..." button\n'
+           '- press "ok"\n'
+           '- press "close"\n'
+           '- reopen the edit window on the same code as described in the '
+           '"preparatory steps"',
+  'expect': 'the removed drawings are not present',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.10',
+  'descr': '- click with the RMB on the drawing list panel\n'
+           '- execute the command "view drawing" on a drawing',
+  'expect': 'the selected drawing is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.11',
+  'descr': '- doubleclick on a drawing in the drawing list panel',
+  'expect': 'the selected drawing is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.12',
+  'descr': '- select multiple drawings\n'
+           '- click with the RMB on the drawing list panel\n'
+           '- execute the command "view drawing" on a drawing',
+  'expect': 'the selected drawings are showed',
+  'passed': True},
+ {'chapter_number': '12.13',
+  'title': 'Copy multiple drawings',
+  'prep': '- insert code 820001 in the "BOMBrowser codes list" window\n'
+          '- press search\n'
+          '- press the right mouse button on the first entry and select "Edit '
+          'code..." command\n'
+          '- The Edit code windows appears\n'
+          '- insert code 820002 in the "BOMBrowser codes list" window\n'
+          '- press search\n'
+          '- press the right mouse button on the first entry and select "Edit '
+          'code..." command\n'
+          '- A second Edit code windows appears',
+  'descr': '- In the first edit window select multiple drawings\n'
+           '- click with the RMB on the drawings list\n'
+           '- execute the command "copy drawings lines"\n'
+           '- In the second edit window click with the RMB on the drawings '
+           'list\n'
+           '- execute the command "paste drawings lines"\n'
+           '- press "save..." button\n'
+           '- press "close"\n'
+           '- reopen the edit window on the 2n code as described in the '
+           '"preparatory steps"',
+  'expect': 'the copied drawings are present',
+  'passed': True},
+ {'chapter_number': '12.14',
+  'title': 'del single children',
+  'descr': '- click with the RMB on the children list panel\n'
+           '- execute the command "delete row" on a line\n'
+           '- press "save..." button\n'
+           '- press "ok"\n'
+           '- press "close"\n'
+           '- reopen the edit window on the same code as described in the '
+           '"preparatory steps"',
+  'expect': 'the removed item is not present',
+  'passed': True},
+ {'chapter_number': '12.15',
+  'title': 'del multiple children',
+  'descr': '- click with the RMB on the children list panel\n'
+           '- execute the command "delete row" on multiple lines\n'
+           '- press "save..." button\n'
+           '- press "ok"\n'
+           '- press "close"\n'
+           '- reopen the edit window on the same code as described in the '
+           '"preparatory steps"',
+  'expect': 'the removed items are not present',
+  'passed': True},
+ {'chapter_number': '12.16',
+  'title': 'Copy multiple children',
+  'prep': '- insert code 820001 in the "BOMBrowser codes list" window\n'
+          '- press search\n'
+          '- press the right mouse button on the first entry and select "Edit '
+          'code..." command\n'
+          '- The Edit code windows appears\n'
+          '- insert code 820002 in the "BOMBrowser codes list" window\n'
+          '- press search\n'
+          '- press the right mouse button on the first entry and select "Edit '
+          'code..." command\n'
+          '- A second Edit code windows appears',
+  'descr': '- In the first edit window select multiple children\n'
+           '- click with the RMB on the children list\n'
+           '- execute the command "copy lines"\n'
+           '- In the second edit window click with the RMB on the children '
+           'list\n'
+           '- execute the command "paste lines"\n'
+           '- press "save..." button\n'
+           '- press "close"\n'
+           '- reopen the edit window on the 2n code as described in the '
+           '"preparatory steps"',
+  'expect': 'the copied children are present',
+  'passed': True},
+ {'chapter_number': '12.17',
+  'title': 'add a child',
+  'prep_id': 166,
+  'descr': '- click with the RMB on the children list panel\n'
+           '- execute the command "insert row after" on a line\n'
+           '- in the new line insert an (existant) code in the "code" column\n'
+           '- the field "code-id" and "description" will autocomplete\n'
+           '- press "save..." button\n'
+           '- press "ok"\n'
+           '- press "close"\n'
+           '- reopen the edit window on the same code as described in the '
+           '"preparatory steps"',
+  'expect': 'the added item is present',
+  'passed': True},
+ {'chapter_number': '12.18',
+  'title': 'add a child',
+  'prep_id': 166,
+  'descr': '- click with the RMB on the children list panel\n'
+           '- execute the command "insert row before" on a line\n'
+           '- in the new line insert an (existant) code in the "code" column\n'
+           '- the field "code-id" and "description" will autocomplete\n'
+           '- press "save..." button\n'
+           '- press "ok"\n'
+           '- press "close"\n'
+           '- reopen the edit window on the same code as described in the '
+           '"preparatory steps"',
+  'expect': 'the added item is present',
+  'passed': True},
+ {'chapter_number': '12.19',
+  'title': 'add multiple child',
+  'prep_id': 166,
+  'descr': '- click with the RMB on the children list panel\n'
+           '- select multiple lines\n'
+           '- execute the command "insert row before" on a line\n',
+  'expect': 'Multiple lines are inserted. The number of lines are equal\n'
+            'to the selected ones.',
+  'passed': True},
+ {'chapter_number': '12.20',
+  'title': 'non existant code',
+  'prep_id': 166,
+  'descr': '- in the children panel, try to change a code in a row with a non '
+           "existant code (like 'z')",
+  'expect': 'the cell changed is yellow',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.21',
+  'descr': '- press "save"',
+  'expect': 'an error dialog appears saying that there is an error in "...the '
+            'code \'...\' in row..."',
+  'passed': True},
+ {'chapter_number': '12.22',
+  'title': 'duplicate code',
+  'prep_id': 166,
+  'descr': '- in the children panel, try to change a code in a row with a '
+           'already existant code (like the previous one or the next one)\n'
+           '- press "save" button',
+  'expect': 'an error dialog is showed, saying that there is a duplicate code',
+  'passed': True},
+ {'chapter_number': '12.23',
+  'title': 'wrong qty',
+  'prep_id': 166,
+  'descr': "- in the children panel, try to change the 'qty' field in a row "
+           'with a non number value',
+  'expect': 'the cell become yellow',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.24',
+  'descr': '- press "save"',
+  'expect': 'an error dialog appears saying that the value is incorrect',
+  'passed': True},
+ {'id': 184,
+  'chapter_number': '12.25',
+  'title': 'wrong each',
+  'prep_id': 166,
+  'descr': "- in the children panel, try to change the 'each' field in a row "
+           'with a non number value',
+  'expect': 'the cell become yellow',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.26',
+  'descr': '- press "save"',
+  'expect': 'an error dialog appears saying that the value is incorrect',
+  'passed': True},
+ {'chapter_number': '12.27',
+  'title': 'sorting',
+  'prep_id': 166,
+  'descr': '- in the children panel, change the row sequence sort by code '
+           '(click on the "code" column header)\n'
+           '- take note of the "seq" column values\n'
+           '- remove a row',
+  'expect': 'the seq values are reordered on the basis of the current '
+            'sequence.',
+  'passed': True},
+ {'chapter_number': '12.28',
+  'title': 'sorting',
+  'prep_id': 166,
+  'descr': '- in the children panel, change the row sequence sort by code '
+           '(click on the "code" column header)\n'
+           '- take note of the "seq" column values\n'
+           '- do an "insert row before"',
+  'expect': 'the seq values are reordered on the basis of the current '
+            'sequence.',
+  'passed': True},
+ {'chapter_number': '12.29',
+  'title': 'sorting',
+  'prep_id': 166,
+  'descr': '- in the children panel, change the row sequence sort by code '
+           '(click on the "code" column header)\n'
+           '- take note of the "seq" column values\n'
+           '- do an "insert row after"',
+  'expect': 'the seq values are reordered on the basis of the current '
+            'sequence.',
+  'passed': True},
+ {'chapter_number': '12.30',
+  'title': 'Move the children UP',
+  'prep_id': 166,
+  'descr': '- in the children panel select one line in the middle\n'
+           '- press UP button',
+  'expect': 'the selected line is moved up of one line',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.31',
+  'descr': '- in the children panel select the first line\n- press UP button',
+  'expect': 'nothing is changed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.32',
+  'descr': '- in the children panel select the first lineS\n- press UP button',
+  'expect': 'nothing is changed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.33',
+  'descr': '- in the children panel select some lines in the middle\n'
+           '- press UP button',
+  'expect': 'the lines are moved up of one line',
+  'passed': True},
+ {'chapter_number': '12.34',
+  'title': 'Move the children DOWN',
+  'prep_id': 166,
+  'descr': '- in the children panel select one line in the middle\n'
+           '- press DOWN button',
+  'expect': 'the selected line is moved down of one line',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.35',
+  'descr': '- in the children panel select the last line\n- press DOWN button',
+  'expect': 'nothing is changed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.36',
+  'descr': '- in the children panel select the last lines\n- press DOWN button',
+  'expect': 'nothing is changed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.37',
+  'descr': '- in the children panel select some lineS in the middle\n'
+           '- press DOWN button',
+  'expect': 'the lines are moved down of one line',
+  'passed': True},
+ {'chapter_number': '12.38',
+  'title': 'Move the children to the TOP',
+  'prep_id': 166,
+  'descr': '- in the children panel select one line in the middle\n'
+           '- press TOP button',
+  'expect': 'the selected line is moved to the TOP',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.39',
+  'descr': '- in the children panel select the first line\n- press TOP button',
+  'expect': 'nothing is changed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.40',
+  'descr': '- in the children panel select the first lines\n- press TOP button',
+  'expect': 'nothing is changed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.41',
+  'descr': '- in the children panel select some lines in the middle\n'
+           '- press TOP button',
+  'expect': 'the lines are moved to the TOP',
+  'passed': True},
+ {'chapter_number': '12.42',
+  'title': 'Move the children BOTTOM',
+  'prep_id': 166,
+  'descr': '- in the children panel select one line in the middle\n'
+           '- press BOTTOM button',
+  'expect': 'the selected line is to the bottom',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.43',
+  'descr': '- in the children panel select the last line\n'
+           '- press BOTTOM button',
+  'expect': 'nothing is changed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.44',
+  'descr': '- in the children panel select the last lines\n'
+           '- press BOTTOM button',
+  'expect': 'nothing is changed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.45',
+  'descr': '- in the children panel select some lines in the middle\n'
+           '- press BOTTOM button',
+  'expect': 'the lines are moved to the bottom',
+  'passed': True},
+ {'chapter_number': '12.46',
+  'title': 'Edit code / File -> close',
+  'prep_id': 166,
+  'descr': '- select the menu File->close',
+  'expect': 'the edit window is closed',
+  'passed': True},
+ {'chapter_number': '12.47',
+  'title': 'Edit code / File -> exit',
+  'prep_id': 166,
+  'descr': '- select the menu File->exit',
+  'expect': 'a dialog is opened asking if you want to exit from application',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.48',
+  'descr': '- press no',
+  'expect': 'the dialog is closed, the edit windows is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.49',
+  'descr': '- repeat the steps above and instead of pressing no press yes',
+  'expect': 'the application is closed, no window is opened',
+  'passed': True},
+ {'chapter_number': '12.50',
+  'title': 'Edit code / CTRL-Q',
+  'prep_id': 166,
+  'descr': '- Press CTRL-Q',
+  'expect': 'the edit window is closed',
+  'passed': True},
+ {'chapter_number': '12.51',
+  'title': 'Edit code / Windows',
+  'prep_id': 166,
+  'descr': '- select the menu Windows menu',
+  'expect': 'the opened windows are showed (with the except of the current '
+            'one)',
+  'passed': True},
+ {'chapter_number': '12.52',
+  'title': 'Edit code / Help->about',
+  'prep_id': 166,
+  'descr': '- select the menu Help->about menu',
+  'expect': 'the about dialog is showed',
+  'passed': True},
+ {'chapter_number': '12.53',
+  'title': 'search code',
+  'prep_id': 166,
+  'descr': '- click with the RMB on the children list panel\n'
+           '- execute the command "search code" on a line',
+  'expect': 'The "BOMBrowser - Search code" dialog appears',
+  'passed': True},
+ {'id': 197,
+  'chapter_number': '12.54',
+  'title': 'search code',
+  'prep_id': 166,
+  'descr': '- click with the RMB on the children list panel\n'
+           '- execute the command "search code" on a line\n'
+           '- The "BOMBrowser - Search code" dialog appears\n'
+           '- search for a code in the dialog (e.g 810001)\n'
+           '- select the first result\n'
+           '- press OK',
+  'expect': 'the dialog is closed and the new code replaces the old one',
+  'passed': True},
+ {'chapter_number': '12.55',
+  'title': 'search code',
+  'prep_id': 166,
+  'descr': '- click with the RMB on the children list panel\n'
+           '- execute the command "search code" on a line\n'
+           '- The "BOMBrowser - Search code" dialog appears\n'
+           '- search for a code in the dialog (e.g 810007)\n'
+           '- press Cancel',
+  'expect': '- the dialog is closed\n'
+            "- the new code **didn't** replace the original one",
+  'passed': True},
+ {'id': 199,
+  'chapter_number': '12.56',
+  'title': 'delete revision',
+  'prep': '- Take a code from the code list gui, copy it (to avoid problem '
+          'about the parent dates)\n'
+          '- take this copy, and revise it 3 times (changing the from date to '
+          'avoid conflicts)\n'
+          '- Edit this code\n',
+  'descr': '- From menu -> edit, select delete item revision',
+  'expect': 'a confirmation dialog is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.57',
+  'descr': '- press no',
+  'expect': 'nothing happened',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.58',
+  'descr': '- From menu -> edit, select delete item revision\n'
+           '- a confirmation dialog is showed, press yes',
+  'expect': '- a comfirmation dialog is showed, saying that the revision is '
+            'deleted. Press ok.\n'
+            '- the previous selected revision is removed',
+  'passed': True},
+ {'chapter_number': '12.59',
+  'title': 'delete revision',
+  'prep_id': 199,
+  'descr': '- From menu -> edit, select delete revision\n'
+           '- repeat the step above until only one revision is present\n'
+           '- From menu -> edit, select delete revision (again)',
+  'expect': 'an error dialog box is showed saying that it is not possible to '
+            'delete the last revision',
+  'passed': True},
+ {'chapter_number': '12.60',
+  'title': 'delete revision',
+  'prep_id': 197,
+  'descr': '- Enter in the edit dates window, and insert a valid "end to" date '
+           'in the first row. Then save the results\n'
+           '- From the edit window, delete the first revision\n'
+           '- Delete the last revision',
+  'expect': '- after the deletes, the code "from date" is the same of the '
+            'previous first revision\n'
+            '- the final "to date" are the same of the previous last revision',
+  'passed': True},
+ {'chapter_number': '12.61',
+  'title': 'delete code',
+  'prep_id': 199,
+  'descr': '- Take a code from the code list gui, copy it (to avoid problem '
+           'about the parent dates)\n'
+           '- Edit this code\n'
+           '- From the menu->edit select "delete code"',
+  'expect': 'a confirmation dialog appears',
+  'passed': True},
+ {'chapter_number': '12.62',
+  'title': 'delete code',
+  'prep_id': 199,
+  'descr': '- Take a code from the code list gui, copy it (to avoid problem '
+           'about the parent dates)\n'
+           '- Edit this code\n'
+           '- From the menu->edit select "delete code"\n'
+           '- a confirmation dialog appears, press no',
+  'expect': 'nothing happened',
+  'passed': True},
+ {'chapter_number': '12.63',
+  'title': 'delete code',
+  'prep_id': 199,
+  'descr': '- Take a code from the code list gui, copy it (to avoid problem '
+           'about the parent dates)\n'
+           '- Edit this code\n'
+           '- From the menu->edit select "delete code"\n'
+           '- a confirmation dialog appears, press yes',
+  'expect': '- a confirmation dialog appears, press ok\n'
+            '- the edit dialog is not showed anymore',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.64',
+  'descr': '- search for the deleted code',
+  'expect': '- the code is not showed anymore',
+  'passed': True},
+ {'id': 208,
+  'chapter_number': '12.65',
+  'title': 'change revision',
+  'prep': '- Take a code from the code list gui with multiple revision\n'
+          '- Edit this code\n',
+  'descr': '- Acting to the "From/to date" QComboBox, change the revision of '
+           'the code\n'
+           '- in parallel make one change in a field for each revision (insert '
+           'the from date to help the test) and press Save\n'
+           '- repeat the step above for each revision\n'
+           '- Acting to the "From/to date" QComboBox, change the revision of '
+           'the code',
+  'expect': '- The dialog show for each revision the change performed in the '
+            'step above\n'
+            '- The dialog title reflects the code date',
+  'passed': True},
+ {'chapter_number': '12.66',
+  'title': 'change revision without saving',
+  'prep_id': 208,
+  'descr': '- make one change in the Description field\n'
+           ' - Acting to the "From/to date" QComboBox, change the date of the '
+           'code',
+  'expect': '- An dialog is showed saying that the form was changed and asking '
+            'if you want to save.',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.67',
+  'descr': '- press no',
+  'expect': '- the confirmation dialog is closed\n'
+            '- the revision is changed\n'
+            '- the change is lost\n',
+  'passed': True},
+ {'chapter_number': '12.68',
+  'title': 'change revision without saving',
+  'prep_id': 208,
+  'descr': '- make one change in the Description field\n'
+           ' - Acting to the "From/to date" QComboBox, change the date of the '
+           'code',
+  'expect': '- An dialog is showed saying that the form was changed and asking '
+            'if you want to save.',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.69',
+  'descr': '- press cancel',
+  'expect': '- the dialog is closed\n'
+            '- the revision is **not** changed\n'
+            '- the change is still here\n',
+  'passed': True},
+ {'chapter_number': '12.70',
+  'title': 'change revision without saving',
+  'prep_id': 208,
+  'descr': '- make one change in the Description field\n'
+           ' - Acting to the "From/to date" QComboBox, change the date of the '
+           'code',
+  'expect': '- An dialog is showed saying that the form was changed and asking '
+            'if you want to save.',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.71',
+  'descr': '- press yes',
+  'expect': '- the dialog is closed\n'
+            '- the revision is changed\n'
+            '- the change was saved\n',
+  'passed': True},
+ {'chapter_number': '12.72',
+  'title': 'Make a change without saving',
+  'prep_id': 208,
+  'descr': '- make one change in a field\n- press Close',
+  'expect': '- An dialog is showed saying that the form was changed and asking '
+            'if you want to save.\n',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.73',
+  'descr': '- Press **cancel**',
+  'expect': '- The previous window is showed. the change is not lost',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.74',
+  'descr': '- repeat the test until the dialog is showed\n- Press **no**',
+  'expect': '- The edit window is closed\n'
+            '- reopening the edit window, check that the change was **not** '
+            'saved',
+  'passed': True},
+ {'chapter_number': '12.75',
+  'title': 'Make a change  saving',
+  'prep_id': 208,
+  'descr': '- make one change in a field\n- press Close',
+  'expect': '- An dialog is showed saying that the form was changed and asking '
+            'if you want to save.\n',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.76',
+  'descr': '- Press **yes**',
+  'expect': '- The edit window is closed\n'
+            '- reopening the edit window, check that the change was saved',
+  'passed': True},
+ {'chapter_number': '12.77',
+  'title': 'remove a child without saving',
+  'prep_id': 166,
+  'descr': '- remove an item in the children section\n- press close button',
+  'expect': '- An dialog is showed saying that the form was changed and asking '
+            'if you want to save.\n',
+  'passed': True},
+ {'chapter_number': '12.78',
+  'title': 'insert a child without saving',
+  'prep_id': 166,
+  'descr': '- insert (before) item in the children section\n'
+           '- press close button',
+  'expect': '- An dialog is showed saying that the form was changed and asking '
+            'if you want to save.\n',
+  'passed': True},
+ {'chapter_number': '12.79',
+  'title': 'insert a child  without saving',
+  'prep_id': 166,
+  'descr': '- insert (after) item in the children section\n'
+           '- press close button',
+  'expect': '- An dialog is showed saying that the form was changed and asking '
+            'if you want to save.\n',
+  'passed': True},
+ {'chapter_number': '12.80',
+  'title': 'change child without saving',
+  'prep_id': 166,
+  'descr': '- do a "search code" over an item in the children section\n'
+           '- press "ok button\n'
+           '- press "close"',
+  'expect': '- An dialog is showed saying that the form was changed and asking '
+            'if you want to save.\n',
+  'passed': True},
+ {'chapter_number': '12.81',
+  'title': 'add drawing without saving',
+  'prep_id': 166,
+  'descr': '- do an "add drawing" in the drawings section\n'
+           '- press close button',
+  'expect': '- An dialog is showed saying that the form was changed and asking '
+            'if you want to save.\n',
+  'passed': True},
+ {'chapter_number': '12.82',
+  'title': 'remove a drawing without saving',
+  'prep_id': 166,
+  'descr': '- do an "delete drawing" in the drawings section\n'
+           '- press close button',
+  'expect': '- An dialog is showed saying that the form was changed and asking '
+            'if you want to save.\n',
+  'passed': True},
+ {'chapter_number': '12.83',
+  'title': 'add a duplicated code',
+  'prep_id': 166,
+  'descr': '- add a two new equal children code\n- press save',
+  'expect': '- An error dialog is showed  saying that there is a code '
+            'duplication',
+  'passed': True},
+ {'id': 222,
+  'chapter_number': '12.84',
+  'title': 'add a code to an empty children list',
+  'prep': '- Take a code from the code list gui without children (eg an 8100xx '
+          'code)\n'
+          '- Edit this code\n',
+  'descr': '- add a new child code, using the RBM menu\n'
+           '- a new line in added\n'
+           '- insert a new child',
+  'expect': '- the code is added to the child list',
+  'passed': True},
+ {'chapter_number': '12.85',
+  'title': 'exit without saving',
+  'prep_id': 222,
+  'descr': '- close the window (click on the upper right "X" icon)',
+  'expect': '- the edit window closes itself',
+  'passed': True},
+ {'chapter_number': '12.86',
+  'title': 'exit without saving',
+  'prep_id': 222,
+  'descr': '- change a field in the edit window\n'
+           '- close the window (click on the upper right "X" icon)',
+  'expect': '- An dialog is showed saying that the form was changed and asking '
+            'if you want to save.\n',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.87',
+  'descr': '- Press **cancel**',
+  'expect': '- the edit window is still opened',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.88',
+  'descr': '- Repeat the steps of test #2\n- Press no',
+  'expect': '- the edit window closes itself',
+  'passed': True},
+ {'chapter_number': '12.89',
+  'title': 'Code Properties (file)',
+  'prep': 'For the following tests it is assumed that the following\n'
+          'fields are present in bombrowser.ini\n'
+          'gvalnames=\n'
+          '     [...]\n'
+          '     gval7:TestFile[file]\n'
+          '     gval8:Test2[list:T2V1;T2V2;T2V3,with space and comma]\n'
+          '     gval9:Trans.[clist:;T]\n'
+          '[...]\n'
+          'gavalnames=\n'
+          '    [...]\n'
+          '    gaval1:Planned[clist:1;0]\n',
+  'descr': '- Open the edit window on the code 810001\n'
+           '- Locate the field "TestFile"\n'
+           '- Press the "..." button',
+  'expect': '- The Open file dialog opens',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.90',
+  'descr': '- press cancel',
+  'expect': '- The Open file dialog closes\n- The fields remains empty',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.91',
+  'descr': '- press "..." button again\n- Select a file then press Open\n',
+  'expect': '- The Open file dialog closes\n'
+            '- The fields contains the file path',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.92',
+  'descr': '- press the Save button\n'
+           '- press the close button\n'
+           '- re-open the edit window on the same code\n',
+  'expect': '- The fields still contains the value selected',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.93',
+  'descr': '- change the value of the field typing directly in the line edit '
+           'widget\n'
+           '- press the Save button\n'
+           '- press the close button\n'
+           '- re-open the edit window on the same code\n',
+  'expect': '- The fields still contains the value selected',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.94',
+  'descr': '- change the value of the field \n- press the close button\n',
+  'expect': '- An dialog is showed saying that the form was changed and asking '
+            'if you want to save.\n',
+  'passed': True},
+ {'chapter_number': '12.95',
+  'title': 'Code Properties (list)',
+  'prep': 'For the following tests it is assumed that the following\n'
+          'fields are present in bombrowser.ini\n'
+          'gvalnames=\n'
+          '     [...]\n'
+          '     gval7:TestFile[file]\n'
+          '     gval8:Test2[list:T2V1;T2V2;T2V3,with space and comma]\n'
+          '     gval9:Trans.[clist:;T]\n'
+          '[...]\n'
+          'gavalnames=\n'
+          '    [...]\n'
+          '    gaval1:Planned[clist:1;0]\n',
+  'descr': '- Open the edit window on the code 810001\n'
+           '- Locate the field "Test2"\n'
+           '- Press the "..." button',
+  'expect': '- The list box dialog opens',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.96',
+  'descr': '- press in the text field (NOT in the list box)\n'
+           '- Press the "..." button\n'
+           '- press in the text field (NOT in the list box)',
+  'expect': '- The dialog closes\n- The fields remains empty',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.97',
+  'descr': '- press "..." button again\n- Select a value\n',
+  'expect': '- The fields contains the value selected',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.98',
+  'descr': '- press the Save button\n'
+           '- press the close button\n'
+           '- re-open the edit window on the same code\n',
+  'expect': '- The fields still contains the value selected',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.99',
+  'descr': '- change the value of the field typing directly in the line edit '
+           'widget\n'
+           '- press the Save button\n'
+           '- press the close button\n'
+           '- re-open the edit window on the same code\n',
+  'expect': '- The fields still contains the value selected',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.100',
+  'descr': '- change the value of the field \n- press the close button\n',
+  'expect': '- An dialog is showed saying that the form was changed and asking '
+            'if you want to save.\n',
+  'passed': True},
+ {'chapter_number': '12.101',
+  'title': 'Code Properties (clist)',
+  'prep': 'For the following tests it is assumed that the following\n'
+          'fields are present in bombrowser.ini\n'
+          'gvalnames=\n'
+          '     [...]\n'
+          '     gval7:TestFile[file]\n'
+          '     gval8:Test2[list:T2V1;T2V2;T2V3,with space and comma]\n'
+          '     gval9:Transparent[clist:0;1]\n'
+          '[...]\n'
+          'gavalnames=\n'
+          '    [...]\n'
+          '    gaval1:Planned[clist:1;0]\n',
+  'descr': '- Open the edit window on the code 810001\n'
+           '- Locate the field "Transparent"\n'
+           '- Press the button near',
+  'expect': '- The list box dialog opens',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.102',
+  'descr': '- press elsewhere',
+  'expect': '- The menu closes\n- The fields remains empty',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.103',
+  'descr': '- press button again\n- Select a value\n',
+  'expect': '- The fields contains the value selected',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.104',
+  'descr': '- press the Save button\n'
+           '- press the close button\n'
+           '- re-open the edit window on the same code\n',
+  'expect': '- The fields still contains the value selected',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.105',
+  'descr': '- change the value of the field \n- press the close button\n',
+  'expect': '- An dialog is showed saying that the form was changed and asking '
+            'if you want to save.\n',
+  'passed': True},
+ {'chapter_number': '12.106',
+  'title': 'Two changes at the same time',
+  'prep': 'Open two Edit windows of the same code',
+  'descr': '- change a parameter (e.g. rev) in the first edit window\n'
+           '- do a save in the first edit window\n'
+           '- close the first edit window\n'
+           '- change the same parameter (rev) in the *second* edit window\n'
+           '  in a different way\n'
+           '- do a save in the second edit window',
+  'expect': 'A dialog showing "The data was changed by another user. Are you '
+            'sure to overwrite it ?"\n'
+            'appears',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '12.107',
+  'descr': '- after the dialog is showed, press YES\n'
+           '- check that the parameter changed in the code is equal to the '
+           'second change',
+  'expect': '- the edit window closed\n'
+            '- the parameter changed was updated according to the second '
+            'change',
+  'passed': True},
+ {'chapter_number': '12.108',
+  'title': 'Two changes at the same time',
+  'prep': 'Open two Edit windows of the same code',
+  'descr': '- change a parameter (e.g. rev) in the first edit window\n'
+           '- do a save in the first edit window\n'
+           '- close the first edit window\n'
+           '- change the same parameter (rev) in the *second* edit window\n'
+           '  in a different way\n'
+           '- do a save in the second edit window- A dialog showing "The data '
+           'was changed by another user. Are you sure to overwrite it ?"\n'
+           'appears\n'
+           '- press NO',
+  'expect': '- the edit is still open\n'
+            '- the parameter changed was updated according to the first change',
+  'passed': True},
+ {'chapter_number': '12.109',
+  'title': 'Edit drawing',
+  'prep': '- Open the Edit windows on the code CODE_WITH_URL\n'
+          '- Open the drawing tab',
+  'descr': '- click the right mouse button, and select add URL',
+  'expect': '- an "enter URL" window is opened',
+  'passed': True},
+ {'after': 'True',
+  'chapter_number': '12.110',
+  'descr': '- enter a description and an URL\n- press Save\n',
+  'expect': 'a new URL entry is showed, with the new inserted values',
+  'passed': True},
+ {'after': 'True',
+  'chapter_number': '12.111',
+  'descr': 'click the right mouse button in the drawing TAB, and select edit '
+           'drawings',
+  'expect': '- an "enter URL" window is opened',
+  'passed': True},
+ {'after': 'True',
+  'chapter_number': '12.112',
+  'descr': 'update the description and an URL\n- press Save\n',
+  'expect': 'the description and URL are changed according',
+  'passed': True},
+ {'after': 'True',
+  'chapter_number': '12.113',
+  'descr': '- click the right mouse button in the drawing TAB, and select edit '
+           'drawings\n'
+           '- update the description and an URL\n'
+           '- press Cancel\n',
+  'expect': 'the entry is NOT updated',
+  'passed': True},
+ {'chapter_number': '12.114',
+  'title': 'Edit code, undo',
+  'prep': '- Open the Edit windows on the code 810011\n'
+          '- change the description appending an "w"\n',
+  'descr': '- From the edit menu, select Undo',
+  'expect': '- The description change is reverted',
+  'passed': True},
+ {'chapter_number': '12.115',
+  'title': 'Edit code, edit URL',
+  'prep': '- Open the Edit windows on the code 810021\n'
+          '- Select the drawings list tab\n',
+  'descr': 'Press the RMB and select "Add url..."',
+  'expect': 'A dialog for entering a Description and a Url is showed',
+  'passed': True},
+ {'after': 'True',
+  'chapter_number': '12.116',
+  'descr': 'press Cancel',
+  'expect': 'The drawings list table is not changed',
+  'passed': True},
+ {'chapter_number': '12.117',
+  'title': 'Edit code, edit URL',
+  'prep': '- Open the Edit windows on the code 810021\n'
+          '- Select the drawings list tab\n'
+          '- Press the RMB and select "Add url..."\n'
+          'A dialog for entering a Description and a Url is showed',
+  'descr': '- Insert a valid description and URL (starting with https)\n'
+           '- Press save',
+  'expect': 'The table "Drawings list" is updated with the new entry',
+  'passed': True},
+ {'id': 227,
+  'level': 2,
+  'chapter_number': '13',
+  'title': 'BomBrowser - Edit date',
+  'prep': '- insert code 810095 (or any other code with more revisions) in the '
+          '"BOMBrowser codes list" window\n'
+          '- press search\n'
+          '- press the right mouse button on the first entry and select "Edit '
+          'code..." command\n'
+          '- The Edit code windows appears\n'
+          '- Select the "..." button near the "From/to date" field\n'
+          '- An edit dates dialog is showed'},
+ {'level': 3,
+  'chapter_number': '13.1',
+  'title': 'Cancel button',
+  'prep_id': 227,
+  'descr': 'press the cancel button',
+  'expect': 'the edit dates dialog is closed',
+  'passed': True},
+ {'chapter_number': '13.2',
+  'title': 'Save button',
+  'prep_id': 227,
+  'descr': 'press the save button',
+  'expect': 'a information dialog is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '13.3',
+  'descr': '- press ok',
+  'expect': 'the edit dates dialog is closed',
+  'passed': True},
+ {'chapter_number': '13.4',
+  'title': 'Modify date',
+  'prep_id': 227,
+  'descr': '- change the "date from" of the bottom row with a valid one (but '
+           'lower)\n'
+           '- press save\n'
+           '- reopen the edit dates dialog',
+  'expect': 'the new date is showed in the last row',
+  'passed': True},
+ {'chapter_number': '13.5',
+  'title': 'Modify date',
+  'prep_id': 227,
+  'descr': '- change the "date from" of the first row with a valid one (but '
+           'higher )',
+  'expect': 'the date in the row below and column "To date" is changed '
+            'accordling (a day before)',
+  'passed': True},
+ {'id': 233,
+  'chapter_number': '13.6',
+  'title': 'Modify date with an invalid one',
+  'prep_id': 227,
+  'descr': '- change the "date from" of the first row with a not valid one '
+           '(i.e.  2024-13-32)',
+  'expect': 'the cell become yellow',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '13.7',
+  'descr': 'Test description #2\n- press save',
+  'expect': 'an error dialog is showed',
+  'passed': True},
+ {'chapter_number': '13.8',
+  'title': 'Modify date with an invalid one',
+  'prep_id': 227,
+  'descr': '- change the "date from" of the first row with a not valid one '
+           "(i.e. 'z')\n"
+           '- the cell become yellow; press cancel\n'
+           '- the edit dates dialog is closed, reopen it',
+  'expect': 'the valid old date appear',
+  'passed': True},
+ {'chapter_number': '13.9',
+  'title': 'Modify date with an invalid one',
+  'prep_id': 233,
+  'descr': '- change the "date from" of the first row with a not valid one '
+           '(i.e. 2001-02-30)',
+  'expect': 'the cell become yellow',
+  'passed': True},
+ {'chapter_number': '13.10',
+  'title': 'Modify date with an invalid one',
+  'prep_id': 227,
+  'descr': '- change the "date from" of the first row with a a date equal the '
+           'row below\n'
+           '- press save',
+  'expect': '- an error dialog is showed\n'
+            '- press ok, the edit date window is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '13.11',
+  'descr': 'Test description #3\n'
+           '- after the step above, press cancel\n'
+           "- press the '...' button\n"
+           '- check the dates',
+  'expect': '- the dates are unchanged',
+  'passed': True},
+ {'chapter_number': '13.12',
+  'title': 'Modify date with an invalid one',
+  'prep_id': 227,
+  'descr': '- change the "date from" of the first row with a a date before '
+           '(-1) the row below\n'
+           '- press save',
+  'expect': '- an error dialog is showed\n'
+            '- press ok, the edit date window is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '13.13',
+  'descr': 'Test description #3\n'
+           '- after the step above, press cancel\n'
+           "- press the '...' button\n"
+           '- check the dates',
+  'expect': '- the date are unchanged',
+  'passed': True},
+ {'chapter_number': '13.14',
+  'title': 'Modify date with an invalid one',
+  'prep_id': 227,
+  'descr': '- change the "date from" of the 2nd row with a a date equal the '
+           'row above\n'
+           '- press save',
+  'expect': '- an error dialog is showed\n'
+            '- press ok, the edit date window is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '13.15',
+  'descr': 'Test description #3\n'
+           '- after the step above, press cancel\n'
+           "- press the '...' button\n"
+           '- check the dates',
+  'expect': '- the date are unchanged',
+  'passed': True},
+ {'chapter_number': '13.16',
+  'title': 'Modify date with an invalid one',
+  'prep_id': 227,
+  'descr': '- change the "date from" of the 2nd row with a a date after (+1) '
+           'the row above\n'
+           '- press save',
+  'expect': '- an error dialog is showed\n'
+            '- press ok, the edit date window is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '13.17',
+  'descr': 'Test description #3\n'
+           '- after the step above, press cancel\n'
+           "- press the '...' button\n"
+           '- check the dates',
+  'expect': '- the date are unchanged',
+  'passed': True},
+ {'chapter_number': '13.18',
+  'title': 'Modify date',
+  'prep_id': 227,
+  'descr': '- change the "date from" of the first row with a a date after (+1) '
+           'the row below',
+  'expect': 'the cell still be white',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '13.19',
+  'descr': '- after the steps above, press save',
+  'expect': '- press ok, a confirmation dialog is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '13.20',
+  'descr': 'Test description #3\n'
+           "- after the steps above press the '...' button\n"
+           '- check the dates',
+  'expect': '- the date are changed',
+  'passed': True},
+ {'chapter_number': '13.21',
+  'title': 'Check the read-only/read-write ness of the cells',
+  'prep_id': 227,
+  'descr': 'check that all fields are read only with the exception of\n'
+           '- the column From date\n'
+           '- the Cell of the first row and column "To date"',
+  'expect': 'only the cells listed above are read write',
+  'passed': True},
+ {'chapter_number': '13.22',
+  'title': 'Insert an invalid date',
+  'prep_id': 227,
+  'descr': '- change the value of the cell of the first row and column "To '
+           'date" with an invalid one (i.e. \'2024-02-32\')',
+  'expect': 'the cell become yellow',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '13.23',
+  'descr': 'press save',
+  'expect': 'an error dialog appear',
+  'passed': True},
+ {'chapter_number': '13.24',
+  'title': 'Insert an invalid date',
+  'prep_id': 227,
+  'descr': '- change the value of the cell of the first row and column "To '
+           'date" with a date before of the left cell- press save',
+  'expect': '- an error dialog is showed\n'
+            '- press ok, the edit date window is showed',
+  'passed': True},
+ {'chapter_number': '13.25',
+  'title': 'Insert a valid date',
+  'prep': '- insert code 100001 in the "BOMBrowser codes list" window\n'
+          '- press search\n'
+          '- press the right mouse button on the first entry and select "Edit '
+          'code..." command\n'
+          '- The Edit code windows appears\n'
+          '- Select the "..." button near the "to date" field\n'
+          '- An edit dates dialog is showed',
+  'descr': '- change the value of the cell of the first row and column "To '
+           'date" with a valid one\n'
+           '- press the save button\n'
+           '- reopen the Edit dates" dialog',
+  'expect': 'the new date appears in the "edit code window"',
+  'passed': True},
+ {'chapter_number': '13.26', 'title': 'conflict date'},
+ {'id': 258,
+  'level': 4,
+  'chapter_number': '13.26.1',
+  'title': 'parent too early',
+  'prep': '- create a component code (copying from an existing component); '
+          'name it as TEST-A; set a Date from 2020-01-01.\n'
+          '- Create a component code (copying from an existing component); '
+          'name it as TEST-B; set a Date from 2020-01-01. Set "Date to" '
+          '2021-01-01\n'
+          '- Create a component code (copying from an existing component); '
+          'name it as TEST-ASS-A; set a Date from 2020-01-01. Set "Date to" '
+          '2021-01-01\n'
+          '- Edit the code "TEST-ASS-A" adding as child the coponents TEST-A '
+          'and TEST-B.',
+  'descr': '- enter in the edit dialog of code TEST-ASS-A\n'
+           '- enter in the edit date dialog\n'
+           '- change the "From date" to 2019-01-01\n'
+           '- press "Save button"',
+  'expect': 'an error dialog appears saying that the date range is wider than '
+            'the children one',
+  'passed': True},
+ {'chapter_number': '13.26.2',
+  'title': 'parent too late',
+  'prep_id': 258,
+  'descr': '- enter in the edit dialog of code TEST-ASS-A\n'
+           '- enter in the edit date dialog\n'
+           '- change the "To date" to 2022-01-01\n'
+           '- press "Save button"',
+  'expect': 'an error dialog appears saying that the date range is wider than '
+            'the children one',
+  'passed': True},
+ {'chapter_number': '13.26.3',
+  'title': 'children too late',
+  'prep_id': 258,
+  'descr': '- enter in the edit dialog of code TEST-B\n'
+           '- enter in the edit date dialog\n'
+           '- change the "From date" to 2020-06-01\n'
+           '- press "Save button"',
+  'expect': 'an error dialog appears saying that the date range is shorter '
+            'than the parent one',
+  'passed': True},
+ {'chapter_number': '13.26.4',
+  'title': 'children too early',
+  'prep_id': 258,
+  'descr': '- enter in the edit dialog of code TEST.ASS-A\n'
+           '- enter in the edit date dialog\n'
+           '- change the "To date" to 2020-06-01\n'
+           '- press "Save button"\n'
+           '- enter in the edit dialog of code TEST-B\n'
+           '- enter in the edit date dialog\n'
+           '- change the "To date" to 2020-03-01\n'
+           '- press "Save button"',
+  'expect': 'an error dialog appears saying that the date range is shorter '
+            'than the parent one',
+  'passed': True},
+ {'chapter_number': '13.26.5',
+  'title': 'children too early',
+  'prep_id': 258,
+  'descr': '- enter in the edit dialog of code TEST-ASS-A\n'
+           '- remove the child TEST-B\n'
+           '- press "Save" and the "Close"\n'
+           '- enter in the edit dialog of code TEST-B\n'
+           '- enter in the edit date dialog\n'
+           '- change the "To date" to 2020-03-01\n'
+           '- enter in the edit dialog of code ASS-A\n'
+           '- add child TEST-B\n'
+           '- press save',
+  'expect': 'an error dialog appears saying that the child date range is '
+            'shorter than the parent one',
+  'passed': True},
+ {'level': 3,
+  'chapter_number': '13.27',
+  'title': 'prototype date',
+  'descr': '- enter in the edit dialog of code with several revisions without '
+           'prototype\n'
+           '- enter in the "edit dates" dialog\n'
+           '- change the first (from the top) "From date" to "prototype"',
+  'expect': '- no error (yellow cell) is showed\n'
+            '- **ALL** the cell in the "To date" column are R/O\n'
+            '- the date "End to" of the 1st and 2nd line are blanked',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '13.28',
+  'descr': '- after the above test, press save and ok until you reach the '
+           '"Edit dialog"\n'
+           '- check that the "From/to date" "Revision selector" lists all the '
+           'dates',
+  'expect': '- the "From/to date" "Revision selector" lists all the dates and '
+            'prototype',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '13.29',
+  'descr': '- after the steps above\n'
+           '- press the "..." button and go in the "edit dates" dialog\n'
+           '- change the "From date" in the first row from "PROTOTYPE" to a '
+           'date grather than the 2nd line',
+  'expect': '- no error (yellow cell) is showed\n'
+            '- the "End to" cell in the second line show a valid date\n'
+            '- the "End to" cell in the 1st line is editable',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '13.30',
+  'descr': '- after the steps above\n'
+           '- press save and go in the edit window\n'
+           '- check that the "From/to date" "Revision selector" lists all the '
+           'dates',
+  'expect': '- the "From/to date" "Revision selector" lists all the dates w/o '
+            'prototype',
+  'passed': True},
+ {'chapter_number': '13.31',
+  'title': 'date in the title bar',
+  'descr': '- enter in the edit dialog of a code with several revisions\n'
+           '- select a 2nd revision in the "From/to date" selector\n'
+           '- press the "..." button and go in the edit dialog\n'
+           '- change the 2nd row "From date" with a reasonable value\n'
+           '- press "Save", then "OK"',
+  'expect': '- the "From/to date" is changed accordling to the steps above\n'
+            '- the date showed in the title bar is changed accordling to the '
+            'steps above',
+  'passed': True},
+ {'level': 2, 'chapter_number': '14', 'title': 'Generic test'},
+ {'level': 3,
+  'chapter_number': '14.1',
+  'title': 'rename bombrowser.ini',
+  'descr': '- rename bombrowser.ini as bombrowser.ini.no\n'
+           '- cancel a bombrowser.formward file\n'
+           '- (re)start bombrowser',
+  'expect': 'at start up time, an error dialog is showed saying that the '
+            'confuguration cannot be load: bombrowser.ini file may be missing',
+  'passed': True},
+ {'chapter_number': '14.2',
+  'title': 'rename bombrowser.ini (2)',
+  'descr': '- rename bombrowser.ini as bombrowser.ini.two\n'
+           '- create a bombrowser.forward file containing bombrowser.ini.two\n'
+           '- (re)start bombrowser',
+  'expect': 'bombrowser run correctly',
+  'passed': True},
+ {'chapter_number': '14.3',
+  'title': 'shutdown the sql server',
+  'descr': 'shutdown the sql server',
+  'expect': 'at start up time, an error dialog is showed saying that it is '
+            'impossible to access to the server (some time my be required)',
+  'passed': True},
+ {'chapter_number': '14.4',
+  'title': 'test re-connection after an sql server disconnection',
+  'descr': '- perform a query looking for the code 100001 in code list window\n'
+           '- shutdown the server\n'
+           '- re-do the same query and check that an error is showed',
+  'expect': 'a dialog error is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '14.5',
+  'descr': '- startup the server\n'
+           '- wait few seconds\n'
+           '- re-do the same query and check that an error is showed\n'
+           '- re-do *again* the same query',
+  'expect': 'the query results is showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '14.6',
+  'descr': '- re-do the same test on a different db\n',
+  'expect': 'the previous tests were passed',
+  'passed': True},
+ {'chapter_number': '14.7', 'title': 'Config test', 'other': '\n'},
+ {'level': 4,
+  'chapter_number': '14.7.1',
+  'title': 'Test description_force_uppercase: edit code',
+  'descr': '- Set the description_force_uppercase = 1 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- Edit the code\n'
+           '- Change the description of code TEST-A as "lower case test a"\n'
+           '- Save the code\n'
+           '- Search the code TEST-A in the list code window',
+  'expect': 'The description is un upper case',
+  'passed': True},
+ {'chapter_number': '14.7.2',
+  'title': 'Test description_force_uppercase: copy code',
+  'descr': '- Set the description_force_uppercase = 1 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- Copy the code TEST-B in TEST-B-COPY1, and  change the '
+           'description of code TEST-A as "lower case test a copy1"\n'
+           '- Save the code\n'
+           '- Search the code TEST-B-COPY1 in the list code window',
+  'expect': 'The description is un upper case',
+  'passed': True},
+ {'chapter_number': '14.7.3',
+  'title': 'Test description_force_uppercase: revise code',
+  'descr': '- Set the description_force_uppercase = 1 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- Revise the code TEST-B, and  change the description of code '
+           'TEST-A as "lower case test a copy1"\n'
+           '- Save the code\n'
+           '- Search the code TEST-B in the list code window',
+  'expect': 'The description of the latest revision is in upper case',
+  'passed': True},
+ {'chapter_number': '14.7.4',
+  'title': 'Test description_force_uppercase: edit code',
+  'descr': '- Set the description_force_uppercase = 0 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- Edit the code\n'
+           '- Change the description of code TEST-A as "lower case test a"\n'
+           '- Save the code\n'
+           '- Search the code TEST-A in the list code window',
+  'expect': 'The description is un lower case',
+  'passed': True},
+ {'chapter_number': '14.7.5',
+  'title': 'Test description_force_uppercase: copy code',
+  'descr': '- Set the description_force_uppercase = 0 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- Copy the code TEST-B in TEST-B-COPY1, and  change the '
+           'description of code TEST-A as "lower case test a copy1"\n'
+           '- Save the code\n'
+           '- Search the code TEST-B-COPY1 in the list code window',
+  'expect': 'The description is un lower case',
+  'passed': True},
+ {'chapter_number': '14.7.6',
+  'title': 'Test description_force_uppercase: revise code',
+  'descr': '- Set the description_force_uppercase = 0 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- Revise the code TEST-B, and  change the description of code '
+           'TEST-A as "lower case test a copy1"\n'
+           '- Save the code\n'
+           '- Search the code TEST-B in the list code window',
+  'expect': 'The description of the latest revision is in lower case',
+  'passed': True},
+ {'chapter_number': '14.7.7',
+  'title': 'Test code_force_uppercase: copy code',
+  'descr': '- Set the code_force_uppercase = 1 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- Copy the code TEST-B in test-b-copy\n'
+           '- Save the code\n'
+           '- Search the code test-b-copy in the list code window',
+  'expect': 'The code is un upper case',
+  'passed': True},
+ {'chapter_number': '14.7.8',
+  'title': 'Test code_force_uppercase: copy code',
+  'descr': '- Set the code_force_uppercase = 0 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- Copy the code TEST-B in test-b-copy\n'
+           '- Save the code\n'
+           '- Search the code test-b-copy in the list code window',
+  'expect': 'The code is un lower case',
+  'passed': True},
+ {'chapter_number': '14.7.9',
+  'title': 'Test ignore_case_during_search: search code',
+  'descr': '- Set the ignore_case_during_search = 1 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- In "codes list window" search for the code "%ALLLOWERCASE"\n',
+  'expect': 'It is returned the code "TEST-alllowercase"',
+  'passed': True},
+ {'chapter_number': '14.7.10',
+  'title': 'Test ignore_case_during_search: search code',
+  'descr': '- Set the ignore_case_during_search = 1 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- In "codes list window" search for the description "ALL '
+           'LOWERCASE"\n',
+  'expect': 'It is returned the description "alllowercase"',
+  'passed': True},
+ {'chapter_number': '14.7.11',
+  'title': 'Test ignore_case_during_search: search code',
+  'descr': "(SQLSERVER doesn't work; test on prosgresql)\n"
+           '- Set the ignore_case_during_search = 0 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- In "codes list window" search for the code "%ALLLOWERCASE"\n',
+  'expect': 'No code is found\n',
+  'passed': True},
+ {'chapter_number': '14.7.12',
+  'title': 'Test ignore_case_during_search: search code',
+  'descr': "(SQLSERVER doesn't work; test on prosgresql)\n"
+           '- Set the ignore_case_during_search = 0 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- In "codes list window" search for the description "ALL '
+           'LOWERCASE"\n',
+  'expect': 'No code is found',
+  'passed': True},
+ {'chapter_number': '14.7.13',
+  'title': 'Test ignore_case_during_search: search revision',
+  'descr': "(SQLSERVER doesn't work; test on prosgresql)\n"
+           '- Set the ignore_case_during_search = 1 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- In "search revision window" search for the code '
+           '"%ALLLOWERCASE"\n',
+  'expect': 'It is returned the code "TEST-alllowercase"',
+  'passed': True},
+ {'chapter_number': '14.7.14',
+  'title': 'Test ignore_case_during_search: search revision',
+  'descr': "(SQLSERVER doesn't work; test on prosgresql)\n"
+           '- Set the ignore_case_during_search = 1 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- In "search revision window" search for the description "ALL '
+           'LOWERCASE"\n',
+  'expect': 'It is returned the description "all lowercase"',
+  'passed': True},
+ {'chapter_number': '14.7.15',
+  'title': 'Test ignore_case_during_search: search revision',
+  'descr': "(SQLSERVER doesn't work; test on prosgresql)\n"
+           '- Set the ignore_case_during_search = 1 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- In "search revision window" search for the gval2 "lower"\n',
+  'expect': 'It is returned the gval2 "gval2 lower"',
+  'passed': True},
+ {'chapter_number': '14.7.16',
+  'title': 'Test ignore_case_during_search: search revision',
+  'descr': "(SQLSERVER doesn't work; test on prosgresql)\n"
+           '- Set the ignore_case_during_search = 0 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- In "search revision window" search for the code '
+           '"%ALLLOWERCASE"\n',
+  'expect': 'No code is found',
+  'passed': True},
+ {'chapter_number': '14.7.17',
+  'title': 'Test ignore_case_during_search: search revision',
+  'descr': '- Set the ignore_case_during_search = 0 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- In "search revision window" search for the description "ALL '
+           'LOWERCASE"\n',
+  'expect': 'No code is found',
+  'passed': True},
+ {'chapter_number': '14.7.18',
+  'title': 'Test ignore_case_during_search: search revision',
+  'descr': '- Set the ignore_case_during_search = 0 in bombrowser.ini\n'
+           '- Start bombrowser\n'
+           '- In "search revision window" search for the gval2 "LOWER"\n',
+  'expect': 'No code is found',
+  'passed': True},
+ {'level': 3,
+  'chapter_number': '14.8',
+  'title': 'bombrowser.ini missing parameter',
+  'descr': '- from the bombrowser.ini, comment in the section BOMBROWSER, the '
+           'parameter "db"\n'
+           '- Start bombrowser\n',
+  'expect': 'An error dialog shows that it is missed the parameter "db"in '
+            'section BOMBROWSER',
+  'passed': True},
+ {'chapter_number': '14.9',
+  'title': 'bombrowser.ini missing section',
+  'descr': '- from the bombrowser.ini, comment the section FILES_UPLOAD\n'
+           '- Start bombrowser\n',
+  'expect': 'An error dialog shows that it is missed section FILES_UPLOAD',
+  'passed': True},
+ {'chapter_number': '14.10',
+  'title': 'bombrowser.ini unknown parameter',
+  'descr': '- in the bombrowser.ini, in the section BOMBROWSER, add parameter '
+           '"unknown=foo"\n'
+           '- Start bombrowser\n',
+  'expect': 'An error dialog shows that there is an unknown parameterin '
+            'section BOMBROWSER',
+  'passed': True},
+ {'chapter_number': '14.11',
+  'title': 'bombrowser.ini unknown section',
+  'descr': '- in the bombrowser.ini, add:\n'
+           '   [UNKNOWNSECTION]\n'
+           '   unk=unk\n'
+           '- Start bombrowser\n',
+  'expect': 'An error dialog shows that there is an unreferenced section '
+            'UNKNOWNSECTION',
+  'passed': True},
+ {'chapter_number': '14.12',
+  'title': 'bombrowser.ini missing template',
+  'descr': '- in the bombrowser.ini, add a "x" before the first sectionof the '
+           'BOMBROWSER.templates_list\n'
+           '- Start bombrowser\n',
+  'expect': 'An error dialog shows that:\n'
+            '- exist an unreferenced section\n'
+            '- it is missing a section\n',
+  'passed': True},
+ {'chapter_number': '14.13',
+  'title': 'bombrowser.ini missing importer',
+  'descr': '- in the bombrowser.ini, add a "x" before the first sectionof the '
+           'BOMBROWSER.importer_list\n'
+           '- Start bombrowser\n',
+  'expect': 'An error dialog shows that:\n'
+            '- exist an unreferenced section\n'
+            '- it is missing a section\n',
+  'passed': True},
+ {'chapter_number': '14.14',
+  'title': 'bombrowser.ini: list_code_default_mode',
+  'descr': '- in the bombrowser.ini, set list_code_default_mode=1\n'
+           '- start bombrowser',
+  'expect': '- the search code is showed in "Advanced" mode',
+  'passed': True},
+ {'chapter_number': '14.15',
+  'title': 'bombrowser.ini: list_code_default_mode',
+  'descr': '- in the bombrowser.ini, set list_code_default_mode=0\n'
+           '- start bombrowser',
+  'expect': '- the search code is showed in "Simple" mode',
+  'passed': True},
+ {'chapter_number': '14.16',
+  'title': 'bombrowser.forward',
+  'descr': '- rename bombrowser.ini in bombrowser.1.ini\n'
+           '- create a file bombrowser.forward containing bombrowser.1.ini\n'
+           '- start bombrowser',
+  'expect': 'BOMBrowser will open',
+  'passed': True},
+ {'after': 'True',
+  'chapter_number': '14.17',
+  'descr': '- rename bombrowser.1.ini in bombrowser.2.ini\n'
+           '- pay attention that no bombrowser-local.ini file exists\n'
+           '- start bombrowser',
+  'expect': 'BOMBrowser will not open, and an error saying dialog will appear',
+  'passed': True},
+ {'chapter_number': '14.18',
+  'title': 'bombrowser-local.ini',
+  'descr': '- in bombrowser.ini, set list_code_default_mode=0\n'
+           '- in bombrowser-local.ini set list_code_default_mode=1\n'
+           '- start bombrowser',
+  'expect': '- the search code is showed in "Advancede" mode',
+  'passed': True},
+ {'level': 2, 'chapter_number': '15', 'title': 'Export test', 'other': 'TBD'},
+ {'chapter_number': '16', 'title': 'Import test', 'other': 'TBD'},
+ {'chapter_number': '17', 'title': 'Window menu test'},
+ {'id': 400,
+  'level': 3,
+  'chapter_number': '17.1',
+  'title': 'Window menu test, close all other window',
+  'prep': 'From codes list window:\n'
+          '- search a code (eg. 820007)\n'
+          '- open an assembly window\n'
+          '- where used window\n'
+          '- valid where used window\n',
+  'descr': "from the 'where used' window, select menu->windows->close all "
+           'other windows',
+  'expect': "all windows closed but the 'where used' window",
+  'passed': True},
+ {'chapter_number': '17.2',
+  'title': 'Window menu test, new codes list window',
+  'prep_id': 400,
+  'descr': "from the 'where used' window, select menu->windows->new codes list "
+           'window',
+  'expect': "a NEW 'Codes list' window is opened",
+  'passed': True},
+ {'after': True,
+  'chapter_number': '17.3',
+  'descr': "from the 'where used' window, select menu->windows->new codes list "
+           'window',
+  'expect': "a 3rd 'Codes list' window is opened",
+  'passed': True},
+ {'level': 2, 'chapter_number': '18', 'title': 'Advanced search in the BOM'},
+ {'level': 3,
+  'chapter_number': '18.1',
+  'title': 'Advanced search in the BOM',
+  'prep': 'From codes list window:\n'
+          '- search a code (eg. 820007)\n'
+          '- open an assembly window\n',
+  'descr': "From the 'Search' menu select 'Advanced search'",
+  'expect': "A 'Search in BOM window' is showed",
+  'passed': True},
+ {'id': 401,
+  'chapter_number': '18.2',
+  'title': 'Advanced search in the BOM - search by code',
+  'prep': 'From codes list window:\n'
+          '- search a code (eg. 820007)\n'
+          '- open an assembly window\n'
+          "- from the 'Search' menu select 'Advanced search'",
+  'descr': "Insert '04' in the code field and press 'Search'",
+  'expect': "Only codes containg '04' are showed",
+  'passed': True},
+ {'chapter_number': '18.3',
+  'title': 'Advanced search in the BOM - search by descr',
+  'prep_id': 401,
+  'descr': "Insert '44' in the Description field and press 'Search'",
+  'expect': "Only the code description containg '44' are showed",
+  'passed': True},
+ {'after': True,
+  'chapter_number': '18.4',
+  'descr': 'Select a code and check that the codegui panel changes '
+           'accordling\n',
+  'expect': 'The codegui panel changes accordling',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '18.5',
+  'descr': '- Select with a row and click the RMB\n- Press edit code',
+  'expect': 'The edit code window is opened',
+  'passed': True},
+ {'chapter_number': '18.6',
+  'title': 'Advanced search in the BOM - search by descr and code',
+  'prep_id': 401,
+  'descr': "- Insert '7' in the Description field\n"
+           "- Insert '7' in the Code field\n"
+           "- Press 'Search'",
+  'expect': "Only the code containg '7' with description containg '7' are "
+            'showed',
+  'passed': True},
+ {'chapter_number': '18.7',
+  'title': 'Advanced search in the BOM search w/multiple fields',
+  'prep': 'From codes list window:\n'
+          '- search a code (eg. 820007)\n'
+          '- open an assembly window\n'
+          "- from the 'Search' menu select 'Advanced search'\n"
+          "- from the 'Search mode' menu select 'Advanced'\n",
+  'descr': 'Insert 44 in the code field, then press Search',
+  'expect': 'Only codes containing 44 are showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '18.8',
+  'descr': '- Clean all the fields\n'
+           '- Insert 44 in the description field, then press Search',
+  'expect': "Only codes containing '44' in description are showed",
+  'passed': True},
+ {'after': True,
+  'chapter_number': '18.9',
+  'descr': '- Clean all the fields\n'
+           "- Insert 6 in the description field, then insert 6 in the 'Sup.1 "
+           "PN' field, then press Search",
+  'expect': 'Only  containing 6 in description and  PN containing 6 are showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '18.10',
+  'descr': '- Clean all the fields\n'
+           '- Insert >8 in the code field, then press Search',
+  'expect': 'Only codes which starts from 8 are showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '18.11',
+  'descr': '- Clean all the fields\n'
+           '- Insert >8 in the code field\n'
+           '- Insert 8 in the description field\n'
+           'then press Search',
+  'expect': 'Only codes which start from 8 and contains 8 in the description '
+            'are showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '18.12',
+  'descr': '- Clean all the fields\n'
+           '- Insert <8 in the code field\n'
+           '- Insert 3 in the description field\n'
+           'then press Search',
+  'expect': 'Only codes which start from 7 and contains 3 in the description '
+            'are showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '18.13',
+  'descr': '- Clean all the fields\n'
+           '- Insert !820007 in the code field\n'
+           '- Insert 7 in the description field\n'
+           'then press Search',
+  'expect': 'Only codes different from 820007 and contains 7 in the '
+            'description are showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '18.14',
+  'descr': '- Clean all the fields\n'
+           '- Insert >2000 in the rid field\n'
+           '- Insert 7 in the description field\n'
+           'then press Search',
+  'expect': 'Only codes with rid greather than 2000 and contains 7 in the '
+            'description are showed',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '18.15',
+  'descr': '- Clean all the fields\n'
+           '- Insert <2000 in the rid field\n'
+           '- Insert 3 in the description field\n'
+           'then press Search',
+  'expect': 'Only codes with rid less than 2000 and contains 3 in the '
+            'description are showed',
+  'passed': True},
+ {'chapter_number': '18.16',
+  'title': 'Advanced search in the BOM - where used',
+  'prep': 'From codes list window:\n'
+          '- search a code (eg. 820007)\n'
+          '- open an where used window\n'
+          "- from the 'Search' menu select 'Advanced search'",
+  'descr': "Insert '02' in the code field and press 'Search'",
+  'expect': "Only codes containg '02' are showed",
+  'passed': True},
+ {'chapter_number': '18.17',
+  'title': 'Advanced search in the BOM - smart where used',
+  'prep': 'From codes list window:\n'
+          '- search a code (eg. 820007)\n'
+          '- open an smart where used window\n'
+          "- from the 'Search' menu select 'Advanced search'",
+  'descr': "Insert '17' in the code field and press 'Search'",
+  'expect': "Only codes containg '17' are showed",
+  'passed': True},
+ {'chapter_number': '18.18',
+  'title': 'Advanced search in the BOM - search by doc',
+  'prep': 'From codes list window:\n'
+          '- search a code (eg. 820007)\n'
+          '- open an smart where used window\n'
+          "- from the 'Search' menu select 'Advanced search'",
+  'descr': "Insert '17' in the Document field and press 'Search'",
+  'expect': "Only codes containg '17' in the document column are showed",
+  'passed': True},
+ {'level': 2, 'chapter_number': '19', 'title': 'Export data from assembly'},
+ {'level': 3,
+  'chapter_number': '19.1',
+  'title': 'Export data',
+  'prep': 'From codes list window:\n'
+          '- search a code (eg. 820007)\n'
+          '- open an assembly window\n',
+  'descr': "From the 'File' menu select 'Export data...'",
+  'expect': "A 'Export' dialog is showed",
+  'passed': True},
+ {'id': 404,
+  'chapter_number': '19.2',
+  'title': 'Export data',
+  'prep': 'From codes list window:\n'
+          '- search a code (eg. 820007)\n'
+          '- open an assembly window\n'
+          "- from the 'File' menu select 'Export data...'",
+  'descr': 'Check that the data showed in the window title is the greatest one '
+           'of the code',
+  'expect': 'The data is the greatest one',
+  'passed': True},
+ {'chapter_number': '19.3',
+  'title': 'Export data',
+  'prep_id': 404,
+  'descr': 'Press the Close button',
+  'expect': 'The dialog disappear',
+  'passed': True},
+ {'chapter_number': '19.4',
+  'title': 'Export data',
+  'prep_id': 404,
+  'descr': 'Press the Export button',
+  'expect': '- The successful dialog appeared (maybe below other window)\n'
+            '- A folder containing all the files appeared\n'
+            '- In the folder there is a zip file containing all the files\n'
+            '- In the folder there is a BOM in the same format specified in '
+            'the dialog\n'
+            "- Doing a 'paste' command in a folder, the zip file is copied",
+  'passed': True},
+ {'chapter_number': '19.5',
+  'title': 'Export data',
+  'prep_id': 404,
+  'descr': "Umark the 'zip all' option; press the Export button",
+  'expect': '- The successful dialog appeared (maybe below other window)\n'
+            '- A folder containing all the files appeared\n'
+            '- In the folder there NO a zip file containing all the files\n'
+            "- Doing a 'paste' command in a folder, the folder with all the "
+            'files is copied',
+  'passed': True},
+ {'chapter_number': '19.6',
+  'title': 'Export data',
+  'prep_id': 404,
+  'descr': "Umark the 'export files' option; press the Export button",
+  'expect': '- The successful dialog appeared (maybe below other window)\n'
+            '- A folder containing only the zip file and the bom appeared\n',
+  'passed': True},
+ {'chapter_number': '19.7',
+  'title': 'Export data',
+  'prep_id': 404,
+  'descr': "Umark the 'open destination folder' option; press the Export "
+           'button',
+  'expect': 'The successful dialog appeared\n',
+  'passed': True},
+ {'chapter_number': '19.8',
+  'title': 'Export data',
+  'prep_id': 404,
+  'descr': 'Change the destination directory; press the Export button',
+  'expect': 'The selected destination directopry is showed\n',
+  'passed': True},
+ {'chapter_number': '19.9',
+  'title': 'Export data - where used',
+  'prep': 'From codes list window:\n'
+          '- search a code (eg. 820007)\n'
+          '- open the Where used window\n'
+          "- from the 'File' menu select 'Export data...'",
+  'descr': 'Change the destination directory; press the Export button',
+  'expect': '- The successful dialog appeared (maybe below other window)\n'
+            '- A folder containing all the files appeared\n',
+  'passed': True},
+ {'chapter_number': '19.10',
+  'title': 'Export data - where used',
+  'prep': 'From codes list window:\n'
+          '- search a code (eg. 820007)\n'
+          '- open the Smart where used window\n'
+          "- from the 'File' menu select 'Export data...'",
+  'descr': 'Change the destination directory; press the Export button',
+  'expect': '- The successful dialog appeared (maybe below other window)\n'
+            '- A folder containing all the files appeared\n',
+  'passed': True},
+ {'chapter_number': '19.11',
+  'title': 'Export data - error in file',
+  'prep': '- Open the assembly TEST-ASSY-TO-EXPORT.\n'
+          "- from the 'File' menu select 'Export data...'\n",
+  'descr': 'press the Export button',
+  'expect': 'A dialog error that shows:\n'
+            '- a file is not existant\n'
+            '- a file is too big\n'
+            'The dialog error asks if the user want to END the copy',
+  'passed': True},
+ {'after': True,
+  'chapter_number': '19.12',
+  'descr': 'press the "Yes" button"',
+  'expect': 'The dialog disappear',
+  'passed': True},
+ {'chapter_number': '19.13',
+  'title': 'Export data - error in file',
+  'prep': '- Open the assembly TEST-ASSY-TO-EXPORT.\n'
+          "- from the 'File' menu select 'Export data...'\n"
+          '- press the Export button\n'
+          '- a dialog error appears',
+  'descr': 'press the "No" button',
+  'expect': '- The dialog disappear.\n'
+            '- the export continue and finished without the files that raised '
+            'an error',
+  'passed': True},
+ {'level': 2,
+  'chapter_number': '20',
+  'title': 'Dump/Restore/Create a new database'},
+ {'level': 3,
+  'chapter_number': '20.1',
+  'title': 'Dump the database',
+  'descr': '- run "[python] bombrowser[.py] --manage-db --dump-tables '
+           '<namefile>\n',
+  'expect': '- the <namefile> file is created\n',
+  'passed': True},
+ {'chapter_number': '20.2',
+  'title': 'Restore the database',
+  'descr': '- edit the code 100001\n'
+           '- select Edit->Delete code. The code is now deleted\n'
+           '- copy the code 100002 to the code 100002-cpy\n'
+           '- run "[python] bombrowser[.py] --manage-db --restore-tables '
+           '--yes-really-i-know-what-i-want <namefile>\n'
+           '- search the code 100001 again',
+  'expect': "- the code 100001 exists\n- the code 100002 doesn't exist\n",
+  'passed': True},
+ {'chapter_number': '20.3',
+  'title': 'Create a new (empty) database',
+  'descr': '- run "[python] bombrowser[.py] --manage-db --new-db '
+           '--yes-really-i-know-what-i-want\n'
+           '- search for "%"',
+  'expect': '- only the code "000000000000" is returned\n',
+  'passed': True},
+ {'chapter_number': '20.4',
+  'title': 'Restore a database with a specific gaval/gval number of column',
+  'descr': '- run "python mkdb.py --test-db --gval_count=40 --gaval_count=40"\n'
+           '- set in bombrowser.ini the following options:\n'
+           '     [BOMBROWSER]\n'
+           '     [...]\n'
+           '        gvalnames=\n'
+           '     [...]\n'
+           '            gval40:Test gval40\n'
+           '     [...]\n'
+           '        gavalnames=\n'
+           '     [...]\n'
+           '            gaval40:Test gaval40\n'
+           '\n'
+           '- from bombrowser set copy the code 820001to 820001-test\n'
+           '- from bombrowser set (use edit code) for the code 820001-test\n'
+           '  the following values:\n'
+           '     In main window: Test gval40 -> test1\n'
+           '     In children list: Test gaval40 -> test2\n'
+           '- run "[python] bombrowser[.py] --manage-db --dump-tables '
+           '<namefile>\n'
+           '- from bombrowser delete (use edit code) the code 820001-test\n'
+           '- run "[python] bombrowser[.py] --manage-db --restore-tables '
+           '--yes-really-i-know-what-i-want <namefile>\n'
+           '- search and edit the code 820001-tests again',
+  'expect': '- check that the following parameter exists (use edit window)\n'
+            '     In main window: Test gval40 -> test1\n'
+            '     In children list: Test gaval40 -> test2\n',
+  'passed': True},
+ {'level': 1,
+  'title': 'Conclusion',
+  'other': '2024-06-22 v1.0.2\nFailed tests: 0'}]
