@@ -1,4 +1,4 @@
-2024-06-05: v1.0.2
+2024-06-22: v1.0.2
 - allow to point to another configuration file using bombrowser.forward
 - add support fo an URL (http[s]:// or ftp://) instead of a file as
   attachment
@@ -13,6 +13,10 @@
 - allow to set a default for some fields when revising a code or when copying
   a code
 - bug: copy also the gavals during the code copying or revising
+- add new command: bombrowser --manage-db --info-db
+- update commands: bombrowser --manage-db <subcommand> to set the number of
+  gval/gaval columns
+- update command: mkdb to set the number of gval/gaval columns
 
 2023-06-08: v0.4.7
 - check correctness of the ini file bombrowser.ini at startup
