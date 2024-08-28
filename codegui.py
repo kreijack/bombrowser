@@ -71,13 +71,19 @@ class CodeWidget(QWidget):
             ("Unit", "unit"),
         ]
 
+        self._is_a_path = set()
         gvalnames = cfg.get_gvalnames2()
         for (seq, idx, gvalname, caption, type_) in gvalnames:
             self._main_data.append((caption, gvalname))
+            if type_ == "file":
+                self._is_a_path.add(gvalname)
+
 
         gavalnames = cfg.get_gavalnames()
         for (seq, idx, gavalname, caption, type_) in gavalnames:
             self._gavalnames.append((caption, gavalname))
+            if type_ == "file":
+                self._is_a_path.add(gavalname)
 
         self._drawings_and_urls = [(x[0], utils.find_filename(x[1]))
                 for x in d.get_drawings_and_urls_by_rid(self._data["rid"])]
@@ -99,6 +105,36 @@ class CodeWidget(QWidget):
 
     def addDatesListWidget(self, list_widget):
         self._grid.addWidget(list_widget, 0, 1)
+
+    def _prepare_button_for_file(self, caption, path):
+        maxlen = int(cfg.config()["BOMBROWSER"]["btnmaxlength"])
+        n = caption
+        if maxlen > 3 and len(n) > maxlen:
+            n = n[:maxlen-3]+"..."
+
+        b = QPushButton(n)
+
+        class Opener:
+            def __init__(self, obj, *args):
+                self._obj = obj
+                self._args = args
+            def __call__(self, *args0):
+                self._obj(*args0, *self._args)
+
+        b.clicked.connect(Opener(utils.open_file_or_url, path))
+        if utils.is_url(path):
+            b.setToolTip("Description: %s\nURL: %s"%(
+                caption, path))
+        else:
+            b.setToolTip("File: %s\nFullpath: %s"%(
+                caption, path))
+
+        b.setContextMenuPolicy(Qt.CustomContextMenu)
+        b.customContextMenuRequested.connect(
+            Opener(self._btn_context_menu, caption, path, b)
+        )
+
+        return b
 
     def _update_widget(self):
         # https://stackoverflow.com/questions/10416582/replacing-layout-on-a-qwidget-with-another-layout
@@ -130,7 +166,15 @@ class CodeWidget(QWidget):
         for caption, key in self._main_data:
             grid.addWidget(XLabel(caption), row, 0)
             if key in self._data:
-                grid.addWidget(XLabel(str(self._data[key])), row , 1)
+                if len(str(self._data[key])) > 0:
+                    if not key in self._is_a_path:
+                        grid.addWidget(XLabel(str(self._data[key])), row , 1)
+                    else:
+                        b = self._prepare_button_for_file(
+                            os.path.basename(str(self._data[key])),
+                            str(self._data[key]))
+                        grid.addWidget(b, row, 1)
+
                 keys.discard(key)
                 txt += "%s: %s\n"%(caption, self._data[key])
             else:
@@ -171,10 +215,19 @@ class CodeWidget(QWidget):
             # if qty != "" the items is inside an assy, and it does
             # make sense to print the gavals fields
             for caption, name in self._gavalnames:
-                    grid.addWidget(XLabel(caption), row, 0)
-                    grid.addWidget(XLabel(self._gavals[name]), row , 1)
-                    txt += "%s: %s\n"%(caption, self._gavals[name])
-                    row += 1
+                grid.addWidget(XLabel(caption), row, 0)
+
+                if len(self._gavals[name]) > 0:
+                    if not name in self._is_a_path:
+                        grid.addWidget(XLabel(self._gavals[name]), row , 1)
+                    else:
+                        b = self._prepare_button_for_file(
+                                os.path.basename(self._gavals[name]),
+                                self._gavals[name])
+                        grid.addWidget(b, row, 1)
+
+                txt += "%s: %s\n"%(caption, self._gavals[name])
+                row += 1
 
         grid.addWidget(QHLine(), row, 0, 1, 2)
         row += 1
@@ -192,10 +245,7 @@ class CodeWidget(QWidget):
         skip = not customize.has_drawing_button_be_enabled(self._data)
         maxlen = int(cfg.config()["BOMBROWSER"]["btnmaxlength"])
         for drw in self._drawings_and_urls:
-            n = drw[0]
-            if maxlen > 3 and len(n) > maxlen:
-                n = n[:maxlen-3]+"..."
-            b = QPushButton(n)
+            b = self._prepare_button_for_file(drw[0], drw[1])
             grid.addWidget(b, row, 0, 1, 2)
             row += 1
 
@@ -203,26 +253,7 @@ class CodeWidget(QWidget):
                 b.setEnabled(False)
                 continue
 
-            class Opener:
-                def __init__(self, obj, *args):
-                    self._obj = obj
-                    self._args = args
-                def __call__(self, *args0):
-                    self._obj(*args0, *self._args)
-
-            b.clicked.connect(Opener(utils.open_file_or_url, drw[1]))
             txt += "  Drawing: %s\n"%(drw[0])
-            if utils.is_url(drw[1]):
-                b.setToolTip("Description: %s\nURL: %s"%(
-                    drw[0], drw[1]))
-            else:
-                b.setToolTip("File: %s\nFullpath: %s"%(
-                    drw[0], drw[1]))
-
-            b.setContextMenuPolicy(Qt.CustomContextMenu)
-            b.customContextMenuRequested.connect(
-                Opener(self._btn_context_menu, drw[0], drw[1], b)
-            )
 
         if self._drawings_and_urls:
             grid.addWidget(QHLine(), row, 0, 1, 2)
