@@ -166,7 +166,7 @@ class CodeWidget(QWidget):
         for caption, key in self._main_data:
             grid.addWidget(XLabel(caption), row, 0)
             if key in self._data:
-                if len(str(self._data[key])) > 0:
+                if not self._data[key] is None and len(str(self._data[key])) > 0:
                     if not key in self._is_a_path:
                         grid.addWidget(XLabel(str(self._data[key])), row , 1)
                     else:
@@ -217,7 +217,7 @@ class CodeWidget(QWidget):
             for caption, name in self._gavalnames:
                 grid.addWidget(XLabel(caption), row, 0)
 
-                if len(self._gavals[name]) > 0:
+                if not self._gavals[name] is None and len(self._gavals[name]) > 0:
                     if not name in self._is_a_path:
                         grid.addWidget(XLabel(self._gavals[name]), row , 1)
                     else:
