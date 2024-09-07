@@ -1,4 +1,5 @@
-2024-06-22: v1.0.2
+2024-09-07: v1.0.2
+- allow to open file name contained in the gval/gaval fields
 - allow to point to another configuration file using bombrowser.forward
 - add support fo an URL (http[s]:// or ftp://) instead of a file as
   attachment
