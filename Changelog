@@ -1,3 +1,6 @@
+2024-09-10: v1.0.3
+- BUG: searchrevision: generate the correct sequence of gval fields
+
 2024-09-07: v1.0.2
 - allow to open file name contained in the gval/gaval fields
 - allow to point to another configuration file using bombrowser.forward
