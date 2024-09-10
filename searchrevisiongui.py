@@ -171,9 +171,7 @@ class RevisionListWidget(QWidget):
         fns = ["id", "rid", "code","descr",
             "ver", "iter", "date_from_days", "date_to_days", "doc"]
 
-        fns += ["" for x in cfg.get_gvalnames2()]
-        for (seq, idx, gvalname, caption, type_) in cfg.get_gvalnames2():
-            fns[self._notgvalcols + idx -1] = gvalname
+        fns += ["gval%d"%(i+1) for i in range(db.gvals_count)]
 
         for k, v in self._bom.items():
             match = True
