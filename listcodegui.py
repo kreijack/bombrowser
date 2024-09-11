@@ -125,7 +125,8 @@ class CodesListWidget(QWidget):
             self.emitResult.emit(0, 0)
             return
 
-        self._copy_info = "\t".join(["id", "Code", "Rev", "Iteration", "Description"])
+        self._copy_info = "\t".join(["id", "Code", "Description", "Rev",
+                                     "Iteration"])
         self._copy_info += "\n"
         self._copy_info += "\n".join(["\t".join(map(str, row[:5])) for row in ret])
 
