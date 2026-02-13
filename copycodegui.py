@@ -1,6 +1,6 @@
 """
 BOM Browser - tool to browse a bom
-Copyright (C) 2020,2021,2022,2023 Goffredo Baroncelli <kreijack@inwind.it>
+Copyright (C) 2020,2021,2022,2023,2024,2025,2026 Goffredo Baroncelli <kreijack@inwind.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -25,7 +25,7 @@ from PySide2.QtCore import Qt
 
 import db, editcode, bbwindow
 import utils, selectdategui, cfg
-import bbdate
+import bbdate, logtransaction
 
 class _CopyCode(bbwindow.BBMainWindow):
     def __init__(self, rev_id, copy, parent):
@@ -279,6 +279,7 @@ class _CopyCode(bbwindow.BBMainWindow):
                 self._new_code = code
                 self._new_rid = new_rid
                 self._update_parameters(d, "after_revise_set_values_to")
+            logtransaction.LogTransaction(d, cfg).create_rev_commit(new_rid)
         except db.DBException as e:
             QMessageBox.critical(self,
                 "BOMBrowser - error",
