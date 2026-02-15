@@ -171,10 +171,8 @@ class EditDates(QDialog):
             dates[1][4] = db.prototype_date -1
 
         try:
-            l = logtransaction.LogTransaction(d, cfg)
-            l.update_dates_pre(self._code_id)
-            d.update_dates(dates)
-            l.update_dates_commit()
+            with logtransaction.LogTransactionUpdateDates(d, cfg, self._code_id):
+                d.update_dates(dates)
 
         except Exception as e:
             utils.show_exception(msg="Error during the data saving\n" +
@@ -1233,10 +1231,8 @@ class EditWindow(bbwindow.BBMainWindow):
 
         d = db.get_db_instance()
         try:
-            l = logtransaction.LogTransaction(d, cfg)
-            l.delete_code_pre(self._code_id)
-            ret = d.delete_code(self._code_id)
-            l.delete_code_commit()
+            with logtransaction.LogTransactionDeleteCode(d, cfg, self._code_id):
+                ret = d.delete_code(self._code_id)
 
         except:
             utils.show_exception(msg="Error during deletion of code id=%d\n"%(self._code_id))
@@ -1273,10 +1269,8 @@ class EditWindow(bbwindow.BBMainWindow):
 
         d = db.get_db_instance()
         try:
-            l = logtransaction.LogTransaction(d, cfg)
-            l.delete_code_pre(self._code_id)
-            ret = d.delete_code_revision(self._rid)
-            l.delete_code_commit()
+            with logtransaction.LogTransactionDeleteRevision(d, cfg, self._rid):
+                ret = d.delete_code_revision(self._rid)
 
         except:
             utils.show_exception(msg="Error during deletion of code revision rid=%d\n"%(self._rid))
@@ -1450,27 +1444,25 @@ class EditWindow(bbwindow.BBMainWindow):
         d = db.get_db_instance()
 
         try:
-            l = logtransaction.LogTransaction(d, cfg)
-            l.update_rev_pre(self._rid)
+            with logtransaction.LogTransactionUpdateRevision(d, cfg, self._rid) as l:
 
-            ret = d.update_by_rid2(self._rid, descr.strip(),
-                self._ver.text(), self._unit.text(),
-                gvals, drawings, children,
-                self._old_copy
-            )
+                ret = d.update_by_rid2(self._rid, descr.strip(),
+                    self._ver.text(), self._unit.text(),
+                    gvals, drawings, children,
+                    self._old_copy
+                )
 
-            if ret == "DATACHANGED":
-                r = QMessageBox.question(self, "BOMBrowser",
-                    "The data was changed by another user. Are you sure to overwrite it ?")
-                if r == QMessageBox.Yes:
-                    ret = d.update_by_rid2(self._rid, descr.strip(),
-                        self._ver.text(), self._unit.text(),
-                        gvals, drawings, children,
-                        None
-                    )
-                    l.update_rev_commit()
-            else:
-                l.update_rev_commit()
+                if ret == "DATACHANGED":
+                    r = QMessageBox.question(self, "BOMBrowser",
+                        "The data was changed by another user. Are you sure to overwrite it ?")
+                    if r == QMessageBox.Yes:
+                        ret = d.update_by_rid2(self._rid, descr.strip(),
+                            self._ver.text(), self._unit.text(),
+                            gvals, drawings, children,
+                            None
+                        )
+                    else:
+                        l.abort() # abort logging
 
         except:
             utils.show_exception(msg="Error during the data saving\n")

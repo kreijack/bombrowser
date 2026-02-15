@@ -21,6 +21,7 @@ import datetime
 import os
 import filelock
 import socket
+import gzip
 
 import db
 
@@ -29,10 +30,21 @@ class LogTransaction:
                 self._db = db
                 self._cfg = cfg
 
-                if "LOGGER" in cfg.config() and "filename" in cfg.config()["LOGGER"]:
-                        self._fname = cfg.config()["LOGGER"]["filename"]
-                else:
+                self._fname = cfg.config()["LOGGER"]["filename"]
+                if len(self._fname) < 1:
                         self._fname = None
+
+                self._compress = False
+                if "compress" in cfg.config()["LOGGER"]:
+                        c = cfg.config()["LOGGER"]["compress"].strip()
+                        if c == "1":
+                                self._compress = True
+
+                self._logrotate = "0"
+                if "logrotate" in cfg.config()["LOGGER"]:
+                        c = cfg.config()["LOGGER"]["logrotate"].strip()
+                        if c in ["0", "weekly", "monthly", "yearly"]:
+                                self._logrotate = c
 
                 self._delete_code_msg = None
                 self._delete_rev_msg = None
@@ -76,8 +88,31 @@ class LogTransaction:
                                 for x in self._db.get_dates_by_code_id3(code_id)])
 
         def _append(self, msg):
+
+                if self._logrotate == "weekly":
+                        fn = "%s-%s"%(
+                                self._fname,
+                                datetime.datetime.now().astimezone().strftime("%Y_%W_%Z"))
+                elif self._logrotate == "monthly":
+                        fn = "%s-%s"%(
+                                self._fname,
+                                datetime.datetime.now().astimezone().strftime("%Y-%m_%Z"))
+                elif self._logrotate == "yearly":
+                        fn = "%s-%s"%(
+                                self._fname,
+                                datetime.datetime.now().astimezone().strftime("%Y_%Z"))
+                else:
+                        fn = self._fname
+
+                if self._compress:
+                        xopen = gzip.open
+                        msg = msg.encode("utf-8")
+                        fn = fn+".gz"
+                else:
+                        xopen = open
+
                 with filelock.FileLock(self._fname+".lock"):
-                        with open(self._fname, "a") as f:
+                        with xopen(fn, "a") as f:
                                 f.write(msg)
 
         def _compare_msg(self, msg_old1, msg_new1):
@@ -180,18 +215,27 @@ class LogTransaction:
                 if self._fname is None:
                         return
 
-                msg_old, msg_new = self._compare_msg(self._update_rev_msg,
-                        self._revision_to_str(self._update_rev_id))
+                current_msg = self._revision_to_str(self._update_rev_id)
 
-                msg = "## Update revision rev_id=%d\n"%(self._update_rev_id)
-                msg += self._get_info()
-                msg += "\n"
-                msg += "## Previous value\n"
-                msg += msg_old
-                msg += "\n"
-                msg += "## Current value\n"
-                msg += msg_new
-                msg += "\n----\n"
+                if current_msg == self._update_rev_msg:
+                        msg = "## Update revision rev_id=%d\n"%(self._update_rev_id)
+                        msg += self._get_info()
+                        msg += "\n"
+                        msg += "## the revisions are equal; the content will not logged\n"
+                        msg += "\n----\n"
+                else:
+                        msg_old, msg_new = self._compare_msg(self._update_rev_msg,
+                                                                current_msg)
+
+                        msg = "## Update revision rev_id=%d\n"%(self._update_rev_id)
+                        msg += self._get_info()
+                        msg += "\n"
+                        msg += "## Previous value\n"
+                        msg += msg_old
+                        msg += "\n"
+                        msg += "## Current value\n"
+                        msg += msg_new
+                        msg += "\n----\n"
 
                 self._append(msg)
                 self._update_rev_msg = None
@@ -210,35 +254,96 @@ class LogTransaction:
                 if self._fname is None:
                         return
 
-                msg_old, msg_new = self._compare_msg(self._update_dates_msg,
-                        self._dates_to_str(self._update_dates_code_id))
+                current_msg = self._dates_to_str(self._update_dates_code_id)
 
-                msg = "## Update dates code_id=%d\n"%(self._update_dates_code_id)
-                msg += self._get_info()
-                msg += "\n"
-                msg += "## Previous value\n"
-                msg += msg_old
-                msg += "\n"
-                msg += "## Current value\n"
-                msg += msg_new
-                msg += "\n----\n"
+                if current_msg == self._update_dates_msg:
+                        msg = "## Update dates code_id=%d\n"%(self._update_dates_code_id)
+                        msg += self._get_info()
+                        msg += "\n"
+                        msg += "## the dates are equal; the content will not logged\n"
+                        msg += "\n----\n"
+                else:
+
+                        msg_old, msg_new = self._compare_msg(self._update_dates_msg,
+                                                        current_msg)
+
+                        msg = "## Update dates code_id=%d\n"%(self._update_dates_code_id)
+                        msg += self._get_info()
+                        msg += "\n"
+                        msg += "## Previous value\n"
+                        msg += msg_old
+                        msg += "\n"
+                        msg += "## Current value\n"
+                        msg += msg_new
+                        msg += "\n----\n"
 
                 self._append(msg)
                 self._update_dates_msg = None
 
 
-"""
-revise_code
-copy_code
+class LogTransactionDeleteCode:
+        def __init__(self, db, cfg, code_id):
+                self._log_transaction = LogTransaction(db,cfg)
+                self._code_id = code_id
 
-update_by_rid2
+        def __enter__(self):
+                self._log_transaction.delete_code_pre(self._code_id)
+                return self
 
-update_dates
+        def abort(self):
+                self._log_transaction = None
 
-d.get_dates_by_code_id3(self._code_id)
+        def __exit__(self, exc_type, exc_val, exc_tb):
+                if self._log_transaction:
+                        self._log_transaction.delete_code_commit()
 
-delete_code
-delete_code_revision
 
-d.get_full_revision_by_rid(self._rid)
-"""
+class LogTransactionDeleteRevision:
+        def __init__(self, db, cfg, rev_id):
+                self._log_transaction = LogTransaction(db,cfg)
+                self._rev_id = rev_id
+
+        def __enter__(self):
+                self._log_transaction.delete_rev_pre(self._rev_id)
+                return self
+
+        def abort(self):
+                self._log_transaction = None
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+                if self._log_transaction:
+                        self._log_transaction.delete_rev_commit()
+
+
+class LogTransactionUpdateRevision:
+        def __init__(self, db, cfg, rev_id):
+                self._log_transaction = LogTransaction(db,cfg)
+                self._rev_id = rev_id
+
+        def __enter__(self):
+                self._log_transaction.update_rev_pre(self._rev_id)
+                return self
+
+        def abort(self):
+                self._log_transaction = None
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+                if self._log_transaction:
+                        self._log_transaction.update_rev_commit()
+
+
+class LogTransactionUpdateDates:
+        def __init__(self, db, cfg, code_id):
+                self._log_transaction = LogTransaction(db,cfg)
+                self._code_id = code_id
+
+        def __enter__(self):
+                self._log_transaction.update_dates_pre(self._code_id)
+                return self
+
+        def abort(self):
+                self._log_transaction = None
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+                if self._log_transaction:
+                        self._log_transaction.update_dates_commit()
