@@ -344,3 +344,13 @@ regexpmap_table=
 default_dirs=
     /tmp/default/dir
     /tmp/dir1/dir2
+
+[LOGGER]
+filename=log.txt
+# 0 or 1
+compress=0
+# none
+# weekly
+# monthly
+# yearly
+logrotate=monthly
