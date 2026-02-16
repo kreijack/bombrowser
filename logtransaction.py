@@ -31,26 +31,33 @@ class LogTransaction:
                 self._db = db
                 self._cfg = cfg
 
+                self._delete_code_msg = None
+                self._delete_rev_msg = None
+                self._update_rev_msg  = None
+                self._update_dates_msg = None
+
+                self._compress = False
+                self._logrotate = "0"
+
+                if cfg.config()["LOGGER"]["enable"] != "1":
+                        self._fname = None
+                        return
+
                 self._fname = cfg.config()["LOGGER"]["filename"]
                 if len(self._fname) < 1:
                         self._fname = None
 
-                self._compress = False
                 if "compress" in cfg.config()["LOGGER"]:
                         c = cfg.config()["LOGGER"]["compress"].strip()
                         if c == "1":
                                 self._compress = True
 
-                self._logrotate = "0"
                 if "logrotate" in cfg.config()["LOGGER"]:
                         c = cfg.config()["LOGGER"]["logrotate"].strip()
                         if c in ["0", "weekly", "monthly", "yearly"]:
                                 self._logrotate = c
 
-                self._delete_code_msg = None
-                self._delete_rev_msg = None
-                self._update_rev_msg  = None
-                self._update_dates_msg = None
+
 
         def _revision_to_str(self, rev_id):
                 [rev, children, drawings] = self._db.get_full_revision_by_rid(rev_id)

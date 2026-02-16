@@ -247,6 +247,7 @@ def _check_cfg(cfg):
             ("filename", True),
             ("compress", False),
             ("logrotate", False),
+            ("enable", True),
         ))
     ]
     template_check_table = [

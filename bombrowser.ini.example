@@ -346,6 +346,9 @@ default_dirs=
     /tmp/dir1/dir2
 
 [LOGGER]
+# 0 or 1
+enable=0
+# file to log
 filename=log.txt
 # 0 or 1
 compress=0
