@@ -22,6 +22,7 @@ import os
 import filelock
 import socket
 import gzip
+import time
 
 import db
 
@@ -70,8 +71,15 @@ class LogTransaction:
                                 msg += "%s:\t%s\n"%(k, str(v))
 
                 msg += "Children:\n"
-                msg += "\t#code_id\tcode\tdescr\tqty\teach\tunit\tref\t"
-                msg += "\t".join([x[3] for x in self._cfg.get_gvalnames2()]) + "\n"
+                msg += "\t#code_id\tcode\tdescr\tqty\teach\tunit\tref"
+                for i in range(1, db.gavals_count+1):
+                        k = "gaval%d"%(i)
+                        if k in gavalnames:
+                                name = "\t(%s)%s"%(k, gavalnames[k])
+                        else:
+                                name = "\t(%s)"%(k)
+                        msg += name
+                msg += "\n"
                 for child in children:
                         msg += "\t" + "\t".join([str(x) for x in child]) + "\n"
 
@@ -92,15 +100,15 @@ class LogTransaction:
                 if self._logrotate == "weekly":
                         fn = "%s-%s"%(
                                 self._fname,
-                                datetime.datetime.now().astimezone().strftime("%Y_%W_%Z"))
+                                time.strftime("%Y_%W", time.gmtime()))
                 elif self._logrotate == "monthly":
                         fn = "%s-%s"%(
                                 self._fname,
-                                datetime.datetime.now().astimezone().strftime("%Y-%m_%Z"))
+                                time.strftime("%Y-%m", time.gmtime()))
                 elif self._logrotate == "yearly":
                         fn = "%s-%s"%(
                                 self._fname,
-                                datetime.datetime.now().astimezone().strftime("%Y_%Z"))
+                                time.strftime("%Y", time.gmtime()))
                 else:
                         fn = self._fname
 
@@ -145,7 +153,7 @@ class LogTransaction:
 
         def _get_info(self):
                 return "## timestamp: %s\n## username: %s\n## host: %s\n"%(
-                        datetime.datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S %Z"),
+                        datetime.datetime.now().astimezone().strftime("%Y-%m-%dT%H:%M:%S %z"),
                         os.getlogin(),
                         socket.getfqdn())
 
