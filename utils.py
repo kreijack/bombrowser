@@ -341,6 +341,88 @@ def add_drawings_to_bom(bom):
                     os.path.basename(url))
         v["doc"] = ", ".join(drawings_and_urls)
 
+def format_table_to_str(t):
+    if len(t) == 0:
+        return ""
+
+    cols = [0 for x in t[0]]
+
+    for line in t:
+        assert(len(line) == len(cols))
+        for i, v in enumerate(line):
+            v = xescape(v)
+            lv = len(v)
+            lv = int((lv+8)/8)*8
+            cols[i] = max(lv, cols[i])
+
+    s = ""
+    for line in t:
+        for i, v in enumerate(line):
+            v = xescape(v)
+            delta = cols[i] - len(v)
+            ntab = int((delta +7 )/ 8)
+            assert(ntab > 0)
+            s += v + "\t"*ntab
+        s += "\n"
+    return s
+
+def len_str_with_tab(s):
+    assert(not "\n" in s)
+    l = 0
+    for c in s:
+        if c != '\t':
+            l += 1
+            continue
+        l += 8
+        l = int(l / 8) * 8
+
+    return l
+
+def test_len_str_with_tab():
+    assert(len_str_with_tab("a") == 1)
+    assert(len_str_with_tab("") == 0)
+    assert(len_str_with_tab("aa") == 2)
+    assert(len_str_with_tab("aa\t") == 8)
+    assert(len_str_with_tab("aa\t\t") == 16)
+    assert(len_str_with_tab("aa\tbb\t") == 16)
+
+def test_format_table_to_str():
+    t0 = [["a", "b\tbb", "ccc"],
+         ["Long-column", "", "Med-\nline"],
+         ["Long-co8", "", "01234567"],
+         ["1", "4", "6"]]
+
+    s = format_table_to_str(t0)
+
+    # check that the rows are correct
+    t = s.split("\n")[:-1]
+    assert(len(t) == len(t0))
+
+    # check that all the lines have the same length
+    for line in t[1:]:
+        assert(len_str_with_tab(line) == len_str_with_tab(t[0]))
+
+    # compute the column size
+    cols = []
+    prev = '\t'
+    for i, c in enumerate(t[0]):
+        if prev=='\t' and c != '\t':
+            cols.append(i)
+
+    cols.append(len(t[0]))
+
+    t1 = []
+    for line in t:
+        t2 = []
+        for i in range(i, len(cols)-1):
+            t2.append(line[cols[i]:cols[i+1]-cols[i]])
+        t1.append(t2)
+
+    for line in t1[1:]:
+        assert(len(t1[0]) == len(line))
+        for i, v in enumerate(line):
+            assert(len_str_with_tab(v) == t1[0][i])
+
 def test_bb_match_simple():
     assert(bb_match("abc", "a"))
     assert(bb_match("abc", "a%"))
