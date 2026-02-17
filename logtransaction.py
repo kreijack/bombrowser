@@ -24,7 +24,7 @@ import socket
 import gzip
 import time
 
-import db
+import db, utils
 
 class LogTransaction:
         def __init__(self, db, cfg):
@@ -57,43 +57,50 @@ class LogTransaction:
                         if c in ["0", "weekly", "monthly", "yearly"]:
                                 self._logrotate = c
 
-
-
         def _revision_to_str(self, rev_id):
                 [rev, children, drawings] = self._db.get_full_revision_by_rid(rev_id)
-                msg=""
+                msg="Properties:\n"
                 gvalnames = dict()
                 for (_, _, k, n, _) in self._cfg.get_gvalnames2():
                         gvalnames[k] = n
                 gavalnames = dict()
                 for (_, _, k, n, _) in self._cfg.get_gavalnames():
                         gavalnames[k] = n
+                t = []
                 for k,v in rev.items():
-                        if k.startswith("gval"):
-                                kver=k
+                        if not k.startswith("gval"):
+                                t.append([" ","%s:"%(k), str(v)])
+
+                for k,v in rev.items():
+                        if not k.startswith("gval"):
+                                continue
                         if k in gvalnames:
-                                kver = gvalnames[k]
-                                msg += "(%s)%s:\t%s\n"%(k, kver, str(v))
+                                kdescr = gvalnames[k]
+                                t.append([" ", "(%s)%s:"%(k, kdescr), str(v)])
                         else:
-                                msg += "%s:\t%s\n"%(k, str(v))
+                                t.append([" ", "(%s):"%(k), str(v)])
+                msg += utils.format_table_to_str(t)
 
                 msg += "Children:\n"
-                msg += "\t#code_id\tcode\tdescr\tqty\teach\tunit\tref"
+                t = [[" ", "#Code", "Description", "q.ty", "each", "unit", "ref"]]
                 for i in range(1, db.gavals_count+1):
                         k = "gaval%d"%(i)
                         if k in gavalnames:
-                                name = "\t(%s)%s"%(k, gavalnames[k])
+                                name = "(%s)%s"%(k, gavalnames[k])
                         else:
-                                name = "\t(%s)"%(k)
-                        msg += name
-                msg += "\n"
+                                name = "(%s)"%(k)
+                        t[0].append(name)
                 for child in children:
-                        msg += "\t" + "\t".join([str(x) for x in child]) + "\n"
+                        t.append([""] + [str(x) for x in child[1:]])
+
+                msg += utils.format_table_to_str(t)
 
                 msg += "Drawings:\n"
-                msg += "\t#file\tpath\n"
+                t = [[" ", "#File", "Path"]]
                 for drawing in drawings:
-                        msg += "\t"+ "\t".join(drawing) + "\n"
+                        t.append([""] + list(drawing))
+
+                msg += utils.format_table_to_str(t)
 
                 return msg
 
@@ -138,25 +145,24 @@ class LogTransaction:
 
                 for line in msg_old1:
                         if line in msg_new1:
-                                msg_old.append("  " + line)
+                                msg_old.append(line)
                         else:
-                                msg_old.append("- " + line)
+                                msg_old.append("-" + line[1:])
                 for line in msg_new1:
                         if line in msg_old1:
-                                msg_new.append("  " + line)
+                                msg_new.append(line)
                         else:
-                                msg_new.append("+ " + line)
+                                msg_new.append("+" + line[1:])
 
                 return "\n".join(msg_old), "\n".join(msg_new)
 
         def _dates_to_str(self, code_id):
                 dates = self._db.get_dates_by_code_id3(code_id)
-                return "\n".join(
-                        ["%s %s %s (%d) %s %s"%(
-                                x[0], x[5], x[1], x[6],
-                                db.days_to_iso(x[2]),
-                                db.days_to_iso(x[3]))
-                                        for x in dates])
+                t = [[" ", "#Code", "Rev", "Description", "Iter", "Date from", "Date to"]]
+                t += [ [" ",  x[0], x[5], x[1], "%d"%(x[6]),
+                         db.days_to_iso(x[2]), db.days_to_iso(x[3])] for x in dates]
+
+                return utils.format_table_to_str(t)
 
         def _get_info(self):
                 return "## timestamp: %s\n## username: %s\n## host: %s\n"%(
