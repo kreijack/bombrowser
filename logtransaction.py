@@ -24,7 +24,8 @@ import socket
 import gzip
 import time
 
-import db, utils
+import utils
+import db
 
 class LogTransaction:
         def __init__(self, db, cfg):
@@ -57,9 +58,11 @@ class LogTransaction:
                         if c in ["0", "weekly", "monthly", "yearly"]:
                                 self._logrotate = c
 
-        def _revision_to_str(self, rev_id):
+        def _revision_to_tables(self, rev_id):
                 [rev, children, drawings] = self._db.get_full_revision_by_rid(rev_id)
-                msg="Properties:\n"
+
+                msg = [[["Properties:"]]]
+
                 gvalnames = dict()
                 for (_, _, k, n, _) in self._cfg.get_gvalnames2():
                         gvalnames[k] = n
@@ -79,9 +82,9 @@ class LogTransaction:
                                 t.append([" ", "(%s)%s:"%(k, kdescr), str(v)])
                         else:
                                 t.append([" ", "(%s):"%(k), str(v)])
-                msg += utils.format_table_to_str(t)
+                msg += [t]
 
-                msg += "Children:\n"
+                msg += [[["Children:"]]]
                 t = [[" ", "#Code", "Description", "q.ty", "each", "unit", "ref"]]
                 for i in range(1, db.gavals_count+1):
                         k = "gaval%d"%(i)
@@ -93,21 +96,22 @@ class LogTransaction:
                 for child in children:
                         t.append([""] + [str(x) for x in child[1:]])
 
-                msg += utils.format_table_to_str(t)
+                msg += [t]
 
-                msg += "Drawings:\n"
+                msg += [[["Drawings:"]]]
                 t = [[" ", "#File", "Path"]]
                 for drawing in drawings:
                         t.append([""] + list(drawing))
 
-                msg += utils.format_table_to_str(t)
+                msg += [t]
 
                 return msg
 
-        def _code_to_str(self, code_id):
-                return "\n".join(
-                        [self._revision_to_str(x[4])
-                                for x in self._db.get_dates_by_code_id3(code_id)])
+        def _code_to_tables(self, code_id):
+            res = []
+            for x in self._db.get_dates_by_code_id3(code_id):
+                res += self._revision_to_tables(x[4])
+            return res
 
         def _append(self, msg):
 
@@ -137,32 +141,47 @@ class LogTransaction:
                         with xopen(fn, "a") as f:
                                 f.write(msg)
 
-        def _compare_msg(self, msg_old1, msg_new1):
-                msg_old1 = msg_old1.split("\n")
-                msg_new1 = msg_new1.split("\n")
+        def _tables_to_str(self, ts):
+            return "\n".join([utils.format_table_to_str(t) for t in ts])
+
+        def _compare_tables(self, msg_old1, msg_new1):
+
+                def find_in_table(l, t):
+                    for t1 in t:
+                        if l in t1:
+                            return True
+                    return False
+
                 msg_old = []
                 msg_new = []
 
-                for line in msg_old1:
-                        if line in msg_new1:
-                                msg_old.append(line)
+                for t in msg_old1:
+                    tmp = []
+                    for line in t:
+                        if find_in_table(line, msg_new1):
+                                tmp += [[""] + line]
                         else:
-                                msg_old.append("-" + line[1:])
-                for line in msg_new1:
-                        if line in msg_old1:
-                                msg_new.append(line)
+                                tmp += [["-"] + line]
+                    msg_old += [tmp]
+
+                for t in msg_new1:
+                    tmp = []
+                    for line in t:
+                        if find_in_table(line, msg_old1):
+                                tmp += [[""] + line]
                         else:
-                                msg_new.append("+" + line[1:])
+                                tmp += [["+"] + line]
+                    msg_new += [tmp]
 
-                return "\n".join(msg_old), "\n".join(msg_new)
+                return msg_old, msg_new
 
-        def _dates_to_str(self, code_id):
+        def _dates_to_tables(self, code_id):
                 dates = self._db.get_dates_by_code_id3(code_id)
                 t = [[" ", "#Code", "Rev", "Description", "Iter", "Date from", "Date to"]]
                 t += [ [" ",  x[0], x[5], x[1], "%d"%(x[6]),
                          db.days_to_iso(x[2]), db.days_to_iso(x[3])] for x in dates]
 
-                return utils.format_table_to_str(t)
+                return [t]
 
         def _get_info(self):
                 return "## timestamp: %s\n## username: %s\n## host: %s\n"%(
@@ -178,16 +197,20 @@ class LogTransaction:
                 self._delete_code_msg = "## Delete code code_id=%d\n"%(code_id)
                 self._delete_code_msg += self._get_info()
                 self._delete_code_msg += "\n"
-                self._delete_code_msg += self._code_to_str(code_id)
+                self._delete_code_msg += self._tables_to_str(
+                                            self._code_to_tables(code_id))
                 self._delete_code_msg += "\n----\n"
 
-        def delete_code_commit(self):
+        def delete_code_commit(self, excp):
                 if self._delete_code_msg is None:
                         return
                 if self._fname is None:
                         return
 
-                self._append(self._delete_code_msg)
+                excp_mesg = ""
+                if excp:
+                        excp_mesg = "## WARNING, during this action, the following exception were raised:\n%r\n----\n"%(excp)
+                self._append(self._delete_code_msg + excp_mesg)
                 self._delete_code_msg = None
 
         def delete_rev_pre(self, rev_id):
@@ -198,17 +221,31 @@ class LogTransaction:
                 self._delete_rev_msg = "## Delete revision rev_id=%d\n"%(rev_id)
                 self._delete_rev_msg += self._get_info()
                 self._delete_rev_msg += "\n"
-                self._delete_rev_msg += self._revision_to_str(rev_id)
-                self._delete_rev_msg += "\n----\n"
+                self._delete_rev_msg += self._tables_to_str(
+                                            self._revision_to_tables(rev_id))
+                self._delete_rev_msg += "\n"
 
-        def delete_rev_commit(self):
+                self._delete_rev_code_id = self._db.get_code_by_rid(rev_id)["id"]
+
+        def delete_rev_commit(self, excp):
                 if self._delete_rev_msg is None:
                         return
                 if self._fname is None:
                         return
 
-                self._append(self._delete_rev_msg)
+                tmsg = self._dates_to_tables(self._delete_rev_code_id)
+                msg = "# Dates code_id=%d\n"%(self._delete_rev_code_id)
+                msg += "\n"
+                msg += self._tables_to_str(tmsg)
+                msg += "\n----\n"
+
+                excp_mesg = ""
+                if excp:
+                        excp_mesg = "## WARNING, during this action, the following exception were raised:\n%r\n----\n"%(excp)
+                self._append(self._delete_rev_msg + msg + excp_mesg)
                 self._delete_rev_msg = None
+
+                self.update_dates_commit(None)
 
         def create_rev_commit(self, rev_id):
                 if self._fname is None:
@@ -217,7 +254,16 @@ class LogTransaction:
                 msg = "## Create revision rev_id=%d\n"%(rev_id)
                 msg += self._get_info()
                 msg += "\n"
-                msg += self._revision_to_str(rev_id)
+                msg += self._tables_to_str(self._revision_to_tables(rev_id))
+
+                # log also the dates if the revision is not the first
+                code = self._db.get_code_by_rid(rev_id)
+                if code["iter"] != 1:
+                        tmsg = self._dates_to_tables(code["id"])
+                        msg += "\n"
+                        msg += "# Dates code_id=%d\n"%(code["id"])
+                        msg += "\n"
+                        msg += self._tables_to_str(tmsg)
                 msg += "\n----\n"
 
                 self._append(msg)
@@ -228,15 +274,15 @@ class LogTransaction:
                         return
 
                 self._update_rev_id = rev_id
-                self._update_rev_msg = self._revision_to_str(rev_id)
+                self._update_rev_msg = self._revision_to_tables(rev_id)
 
-        def update_rev_commit(self):
+        def update_rev_commit(self, excp):
                 if self._update_rev_msg is None:
                         return
                 if self._fname is None:
                         return
 
-                current_msg = self._revision_to_str(self._update_rev_id)
+                current_msg = self._revision_to_tables(self._update_rev_id)
 
                 if current_msg == self._update_rev_msg:
                         msg = "## Update revision rev_id=%d\n"%(self._update_rev_id)
@@ -245,21 +291,27 @@ class LogTransaction:
                         msg += "## the revisions are equal; the content will not logged\n"
                         msg += "\n----\n"
                 else:
-                        msg_old, msg_new = self._compare_msg(self._update_rev_msg,
+                        msg_old, msg_new = self._compare_tables(self._update_rev_msg,
                                                                 current_msg)
 
                         msg = "## Update revision rev_id=%d\n"%(self._update_rev_id)
                         msg += self._get_info()
                         msg += "\n"
                         msg += "## Previous value\n"
-                        msg += msg_old
+                        msg += self._tables_to_str(msg_old)
                         msg += "\n"
                         msg += "## Current value\n"
-                        msg += msg_new
+                        msg += self._tables_to_str(msg_new)
                         msg += "\n----\n"
 
-                self._append(msg)
+                excp_mesg = ""
+                if excp:
+                        excp_mesg = "## WARNING, during this action, the following exception were raised:\n%r\n----\n"%(excp)
+
+                self._append(msg + excp_mesg)
                 self._update_rev_msg = None
+
+                self.update_dates_commit(excp)
 
         def update_dates_pre(self, code_id):
                 self._update_dates_msg = None
@@ -267,15 +319,15 @@ class LogTransaction:
                         return
 
                 self._update_dates_code_id = code_id
-                self._update_dates_msg = self._dates_to_str(code_id)
+                self._update_dates_msg = self._dates_to_tables(code_id)
 
-        def update_dates_commit(self):
+        def update_dates_commit(self, excp):
                 if self._update_dates_msg is None:
                         return
                 if self._fname is None:
                         return
 
-                current_msg = self._dates_to_str(self._update_dates_code_id)
+                current_msg = self._dates_to_tables(self._update_dates_code_id)
 
                 if current_msg == self._update_dates_msg:
                         msg = "## Update dates code_id=%d\n"%(self._update_dates_code_id)
@@ -285,20 +337,24 @@ class LogTransaction:
                         msg += "\n----\n"
                 else:
 
-                        msg_old, msg_new = self._compare_msg(self._update_dates_msg,
+                        msg_old, msg_new = self._compare_tables(self._update_dates_msg,
                                                         current_msg)
 
                         msg = "## Update dates code_id=%d\n"%(self._update_dates_code_id)
                         msg += self._get_info()
                         msg += "\n"
                         msg += "## Previous value\n"
-                        msg += msg_old
+                        msg += self._tables_to_str(msg_old)
                         msg += "\n"
                         msg += "## Current value\n"
-                        msg += msg_new
+                        msg += self._tables_to_str(msg_new)
                         msg += "\n----\n"
 
-                self._append(msg)
+                excp_mesg = ""
+                if excp:
+                        excp_mesg = "## WARNING, during this action, the following exception were raised:\n%r\n----\n"%(excp)
+
+                self._append(msg + excp_mesg)
                 self._update_dates_msg = None
 
 
@@ -316,7 +372,7 @@ class LogTransactionDeleteCode:
 
         def __exit__(self, exc_type, exc_val, exc_tb):
                 if self._log_transaction:
-                        self._log_transaction.delete_code_commit()
+                        self._log_transaction.delete_code_commit(exc_val)
 
 
 class LogTransactionDeleteRevision:
@@ -333,7 +389,7 @@ class LogTransactionDeleteRevision:
 
         def __exit__(self, exc_type, exc_val, exc_tb):
                 if self._log_transaction:
-                        self._log_transaction.delete_rev_commit()
+                        self._log_transaction.delete_rev_commit(exc_val)
 
 
 class LogTransactionUpdateRevision:
@@ -350,7 +406,7 @@ class LogTransactionUpdateRevision:
 
         def __exit__(self, exc_type, exc_val, exc_tb):
                 if self._log_transaction:
-                        self._log_transaction.update_rev_commit()
+                        self._log_transaction.update_rev_commit(exc_val)
 
 
 class LogTransactionUpdateDates:
@@ -367,4 +423,4 @@ class LogTransactionUpdateDates:
 
         def __exit__(self, exc_type, exc_val, exc_tb):
                 if self._log_transaction:
-                        self._log_transaction.update_dates_commit()
+                        self._log_transaction.update_dates_commit(exc_val)

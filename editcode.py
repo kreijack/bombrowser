@@ -1231,8 +1231,10 @@ class EditWindow(bbwindow.BBMainWindow):
 
         d = db.get_db_instance()
         try:
-            with logtransaction.LogTransactionDeleteCode(d, cfg, self._code_id):
+            with logtransaction.LogTransactionDeleteCode(d, cfg, self._code_id) as l:
                 ret = d.delete_code(self._code_id)
+                if ret != "":
+                    l.abort()
 
         except:
             utils.show_exception(msg="Error during deletion of code id=%d\n"%(self._code_id))
@@ -1269,8 +1271,10 @@ class EditWindow(bbwindow.BBMainWindow):
 
         d = db.get_db_instance()
         try:
-            with logtransaction.LogTransactionDeleteRevision(d, cfg, self._rid):
+            with logtransaction.LogTransactionDeleteRevision(d, cfg, self._rid) as l:
                 ret = d.delete_code_revision(self._rid)
+                if ret != "":
+                    l.abort()
 
         except:
             utils.show_exception(msg="Error during deletion of code revision rid=%d\n"%(self._rid))
