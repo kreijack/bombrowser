@@ -36,6 +36,7 @@ class LogTransaction:
                 self._delete_rev_msg = None
                 self._update_rev_msg  = None
                 self._update_dates_msg = None
+                self._delete_rev_code_id = None
 
                 self._compress = False
                 self._logrotate = "0"
@@ -60,6 +61,9 @@ class LogTransaction:
 
         def _revision_to_tables(self, rev_id):
                 [rev, children, drawings] = self._db.get_full_revision_by_rid(rev_id)
+
+                if rev is None:
+                        return [[["## ERROR: Not existant revid=%d"%(rev_id)]]]
 
                 msg = [[["Properties:"]]]
 
@@ -225,7 +229,11 @@ class LogTransaction:
                                             self._revision_to_tables(rev_id))
                 self._delete_rev_msg += "\n"
 
-                self._delete_rev_code_id = self._db.get_code_by_rid(rev_id)["id"]
+                code = self._db.get_code_by_rid(rev_id)
+                if code:
+                        self._delete_rev_code_id = code["id"]
+                else:
+                        self._delete_rev_code_id = None
 
         def delete_rev_commit(self, excp):
                 if self._delete_rev_msg is None:
@@ -258,12 +266,13 @@ class LogTransaction:
 
                 # log also the dates if the revision is not the first
                 code = self._db.get_code_by_rid(rev_id)
-                if code["iter"] != 1:
-                        tmsg = self._dates_to_tables(code["id"])
-                        msg += "\n"
-                        msg += "# Dates code_id=%d\n"%(code["id"])
-                        msg += "\n"
-                        msg += self._tables_to_str(tmsg)
+                if not code is None:
+                        if code["iter"] != 1:
+                                tmsg = self._dates_to_tables(code["id"])
+                                msg += "\n"
+                                msg += "# Dates code_id=%d\n"%(code["id"])
+                                msg += "\n"
+                                msg += self._tables_to_str(tmsg)
                 msg += "\n----\n"
 
                 self._append(msg)
