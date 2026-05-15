@@ -220,7 +220,9 @@ class ExportDialog(QDialog):
                 bigger_files.append(fname)
                 continue
 
-            fnl2.append(fname)
+            # avoid to add two times the same file
+            if not fname in fnl2:
+                fnl2.append(fname)
 
         if (len(missing_files) > 0 or len(irregular_files) > 0 or
             len(bigger_files) > 0):
