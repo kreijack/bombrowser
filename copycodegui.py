@@ -150,7 +150,6 @@ class _CopyCode(bbwindow.BBMainWindow):
         if self._do_copy:
             self._l_new_code.setReadOnly(False)
             self._l_new_code.setEnabled(True)
-            self._l_new_rev.setText("0")
             self.setWindowTitle("Copy code: %s"%(
                 self._l_old_code.text()))
             self._copy_revise_push_button.setText("Copy code")
