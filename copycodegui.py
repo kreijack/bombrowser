@@ -161,8 +161,17 @@ class _CopyCode(bbwindow.BBMainWindow):
                 self._l_old_code.text()))
             self._copy_revise_push_button.setText("Revise code")
             self._increase_rev()
+            self._set_rev_date()
 
         self._update_new_iter()
+
+    def _set_rev_date(self):
+        """ Set as new date a date compatible with the previous revisions the today one """
+        now = db.now_to_days()
+        dates = self._db.get_dates_by_code_id3(self._code_id)
+        max_old_from = max([x[2] for x in dates])
+        max_date = max(now, max_old_from + 1)
+        self._l_new_date_from.setText(db.days_to_iso(max_date))
 
     def _increase_rev(self):
         new_rev = self._l_old_rev.text()
