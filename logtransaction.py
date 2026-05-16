@@ -60,7 +60,12 @@ class LogTransaction:
                                 self._logrotate = c
 
         def _revision_to_tables(self, rev_id):
-                [rev, children, drawings] = self._db.get_full_revision_by_rid(rev_id)
+                try:
+                        [rev, children, drawings] = self._db.get_full_revision_by_rid(rev_id)
+                except Exception as e:
+                        return [[[
+                                "## ERROR: Got exception %r"%(e)
+                                ]]]
 
                 if rev is None:
                         return [[["## ERROR: Not existant revid=%d"%(rev_id)]]]
@@ -205,16 +210,13 @@ class LogTransaction:
                                             self._code_to_tables(code_id))
                 self._delete_code_msg += "\n----\n"
 
-        def delete_code_commit(self, excp):
+        def delete_code_commit(self):
                 if self._delete_code_msg is None:
                         return
                 if self._fname is None:
                         return
 
-                excp_mesg = ""
-                if excp:
-                        excp_mesg = "## WARNING, during this action, the following exception were raised:\n%r\n----\n"%(excp)
-                self._append(self._delete_code_msg + excp_mesg)
+                self._append(self._delete_code_msg)
                 self._delete_code_msg = None
 
         def delete_rev_pre(self, rev_id):
@@ -235,7 +237,7 @@ class LogTransaction:
                 else:
                         self._delete_rev_code_id = None
 
-        def delete_rev_commit(self, excp):
+        def delete_rev_commit(self):
                 if self._delete_rev_msg is None:
                         return
                 if self._fname is None:
@@ -247,15 +249,12 @@ class LogTransaction:
                 msg += self._tables_to_str(tmsg)
                 msg += "\n----\n"
 
-                excp_mesg = ""
-                if excp:
-                        excp_mesg = "## WARNING, during this action, the following exception were raised:\n%r\n----\n"%(excp)
-                self._append(self._delete_rev_msg + msg + excp_mesg)
+                self._append(self._delete_rev_msg + msg )
                 self._delete_rev_msg = None
 
-                self.update_dates_commit(None)
+                self.update_dates_commit()
 
-        def create_rev_commit(self, rev_id):
+        def create_rev_commit(self, rev_id, copy_only):
                 if self._fname is None:
                         return
 
@@ -266,13 +265,12 @@ class LogTransaction:
 
                 # log also the dates if the revision is not the first
                 code = self._db.get_code_by_rid(rev_id)
-                if not code is None:
-                        if code["iter"] != 1:
-                                tmsg = self._dates_to_tables(code["id"])
-                                msg += "\n"
-                                msg += "# Dates code_id=%d\n"%(code["id"])
-                                msg += "\n"
-                                msg += self._tables_to_str(tmsg)
+                if not code is None and copy_only == False:
+                        tmsg = self._dates_to_tables(code["id"])
+                        msg += "\n"
+                        msg += "Dates:\n"
+                        msg += "\n"
+                        msg += self._tables_to_str(tmsg)
                 msg += "\n----\n"
 
                 self._append(msg)
@@ -285,7 +283,7 @@ class LogTransaction:
                 self._update_rev_id = rev_id
                 self._update_rev_msg = self._revision_to_tables(rev_id)
 
-        def update_rev_commit(self, excp):
+        def update_rev_commit(self):
                 if self._update_rev_msg is None:
                         return
                 if self._fname is None:
@@ -313,14 +311,8 @@ class LogTransaction:
                         msg += self._tables_to_str(msg_new)
                         msg += "\n----\n"
 
-                excp_mesg = ""
-                if excp:
-                        excp_mesg = "## WARNING, during this action, the following exception were raised:\n%r\n----\n"%(excp)
-
-                self._append(msg + excp_mesg)
+                self._append(msg)
                 self._update_rev_msg = None
-
-                self.update_dates_commit(excp)
 
         def update_dates_pre(self, code_id):
                 self._update_dates_msg = None
@@ -330,7 +322,7 @@ class LogTransaction:
                 self._update_dates_code_id = code_id
                 self._update_dates_msg = self._dates_to_tables(code_id)
 
-        def update_dates_commit(self, excp):
+        def update_dates_commit(self):
                 if self._update_dates_msg is None:
                         return
                 if self._fname is None:
@@ -359,77 +351,99 @@ class LogTransaction:
                         msg += self._tables_to_str(msg_new)
                         msg += "\n----\n"
 
-                excp_mesg = ""
-                if excp:
-                        excp_mesg = "## WARNING, during this action, the following exception were raised:\n%r\n----\n"%(excp)
-
-                self._append(msg + excp_mesg)
+                self._append(msg)
                 self._update_dates_msg = None
 
 
-class LogTransactionDeleteCode:
-        def __init__(self, db, cfg, code_id):
+class _LogTransactionBaseClass:
+        def __init__(self, db, cfg):
                 self._log_transaction = LogTransaction(db,cfg)
-                self._code_id = code_id
 
         def __enter__(self):
+                try:
+                        self._enter()
+                except Exception as e:
+                        self._log_transaction._append("## WARNING, in _enter() got exception:\n%r\n----\n"%(e))
+                        raise e
+                return self
+
+        def abort(self):
+                self._log_transaction = None
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+                if not self._log_transaction:
+                        return
+
+                if exc_val:
+                        self._log_transaction._append("## WARNING, in protected scope got exception:\n%r\n----\n"%(exc_val))
+                        return
+
+                try:
+                        self._exit()
+                except Exception as e:
+                        self._log_transaction._append("## WARNING, in _exit got exception:\n%r\n----\n"%(e))
+                        raise e
+
+class LogTransactionDeleteCode(_LogTransactionBaseClass):
+        def __init__(self, db, cfg, code_id):
+                _LogTransactionBaseClass.__init__(self, db, cfg)
+                self._code_id = code_id
+
+        def _enter(self):
                 self._log_transaction.delete_code_pre(self._code_id)
-                return self
 
-        def abort(self):
-                self._log_transaction = None
-
-        def __exit__(self, exc_type, exc_val, exc_tb):
-                if self._log_transaction:
-                        self._log_transaction.delete_code_commit(exc_val)
+        def _exit(self):
+                self._log_transaction.delete_code_commit()
 
 
-class LogTransactionDeleteRevision:
+class LogTransactionDeleteRevision(_LogTransactionBaseClass):
         def __init__(self, db, cfg, rev_id):
-                self._log_transaction = LogTransaction(db,cfg)
+                _LogTransactionBaseClass.__init__(self, db, cfg)
                 self._rev_id = rev_id
 
-        def __enter__(self):
+        def _enter(self):
                 self._log_transaction.delete_rev_pre(self._rev_id)
-                return self
 
-        def abort(self):
-                self._log_transaction = None
-
-        def __exit__(self, exc_type, exc_val, exc_tb):
-                if self._log_transaction:
-                        self._log_transaction.delete_rev_commit(exc_val)
+        def _exit(self):
+                self._log_transaction.delete_rev_commit()
 
 
-class LogTransactionUpdateRevision:
+class LogTransactionUpdateRevision(_LogTransactionBaseClass):
         def __init__(self, db, cfg, rev_id):
-                self._log_transaction = LogTransaction(db,cfg)
+                _LogTransactionBaseClass.__init__(self, db, cfg)
                 self._rev_id = rev_id
 
-        def __enter__(self):
+        def _enter(self):
                 self._log_transaction.update_rev_pre(self._rev_id)
-                return self
 
-        def abort(self):
-                self._log_transaction = None
-
-        def __exit__(self, exc_type, exc_val, exc_tb):
-                if self._log_transaction:
-                        self._log_transaction.update_rev_commit(exc_val)
+        def _exit(self):
+                self._log_transaction.update_rev_commit()
 
 
-class LogTransactionUpdateDates:
+class LogTransactionUpdateDates(_LogTransactionBaseClass):
         def __init__(self, db, cfg, code_id):
-                self._log_transaction = LogTransaction(db,cfg)
+                _LogTransactionBaseClass.__init__(self, db, cfg)
                 self._code_id = code_id
 
-        def __enter__(self):
+        def _enter(self):
                 self._log_transaction.update_dates_pre(self._code_id)
                 return self
 
-        def abort(self):
-                self._log_transaction = None
+        def _exit(self):
+                self._log_transaction.update_dates_commit()
 
-        def __exit__(self, exc_type, exc_val, exc_tb):
-                if self._log_transaction:
-                        self._log_transaction.update_dates_commit(exc_val)
+class LogTransactionCreateRevision(_LogTransactionBaseClass):
+        def __init__(self, db, cfg, copy_only):
+                _LogTransactionBaseClass.__init__(self, db, cfg)
+                self._rev_id = None
+                self._copy_only = copy_only
+
+        def _enter(self):
+                pass
+
+        def set_revid(self, rev_id):
+                self._rev_id = rev_id
+
+        def _exit(self):
+                if self._rev_id:
+                        self._log_transaction.create_rev_commit(self._rev_id, self._copy_only)

@@ -258,28 +258,30 @@ class _CopyCode(bbwindow.BBMainWindow):
                 newdate = db.prototype_date
             else:
                 newdate = db.iso_to_days(self._l_new_date_from.text())
-            if self._do_copy:
-                new_rid = d.copy_code(code,
-                    self._rid,
-                    descr,
-                    self._l_new_rev.text(),
-                    self._cb_copy_props.checkState() == Qt.CheckState.Checked,
-                    self._cb_copy_docs.checkState() == Qt.CheckState.Checked,
-                    new_date_from_days=newdate)
-                self._new_code = code
-                self._new_rid = new_rid
-                self._update_parameters(d, "after_copy_set_values_to")
-            else:
-                new_rid = d.revise_code(self._rid,
-                    descr,
-                    self._l_new_rev.text(),
-                    self._cb_copy_props.checkState() == Qt.CheckState.Checked,
-                    self._cb_copy_docs.checkState() == Qt.CheckState.Checked,
-                    new_date_from_days=newdate)
-                self._new_code = code
-                self._new_rid = new_rid
-                self._update_parameters(d, "after_revise_set_values_to")
-            logtransaction.LogTransaction(d, cfg).create_rev_commit(new_rid)
+            with logtransaction.LogTransactionCreateRevision(d, cfg, self._do_copy) as l:
+                if self._do_copy:
+                    new_rid = d.copy_code(code,
+                        self._rid,
+                        descr,
+                        self._l_new_rev.text(),
+                        self._cb_copy_props.checkState() == Qt.CheckState.Checked,
+                        self._cb_copy_docs.checkState() == Qt.CheckState.Checked,
+                        new_date_from_days=newdate)
+                    self._new_code = code
+                    self._new_rid = new_rid
+                    self._update_parameters(d, "after_copy_set_values_to")
+                else:
+                    new_rid = d.revise_code(self._rid,
+                        descr,
+                        self._l_new_rev.text(),
+                        self._cb_copy_props.checkState() == Qt.CheckState.Checked,
+                        self._cb_copy_docs.checkState() == Qt.CheckState.Checked,
+                        new_date_from_days=newdate)
+                    self._new_code = code
+                    self._new_rid = new_rid
+                    self._update_parameters(d, "after_revise_set_values_to")
+                l.set_revid(new_rid)
+
         except db.DBException as e:
             QMessageBox.critical(self,
                 "BOMBrowser - error",
