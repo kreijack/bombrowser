@@ -73,16 +73,6 @@ class _CopyCode(bbwindow.BBMainWindow):
     def _init_gui(self):
         grid = QGridLayout()
         self.setWindowTitle("BOMBrowser - Copy / Revise code")
-        #w = QWidget()
-        #w.setLayout(grid)
-        #self.setCentralWidget(w)
-
-        gold = QGroupBox("Old")
-        gnew = QGroupBox("New")
-        gdescr = QGroupBox("")
-
-        grid.addWidget(QLabel("Old"), 9, 1)
-        grid.addWidget(QLabel("New"), 9, 2)
 
         grid.addWidget(QLabel("Code:"), 10, 0)
         self._l_old_code = QLabel(self._old_code)
@@ -148,12 +138,18 @@ class _CopyCode(bbwindow.BBMainWindow):
         self.setCentralWidget(w)
 
         if self._do_copy:
+            grid.addWidget(QLabel("Source code"), 9, 1)
+            grid.addWidget(QLabel("New code"), 9, 2)
+
             self._l_new_code.setReadOnly(False)
             self._l_new_code.setEnabled(True)
             self.setWindowTitle("Copy code: %s"%(
                 self._l_old_code.text()))
             self._copy_revise_push_button.setText("Copy code")
         else:
+            grid.addWidget(QLabel("Old rev."), 9, 1)
+            grid.addWidget(QLabel("New rev."), 9, 2)
+
             self._l_new_code.setText(self._l_old_code.text())
             self._l_new_code.setReadOnly(True)
             self._l_new_code.setEnabled(False)
