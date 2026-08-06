@@ -203,7 +203,7 @@ def test_get_code_by_icase_code_and_descr_multiple_or_and():
     assert(data[1][1] == "code124")
 
 def _test_insert_assembly(c):
-    """
+    r"""
           10/01        15/01        20/01         25/01
 
             O            O            O            O
@@ -223,7 +223,7 @@ def _test_insert_assembly(c):
 
         "B": ( ("2020-01-10", "2020-01-14", ("D", "E")),
                ("2020-01-15", "2020-01-19", ("H", "E")),
-               ("2020-01-20", "",           ("D", "C")), ),
+               ("2020-01-20", "",           ("D", "E")), ),
 
         "C": ( ("2020-01-10", "2020-01-14", ("F", "G")),
                ("2020-01-15", "2020-01-19", ("I", "G")),
@@ -547,14 +547,14 @@ def test_where_used():
             return False
 
     id_ = d.get_codes_by_code("B")[0][0]
-    (root, bom) = d.get_where_used_from_id_code(id_)
+    (root, bom) = d.get_where_used_from_id_code2(id_)
 
     assert(find_in_bom("A"))
     assert(not find_in_bom("H"))
     assert(find_in_bom("O"))
 
     id_ = d.get_codes_by_code("H")[0][0]
-    (root, bom) = d.get_where_used_from_id_code(id_)
+    (root, bom) = d.get_where_used_from_id_code2(id_)
 
     assert(not find_in_bom("L"))
     assert(find_in_bom("H"))
@@ -573,19 +573,51 @@ def test_valid_where_used():
         else:
             return False
 
-    id_ = d.get_codes_by_code("D")[0][0]
-    (root, bom) = d.get_where_used_from_id_code(id_)
-    assert(len(bom) == 6) # 5 fathers,grand... + the root node = 6
+    id_ = d.get_codes_by_code("L")[0][0]
+    (root, bom) = d.get_where_used_from_id_code2(id_, True)
+    assert(len(bom) == 5) # L->M->A->O, L->C->A
+    assert(len(root) == 1)
 
+    assert(find_in_bom("L"))
+    assert(find_in_bom("M"))
     assert(find_in_bom("A"))
-    assert(not find_in_bom("H"))
     assert(find_in_bom("O"))
+    assert(find_in_bom("C"))
 
     id_ = d.get_codes_by_code("H")[0][0]
-    (root, bom) = d.get_where_used_from_id_code(id_)
+    (root, bom) = d.get_where_used_from_id_code2(id_, True)
+    assert(len(root) == 1)
+    assert(len(bom) == 1)
+
+    id_ = d.get_codes_by_code("A")[0][0]
+    (root, bom) = d.get_where_used_from_id_code2(id_, True)
+    assert(len(root) == 1)
+    assert(len(bom) == 2)
 
     assert(not find_in_bom("L"))
-    assert(find_in_bom("H"))
+    assert(find_in_bom("A"))
+    assert(find_in_bom("O"))
+
+def test_where_used_multiple_root():
+    d = _init_db()
+
+    with Transaction(d) as c:
+        _test_insert_assembly(c)
+
+    def find_in_bom(code):
+        for k in bom:
+            if code == bom[k]["code"]:
+                return True
+        else:
+            return False
+
+    id_ = d.get_codes_by_code("A")[0][0]
+    (root, bom) = d.get_where_used_from_id_code2(id_)
+    assert(len(root) == 2)
+    assert(len(bom) == 3)
+
+    assert(not find_in_bom("L"))
+    assert(find_in_bom("A"))
     assert(find_in_bom("O"))
 
 def _create_code_revision(c, code, nr=10):

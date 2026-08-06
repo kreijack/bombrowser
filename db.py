@@ -998,28 +998,32 @@ class _BaseServer:
         else:
             return res
 
-    def get_where_used_from_id_code(self, id_code, valid=False):
+    def get_where_used_from_id_code2(self, id_code, valid=False):
         with ROCursor(self) as c:
             c.execute("""
                 SELECT code FROM items WHERE id=?
             """, (id_code,))
             code0 = c.fetchone()[0]
 
-            c.execute("""
-                SELECT MIN(date_from_days)
-                FROM item_revisions
-                WHERE code_id = ?
-            """, (id_code, ))
-            (xdate_from_days0, ) = c.fetchone()
+            if valid:
+                c.execute("""
+                    SELECT code_id, date_from_days, date_to_days
+                    FROM item_revisions
+                    WHERE code_id = ?
+                        AND date_to_days >= ?
+                        AND date_from_days < ?
+                    ORDER BY iter ASC
+                """, (id_code, prototype_date - 1, prototype_date))
+            else:
+                c.execute("""
+                    SELECT code_id, date_from_days, date_to_days
+                    FROM item_revisions
+                    WHERE code_id = ?
+                    ORDER BY iter ASC
+                """, (id_code,))
 
-            c.execute("""
-                SELECT MAX(date_to_days)
-                FROM item_revisions
-                WHERE code_id = ?
-            """, (id_code,))
-            (xdate_to_days0, ) = c.fetchone()
-
-            todo = [(id_code, xdate_from_days0, xdate_to_days0 )]
+            todo = list(c.fetchall())
+            top0 = [(code0, dfd) for (cid, dfd, dtd) in todo]
             data = dict()
             done = set()
 
@@ -1059,8 +1063,7 @@ class _BaseServer:
 
                 data[(d["code"], xdate_from_days)] = d
 
-            top = (code0, xdate_from_days0)
-            return (top, data)
+            return (top0, data)
 
     def get_drawings_and_urls_by_rid(self, rev_id):
         with ROCursor(self) as c:

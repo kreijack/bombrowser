@@ -43,15 +43,15 @@ def get_template_list():
     return ret
 
 class Exporter:
-    def __init__(self, rootnode, data):
+    def __init__(self, rootnodes_list, data):
         self._data = data
-        self._rootnode = rootnode
+        self._rootnodes_list = rootnodes_list
         self._drawings_and_urls = dict()
 
     def export_as_json(self, nf):
         f = open(nf, "w")
         json.dump({
-            "root": self._rootnode,
+            "roots_list": self._rootnodes_list,
             "data": self._data
         }, f, sort_keys=True, indent=4, default=str)
         f.close()
@@ -186,11 +186,12 @@ class Exporter:
         table = []
 
         self._seq = 0
-        self._did = set()
-        self._path = []
 
-        self._export_as_table_by_template_it(unique, table, columns,
-            self._rootnode, maxlevel=maxlevel)
+        for rootnode in self._rootnodes_list:
+            self._did = set()
+            self._path = []
+            self._export_as_table_by_template_it(unique, table, columns,
+                rootnode, maxlevel=maxlevel)
 
 
         if sortby >= 0:
@@ -329,6 +330,7 @@ def test_export_simple():
         "template_simple" :  {
             "name": "template simple",
             "columns": """
+                seq:seq
                 code:Code
                 descr:Descr
                 parent:Parent code
@@ -339,23 +341,138 @@ def test_export_simple():
 
     bom = _get_test_bom()
 
-    e = Exporter("0", bom)
+    e = Exporter(["0"], bom)
     r = e.export_as_table_by_template2("template_simple")
 
     assert("A-descr" in r)
     assert("B-descr" in r)
     assert("0-descr" in r)
-    cnt = 0
+    assert(not "loop" in r)
+
+    count_codes = {
+        "0-descr": 0,
+        "A-descr": 0,
+        "B-descr": 0,
+        "C-descr": 0,
+    }
+
     for line in r.split("\n"):
+        for k in count_codes.keys():
+            if k in line:
+                count_codes[k] += 1
+
         if "A-descr" in line:
             assert("2" in line)
         if "C-descr" in line:
-            cnt += 1
             assert("C" in line)
             assert("A" in line or "B" in line)
 
-    assert(cnt == 2)
     assert("\t" in r)
+    assert(count_codes["0-descr"] == 1)
+    assert(count_codes["A-descr"] == 1)
+    assert(count_codes["B-descr"] == 1)
+    assert(count_codes["C-descr"] == 2)
+    lines = r.split("\n")
+    assert(int(lines[-2].split("\t")[0]) == len(lines) - 3)
+
+def test_export_loop():
+    cfg._cfg = {
+        "BOMBROWSER": {
+            "templates_list": "template_simple"
+        },
+        "template_simple" :  {
+            "name": "template simple",
+            "columns": """
+                seq:seq
+                code:Code
+                descr:Descr
+                parent:Parent code
+                qty:Q.ty
+            """
+        },
+    }
+
+    bom = _get_test_bom()
+
+    # make C->0, this create a loop, because 0->A->C->0 ....
+    bom["C"]["deps"] = {
+                "0" : { "code": "C", "qty": 1,
+                            "each": 1, "unit" : "NR", "ref": "0-ref" }
+            }
+
+    e = Exporter(["0"], bom)
+    r = e.export_as_table_by_template2("template_simple")
+
+    count_codes = {
+        "0-descr": 0,
+        "A-descr": 0,
+        "B-descr": 0,
+        "C-descr": 0,
+    }
+
+    for line in r.split("\n"):
+        for k in count_codes.keys():
+            if k in line:
+                count_codes[k] += 1
+
+    assert("loop" in r)
+    assert(count_codes["0-descr"] == 1)
+    assert(count_codes["A-descr"] == 1)
+    assert(count_codes["B-descr"] == 1)
+    assert(count_codes["C-descr"] == 2)
+
+
+def test_export_multiple_root():
+    cfg._cfg = {
+        "BOMBROWSER": {
+            "templates_list": "template_simple"
+        },
+        "template_simple" :  {
+            "name": "template simple",
+            "columns": """
+                seq:seq
+                code:Code
+                descr:Descr
+                parent:Parent code
+                qty:Q.ty
+            """
+        },
+    }
+
+    bom = _get_test_bom()
+
+    e = Exporter(["0", "B"], bom)
+    r = e.export_as_table_by_template2("template_simple")
+
+    assert("A-descr" in r)
+    assert("B-descr" in r)
+    assert("0-descr" in r)
+
+    count_codes = {
+        "0-descr": 0,
+        "A-descr": 0,
+        "B-descr": 0,
+        "C-descr": 0,
+    }
+
+    for line in r.split("\n"):
+        for k in count_codes.keys():
+            if k in line:
+                count_codes[k] += 1
+
+        if "A-descr" in line:
+            assert("2" in line)
+        if "C-descr" in line:
+            assert("C" in line)
+            assert("A" in line or "B" in line)
+
+    assert("\t" in r)
+    assert(count_codes["0-descr"] == 1)
+    assert(count_codes["A-descr"] == 1)
+    assert(count_codes["B-descr"] == 2)
+    assert(count_codes["C-descr"] == 3)
+    lines = r.split("\n")
+    assert(int(lines[-2].split("\t")[0]) == len(lines) - 3)
 
 def test_export_unique():
     cfg._cfg = {
@@ -376,7 +493,7 @@ def test_export_unique():
 
     bom = _get_test_bom()
 
-    e = Exporter("0", bom)
+    e = Exporter(["0"], bom)
     r = e.export_as_table_by_template2("template_simple")
 
     assert("A-descr" in r)
@@ -410,7 +527,7 @@ def test_export_max_level():
 
     bom = _get_test_bom()
 
-    e = Exporter("0", bom)
+    e = Exporter(["0"], bom)
     r = e.export_as_table_by_template2("template_simple")
 
     assert("A-descr" in r)
@@ -438,7 +555,7 @@ def test_export_csv_comma_doublequote():
 
     bom = _get_test_bom()
 
-    e = Exporter("0", bom)
+    e = Exporter(["0"], bom)
     e.export_as_file_by_template2("/tmp/test_bombrowser.csv", "template_simple")
 
     r = open("/tmp/test_bombrowser.csv").read()
@@ -470,7 +587,7 @@ def test_export_csv_semicolon_singlequote():
 
     bom = _get_test_bom()
 
-    e = Exporter("0", bom)
+    e = Exporter(["0"], bom)
     e.export_as_file_by_template2("/tmp/test_bombrowser.csv", "template_simple")
 
     r = open("/tmp/test_bombrowser.csv").read()
@@ -501,7 +618,7 @@ def test_export_seq():
 
     bom = _get_test_bom()
 
-    e = Exporter("0", bom)
+    e = Exporter(["0"], bom)
     r = e.export_as_table_by_template2("template_simple")
 
     assert("Seq" in r.split("\n")[0])
@@ -539,7 +656,7 @@ def test_export_parent_descr():
 
     bom = _get_test_bom()
 
-    e = Exporter("0", bom)
+    e = Exporter(["0"], bom)
     r = e.export_as_table_by_template2("template_simple")
 
     for line in r.split("\n"):
@@ -565,7 +682,7 @@ def test_export_static_text():
 
     bom = _get_test_bom()
 
-    e = Exporter("0", bom)
+    e = Exporter(["0"], bom)
     r = e.export_as_table_by_template2("template_simple")
 
     for line in r.split("\n")[1:]:
@@ -591,7 +708,7 @@ def test_export_level():
 
     bom = _get_test_bom()
 
-    e = Exporter("0", bom)
+    e = Exporter(["0"], bom)
     r = e.export_as_table_by_template2("template_simple")
 
     assert("C-descr" in r)
@@ -619,7 +736,7 @@ def test_export_indented_code():
 
     bom = _get_test_bom()
 
-    e = Exporter("0", bom)
+    e = Exporter(["0"], bom)
     r = e.export_as_table_by_template2("template_simple")
 
     assert("C-descr" in r)
@@ -647,7 +764,7 @@ def test_export_unknown_column():
 
     bom = _get_test_bom()
 
-    e = Exporter("0", bom)
+    e = Exporter(["0"], bom)
     r = e.export_as_table_by_template2("template_simple")
 
     assert("Unknown col" in r)
@@ -670,7 +787,7 @@ def test_export_gval1():
 
     bom = _get_test_bom()
 
-    e = Exporter("0", bom)
+    e = Exporter(["0"], bom)
     r = e.export_as_table_by_template2("template_simple")
 
     assert("C-descr" in r)

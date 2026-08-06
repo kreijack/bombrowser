@@ -174,7 +174,7 @@ class RemoteSQLServer:
             "get_children_by_rid",
             "get_bom_dates_by_code_id",
             "get_drawings_and_urls_by_rid",
-            "get_where_used_from_id_code",
+            "get_where_used_from_id_code2",
             "get_bom_by_code_id3",
             "get_children_dates_range_by_rid",
             "get_parent_dates_range_by_code_id",
@@ -581,19 +581,19 @@ def test_070_get_children_by_rid():
 
     assert(len(res) == 1)
 
-def test_070_get_where_used_from_id_code():
+def test_070_get_where_used_from_id_code2():
     r = _test_make_assembly()
 
     res = r.get_codes_by_like_code_and_descr('1', '')
     ccode_id = res[0][0]
 
-    res = r.get_where_used_from_id_code(ccode_id)
+    res = r.get_where_used_from_id_code2(ccode_id)
     assert(len(res[1]) == 2)
 
     res = r.get_codes_by_like_code_and_descr('0%', '')
     pcode_id = res[0][0]
 
-    res = r.get_where_used_from_id_code(pcode_id)
+    res = r.get_where_used_from_id_code2(pcode_id)
     assert(len(res[1]) == 1)
 
 def test_070_get_bom_by_code_id3():

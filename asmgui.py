@@ -80,7 +80,7 @@ class ExportDialog(QDialog):
         self._dfolder.setText(dest)
 
     def _export_bom(self, template, ext):
-        e = exporter.Exporter(self._top , self._data)
+        e = exporter.Exporter([self._top] , self._data)
         nf = os.path.join(self._dfolder.text(),
             "bom-" + self._fn + ext)
         e.export_as_file_by_template2(nf, template)
@@ -502,9 +502,12 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         m.addAction(a)
         m.addSeparator()
 
-        a = QAction("Export bom as JSON file format...", self)
-        a.triggered.connect(self._export_assemblies_list)
-        m.addAction(a)
+        if self._mode == "asm":
+            # Export data as json doesn't behave correctly when there are multiple roots
+            a = QAction("Export bom as JSON file format...", self)
+            a.triggered.connect(self._export_assemblies_list)
+            m.addAction(a)
+
         for name, descr in exporter.get_template_list():
             if name == "template_simple":
                 a = QAction("Export bom ...", self)
@@ -514,7 +517,8 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                 a.triggered.connect(utils.Callable(self._export_as_template, name))
             m.addAction(a)
 
-        if customize.has_export_data_be_visible():
+        if customize.has_export_data_be_visible() and self._mode == "asm":
+            # Export data doesn't behave correctly when there are multiple roots
             m.addSeparator()
             a = QAction("Export data ...", self)
             a.triggered.connect(self._export_data)
@@ -585,7 +589,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                 m.addSeparator()
                 for (name, func) in l:
                     a = QAction(name, self)
-                    a.triggered.connect(lambda : func(self._top, self._data))
+                    a.triggered.connect(lambda : func(self._top_list[0], self._data))
                     m.addAction(a)
 
         self._windowsMenu = self.build_windows_menu(mainMenu)
@@ -613,21 +617,30 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         w.show()
 
     def _diff_bom(self, importer_name, name, open_fn, import_fn):
-        bom1 = diffgui.CodeDateSingle(self._data[self._top]["id"],
-            self._data[self._top]["code"], 
+        assert(len(self._top_list) == 1)
+        top = self._top_list[0]
+
+        bom1 = diffgui.CodeDateSingle(self._data[top]["id"],
+            self._data[top]["code"],
             self._bom_date)
         fn = open_fn()
         bom2 = diffgui.BomImported(name, import_fn, open_fn, fn)
-        
+
         w = diffgui.DiffWindow(bom1, bom2)
         w.do_diff()
         w.show()
 
     def _check_bom(self):
-        checker.run_bom_tests(self._top, self._data, self._top_reference)
+        assert(len(self._top_list) == 1)
+        top = self._top_list[0]
+
+        checker.run_bom_tests(top, self._data, self._top_reference)
 
     def _export_data(self):
-        d = ExportDialog(self, self._top, self._data)
+        assert(len(self._top_list) == 1)
+        top = self._top_list[0]
+
+        d = ExportDialog(self, top, self._data)
         d.exec_()
 
     def _export_assemblies_list(self):
@@ -636,7 +649,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                                     selectedFilter="Json file format (*.json)")
         if nf[0] == '':
             return
-        e = exporter.Exporter(self._top , self._data)
+        e = exporter.Exporter(self._top_list , self._data)
         e.export_as_json(nf[0])
 
     def _export_as_template(self, template):
@@ -649,11 +662,11 @@ class AssemblyWindow(bbwindow.BBMainWindow):
             not nf.lower().endswith(".csv")):
                 QMessageBox.critical(self, "BOMBrowser", "Unsupported file format")
                 return
-        e = exporter.Exporter(self._top , self._data)
+        e = exporter.Exporter(self._top_list , self._data)
         e.export_as_file_by_template2(nf, template)
 
     def _copy_as_template(self, template):
-        e = exporter.Exporter(self._top , self._data)
+        e = exporter.Exporter(self._top_list , self._data)
         data = e.export_as_table_by_template2(template)
         utils.copy_text_to_clipboard(data)
 
@@ -662,26 +675,34 @@ class AssemblyWindow(bbwindow.BBMainWindow):
             self._tree.expandAll()
             return
 
-        parent_item = self._tree.model().item(0,0)
+        model = self._tree.model()
 
-        def rec_iterate(parent, l):
-            c = parent.rowCount()
+        def rec_iterate(parent_idx, l):
+            c = model.rowCount(parent_idx)
             if c == 0:
                 return
 
             for i in range(c):
-                child = parent.child(i, 0)
-                child_idx = child.index()
+                child_idx = model.index(i, 0, parent_idx)
                 if l >= lev:
                     if self._tree.isExpanded(child_idx):
                         self._tree.setExpanded(child_idx, False)
                 else:
                     if not self._tree.isExpanded(child_idx):
                         self._tree.setExpanded(child_idx, True)
-                    rec_iterate(child, l+1)
+                    rec_iterate(child_idx, l+1)
 
         with utils.OverrideCursor():
-            rec_iterate(parent_item, 1)
+            for i in range(model.rowCount()):
+                node_idx = model.index(i, 0)
+                if lev == 1:
+                    if self._tree.isExpanded(node_idx):
+                        self._tree.setExpanded(node_idx, False)
+                else:
+                    if not self._tree.isExpanded(node_idx):
+                        self._tree.setExpanded(node_idx, True)
+                    rec_iterate(node_idx, 2)
+
 
     def _start_find(self):
         self._find = FindDialog(self, self._tree)
@@ -790,12 +811,16 @@ class AssemblyWindow(bbwindow.BBMainWindow):
             else:
                 apply_actions(actions)
 
-    def populate(self, top, data, bom_date=None):
-        top_code = data[top]["code"]
+    def populate(self, top_list, data, bom_date=None):
+        if len(top_list) == 0:
+            return
 
         colors_filter = []
+        top_code = data[top_list[0]]["code"]
         self._top_reference = top_code
         if self._mode == "asm":
+                assert(len(top_list) == 1)
+
                 if bom_date == db.prototype_date -1:
                     dt2 = "LATEST"
                 elif bom_date == db.end_of_the_world:
@@ -817,7 +842,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         else: # mode == "where used"
                 self.setWindowTitle("Where used: "+self._top_reference)
         self._data = data
-        self._top = top
+        self._top_list = top_list
 
         model = QStandardItemModel()
         self._tree.setModel(model)
@@ -849,12 +874,13 @@ class AssemblyWindow(bbwindow.BBMainWindow):
 
             return (i, i2), cnt
 
-        root_items, num_items = rec_update(top, [top])
-        if root_items is None:
-            model.appendRow((QStandardItem("Empty"),))
-        else:
-            model.appendRow(root_items)
-        num_items += 1
+        for top in top_list:
+            root_items, num_items = rec_update(top, [top])
+            if root_items is None:
+                model.appendRow((QStandardItem("Empty"),))
+            else:
+                model.appendRow(root_items)
+            num_items += 1
 
         idx = model.indexFromItem(root_items[0])
         self._tree.expandAll()
@@ -966,7 +992,10 @@ class AssemblyWindow(bbwindow.BBMainWindow):
     def set_bom_reload(self, f):
         self._bom_reload = f
 
-def _smart_filter(top, data):
+def _smart_filter(top_list, data):
+    assert(len(self._top_list) == 1)
+    top = self._top_list[0]
+
     top_node = data[top]
     first_level_keys = top_node["deps"].keys()
 
@@ -1025,10 +1054,10 @@ def where_used(code_id, mode="where_used"):
         d = db.get_db_instance()
 
         valid = mode in ["smart_where_used", "valid_where_used"]
-        (top, data) = d.get_where_used_from_id_code(code_id, valid)
+        (top_list, data) = d.get_where_used_from_id_code2(code_id, valid)
         if mode == "smart_where_used":
-            data = _smart_filter(top, data)
-        return top, data, None
+            data = _smart_filter(top_list, data)
+        return top_list, data, None
 
     w.set_bom_reload(bom_reload_)
     w.bom_reload()
@@ -1056,7 +1085,7 @@ def show_assembly(code_id, winParent):
     def bom_reload_():
         d = db.get_db_instance()
         top, data = d.get_bom_by_code_id3(code_id, date_from_days)
-        return top, data, date_from_days
+        return [top], data, date_from_days
 
     w.set_bom_reload(bom_reload_)
     w.bom_reload()
@@ -1084,7 +1113,7 @@ def show_latest_assembly(code_id):
             dt = min(db.prototype_date - 1, dates[0][3])
 
         top, data = d.get_bom_by_code_id3(code_id, dt)
-        return top, data, dt
+        return [top], data, dt
 
     w.set_bom_reload(bom_reload_)
     w.bom_reload()
