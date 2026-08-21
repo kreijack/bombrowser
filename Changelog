@@ -1,3 +1,11 @@
+2026-08-21: v1.0.4
+- add support for logging the database change
+- BUG: avoid to export two times the same file
+- copycodegui: in revision dialog set date from to the current date or the later
+  one + 1
+- copycodegui: in case of copy code, reuse the same revision of the source code
+
+
 2024-09-10: v1.0.3
 - BUG: searchrevision: generate the correct sequence of gval fields
 
