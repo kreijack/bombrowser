@@ -993,8 +993,8 @@ class AssemblyWindow(bbwindow.BBMainWindow):
         self._bom_reload = f
 
 def _smart_filter(top_list, data):
-    assert(len(self._top_list) == 1)
-    top = self._top_list[0]
+    assert(len(top_list) == 1)
+    top = top_list[0]
 
     top_node = data[top]
     first_level_keys = top_node["deps"].keys()
