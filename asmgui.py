@@ -1131,7 +1131,7 @@ def show_proto_assembly(code_id):
         dates = d.get_dates_by_code_id3(code_id)
         dt = min(db.end_of_the_world, dates[0][3])
         top, data = d.get_bom_by_code_id3(code_id, dates[0][3])
-        return top, data, db.end_of_the_world
+        return [top], data, db.end_of_the_world
 
     w.set_bom_reload(bom_reload_)
     w.bom_reload()
@@ -1146,7 +1146,7 @@ def show_assembly_by_date(code_id, dt):
     def bom_reload_():
         d = db.get_db_instance()
         top, data = d.get_bom_by_code_id3(code_id, dt)
-        return top, data, dt
+        return [top], data, dt
 
     w.set_bom_reload(bom_reload_)
     w.bom_reload()
