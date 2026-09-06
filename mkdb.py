@@ -599,6 +599,69 @@ def insert_spare_parts(c):
 
             make_assembly(c, top_id, ((cid, (i * cnt % 10) + 1),))
 
+def _copy_assembly(c, old_rid, new_rid):
+    c.execute("""
+        INSERT INTO assemblies(
+                    unit, child_id,
+                    revision_id,
+                    qty, each, ref
+        ) SELECT unit, child_id,
+                    ?,
+                    qty, each, ref
+        FROM assemblies
+        WHERE revision_id=?
+    """, (new_rid, old_rid))
+
+def _copy_rev(c, code_id, new_date_from_days, rev, new_iter, old_rid):
+    new_date_from = db.days_to_iso(new_date_from_days)
+    c.execute("""
+        INSERT INTO item_revisions(
+            code_id,
+            date_from,
+            date_from_days,
+            date_to,
+            ver,
+            iter,
+            note,
+            descr,
+            default_unit,
+            gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
+        ) SELECT
+            ?,
+            ?,
+            ?,
+            '',
+            ?,
+            ?,
+            note,
+            descr,
+            default_unit,
+            gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
+        FROM item_revisions
+        WHERE id = ?
+    """, (code_id, new_date_from, new_date_from_days, rev, new_iter, old_rid))
+
+    c.execute("SELECT MAX(id) FROM item_revisions")
+    return c.fetchone()[0]
+
+def copy_code(c, old_rev_id, new_code, new_date_from_days = None):
+    c.execute("INSERT INTO items(code) VALUES (?)", (
+        new_code,)
+    )
+    c.execute("SELECT MAX(id) FROM items")
+    code_id = c.fetchone()[0]
+
+    if not new_date_from_days:
+        c.execute("SELECT date_from_days FROM item_revisions WHERE id=?", (
+            old_rev_id,)
+        )
+        new_date_from_days = c.fetchone()[0]
+
+    new_rid = _copy_rev(c, code_id, new_date_from_days, 0, 0, old_rev_id)
+    _copy_assembly(c, old_rev_id, new_rid)
+
+    return new_rid, code_id
+
 def revise_code(c, old_rid, new_date):
 
         c.execute("""
@@ -636,32 +699,7 @@ def revise_code(c, old_rid, new_date):
         else:
             new_iter = old_iter + 1
 
-        c.execute("""
-                INSERT INTO item_revisions(
-                    code_id,
-                    date_from,
-                    date_from_days,
-                    date_to,
-                    ver,
-                    iter,
-                    note,
-                    descr,
-                    default_unit,
-                    gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
-                ) SELECT
-                    code_id,
-                    ?,
-                    ?,
-                    '',
-                    ?,
-                    ?,
-                    note,
-                    descr,
-                    default_unit,
-                    gval1, gval2, gval3, gval4, gval5, gval6, gval7, gval8
-                FROM item_revisions
-                WHERE id = ?
-            """, (new_date_from, new_date_from_days, rev, new_iter, old_rid))
+        new_rid = _copy_rev(c, code_id, new_date_from_days, rev, new_iter, old_rid)
 
         old_date_to_days = new_date_from_days-1
         old_date_to = db.days_to_iso(old_date_to_days)
@@ -671,26 +709,12 @@ def revise_code(c, old_rid, new_date):
             WHERE id= ?
         """, (old_date_to, old_date_to_days, latest_rid))
 
-        c.execute("""SELECT MAX(id) FROM item_revisions""")
-        new_rid = c.fetchone()[0]
-
         return (new_rid, rev)
 
 def revise_assembly(c, old_rid, new_date):
 
     (new_rid, rev) = revise_code(c, old_rid, new_date)
-
-    c.execute("""
-        INSERT INTO assemblies(
-                    unit, child_id,
-                    revision_id,
-                    qty, each, ref
-        ) SELECT unit, child_id,
-                    ?,
-                    qty, each, ref
-        FROM assemblies
-        WHERE revision_id=?
-    """, (new_rid, old_rid))
+    _copy_assembly(c, old_rid, new_rid)
 
     # TODO: make some changes to the assembly
     return (new_rid, rev)
@@ -866,8 +890,6 @@ def insert_assy_with_code_with_file_or_url(c):
     make_assembly(c, arid,
         (id_long_fn, id_missing_file, id_file_too_long, id_normal, id_with_url))
 
-
-
 def insert_codes_with_date(c):
 
     aaid, _ = insert_code(c, "TEST-ASS-A", "TEST-ASS-A", 0,
@@ -925,6 +947,34 @@ def build_bom(top, data):
 
     runner(top)
     return res
+
+def make_special_code_for_testing(c):
+
+    # clone 100017 to 100017-ENDED with an 'closed' date-to
+    c.execute("""
+        SELECT MAX(id)
+        FROM item_revisions
+        WHERE code_id = (
+            SELECT id
+            FROM items
+            WHERE code = ?
+        )
+    """, ('100017',))
+    old_rev_id = c.fetchone()[0]
+
+    new_rev_id, new_code_id = copy_code(c, old_rev_id, '100017-ENDED')
+    c.execute("SELECT date_from_days FROM item_revisions WHERE id = ?",
+              (new_rev_id,))
+    new_date_from_days = c.fetchone()[0]
+
+    new_date_to_days = new_date_from_days + 30
+    c.execute("""
+        UPDATE item_revisions
+        SET date_to = ?, date_to_days = ?
+        WHERE id=?
+    """, (db.days_to_iso(new_date_to_days),
+          new_date_to_days,
+          new_rev_id))
 
 def make_big_assemblies(c):
 
@@ -1078,6 +1128,9 @@ def create_db(show_stat, gval, gaval):
 
         print("Build big assemblies")
         make_big_assemblies(c)
+
+        print("Make special code for testing")
+        make_special_code_for_testing(c)
 
         if show_stat:
             print()
