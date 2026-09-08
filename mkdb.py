@@ -976,6 +976,40 @@ def make_special_code_for_testing(c):
           new_date_to_days,
           new_rev_id))
 
+    # make test assembly for diff
+
+    car, _ = insert_code(c, "TEST DIFF ASSY", "TEST-DIFF-ASSY",
+                   gval1='COLOR', gval2='A',
+                   drawings=("invalid-file-path.txt", ))
+    _, cbi = insert_code(c, "TEST COMPONENT B", "TEST-C-B",
+                   gval1='COLOR', gval2='B')
+    _, cci = insert_code(c, "TEST COMPONENT C", "TEST-C-C",
+                   gval1='COLOR', gval2='C')
+    make_assembly(c, car,( (cbi, 1), (cci, 1), ))
+
+    c.execute("SELECT date_from_days FROM item_revisions WHERE id = ?", (car,))
+    new_date_from_days = c.fetchone()[0] + 1
+
+    car2, _ = revise_assembly(c, car, new_date_from_days)
+
+    c.execute("""
+        UPDATE item_revisions
+        SET descr = ?
+        WHERE id = ?
+        """, ("TEST DIFF ASSY 2", car2))
+
+    c.execute("""
+        UPDATE assemblies
+        SET qty = ?
+        WHERE child_id = ? AND revision_id = ?
+        """, (2, cbi, car2))
+
+    c.execute("""
+        INSERT INTO drawings (filename, fullpath, revision_id)
+        VALUES (?, ?, ?)
+        """, ("invalid-file-path-2.txt", "invalid-file-path-2.txt", car2))
+
+
 def make_big_assemblies(c):
 
     assemblies_params = [
