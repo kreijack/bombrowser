@@ -166,7 +166,18 @@ class _CopyCode(bbwindow.BBMainWindow):
         now = db.now_to_days()
         dates = self._db.get_dates_by_code_id3(self._code_id)
         max_old_from = max([x[2] for x in dates])
-        max_date = max(now, max_old_from + 1)
+
+        # the default new date:
+        # - must not exceed prototype_date
+        # - must be >= than the biggest not prototype date
+        if max_old_from == db.prototype_date:
+            if len(dates) == 1:
+                max_date = now
+            else:
+                max_old_from = max([x[2] for x in dates if x[2] < db.prototype_date])
+                max_date = max(now, max_old_from + 1)
+        else:
+            max_date = max(now, max_old_from + 1)
         self._l_new_date_from.setText(db.days_to_iso(max_date))
 
     def _increase_rev(self):
