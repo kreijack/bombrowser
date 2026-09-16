@@ -1,0 +1,5599 @@
+
+# max-id: 1633
+# test-passed: 409
+# total-test: 412
+
+id: 1000
+level: 1
+title: "BOMBrowser tests list"
+--
+id: 1001
+level: 2
+chapter_number: "1"
+title: "Index"
+text: "@@show_index(3,1)"
+--
+id: 1002
+chapter_number: "2"
+title: "Preface"
+text:
+    This document lists the technical requirements and the tests relatet to the project BOMBrowser.
+    
+--
+id: 1003
+chapter_number: "3"
+title: "Requirements list"
+text: "This chapter lists all the requirements."
+--
+id: 1008
+level: 3
+chapter_number: "3.1"
+title: "Generic requirements"
+text: "These chapters list all the requirements not specific to a single subsystem."
+--
+id: 1009
+level: 4
+chapter_number: "3.1.1"
+title: "Common commands"
+req:
+    All windows shall support standard commands:
+    - Help -> About
+    - Window menu -> Close all other windows
+    - Window menu -> Open a new 'Code list' window
+    - Window menu -> List all open windows
+    - File -> Close
+    - File -> Quit
+--
+id: 1010
+chapter_number: "3.1.2"
+title: "Copy table"
+req: "It shall be possible to copy a table displayed in a window."
+--
+id: 1464
+chapter_number: "3.1.3"
+title: "Document attached to a code"
+req: "It shall be possible to link a drawing/document to a code."
+--
+id: 1465
+chapter_number: "3.1.4"
+title: "URL attached to a code"
+req: "It shall be possible to link a URL to a code."
+--
+id: 1495
+chapter_number: "3.1.5"
+title: "URL attached to a code"
+req: "It shall be possible to link a URL to a code."
+--
+id: 1513
+chapter_number: "3.1.6"
+title: "GVal properties"
+req: "It shall be possible to attach custom properties to a code."
+--
+id: 1514
+chapter_number: "3.1.7"
+title: "GAVal properties"
+req: "It shall be possible to attach custom properties to a child item of an assembly."
+--
+id: 1616
+chapter_number: "3.1.8"
+title: "Check db connection"
+req: "BOMBrowser shall check the db connection and try to reconnect in few attempts."
+--
+id: 1632
+chapter_number: "3.1.9"
+title: "Self test"
+req: "BOMBrowser shall have some self test to run during the verification fase"
+--
+id: 1004
+level: 3
+chapter_number: "3.2"
+title: "'Code list window' requirements"
+text: "These chapters list all the requirements related to the assembly window."
+--
+id: 1005
+level: 4
+chapter_number: "3.2.1"
+title: "Search fields - code and description"
+req: "The 'Code list window' shall allow searching for codes by 'code' and 'description'."
+--
+id: 1006
+chapter_number: "3.2.2"
+title: "Search fields - wildcards"
+req: 'Search can be performed using wildcard characters such as "_" and "%" according to the standard SQL syntax, as well as operators like >, <, =, !.'
+--
+id: 1460
+chapter_number: "3.2.3"
+title: "Code property"
+req: "On the right side of the window, a panel shall display all properties of the highlighted code."
+--
+id: 1461
+chapter_number: "3.2.4"
+title: "Status bar"
+req:
+    At the bottom of the window, a status bar shall display:
+    - the query execution time
+    - the number of results
+--
+id: 1462
+chapter_number: "3.2.5"
+title: "Revision search"
+req: "The 'Code GUI window' shall allow searching for revisions across all available fields."
+--
+id: 1463
+chapter_number: "3.2.6"
+title: "Revision search result colors"
+req: "In the 'Search revision window', it shall be possible to apply custom row colors."
+--
+id: 1007
+chapter_number: "3.2.7"
+title: "Code commands"
+req:
+    From the result area, it shall be possible to trigger the following commands:
+    - Show assembly
+    - Where used
+    - Copy / Revise code
+    - Edit code
+    - Diff command
+--
+id: 1470
+level: 3
+chapter_number: "3.3"
+title: "'Code GUI' panel requirements"
+text: "These chapters list all the requirements related to the 'Code GUI' panel."
+--
+id: 1471
+level: 4
+chapter_number: "3.3.1"
+title: "The 'Code GUI' panel shows code properties"
+req:
+    The 'Code GUI' panel shall display code/revision properties such as:
+     - Code
+     - Description
+     - Revision
+     - Iteration
+     - Date from
+     - Date to
+     - Documents
+     - gvalX variables
+source-requirements: [1513]
+--
+id: 1466
+chapter_number: "3.3.2"
+title: "The 'Code GUI' revisions list box"
+req:
+    The 'Code GUI' panel shall include a list box displaying different revision
+    dates. Selecting a revision/date updates the 'Code GUI' panel with the corresponding properties.
+--
+id: 1467
+chapter_number: "3.3.3"
+title: "The 'Code GUI' copy button"
+req: "The 'Code GUI' panel shall feature a copy button that copies all properties to the clipboard."
+--
+id: 1468
+chapter_number: "3.3.4"
+title: "The 'Code GUI' 'Document' button"
+req:
+    The 'Code GUI' panel shall display a button for each document.
+    Hovering over a button displays a tooltip showing the document properties.
+    Clicking the button opens the document or URL.
+    Right-clicking (RMB) the button opens a context menu with the following commands:
+    - Copy filename: copies the filename to the clipboard
+    - Copy dirname: copies the directory path of the file to the clipboard
+    - Copy fullname: copies the full path (directory + filename) to the clipboard
+    - Copy file: copies the file object to the clipboard
+    - Open dir: opens the directory containing the file
+    - Copy description: copies the description to the clipboard
+    - Copy URL: copies the URL to the clipboard
+--
+id: 1469
+chapter_number: "3.3.5"
+title: "The 'Code GUI' 'Document' button text length"
+req: "It shall be possible to configure the maximum filename length displayed on the button caption."
+--
+id: 1480
+level: 3
+chapter_number: "3.4"
+title: "Assembly/Where used window requirements"
+text: "This chapter lists all requirements related to the Assembly / Where Used window."
+--
+id: 1485
+level: 4
+chapter_number: "3.4.1"
+title: "Content of the assembly window"
+req:
+    The 'Assembly window' can display the following hierarchical structures:
+    - Assembly BOM (latest - i.e., showing only codes with an open 'Date to')
+    - Assembly BOM for a specific date
+    - Prototype assembly BOM
+    - Where used
+    - Valid where used (i.e., showing only codes with an open 'Date to')
+    - Smart where used (similar to the above, but displaying only the first 2 levels and the top-level code)
+--
+id: 1490
+chapter_number: "3.4.2"
+title: "Code GUI panel"
+req: "In the Assembly / Where Used window, a 'Code GUI' panel shall be present on the right side."
+--
+id: 1481
+chapter_number: "3.4.3"
+title: "Select date"
+req: "For the 'Show assembly by date' command, a dialog shall allow selecting a specific BOM date to display."
+--
+id: 1482
+chapter_number: "3.4.4"
+title: "Export to JSON"
+req: "It shall be possible to export the displayed data in JSON format."
+--
+id: 1483
+chapter_number: "3.4.5"
+title: "Show/hide levels"
+req: "It shall be possible to show or hide different levels of the BOM."
+--
+id: 1486
+chapter_number: "3.4.6"
+title: "Search in BOM"
+req: "It shall be possible to search by code and description within the BOM."
+--
+id: 1487
+chapter_number: "3.4.7"
+title: "Loop detection"
+req: "The system shall detect circular references (loops) in the hierarchical structure."
+--
+id: 1488
+chapter_number: "3.4.8"
+title: "Export"
+req: "It shall be possible to export the data displayed in the window."
+--
+id: 1489
+chapter_number: "3.4.9"
+title: "BOM Coloring"
+req: "It shall be possible to color-code the displayed data based on property values."
+--
+id: 1502
+level: 3
+chapter_number: "3.5"
+title: "Diff window requirements"
+--
+id: 1493
+level: 4
+chapter_number: "3.5.1"
+title: "Diff window main requirements"
+req:
+    It shall be possible to compare two BOMs based on:
+    - part lists of each assembly
+    - properties (description, revisions, documents, etc.) of each code
+    - added codes, removed codes, and updated codes
+    The BOMs shall be selected by code and date.
+--
+id: 1494
+chapter_number: "3.5.2"
+title: "Diff window options"
+req: "The Diff window shall provide an option to swap the two BOMs, inverting the '+' (added) and '-' (removed) markers."
+--
+id: 1503
+chapter_number: "3.5.3"
+title: "Diff window options (2)"
+req: "The Diff window shall provide an option to display only key attributes (code, description, revision)."
+--
+id: 1504
+chapter_number: "3.5.4"
+title: "Diff window options (3)"
+req: "The Diff window shall provide an option to compare only the first level of child items."
+--
+id: 1505
+level: 3
+chapter_number: "3.6"
+title: "Edit functions"
+--
+id: 1506
+level: 4
+chapter_number: "3.6.1"
+title: "Copy code"
+req: "It shall be possible to copy a code."
+--
+id: 1507
+chapter_number: "3.6.2"
+title: "Revise the code"
+req:
+    It shall be possible to revise a code.
+    The code identifier remains identical, but all other attributes may change.
+    The date must be different and cannot be earlier than the date of the latest revision.
+    It shall be possible to create a prototype revision.
+--
+id: 1509
+chapter_number: "3.6.3"
+title: "Edit code: edit code properties"
+req: "It shall be possible to modify the properties of a code revision (description, revision, etc.)."
+--
+id: 1510
+chapter_number: "3.6.4"
+title: "Edit code: edit child items"
+req:
+    It shall be possible to modify the child items of a code:
+    - add a child code
+    - remove a child code
+    - modify the quantity of a child code
+    - reorder child items
+    - copy a child item from one code to another
+    - search for a code to insert
+--
+id: 1511
+chapter_number: "3.6.5"
+title: "Edit code: edit code drawings"
+req:
+    It shall be possible to manage drawings attached to a code:
+    - add a drawing
+    - remove a drawing
+    - add a URL
+    - remove a URL
+    It shall be possible to display a drawing directly from the edit window.
+source-requirements: [1464, 1495]
+--
+id: 1515
+chapter_number: "3.6.6"
+title: "Edit code: edit code drawings - copy and paste drawings"
+req: "It shall be possible to copy drawings from one code to another."
+--
+id: 1512
+chapter_number: "3.6.7"
+title: "Edit code: remove a revision"
+req: "It shall be possible to delete a code or a specific code revision."
+--
+id: 1518
+chapter_number: "3.6.8"
+title: "Edit code: change revision date"
+req: "It shall be possible to update the date of a revision."
+--
+id: 1520
+chapter_number: "3.6.9"
+title: "Edit code: change revision date validation"
+req:
+    During a date update, the following validation checks must be performed:
+    - the dates must be valid calendar dates
+    - the dates must be consecutive
+    - date ranges between revisions must not overlap
+    - if a date is updated, every child item must outlive its parent
+    - it shall be possible to set only the latest revision's 'Date to' as prototype
+    - it shall be possible to set the latest revision's 'Date to' as prototype, empty (infinity), or a finite date
+    - each 'Date to' must be greater than or equal to 'Date from'
+--
+id: 1609
+level: 3
+chapter_number: "3.7"
+title: "Config file requirements"
+--
+id: 1610
+level: 4
+chapter_number: "3.7.1"
+title: "Config file: basic requirements"
+req:
+    - BOMBrowser must be configured by a config file named 'bombrowser.ini',
+      stored in the same directory as the executable.
+    - Alternatively, a file named 'bombrowser.forward' (containing the absolute
+      path of the 'bombrowser.ini' file) can be used to specify the path to
+      the config file.
+--
+id: 1612
+chapter_number: "3.7.2"
+title: "Config file: force upper case"
+req:
+    BOMBrowser can be configured to force all codes and/or descriptions
+    to uppercase.
+--
+id: 1613
+chapter_number: "3.7.3"
+title: "Config file: search ignore case"
+req: "BOMBrowser can be configured so that searches are case-insensitive."
+--
+id: 1614
+chapter_number: "3.7.4"
+title: "Config file: check file"
+req:
+    During startup, BOMBrowser shall perform basic integrity checks on the
+    'bombrowser.ini' file.
+--
+id: 1615
+chapter_number: "3.7.5"
+title: "Config file: default search mode"
+req:
+    BOMBrowser can be configured so that it starts the "Code list" window in
+    standard or advance search mode.
+--
+id: 1617
+level: 3
+chapter_number: "3.8"
+title: "Advanced search in BOM"
+--
+id: 1618
+level: 4
+chapter_number: "3.8.1"
+title: "Search in BOM"
+req:
+    BOMBrowser shall allow to search a code of a BOM in the assembly window.
+    This search, called "Advance search", can be executed on any property of
+    a code like: code, description, unit, gval...
+    It can be possible to use operator like >, <, !
+--
+id: 1619
+chapter_number: "3.8.2"
+title: "Search document in BOM"
+req:
+    BOMBrowser shall allow to search a code of a BOM in the assembly window.
+    This search, called "Advance search", can be executed on document.
+--
+id: 1620
+chapter_number: "3.8.3"
+title: "Search in '[smart/valid] where used windows'"
+req:
+    BOMBrowser shall allow to search a code of '[smart/valid] where used windows'.
+    This search, called "Advance search", can be executed on any property of
+    a code like: code, description, unit, gval....
+--
+id: 1621
+level: 3
+chapter_number: "3.9"
+title: "Export data from BOM"
+--
+id: 1622
+level: 4
+chapter_number: "3.9.1"
+title: "Export data, main requirements"
+req:
+    BOMBrowser shall allow to export all the iformation of a BOM:
+    - the BOM in a CSV file
+    - all the file contained in the BOM
+--
+id: 1623
+level: 3
+chapter_number: "3.10"
+title: "Database management"
+--
+id: 1624
+level: 4
+chapter_number: "3.10.1"
+title: "Dump database"
+req: "BOMBrowser shall allow to dump the database"
+--
+id: 1625
+chapter_number: "3.10.2"
+title: "Restore database"
+req: "BOMBrowser shall allow to restore a database from a dump"
+--
+id: 1626
+chapter_number: "3.10.3"
+title: "Create a new database"
+req:
+    BOMBrowser shall allow to create a new database. Only the code 000000000000
+    shall exist.
+--
+id: 1627
+chapter_number: "3.10.4"
+title: "Create a new database"
+req: "The database restore shall consider the count of gval/agval variables."
+--
+id: 1628
+level: 3
+chapter_number: "3.11"
+title: "Log transaction"
+--
+id: 1629
+level: 4
+chapter_number: "3.11.1"
+title: "Log transaction: actions to log"
+req:
+    BOMBrowser shall log all the database changes:
+    - create a new revision
+    - copy a code
+    - edit a code
+    - remove/add a document
+    - remove/add a child
+    - change a date
+    - delete a revision
+    - delete a code
+--
+id: 1630
+chapter_number: "3.11.2"
+title: "Log transaction: cannot write the log"
+req: "BOMBrowser shall inform that it is not possible to log the action."
+--
+id: 1631
+chapter_number: "3.11.3"
+title: "Log transaction: compress the log"
+req: "BOMBrowser shall allow to compress the log in .gz format."
+--
+id: 1011
+level: 2
+chapter_number: "4"
+title: "Tests list"
+text:
+    Before executing the tests, verify that the following bombrowser.init parameters are set as shown:
+    
+    BOMBROWSER.description_force_uppercase=1
+    BOMBROWSER.code_force_uppercase=1
+    BOMBROWSER.ignore_case_during_search=1
+    BOMBROWSER.db=sqlite
+    
+    SQLITE.ignore_case_during_search=0
+    
+    Set up the DB with:
+    
+    python mkdb.py --test_db
+--
+id: 1012
+level: 3
+chapter_number: "4.1"
+title: "BOMBrowser - Code list"
+--
+id: 1013
+level: 4
+chapter_number: "4.1.1"
+title: "search a code"
+descr: "Enter code '820037' in the 'Code' field and press **ENTER**"
+expect: "Code 820037 is displayed"
+passed: True
+source-requirements: [1005]
+--
+id: 1014
+chapter_number: "4.1.2"
+title: "search a code (2)"
+descr: "Enter code '820038' in the 'Code' field and click the **'Search'** button"
+expect: "Code 820038 is displayed"
+passed: True
+source-requirements: [1005]
+--
+id: 1015
+chapter_number: "4.1.3"
+title: "search a code by description"
+descr:
+    Clear the 'Code' field
+    Enter 'BOARD 14' in the 'Description' field and click the 'Search' button
+expect: 'Code 610014 - "BOARD 14" is displayed'
+passed: True
+source-requirements: [1005]
+--
+id: 1016
+chapter_number: "4.1.4"
+title: "search a code by description with a wildcard"
+descr: "Enter '%BOARD%13' in the 'Description' field and press ENTER"
+expect: 'Code 610013 - "BOARD 13" is displayed'
+passed: True
+source-requirements: [1005, 1006]
+--
+id: 1017
+chapter_number: "4.1.5"
+title: "search a code with a wildcard"
+descr:
+    - Enter '%6%' in the 'Code' field
+    - Click the 'Search' button
+expect: "Codes containing '6' are displayed"
+passed: True
+source-requirements: [1005, 1006]
+--
+id: 1018
+chapter_number: "4.1.6"
+title: "search a code and a description with wildcards"
+descr:
+    - Enter '%7%' in the 'Code' field
+    - Enter '%BOARD%' in the 'Description' field
+    - Click the 'Search' button
+expect: "Codes containing '7' with a description containing 'BOARD' are displayed"
+passed: True
+source-requirements: [1005, 1006]
+--
+id: 1019
+chapter_number: "4.1.7"
+title: "assembly"
+descr:
+    - Enter code '820037' in the 'Code' field
+    - Click the 'Search' button
+    - Right-click the first entry
+    - Select the "Show assembly by date" command.
+expect:
+    - The "BOMBrowser: select date" dialog is displayed
+    - This dialog contains a list of dates for code 820037.
+passed: True
+source-requirements: [1007]
+--
+id: 1020
+after: 1
+chapter_number: "4.1.8"
+descr:
+    - Repeat the steps from the first test
+    - Select the "Show latest assembly" command.
+expect:
+    - The "BOMBrowser: assembly window" dialog is displayed
+    - The displayed BOM corresponds to the latest revision (i.e., all items have an undefined "Date to")
+passed: True
+source-requirements: [1007]
+--
+id: 1021
+after: 1
+chapter_number: "4.1.9"
+descr:
+    - Repeat the steps from the first test
+    - Select the "Show prototype assembly" command.
+expect:
+    - The "BOMBrowser: assembly window" dialog is displayed
+    - The displayed BOM corresponds to the latest revision (i.e., all items have an undefined "Date to") with the exception of a few items whose "Date from" is set to prototype
+passed: True
+source-requirements: [1007]
+--
+id: 1022
+chapter_number: "4.1.10"
+title: "where used"
+descr:
+    - Enter code '810036' in the 'Code' field
+    - Click the 'Search' button
+    - Right-click the first entry
+    - Select the "Where used" command.
+expect: 'The "BOMBrowser - Where used" window is displayed'
+passed: True
+source-requirements: [1007]
+--
+id: 1023
+chapter_number: "4.1.11"
+title: "where used (2)"
+descr:
+    - Enter code '100037' in the 'Code' field
+    - Click the 'Search' button
+    - Right-click the first entry
+    - Select the "Where used" command.
+expect: 'The "BOMBrowser - Where used" window is displayed. Only one code (100037) is displayed.'
+passed: True
+source-requirements: [1007]
+--
+id: 1024
+chapter_number: "4.1.12"
+title: "valid where used"
+descr:
+    - Enter code '810036' in the 'Code' field
+    - Click the 'Search' button
+    - Right-click the first entry
+    - Select the "Valid where used" command.
+expect: 'The "BOMBrowser - Valid where used" window is displayed'
+passed: True
+source-requirements: [1007]
+--
+id: 1025
+chapter_number: "4.1.13"
+title: "valid where used (2)"
+descr:
+    - Enter code '100037' in the 'Code' field
+    - Click the 'Search' button
+    - Right-click the first entry
+    - Select the "Valid where used" command.
+expect: 'The "BOMBrowser - Valid where used" window is displayed. Only one code (100037) is displayed.'
+passed: True
+source-requirements: [1007]
+--
+id: 1026
+chapter_number: "4.1.14"
+title: "Copy/revise code"
+descr:
+    - Enter code '810031' in the 'Code' field
+    - Click the 'Search' button
+    - Right-click the first entry
+    - Select the "Copy code" (or "Revise a code") command.
+expect: 'The "BOMBrowser: select date" dialog is displayed, containing a list for code 810031.'
+passed: True
+source-requirements: [1007]
+--
+id: 1027
+chapter_number: "4.1.15"
+title: "edit code"
+descr:
+    - Enter code '810036' in the 'Code' field
+    - Click the 'Search' button
+    - Right-click the first entry
+    - Select the "Edit code" command.
+expect: 'The "BOMBrowser - Edit code" window is displayed, containing the properties of code 810036.'
+passed: True
+source-requirements: [1007]
+--
+id: 1028
+chapter_number: "4.1.16"
+title: "diff from"
+descr:
+    - Enter code '810031' in the 'Code' field
+    - Click the 'Search' button
+    - Right-click the first entry
+    - Select the "Diff from" command.
+expect: 'The "BOMBrowser: select date" dialog is displayed, containing a list for code 810031.'
+passed: True
+source-requirements: [1007]
+--
+id: 1029
+chapter_number: "4.1.17"
+title: "diff from (2x)"
+descr:
+    - Enter code '820036' in the 'Code' field
+    - Click the 'Search' button
+    - Right-click the first entry
+    - Select the "Diff from" command.
+expect: 'The "BOMBrowser: select date" dialog is displayed, containing a list for code 820036.'
+passed: True
+source-requirements: [1007]
+--
+id: 1030
+chapter_number: "4.1.18"
+title: "diff to"
+descr:
+    - Enter code '810031' in the 'Code' field
+    - Click the 'Search' button
+    - Right-click the first entry
+    - Select the "Diff to" command.
+expect: 'The "BOMBrowser: select date" dialog is displayed, containing a list for code 810031.'
+passed: True
+source-requirements: [1007]
+--
+id: 1031
+chapter_number: "4.1.19"
+title: "diff to (2x)"
+descr:
+    - Enter code '820036' in the 'Code' field
+    - Click the 'Search' button
+    - Right-click the first entry
+    - Select the "Diff to" command.
+expect: 'The "BOMBrowser: select date" dialog is displayed, containing a list for code 820036.'
+passed: True
+source-requirements: [1007]
+--
+id: 1032
+chapter_number: "4.1.20"
+title: "menu->help->about"
+descr: "From the menu, select Help -> About"
+expect:
+    - The "About" dialog is displayed. The dialog contains:
+    - the current version and copyright details.
+    - text showing the active connection
+passed: True
+source-requirements: [1009]
+--
+id: 1033
+chapter_number: "4.1.21"
+title: "menu->window"
+descr:
+    - Enter code 820037
+    - Right-click the first entry
+    - Select "Show assembly by date"
+    - Select the first date and double-click it
+    - Return to "BOMBrowser - Code list"
+    - Right-click the first entry
+    - Select "Where used"
+    - Return to "BOMBrowser - Code list"
+    - Right-click the first entry
+    - Select "Valid where used"
+    - Return to "BOMBrowser - Code list"
+    - Right-click the first entry
+    - Select "Edit code"
+    - Five windows are open. Open the "Window menu" in the "BOMBrowser - Codes list" window:
+expect: "The menu displays the four windows: BOMBrowser - Where used, BOMBrowser - Valid where used, BOMBrowser - Assembly, BOMBrowser - Edit"
+passed: True
+source-requirements: [1009]
+--
+id: 1034
+chapter_number: "4.1.22"
+title: "menu->file->close"
+descr:
+    - Enter code 820037
+    - Right-click the first entry and select "Where used"
+    - Two windows are open. Select "File -> Close" in the "BOMBrowser - Codes list" window:
+expect: '- The "BOMBrowser - Codes list" closes. "BOMBrowser - Where used" remains open.'
+passed: True
+source-requirements: [1009]
+--
+id: 1035
+after: 1
+chapter_number: "4.1.23"
+descr: '- After the steps above, press CTRL+L in the open "Where used" window'
+expect: '- The "BOMBrowser - Codes list" appears'
+passed: True
+source-requirements: [1009]
+--
+id: 1036
+after: 1
+chapter_number: "4.1.24"
+descr:
+    - After the steps above, close the "BOMBrowser - Codes list" window again.
+    - In the open "Where used" window, select "New codes list window" from the Window menu
+expect: '- The "BOMBrowser - Codes list" appears'
+passed: True
+source-requirements: [1009]
+--
+id: 1037
+chapter_number: "4.1.25"
+title: "Ctrl-Q  menu->file->close"
+descr:
+    - Enter code 820037
+    - Right-click the first entry and select "Where used"
+    - Two windows are open. Focus on "BOMBrowser - Codes list"
+    - Press CTRL+Q
+expect: 'The "BOMBrowser - Codes list" closes. "BOMBrowser - Where used" remains open.'
+passed: True
+source-requirements: [1009]
+--
+id: 1038
+chapter_number: "4.1.26"
+title: "menu->file->exit"
+descr:
+    - Enter code 820037
+    - Right-click the first entry and select "Where used"
+    - Two windows are open. Select "File -> Exit" in the "BOMBrowser - Codes list" window:
+expect: "A BOMBrowser dialog asking to confirm exit is displayed."
+passed: True
+source-requirements: [1009]
+--
+id: 1039
+after: 1
+chapter_number: "4.1.27"
+descr: "- After the steps above, click No"
+expect: "The Codes list window remains open"
+passed: True
+source-requirements: [1009]
+--
+id: 1040
+after: 1
+chapter_number: "4.1.28"
+descr: "- Repeat the steps above until the dialog appears, then click Yes"
+expect: "The application closes completely. No windows remain displayed."
+passed: True
+source-requirements: [1009]
+--
+id: 1041
+chapter_number: "4.1.29"
+title: "Menu->edit->copy"
+descr:
+    - Enter code %6% and press ENTER
+    - Select Menu -> Edit -> Copy table values
+    - Paste the clipboard content into a text editor
+expect:
+    - Verify that the table matches the one in "BOMBrowser - Codes list" (TAB-separated values).
+    - Verify that the row count matches the "BOMBrowser - Codes list" window + 1 row (header row included)
+passed: True
+source-requirements: [1010]
+--
+id: 1042
+chapter_number: "4.1.30"
+title: "Code GUI"
+descr:
+    - Enter code 8200% and press ENTER
+    - Select the first entry
+expect: "Information for the selected code is displayed in the right panel"
+passed: True
+source-requirements: [1460]
+--
+id: 1043
+after: 1
+chapter_number: "4.1.31"
+descr: "- After the steps above, select the 2nd entry."
+expect: "Information for the 2nd selected code is displayed in the right panel"
+passed: True
+source-requirements: [1460]
+--
+id: 1044
+chapter_number: "4.1.32"
+title: "Status bar"
+descr: "- Enter code 8200% and press ENTER"
+expect: "The status bar displays the number of results and the query execution time"
+passed: True
+source-requirements: [1461]
+--
+id: 1045
+chapter_number: "4.1.33"
+title: "Status bar"
+descr: "- Enter code CODE_INVALID and press ENTER"
+expect:
+    - The status bar displays 0 results
+    - Previous results are not cleared
+passed: True
+source-requirements: [1461]
+--
+id: 1046
+chapter_number: "4.1.34"
+title: "Revision search"
+descr:
+    - Select "Search mode -> Advanced" from the menu
+    - Enter code 8200% and click "Search"
+expect: "The status bar displays the number of results and the query execution time."
+passed: True
+source-requirements: [1462]
+--
+id: 1047
+chapter_number: "4.1.35"
+title: "Revision search"
+descr:
+    - Select "Search mode -> Advanced" from the menu
+    - Enter code CODE_INVALID and click "Search"
+expect: "The status bar displays 0 results"
+passed: True
+source-requirements: [1462, 1461]
+--
+id: 1048
+chapter_number: "4.1.36"
+title: "Revision search"
+descr:
+    - Select "Search mode -> Advanced" from the menu
+    - Enter code CODE_INVALI2D and click "Search"
+expect:
+    - The status bar displays 0 results
+    - Previous results are not cleared
+passed: True
+source-requirements: [1462, 1461]
+--
+id: 1049
+chapter_number: "4.1.37"
+title: "Revision search"
+descr:
+    - Select "Search mode -> Advanced" from the menu
+    - Enter code 820012 and click "Search"
+expect:
+    - The status bar displays the result count (>= 3)
+    - The results table displays the different revisions of the searched code
+passed: True
+source-requirements: [1462]
+--
+id: 1050
+chapter_number: "4.1.38"
+title: "Revision search"
+descr:
+    - Select "Search mode -> Advanced" from the menu
+    - Enter code 8200% and click "Search"
+expect: "- The results table displays codes (and their revisions) starting with 8200.."
+passed: True
+source-requirements: [1462, 1006]
+--
+id: 1051
+chapter_number: "4.1.39"
+title: "Revision search"
+descr:
+    - Select "Search mode -> Advanced" from the menu
+    - Enter code >820000 and click "Search"
+expect: "- The results table displays codes greater than 820000"
+passed: True
+source-requirements: [1462, 1006]
+--
+id: 1052
+chapter_number: "4.1.40"
+title: "Revision search"
+descr:
+    - Select "Search mode -> Advanced" from the menu
+    - Enter date-from 2003-06-04 and click "Search"
+expect: "- The results table displays codes with 'Date from' set to 2003-06-04"
+passed: True
+source-requirements: [1462]
+--
+id: 1053
+chapter_number: "4.1.41"
+title: "Revision search"
+descr:
+    - Select "Search mode -> Advanced" from the menu
+    - Enter date-from '>2003-06-04' and click "Search"
+expect: "- The results table displays codes with 'Date from' greater than 2003-06-04 (or prototype)"
+passed: True
+source-requirements: [1462, 1006]
+--
+id: 1054
+chapter_number: "4.1.42"
+title: "Revision search"
+descr:
+    - Select "Search mode -> Advanced" from the menu
+    - Enter code >820000 and press ENTER
+    - Select a code
+expect: '- The right panel "Code GUI" updates its values according to the selected code'
+passed: True
+source-requirements: [1462, 1006]
+--
+id: 1055
+after: 1
+chapter_number: "4.1.43"
+descr: "- Select a different code"
+expect: '- The right panel "Code GUI" updates its values according to the selected code'
+passed: True
+source-requirements: [1460]
+--
+id: 1056
+after: 1
+chapter_number: "4.1.44"
+descr: "- Repeat test #2 several times"
+expect: "- Expected results from test #2 apply"
+passed: True
+source-requirements: [1460]
+--
+id: 1057
+chapter_number: "4.1.45"
+title: "Revision search"
+descr:
+    - Select "Search mode -> Advanced" from the menu
+    - Enter code >820000 and press ENTER
+    - Select a code
+    - Right-click and select "Show latest assembly"
+expect:
+    - The Assembly window is displayed.
+    - The date of the top-level code is >= to that of the selected code from the previous step
+passed: True
+source-requirements: [1462, 1006, 1007]
+--
+id: 1058
+after: 1
+chapter_number: "4.1.46"
+descr:
+    - Repeat the steps above up to the right-click action
+    - Right-click and select "Where used"
+expect: "- The Where Used window is displayed"
+passed: True
+source-requirements: [1462, 1006, 1007]
+--
+id: 1059
+after: 1
+chapter_number: "4.1.47"
+descr:
+    - Repeat the steps above up to the right-click action
+    - Right-click and select "Valid where used"
+expect: "- The Valid Where Used window is displayed"
+passed: True
+source-requirements: [1462, 1006, 1007]
+--
+id: 1060
+after: 1
+chapter_number: "4.1.48"
+descr:
+    - Repeat the steps above up to the right-click action
+    - Right-click and select "Show assembly by date"
+expect: '- The "Select date" dialog opens (click Cancel to return to the previous window)'
+passed: True
+source-requirements: [1462, 1006, 1007]
+--
+id: 1061
+after: 1
+chapter_number: "4.1.49"
+descr:
+    - Repeat the steps above up to the right-click action
+    - Select a code with multiple dates, choosing the one with the earliest 'Date from'
+    - Right-click and select "Show this assembly"
+expect:
+    - The "Assembly window" is displayed
+    - The assembly corresponds to the 'Date from' of the selected code
+    - The date in the title bar of the "Assembly window" matches the 'Date from' of the selected revision
+passed: True
+source-requirements: [1462, 1006, 1007]
+--
+id: 1062
+after: 1
+chapter_number: "4.1.50"
+descr:
+    - Repeat the steps above up to the right-click action (make sure to select a code >= 82108)
+    - Right-click and select "Show prototype assembly"
+expect:
+    - The "Prototype assembly window" is displayed
+    - Navigate through items and verify that some are marked as prototype
+passed: True
+source-requirements: [1462, 1006, 1007]
+--
+id: 1063
+after: 1
+chapter_number: "4.1.51"
+descr:
+    - Repeat the steps above up to the right-click action
+    - Right-click and select "Copy code" (or "Revise a code")
+expect: '- The "Select date" dialog opens (click Cancel to return to the previous window)'
+passed: True
+source-requirements: [1462, 1006, 1007]
+--
+id: 1064
+after: 1
+chapter_number: "4.1.52"
+descr:
+    - Repeat the steps above up to the right-click action
+    - Right-click and select "Edit code"
+expect: '- The "Edit code" window is displayed'
+passed: True
+source-requirements: [1462, 1006, 1007]
+--
+id: 1065
+after: 1
+chapter_number: "4.1.53"
+descr:
+    - Repeat the steps above up to the right-click action
+    - Right-click and select "Diff from"
+    - Right-click and select "Diff to"
+    (selecting different revisions of the same code)
+expect: "- The Diff window is displayed"
+passed: True
+source-requirements: [1462, 1006, 1007]
+--
+id: 1068
+chapter_number: "4.1.54"
+title: "search <"
+descr:
+    - Select "Search mode -> Advanced" from the menu
+    - Enter code <5000 and press ENTER
+expect: "- All codes less than 5000 are displayed (alphanumeric comparison)"
+passed: True
+source-requirements: [1462, 1006]
+--
+id: 1069
+chapter_number: "4.1.55"
+title: "search !"
+descr:
+    - Select "Search mode -> Advanced" from the menu
+    - Enter code !820001 and press ENTER
+expect: "- All codes except 820001 are displayed"
+passed: True
+source-requirements: [1462, 1006]
+--
+id: 1070
+chapter_number: "4.1.56"
+title: "search ="
+descr:
+    - Select "Search mode -> Advanced" from the menu
+    - Enter code =820012 and press ENTER
+expect: "- Only code 820012 (across all its revisions) is displayed"
+passed: True
+source-requirements: [1462, 1006]
+--
+id: 1071
+chapter_number: "4.1.57"
+title: "search ="
+descr:
+    - select from the menu "Search mode->advanced"
+    - enter Document "asm" and press ENTER
+expect: "- Only assembly revisions are shown (revisions that have a document with 'asm' in the filename)"
+passed: True
+source-requirements: [1462, 1006]
+--
+id: 1072
+chapter_number: "4.1.58"
+title: "'Search revision' color"
+--
+id: 1073
+chapter_number: "4.1.59"
+title: "Search revision color (prep)"
+prep:
+    the following configuration in bombrowser.ini is assumed:
+    revlistcolors=
+        gval1=COLOR,gval2=!A:fg=green
+        gval1=COLOR,gval2=A:bg=pink
+        gval1=COLOR,gval2=B:bold,fg=blue
+        gval1=COLOR,gval2=C:italic
+--
+id: 1074
+chapter_number: "4.1.60"
+title: "Search for CODE-COLORS-xxx"
+descr: "In the search revision window (search mode = advanced), search for code %COLOR%"
+expect: "The CODE-COLORS-xxxx codes are shown"
+passed: True
+source-requirements: [1462, 1463]
+--
+id: 1075
+after: 1
+chapter_number: "4.1.61"
+descr: "Look at the color of the 1st row"
+expect:
+    The first row (TEST-COLOR-A), bg=pink
+    (gval1=COLOR,gval2=A:bg=pink)
+passed: True
+source-requirements: [1462, 1463]
+--
+id: 1076
+after: 1
+chapter_number: "4.1.62"
+descr: "Look at the color of the 2nd row"
+expect:
+    The 2nd row (TEST-COLOR-B), fg=blue, bold
+    (gval1=COLOR,gval2=B:bold,fg=blue)
+passed: True
+source-requirements: [1462, 1463]
+--
+id: 1077
+after: 1
+chapter_number: "4.1.63"
+descr: "Look at the color of the 3rd row"
+expect:
+    The 3rd row (TEST-COLOR-C), fg=green, italic
+    (gval1=COLOR,gval2=C:italic, gval1=COLOR,gval2=!A:fg=green)
+passed: True
+source-requirements: [1462, 1463]
+--
+id: 1078
+after: 1
+chapter_number: "4.1.64"
+descr: "Look at the color of the 4th row"
+expect:
+    The 4th row (TEST-COLOR-D), fg=green
+    (gval1=COLOR,gval2=!A:fg=green)
+passed: True
+source-requirements: [1462, 1463]
+--
+id: 1079
+level: 3
+chapter_number: "4.2"
+title: "'Code gui' panel"
+--
+id: 1080
+level: 4
+chapter_number: "4.2.1"
+title: "general"
+descr:
+    - In the "BOMBrowser - codes list" window, enter code 8200%
+    - press ENTER
+    - Select the first entry (820000)
+expect: "the left panel displays the information for the selected code (check title and code)"
+passed: True
+source-requirements: [1471]
+--
+id: 1081
+chapter_number: "4.2.2"
+title: "multiple revision"
+descr:
+    - In the "BOMBrowser - codes list" window, enter code 8200%
+    - press ENTER
+    - sort by REV
+    - Select the most revised entry (the latest one)
+    - Select another date in the rightmost combobox
+expect: "The information on the panel changes accordingly (check the date)"
+passed: True
+source-requirements: [1466]
+--
+id: 1082
+chapter_number: "4.2.3"
+title: "multiple revision (2)"
+descr:
+    - In the "BOMBrowser - codes list" window, enter code 8200%
+    - press ENTER
+    - sort by REV
+    - Select the most revised entry (the latest one)
+expect: "The right combo box dropdown contains all the revision dates for the code (cross-check with the date in the edit dialog)"
+passed: True
+source-requirements: [1466]
+--
+id: 1083
+chapter_number: "4.2.4"
+title: "documents"
+descr:
+    - In the "BOMBrowser - codes list" window, enter code 8200%
+    - press ENTER
+    - Select the 2nd entry (820001)
+expect: "In the bottom part, two buttons representing two documents are shown"
+passed: True
+source-requirements: [1468]
+--
+id: 1084
+chapter_number: "4.2.5"
+title: "documents (2x)"
+descr:
+    - In the "BOMBrowser - codes list" window, enter code 8200%
+    - press ENTER
+    - Select the 2nd entry (820001)
+    - Click a document button
+expect: "Clicking a document button opens the corresponding document"
+passed: True
+source-requirements: [1468]
+--
+id: 1085
+chapter_number: "4.2.6"
+title: "Copy info.."
+descr:
+    - In the "BOMBrowser - codes list" window, enter code 8200%
+    - press ENTER
+    - Select the 2nd entry (820001)
+    - Click the 'Copy info' button
+expect: "Pasting the clipboard content into an editor displays the relevant information"
+passed: True
+source-requirements: [1467]
+--
+id: 1086
+chapter_number: "4.2.7"
+title: "Check tool tip"
+descr:
+    - In the "BOMBrowser - codes list" window, enter code 820000
+    - hover the mouse pointer over the "Code - gui" drawing button
+expect: "- a tooltip appears showing the file name and full path"
+passed: True
+source-requirements: [1468]
+--
+id: 1087
+chapter_number: "4.2.8"
+title: "RMB menu of drawing button"
+descr:
+    - In the "BOMBrowser - codes list" window, enter code 820000
+    - hover the mouse pointer over the Code gui drawing buttons, press RMB
+    - select "Open dir"
+expect: "- the directory containing the file opens"
+passed: True
+source-requirements: [1468]
+--
+id: 1088
+chapter_number: "4.2.9"
+title: "RMB menu of drawing button"
+descr:
+    - In the "BOMBrowser - codes list" window, enter code 820000
+    - hover the mouse pointer over the drawing buttons, press RMB
+    - select "Copy filename"
+    - paste it into an editor
+expect: "- the filename is pasted"
+passed: True
+source-requirements: [1468]
+--
+id: 1089
+chapter_number: "4.2.10"
+title: "RMB menu of drawing button"
+descr:
+    - In the "BOMBrowser - codes list" window, enter code 820000
+    - hover the mouse pointer over the Code, press RMB
+    - select "Copy dirname"
+    - paste it into an editor
+expect: "- the directory name is pasted"
+passed: True
+source-requirements: [1468]
+--
+id: 1090
+chapter_number: "4.2.11"
+title: "RMB menu of drawing button"
+descr:
+    - In the "BOMBrowser - codes list" window, enter code 820000
+    - hover the mouse pointer over the drawing button, press RMB
+    - select "Copy full path"
+    - paste it into an editor
+expect: "- the full path (filename + dirname) is pasted"
+passed: True
+source-requirements: [1468]
+--
+id: 1091
+chapter_number: "4.2.12"
+title: "RMB menu of drawing button"
+descr:
+    - In the "BOMBrowser - codes list" window, enter code 820000
+    - hover the mouse pointer over the drawing button, press RMB
+    - select "Copy file"
+    - paste it into a folder
+expect: "- the file is copied"
+passed: True
+source-requirements: [1468]
+--
+id: 1092
+chapter_number: "4.2.13"
+title: "Long filename"
+descr:
+    - Set the parameter btnmaxlength=10
+    - In the "BOMBrowser - codes list" window, enter code TEST-LONG_FN
+    - look at the button label
+expect: '- verify that the filename ends with "..."'
+passed: True
+source-requirements: [1469]
+--
+id: 1093
+chapter_number: "4.2.14"
+title: "Long filename"
+descr:
+    - Set the parameter btnmaxlength=0
+    - In the "BOMBrowser - codes list" window, enter code TEST-LONG_FN
+    - look at the button label
+expect: '- verify that the filename does NOT end with "..."'
+passed: True
+source-requirements: [1469]
+--
+id: 1094
+chapter_number: "4.2.15"
+title: "URL"
+prep: "Search for code CODE_WITH_URL"
+descr: "In the code gui, hover the mouse over the button with the URL"
+expect: "A tooltip with the URL and description appears"
+passed: True
+source-requirements: [1465, 1468]
+--
+id: 1095
+after: "True"
+chapter_number: "4.2.16"
+descr: "Right-click on the drawing button"
+expect: 'A context menu showing "Copy description" and "Copy URL" is displayed'
+passed: True
+source-requirements: [1465, 1468]
+--
+id: 1096
+after: "True"
+chapter_number: "4.2.17"
+descr: 'Select "Copy description", then paste the clipboard content into an editor'
+expect: "The pasted content is the description"
+passed: True
+source-requirements: [1468]
+--
+id: 1097
+after: "True"
+chapter_number: "4.2.18"
+descr: 'Select "Copy URL", then paste the clipboard content into an editor'
+expect: "The pasted content is the URL"
+passed: True
+source-requirements: [1465, 1468]
+--
+id: 1098
+after: "True"
+chapter_number: "4.2.19"
+descr: "Click the button with the URL"
+expect: "A web browser opens, navigating to the URL"
+passed: True
+source-requirements: [1465]
+--
+id: 1099
+level: 3
+chapter_number: "4.3"
+title: "BOMBrowser - Assembly"
+--
+id: 1100
+level: 4
+chapter_number: "4.3.1"
+title: "select date"
+descr:
+    - enter code "820037" in "BOMBrowser - Code list"
+    - right-click on the first entry
+    - select the "Show assembly by date" command
+    - "The BOMBrowser: Select Date" dialog is displayed
+    - Check that it is a modeless dialog by trying to click the menu in the "parent" window
+expect: "The click can trigger an action (e.g., open a menu)"
+passed: True
+source-requirements: [1481]
+--
+id: 1101
+after: 1
+chapter_number: "4.3.2"
+descr: "- after the step above, click the Cancel button"
+expect: '- the dialog disappears and the "codes list" window is displayed'
+passed: True
+source-requirements: [1481]
+--
+id: 1102
+after: 1
+chapter_number: "4.3.3"
+descr:
+    - repeat the steps above until the "Show assembly by date" dialog appears
+    - Select the first item
+    - click the "Select" button
+expect:
+    - The "BOMBrowser - Assembly" window appears
+    - Check that the date in the window title matches the selected date
+passed: True
+source-requirements: [1481]
+--
+id: 1103
+chapter_number: "4.3.4"
+title: "show assembly"
+descr:
+    - enter code "810037" in "BOMBrowser - Code list"
+    - right-click on the first entry
+    - select the "Show assembly by date" command
+    - click "Select"
+expect:
+    - The "BOMBrowser - Assembly" window appears
+    - only one code (810037) is shown
+passed: True
+source-requirements: [1485]
+--
+id: 1104
+chapter_number: "4.3.5"
+title: "show assembly (2)"
+descr:
+    - enter code "820037" in "BOMBrowser - Code list"
+    - right-click on the first entry
+    - select the "Show assembly by date" command
+    - "The BOMBrowser: Select Date" dialog is displayed
+    - Select the first item
+    - click the "Select" button
+    - The Assembly window appears; select an item that is an assembly
+    - then right-click and execute "Show Assembly by date"
+expect: 'A new "Select date" window is displayed.'
+passed: True
+source-requirements: [1481, 1485]
+--
+id: 1105
+chapter_number: "4.3.6"
+title: "where used (2)"
+descr:
+    - enter code "100000" in "BOMBrowser - Code list"
+    - right-click on the first entry
+    - select the "Show assembly by date" command
+    - "The BOMBrowser: Select Date" dialog is displayed
+    - Select the first item, and click the "Select" button. The Assembly window appears
+    - Select a code below the top one (100000); then right-click and execute "Where used"
+expect: "a 'Where used' window appears"
+passed: True
+source-requirements: [1485]
+--
+id: 1106
+chapter_number: "4.3.7"
+title: "valid where used (2)"
+descr:
+    - enter code "100000" in "BOMBrowser - Code list"
+    - right-click on the first entry
+    - select the "Show assembly by date" command
+    - "The BOMBrowser: Select Date" dialog is displayed
+    - Select the first item, and click the "Select" button. The Assembly window appears
+    - Select a code below the top one (100000); then right-click and execute "Valid where used"
+expect: 'a "Valid where used" window appears'
+passed: True
+source-requirements: [1485]
+--
+id: 1107
+chapter_number: "4.3.8"
+title: "menu->help->about"
+descr: "In the menu, select the Help -> About command"
+expect: 'The "About" dialog is displayed. The dialog contains the current version and copyright information.'
+passed: True
+source-requirements: [1009]
+--
+id: 1108
+chapter_number: "4.3.9"
+title: "menu->window"
+descr:
+    - enter code 820037 in "BOMBrowser - Codes list"
+    - right-click on the first entry
+    - select the "Show assembly by date" command
+    - select the first date by double-clicking it
+    - Two windows are open. Select the "Window" menu in the "BOMBrowser - Assembly" window:
+expect: 'in the menu only one window is shown: "BOMBrowser - Codes list"'
+passed: True
+source-requirements: [1009]
+--
+id: 1109
+chapter_number: "4.3.10"
+title: "menu->file->close"
+descr:
+    - enter code 820037 in "BOMBrowser - Codes list"
+    - right-click on the first entry
+    - select the "Show assembly by date" command
+    - select the first date by double-clicking it
+    - Two windows are open. Select "File->Close" in the "BOMBrowser - Assembly" window:
+expect: 'The "BOMBrowser - Assembly" list closes. "BOMBrowser - Codes list" remains open.'
+passed: True
+source-requirements: [1009]
+--
+id: 1110
+chapter_number: "4.3.11"
+title: "Ctrl-Q  menu->file->close"
+descr:
+    - enter code 820037 in "BOMBrowser - Codes list"
+    - right-click on the first entry
+    - select the "Show assembly by date" command
+    - select the first date by double-clicking it
+    - two windows are open. Focus on "BOMBrowser - Assembly", then press CTRL-Q
+expect: 'The "BOMBrowser - Assembly" window closes. "BOMBrowser - Codes list" remains open.'
+passed: True
+source-requirements: [1009]
+--
+id: 1111
+chapter_number: "4.3.12"
+title: "menu->file->exit"
+descr:
+    - enter code 820037 in "BOMBrowser - Codes list"
+    - right-click on the first entry
+    - select the "Show latest assembly" command
+    - Two windows are open. Select "File->Exit" in the "BOMBrowser - Assembly" window:
+expect: "a BOMBrowser confirmation dialog asking to exit is displayed."
+passed: True
+source-requirements: [1009]
+--
+id: 1112
+after: 1
+chapter_number: "4.3.13"
+descr: "- After the step above, click No"
+expect: "the assembly window is NOT closed"
+passed: True
+source-requirements: [1009]
+--
+id: 1113
+after: 1
+chapter_number: "4.3.14"
+descr:
+    - After the step above, select "File->Exit" in the "BOMBrowser - Assembly" window:
+    - a BOMBrowser confirmation dialog asking to exit is displayed. Click Yes
+expect: "The application terminates. No window is displayed"
+passed: True
+source-requirements: [1009]
+--
+id: 1114
+chapter_number: "4.3.15"
+title: "menu->file->exit"
+descr:
+    - enter code 820037 in "BOMBrowser - Codes list"
+    - right-click on the first entry
+    - select the "Show assembly by date" command
+    - select the first date by double-clicking it
+    - Two windows are open. Press CTRL-X
+expect: "a BOMBrowser confirmation dialog asking to exit is displayed."
+passed: True
+source-requirements: [1009]
+--
+id: 1115
+after: 1
+chapter_number: "4.3.16"
+descr: "- After the step above, click No"
+expect: "the assembly window is NOT closed"
+passed: True
+source-requirements: [1009]
+--
+id: 1116
+after: 1
+chapter_number: "4.3.17"
+descr:
+    - Press CTRL-X again
+    - a BOMBrowser confirmation dialog asking to exit is displayed. Click Yes
+expect: "The application terminates. No window is displayed"
+passed: True
+source-requirements: [1009]
+--
+id: 1117
+chapter_number: "4.3.18"
+title: "menu->file->export as json / csv..."
+descr:
+    - enter code 820037 in "BOMBrowser - Codes list"
+    - right-click on the first entry
+    - select the "Show assembly by date" command
+    - select the first date by double-clicking it
+    - Select File->Export as JSON
+    - Save the file and reopen it in an editor
+expect: "The file is formatted as JSON"
+passed: True
+source-requirements: [1482]
+--
+id: 1118
+after: 1
+chapter_number: "4.3.19"
+descr:
+    Test description #2
+    - Select File->Export BOM...
+    - Save the file (with a .csv extension) and reopen it in an editor
+expect: "- The file is formatted as CSV (SEMICOLON-separated fields)"
+passed: True
+source-requirements: [1488]
+--
+id: 1119
+chapter_number: "4.3.20"
+title: "menu->view->show up level 1"
+descr:
+    - enter code 820099 in "BOMBrowser - Codes list"
+    - right-click on the first entry
+    - select the "Show latest assembly" command
+    - select the first date by double-clicking it
+    - Select View->Show up level 1
+expect: "The BOM is collapsed to display only the first level (top code, no children)"
+passed: True
+source-requirements: [1483]
+--
+id: 1120
+after: 1
+chapter_number: "4.3.21"
+descr: "- Select View->Show up level 2"
+expect: "The BOM is collapsed to display only two levels (top code and its children)"
+passed: True
+source-requirements: [1483]
+--
+id: 1121
+after: 1
+chapter_number: "4.3.22"
+descr: "- Select View->Show all levels"
+expect: "The BOM displays all levels"
+passed: True
+source-requirements: [1483]
+--
+id: 1122
+after: 1
+chapter_number: "4.3.23"
+descr: "- Press CTRL-1"
+expect: "The BOM is collapsed to display only the first level (top code)"
+passed: True
+source-requirements: [1483]
+--
+id: 1123
+after: 1
+chapter_number: "4.3.24"
+descr: "- Press CTRL-2"
+expect: "The BOM is collapsed to display only two levels (top code and its children)"
+passed: True
+source-requirements: [1483]
+--
+id: 1124
+after: 1
+chapter_number: "4.3.25"
+descr: "- Press CTRL-A"
+expect: "The BOM displays all levels"
+passed: True
+source-requirements: [1483]
+--
+id: 1125
+chapter_number: "4.3.26"
+title: "Find"
+prep:
+    - enter code 820099 in "BOMBrowser - Codes list"
+    - right-click on the first entry
+    - select the "Show assembly by date" command
+    - select the first date by double-clicking it
+    - the BOMBrowser Assembly window is displayed
+source-requirements: [1485]
+--
+id: 1126
+chapter_number: "4.3.27"
+title: "find ctrl-f"
+prep_id: 1125
+descr: "press CTRL-F"
+expect: "The find dialog is displayed"
+passed: True
+source-requirements: [1486]
+--
+id: 1127
+chapter_number: "4.3.28"
+title: "find"
+prep_id: 1125
+descr: "Select Search->Find from the menu"
+expect: "The find dialog is displayed"
+passed: True
+source-requirements: [1486]
+--
+id: 1128
+chapter_number: "4.3.29"
+title: "cancel"
+prep_id: 1125
+descr:
+    - Select Search->Find
+    - The find dialog is displayed
+    - Click the "Close" button
+expect: "The find dialog closes"
+passed: True
+source-requirements: [1486]
+--
+id: 1129
+chapter_number: "4.3.30"
+title: "find a code"
+prep_id: 1125
+descr:
+    - Select Search->Find
+    - The find dialog is displayed
+    - Enter the code '810092'
+    - Click "Next" 3 times
+expect: "A different instance of code 810092 is shown each time"
+passed: True
+source-requirements: [1486]
+--
+id: 1130
+after: 1
+chapter_number: "4.3.31"
+descr: '- Click "Prev" 2 times'
+expect: "A different instance of code 810092 is shown each time"
+passed: True
+source-requirements: [1486]
+--
+id: 1131
+chapter_number: "4.3.32"
+title: "find a code"
+prep:
+    - enter code 820099 in "BOMBrowser - Codes list"
+    - right-click on the first entry
+    - select the "Show assembly by date" command
+    - select the first date by double-clicking it
+    - the BOMBrowser Assembly window is displayed
+descr:
+    - Select Search->Find
+    - The find dialog is displayed
+    - Enter the code '810092'
+    - Click "Next" 5 times
+    - Click "Prev" 5 times
+expect: 'After the last action, a "Data not found" dialog is displayed'
+passed: True
+source-requirements: [1486]
+--
+id: 1132
+chapter_number: "4.3.33"
+title: "find a code"
+prep_id: 1131
+descr:
+    - Select Search->Find
+    - The find dialog is displayed
+    - Enter the code '810092'
+    - Click "Next" down through the BOM until a "Data not found" dialog appears
+expect: 'After the last action, a "Data not found" dialog is displayed'
+passed: True
+source-requirements: [1486]
+--
+id: 1133
+chapter_number: "4.3.34"
+title: "show latest assembly"
+descr:
+    - in the "Code list" window, select code 820017
+    - look at the right panel codegui. Verify that "Date to" is blank
+    - if not, edit the code and clear/adjust the "Date to" field accordingly
+    - from the RMB menu, select "Show latest assembly"
+expect:
+    - The "Assembly" window is displayed
+    - The date in the title is replaced by "LATEST"
+    - Each listed code has an empty "Date to" field
+passed: True
+source-requirements: [1485]
+--
+id: 1134
+chapter_number: "4.3.35"
+title: "show latest assembly"
+descr:
+    - in the "Code list" window, select code 100017-ENDED
+    - from the RMB menu, select "Show latest assembly"
+expect:
+    - The "Assembly" window is displayed
+    - The date in the title is replaced by the "Date to" value
+passed: True
+source-requirements: [1485]
+--
+id: 1135
+chapter_number: "4.3.36"
+title: "Menu file -> export data"
+descr:
+    - open code 820000 as "latest assembly" in the Assembly window
+    - Select File -> "Export data..."
+expect: '- An "Export" dialog appears'
+passed: True
+source-requirements: [1488]
+--
+id: 1136
+after: 1
+chapter_number: "4.3.37"
+descr: "- after the step above, click Close"
+expect: "- The dialog closes"
+passed: True
+source-requirements: [1488]
+--
+id: 1137
+after: 1
+chapter_number: "4.3.38"
+descr: '- repeat the step above, but instead of clicking Cancel, select a directory and click "Export"'
+expect: "- The assembly files are copied into the selected folder"
+passed: True
+source-requirements: [1488]
+--
+id: 1138
+chapter_number: "4.3.39"
+title: "Menu file -> export data with url"
+descr:
+    - open code TEST-ASSY-TO-EXPORT as "latest assembly" in the Assembly window
+    - Select File -> "Export data..."
+    - In the new dialog, click the "Export" button
+expect: "- An error dialog appears, but without any reference to CODE_WITH_URL"
+passed: True
+source-requirements: [1488]
+--
+id: 1139
+chapter_number: "4.3.40"
+title: "Show prototype assembly"
+--
+id: 1140
+chapter_number: "4.3.41"
+title: "Show prototype assembly"
+prep:
+    - look at code 610005 in the codes list window
+    - Check in the code gui right panel that the code has two dates and is not a prototype
+descr:
+    - look at code 610005 in the codes list window
+    - From the RMB menu, select "Show prototype assembly"
+expect:
+    - the assembly window is displayed
+    - looking at the dates in the "code gui" right panel, the "prototype" start date is displayed for some codes
+passed: True
+source-requirements: [1485]
+--
+id: 1141
+chapter_number: "4.3.42"
+title: "Show prototype assembly"
+prep_id: 1140
+descr:
+    - look at code 610005 in the codes list window
+    - From the RMB menu, select "Show latest assembly"
+expect:
+    - the assembly window is displayed
+    - looking at the dates in the "code gui" right panel, no code shows a 'date to' value (i.e., no codes are prototypes)
+passed: True
+source-requirements: [1485]
+--
+id: 1142
+level: 3
+chapter_number: "4.4"
+title: "Check for loop"
+descr:
+    - look at code TEST-LOOP-A in the codes list window
+    - From the RMB menu, select "Show latest assembly"
+expect: "A dialog reporting a loop error is displayed. The message suggests executing menu->Tools->Check bom"
+passed: True
+source-requirements: [1487]
+--
+id: 1143
+after: 1
+chapter_number: "4.5"
+descr: "- Select menu->Tools->Check bom"
+expect: "A report stating 'ERROR loop detected' is displayed"
+passed: True
+source-requirements: [1487]
+--
+id: 1144
+level: 4
+chapter_number: "4.5.1"
+title: "BOM Color"
+--
+id: 1145
+level: 5
+chapter_number: "4.5.1.1"
+title: "Bom color (prep)"
+prep:
+    the following configuration in bombrowser.ini is assumed:
+    bomcolors=
+        gval1=COLOR,gval2=!A:fg=green
+        gval1=COLOR,gval2=A:bg=pink
+        gval1=COLOR,gval2=B:bold,fg=blue
+        gval1=COLOR,gval2=C:italic
+        gval1=COLOR,gaval2=Q:fg=red
+        gval1=COLOR,qty=10.0=Q:bg=black
+        gval1=COLOR,*gval2=F,gval2=G:bg=#00FFFF,fg=black
+--
+id: 1146
+chapter_number: "4.5.1.2"
+title: "Bom color"
+descr: 'Show the latest assembly "TEST-COLOR-A"'
+expect:
+    The first row (TEST-COLOR-A) is fg=black, bg=pink
+    (gval1=COLOR,gval2=A:bg=pink)
+passed: True
+source-requirements: [1489]
+--
+id: 1147
+after: 1
+chapter_number: "4.5.1.3"
+descr: "Look at the BOM color"
+expect:
+    The 2nd row (TEST-COLOR-B) is fg=blue, bold
+    (gval1=COLOR,gval2=B:bold,fg=blue)
+passed: True
+source-requirements: [1489]
+--
+id: 1148
+after: 1
+chapter_number: "4.5.1.4"
+descr: "Look at the BOM color"
+expect:
+    The 3rd row (TEST-COLOR-C) is fg=green, italic
+    (gval1=COLOR,gval2=C:italic, gval1=COLOR,gval2=!A:fg=green)
+passed: True
+source-requirements: [1489]
+--
+id: 1149
+after: 1
+chapter_number: "4.5.1.5"
+descr: "Look at the BOM color"
+expect:
+    The 4th row (TEST-COLOR-D) is fg=green
+    (gval1=COLOR,gval2=!A:fg=green)
+passed: True
+source-requirements: [1489]
+--
+id: 1150
+after: 1
+chapter_number: "4.5.1.6"
+descr: "Look at the BOM color"
+expect:
+    The 5th row (TEST-COLOR-E) is fg=green, bg=black
+    (gval1=COLOR,gval2=!A:fg=green, gval1=COLOR,qty=10.0=Q:bg=black)
+passed: True
+source-requirements: [1489]
+--
+id: 1151
+after: 1
+chapter_number: "4.5.1.7"
+descr: "Look at the BOM color"
+expect:
+    The 6th row (TEST-COLOR-F) is fg=red, bg=black
+    (gval1=COLOR,gaval2=Q:fg=red, gval1=COLOR,qty=10.0=Q:bg=black)
+passed: True
+source-requirements: [1489]
+--
+id: 1152
+after: 1
+chapter_number: "4.5.1.8"
+descr: "Look at the BOM color"
+expect:
+    The 7th row (TEST-COLOR-G) is fg=black, bg=cyan (#00ffff)
+    (gval1=COLOR,*gval2=F,gval2=G:bg=#00FFFF,fg=black)
+passed: True
+source-requirements: [1489]
+--
+id: 1153
+level: 4
+chapter_number: "4.5.2"
+title: "Copy assembly"
+descr:
+    - Open assembly "TEST-ASSY-TO-EXPORT"
+    - From the menu, select Edit->Copy BOM (Full table)
+    - Paste the clipboard content into a text editor
+expect:
+    The content of the BOM is copied:
+    - File paths are formatted to display only the filename (NOT the path)
+    - URLs are shown as-is
+passed: True
+source-requirements: [1488]
+--
+id: 1492
+chapter_number: "4.5.3"
+title: "Code gui panel"
+descr:
+    - Open the latest assembly "820037"
+    - Verify that a 'Code gui panel' is displayed on the right side of the window
+expect: "A 'Code gui panel' is displayed on the right side of the window"
+passed: True
+source-requirements: [1490]
+--
+id: 1491
+after: 1
+chapter_number: "4.5.4"
+descr: "Click different rows and verify that the 'Code gui panel' updates accordingly"
+expect: "The 'Code gui panel' displays the information for the highlighted code"
+passed: True
+source-requirements: [1490]
+--
+id: 1155
+chapter_number: "4.5.5"
+title: "'Valid where used' test"
+descr: 'In the "Codes list" window, search for code 820017. Then select the right-click menu command "Valid where used"'
+expect:
+    - the "Valid where used" window is displayed
+    - every listed code has an empty "end to" date
+    - no codes are duplicated (at the top level)
+passed: True
+source-requirements: [1485]
+--
+id: 1157
+chapter_number: "4.5.6"
+title: "'Where used' test"
+descr: 'In the "Codes list" window, search for code 820017. Then select the right-click menu command "Where used"'
+expect:
+    - the "Where used" window is displayed
+    - a few listed codes (excluding the top node) have a non-empty "end to" date. These codes may sometimes be repeated
+passed: True
+source-requirements: [1485]
+--
+id: 1159
+chapter_number: "4.5.7"
+title: "BOMBrowser - Diff window"
+--
+id: 1160
+chapter_number: "4.5.8"
+title: "diff the same code"
+descr:
+    - In the "Codes list" window, search for code 82%
+    - Select a code with multiple revisions (e.g., 820012)
+    - Select the right-click menu command "Diff from"
+expect: "- a select date dialog is displayed"
+passed: True
+source-requirements: [1493]
+--
+id: 1161
+after: 1
+chapter_number: "4.5.9"
+descr:
+    - after the previous step, select the **2nd** date
+    - then click select
+expect: "- A small diff dialog is displayed"
+passed: True
+source-requirements: [1493]
+--
+id: 1162
+after: 1
+chapter_number: "4.5.10"
+descr:
+    - after the previous step, select the same code in the codes list window
+    - then select the right-click menu command "Diff to"
+expect: "- a select date dialog is displayed"
+passed: True
+source-requirements: [1493]
+--
+id: 1163
+after: 1
+chapter_number: "4.5.11"
+descr:
+    - after the previous step, select the **1st** date
+    - then click select
+expect:
+    - The previous small dialog closes
+    - A new window titled "Diff window" is displayed
+    - The title bar displays the codes and the two selected dates
+    - The top part of the window displays the code and the two selected dates
+    - The body of the window displays the colorized diff between the two BOMs
+passed: True
+source-requirements: [1493]
+--
+id: 1164
+after: 1
+chapter_number: "4.5.12"
+descr: "- search for the selected code in the main body window"
+expect:
+    - below the code, the differences between the codes are displayed:
+    - the dates are different
+    - the iterations are different
+    - other differences may be present
+passed: True
+source-requirements: [1493]
+--
+id: 1165
+chapter_number: "4.5.13"
+title: "diff two different codes"
+descr:
+    - in the "Codes list" window, search for the codes starting with 82%.
+    - select a code with multiple revisions (e.g. 820012)
+    - right-click and select the "Diff from" context menu command
+expect: "- a select date dialog is displayed"
+passed: True
+source-requirements: [1493]
+--
+id: 1166
+after: 1
+chapter_number: "4.5.14"
+descr:
+    - after the previous step, select the **2nd** date
+    - click Select
+expect: "- A small diff dialog is displayed"
+passed: True
+source-requirements: [1493]
+--
+id: 1167
+after: 1
+chapter_number: "4.5.15"
+descr:
+    - after the previous step, select a different code (e.g. 820011) in the codes list window
+    - right-click and select the "Diff to" context menu command
+expect: "- a select date dialog is displayed"
+passed: True
+source-requirements: [1493]
+--
+id: 1168
+after: 1
+chapter_number: "4.5.16"
+descr:
+    - after the previous step, select the **1st** date
+    - click Select
+expect:
+    - The previous small dialog closes
+    - A new window named "Diff window" is displayed
+    - The title bar displays the codes and the two selected dates
+    - The top section of the window displays the code and the two selected dates
+    - The body of the window displays the color-coded diff of the two BOMs
+passed: True
+source-requirements: [1493]
+--
+id: 1169
+after: 1
+chapter_number: "4.5.17"
+descr: "- search for the 1st selected code in the window body"
+expect:
+    - the differences for the code are displayed below it:
+    - the codes are different
+    - other differences may be present
+passed: True
+source-requirements: [1493]
+--
+id: 1170
+chapter_number: "4.5.18"
+title: "diff two different codes"
+descr:
+    - open a diff window as described in the previous test
+    - search for the 1st selected code in the window body
+    - note which properties are marked with '-' and which ones with '+'
+    - click the '<->' button
+    - search for the 2nd selected code in the body
+expect:
+    - the values previously marked with '-' are now marked with '+'
+    - the values previously marked with '+' are now marked with '-'
+passed: True
+source-requirements: [1493, 1494]
+--
+id: 1171
+chapter_number: "4.5.19"
+title: "diff option: diff only top code"
+descr:
+    - open a diff window between two different revisions *of code 820154*
+    - check the "Diff only the top code" checkbox
+expect:
+    - only the top code is displayed
+    - the differing 'date_from' values are displayed (other fields may also be shown)
+passed: True
+source-requirements: [1493, 1504]
+--
+id: 1172
+chapter_number: "4.5.20"
+title: "diff option: diff only top code"
+descr:
+    - open a diff window between two codes:
+      - 820017
+      - 820018
+    - check the "Diff only the top code" checkbox
+expect:
+    - only the top code is displayed
+    - the differing 'code' and 'descr' values are displayed (other fields may also be shown)
+passed: True
+source-requirements: [1493, 1504]
+--
+id: 1173
+chapter_number: "4.5.21"
+title: "diff option: diff only main attributes"
+descr:
+    - open a diff window between two different dates for code TEST-DIFF-ASSY
+    - check the "Diff only main attributes" checkbox
+expect:
+    only the main attributes are displayed:
+    - description
+    - qty
+    - code
+    - ver
+passed: True
+source-requirements: [1493, 1503]
+--
+id: 1174
+chapter_number: "4.5.22"
+title: "diff documents"
+descr: "Diff the two revisions of code TEST-DIFF-ASSY"
+expect: "The diff dialog reports that the document sets differ between the two codes"
+passed: True
+source-requirements: [1493]
+--
+id: 1175
+level: 3
+chapter_number: "4.6"
+title: "BOMBrowser - Copy / revise code"
+--
+id: 1176
+level: 4
+chapter_number: "4.6.1"
+title: "BOMBrowser - Copy code"
+--
+id: 1177
+chapter_number: "4.6.2"
+title: "Copy code select date dialog"
+descr:
+    Test description
+    - enter code 820040 in the "BOMBrowser codes list" window
+    - click Search
+    - right-click the first entry and select "Copy code..." command
+expect: 'A "BOM Browser select date dialog" appears'
+passed: True
+source-requirements: [1506]
+--
+id: 1178
+after: 1
+chapter_number: "4.6.3"
+descr: "- after the step above, click Cancel"
+expect: "- the dialog disappears"
+passed: True
+source-requirements: [1506]
+--
+id: 1179
+after: 1
+chapter_number: "4.6.4"
+descr:
+    - repeat the steps above until the dialog appears
+    - click Select
+expect: "The Copy window appears"
+passed: True
+source-requirements: [1506]
+--
+id: 1181
+chapter_number: "4.6.5"
+title: "Copy code window"
+descr:
+    Test description
+    - enter code 820045 in the "BOMBrowser codes list" window
+    - click Search
+    - right-click the first entry and select "Copy code..." command
+    - A "BOM Browser select date dialog" appears; double-click the *first* entry
+expect:
+    - The Copy window appears
+    - the "old-Iter" matches the one selected in the "Select date" window
+passed: True
+source-requirements: [1506]
+--
+id: 1182
+chapter_number: "4.6.6"
+title: "Copy code window"
+descr:
+    Test description
+    - enter code 820045 in the "BOMBrowser codes list" window
+    - click Search
+    - right-click the first entry and select "Copy code..." command
+    - A "BOM Browser select date dialog" appears; double-click the *second* entry
+    - The Copy/revise window appears
+expect: 'the "Iter" matches the one selected in the "Select date" window'
+passed: True
+source-requirements: [1506]
+--
+id: 1183
+chapter_number: "4.6.7"
+title: "Copy code window"
+--
+id: 1184
+chapter_number: "4.6.8"
+title: "Cancel"
+prep:
+    - enter code 820045 in the "BOMBrowser codes list" window
+    - click Search
+    - right-click the first entry and select "Copy code..." command
+    - A "BOM Browser select date dialog" appears; double-click the *first* entry
+    - The Copy window appears
+descr: "click Close button"
+expect: "an exit confirmation dialog appears"
+passed: True
+source-requirements: [1506]
+--
+id: 1185
+after: 1
+chapter_number: "4.6.9"
+descr: "- after the steps above, click **YES**"
+expect: 'the "Copy window" closes'
+passed: True
+source-requirements: [1506]
+--
+id: 1186
+after: 1
+chapter_number: "4.6.10"
+descr:
+    - repeat the steps above until the confirmation dialog appears
+    - click **NO**
+expect: 'the confirmation dialog closes; the "Copy window" remains open'
+passed: True
+source-requirements: [1506]
+--
+id: 1187
+chapter_number: "4.6.11"
+title: "Copy code window"
+prep:
+    - enter code 820040 in the "BOMBrowser codes list" window
+    - click Search
+    - right-click the first entry and select "Copy code..." command
+    - A "BOM Browser select date dialog" appears; double-click the *first* entry
+    - The Copy window appears
+descr: "- check editability of the following fields: New/Code, New/Iter, New/Description, New/Rev, New/Date from"
+expect: "*ONLY* the fields New/Code, New/Description, New/Date from, and New/Rev are editable"
+passed: True
+source-requirements: [1506]
+--
+id: 1188
+chapter_number: "4.6.12"
+title: "Copy code window"
+prep_id: 1187
+descr: "- check the New/Iter field"
+expect: "The New/Iter field value is 0"
+passed: True
+source-requirements: [1506]
+--
+id: 1189
+chapter_number: "4.6.13"
+title: "Copy error"
+prep_id: 1187
+descr:
+    - check that Old/code is equal to New/code
+    - click "Copy code" button
+expect:
+    - An error dialog appears stating that the code already exists
+    - after clicking OK, the Copy window remains open
+passed: True
+source-requirements: [1506]
+--
+id: 1190
+chapter_number: "4.6.14"
+title: "Confirmation dialog / success"
+prep_id: 1187
+descr:
+    - change New/code to "82004A"
+    - uncheck the "start edit dialog after copy/revision" checkbox
+    - click "Copy code" button
+    - A confirmation dialog appears; click No
+expect: 'the confirmation dialog disappears; the "BOMBrowser - copy code" window remains open'
+passed: True
+source-requirements: [1506]
+--
+id: 1191
+after: 1
+chapter_number: "4.6.15"
+descr:
+    - after the steps above, click "Copy code" button again
+    - a confirmation dialog appears; click Yes
+expect: "A success dialog appears"
+passed: True
+source-requirements: [1506]
+--
+id: 1192
+chapter_number: "4.6.16"
+title: "Confirmation dialog / success (2)"
+prep:
+    - enter code 820040 in the "BOMBrowser codes list" window
+    - click Search
+    - right-click the first entry and select "Copy code..." command
+    - A "BOM Browser select date dialog" appears; double-click the *first* entry
+    - The Copy window appears
+descr:
+    - check the "start edit dialog after copy/revision" checkbox
+    - change New/code to "82004B"
+    - click "Copy code" button
+    - A confirmation dialog appears; click Yes
+expect:
+    - The editor for the new code appears
+    - Attached documents and a children list are present
+passed: True
+source-requirements: [1506]
+--
+id: 1193
+chapter_number: "4.6.17"
+title: "Confirmation dialog / success (3)"
+prep_id: 1192
+descr:
+    - change New/code to "82004C"
+    - uncheck the "Copy document" checkbox
+    - click "Copy code" button
+    - A confirmation dialog appears; click Yes
+expect:
+    - The editor for the new code appears
+    - Attached documents are NOT present
+    - The children list is present
+passed: True
+source-requirements: [1506]
+--
+id: 1194
+chapter_number: "4.6.18"
+title: "Copy a code / date error"
+prep_id: 1192
+descr:
+    - enter an invalid date (e.g. '99-99-1')
+    - click "Copy code" button
+expect:
+    - An error dialog appears stating that the date format is incorrect
+    - after clicking OK, the Copy / Revise window remains open
+passed: True
+source-requirements: [1506]
+--
+id: 1195
+chapter_number: "4.6.19"
+title: "copy a code (in proto mode)"
+descr:
+    - copy code "820041" from the code list window
+    - set the "New/code" field to a new non-existing code
+    - check the "P" ("Prototype") button
+    - click "Copy code" button
+    - A confirmation dialog appears; click Yes
+expect:
+    - The code editor appears
+    - The date selector displays only prototype
+    - There is only **one** date in the combo box list
+    - The title bar date reports prototype
+passed: True
+source-requirements: [1506]
+--
+id: 1196
+chapter_number: "4.6.20"
+title: "BOMBrowser - Revise code"
+--
+id: 1197
+level: 5
+chapter_number: "4.6.20.1"
+title: "Revise code window"
+prep:
+    - enter code 820040 in the "BOMBrowser codes list" window
+    - click Search
+    - right-click the first entry and select "Revise code..." command
+    - A "BOM Browser select date dialog" appears; double-click the *first* entry
+    - The Revise window appears
+descr: "Check editability of the following fields: New/Code, New/Iter, New/Description, New/Rev, New/Date from"
+expect: "*ONLY* New/Description, New/Date from, and New/Rev are editable"
+passed: True
+source-requirements: [1507]
+--
+id: 1198
+chapter_number: "4.6.20.2"
+title: "Copy/revise code window"
+prep_id: 1197
+descr: "check the New/Iter field"
+expect: "The New/Iter field value is equal to Old/Iter + 1"
+passed: True
+source-requirements: [1507]
+--
+id: 1199
+chapter_number: "4.6.20.3"
+title: "Revise a code / date error"
+prep_id: 1197
+descr:
+    - enter an invalid date (e.g. '99-99-1')
+    - click "Revise code" button
+expect:
+    - An error dialog appears stating that the date format is incorrect
+    - after clicking OK, the Copy / Revise window remains open
+passed: True
+source-requirements: [1507]
+--
+id: 1200
+chapter_number: "4.6.20.4"
+title: "Revise a code / date error"
+prep_id: 1197
+descr:
+    - enter a date equal to or earlier than Old/Date from
+    - click "Revise code" button
+expect:
+    - An error dialog appears stating that the date is earlier than or equal to the existing one
+    - after clicking OK, the Copy / Revise window remains open
+passed: True
+source-requirements: [1507]
+--
+id: 1201
+chapter_number: "4.6.20.5"
+title: "Revise a code"
+descr:
+    - revise code "820042" from the code list window
+    - set "New/Date from" to "Old/Date from" + 1 (or any date later than the old revision)
+    - prefix the default "New/Rev" field value with "bis_"
+    - prefix the default "New/Description" field value with "bis_"
+    - click "Revise code" button
+    - A confirmation dialog appears; click Yes
+expect:
+    - The code editor appears
+    - Attached documents are present
+    - The children list is present
+    - The "From date" in the revision combo box matches the date from the previous dialog
+    - The "Description" in the editor window matches the value from the previous dialog (prefixed with 'bis_')
+    - The "Rev" in the editor window matches the value from the previous dialog (prefixed with 'bis_')
+passed: True
+source-requirements: [1507]
+--
+id: 1202
+chapter_number: "4.6.20.6"
+title: "revise a code (in proto mode)"
+descr:
+    - revise code "820043" from the code list window
+    - check the "P" (Prototype) checkbox
+    - click "Revise code" button
+    - A confirmation dialog appears; click Yes
+expect:
+    - The code editor appears
+    - The date selector also displays prototype
+passed: True
+source-requirements: [1507]
+--
+id: 1203
+chapter_number: "4.6.20.7"
+title: "revise a prototype code to prototype"
+descr:
+    - revise code "820041" from the code list window (ensure the code already has a prototype revision; if not, create one)
+    - check the "Prototype" checkbox
+    - click "Revise code" button
+expect: "- an error dialog reports that a prototype already exists"
+passed: True
+source-requirements: [1507]
+--
+id: 1204
+chapter_number: "4.6.20.8"
+title: "revise a prototype code to non-prototype"
+descr:
+    - revise code "820041" from the code list window (ensure the code already has a prototype revision; if not, create one)
+    - in the select date dialog, select the 2nd date (NOT the prototype one)
+    - set a date
+    - click "Revise code" button
+    - click Yes
+expect:
+    - an edit dialog is displayed
+    - verify that the new date exists prior to the prototype date
+passed: True
+source-requirements: [1507]
+--
+id: 1205
+chapter_number: "4.6.20.9"
+title: "Revise a code when some fields will be reset"
+prep:
+    - Ensure the following settings are configured:
+      gvalnames=
+          [...]
+          gval6:Mfg.2
+          gval5:Mfg.2 PN
+          [...]
+      after_copy_set_values_to=
+           gval6=
+           gval5=ZZZZ
+      after_revise_set_values_to=
+           gval6=
+           gval5=ZZZZ
+    - edit code 810077, set Mfg.2 to "aaa" and Mfg.2 PN to "bbb"
+descr: "- revise code 810088"
+expect: "- in the edit dialog, verify that field Mfg.2 is empty and Mfg.2 PN is equal to ZZZZ"
+passed: True
+source-requirements: [1507, 1513]
+--
+id: 1206
+chapter_number: "4.6.20.10"
+title: "Copy a code when some fields will be reset"
+prep:
+    - Ensure the following settings are configured:
+      gvalnames=
+          [...]
+          gval6:Mfg.2
+          gval5:Mfg.2 PN
+          [...]
+      after_copy_set_values_to=
+           gval6=
+           gval5=ZZZZ
+      after_revise_set_values_to=
+           gval6=
+           gval5=ZZZZ
+    - edit code 810077, set Mfg.2 to "aaa" and Mfg.2 PN to "bbb"
+descr: "- copy code 810088 to 810088-bis"
+expect: "- in the edit dialog, verify that field Mfg.2 is empty and Mfg.2 PN is equal to ZZZZ"
+passed: True
+source-requirements: [1507, 1513]
+--
+id: 1207
+chapter_number: "4.6.20.11"
+title: "revise a code and its gavals"
+prep:
+    - Ensure the following settings are configured:
+      gavalnames=
+          [...]
+          gaval1:Planned[clist:1;0]
+          [...]
+    - edit code 820078:
+      - set "0" in the first two rows of the children under column "Planned"
+      - set "1" in the 3rd row of the children under column "Planned"
+descr: "- revise code 820078"
+expect:
+    - in the edit dialog, verify that the "Planned" fields for children
+      match the modified values
+passed: True
+source-requirements: [1507]
+--
+id: 1516
+chapter_number: "4.6.20.12"
+title: "revise a standard code"
+descr:
+    - search for code 820099 in the "codes list window"
+    - right-click to open the revise dialog for code 820099
+expect: "- in the revise dialog, verify that the new date defaults to today's date"
+passed: True
+source-requirements: [1507]
+--
+id: 1517
+chapter_number: "4.6.20.13"
+title: "revise a standard code"
+prep: "- revise code 820099 (with today as 'new date from')"
+descr: "- initiate another revision of the same code"
+expect: "- in the revise dialog, verify that the date is set to tomorrow (today + 1)"
+passed: True
+source-requirements: [1507]
+--
+id: 1208
+level: 4
+chapter_number: "4.6.21"
+title: "BomBrowser - Edit code"
+prep:
+    - enter code 820001 in the "BOMBrowser codes list" window
+    - click Search
+    - right-click the first entry and select "Edit code..." command
+    - The Edit code window appears
+source-requirements: [1509]
+--
+id: 1209
+chapter_number: "4.6.22"
+title: "Edit code / Rev field"
+prep_id: 1208
+descr:
+    - modify the "rev" field by prefixing it with "bis_"
+    - click "Save..." button
+    - click "OK"
+    - click "Close"
+    - reopen the edit window for the same code as described in the preparatory steps
+expect: 'the "rev" field retains the modified value'
+passed: True
+source-requirements: [1509]
+--
+id: 1608
+chapter_number: "4.6.23"
+title: "Insert title HERE"
+prep: "Insert preparation description HERE"
+--
+id: 1210
+chapter_number: "4.6.24"
+title: "Edit code / Default unit field"
+prep_id: 1208
+descr:
+    - modify the "Default unit" field by prefixing it with "bis_"
+    - click "Save..." button
+    - click "OK"
+    - click "Close"
+    - reopen the edit window for the same code as described in the preparatory steps
+expect: 'the "Default unit" field retains the modified value'
+passed: True
+source-requirements: [1509]
+--
+id: 1211
+chapter_number: "4.6.25"
+title: "Edit code / Description field"
+prep_id: 1208
+descr:
+    - modify the "Description" field by prefixing it with "bis_"
+    - click "Save..." button
+    - click "OK"
+    - click "Close"
+    - reopen the edit window for the same code as described in the preparatory steps
+expect: 'the "Description" field retains the modified value'
+passed: True
+source-requirements: [1509]
+--
+id: 1212
+chapter_number: "4.6.26"
+title: "Edit code / Generic properties field"
+descr:
+    repeat the test for all "Generic properties" fields:
+    - modify the field by prefixing it with "bis_"
+    - click "Save..." button
+    - click "OK"
+    - click "Close"
+    - reopen the edit window for the same code and verify the field value
+expect: 'the "Generic property" field retains the modified value'
+passed: True
+source-requirements: [1509]
+--
+id: 1213
+chapter_number: "4.6.27"
+title: "Add/Del/View a drawing"
+prep_id: 1208
+descr:
+    - right-click on the drawing list panel
+    - execute the "add drawing" command, attaching a file as a drawing
+    - click "Save..." button
+    - click "OK"
+    - click "Close"
+    - reopen the edit window for the same code as described in the preparatory steps
+expect: "the added drawing is still present"
+passed: True
+source-requirements: [1511]
+--
+id: 1214
+after: 1
+chapter_number: "4.6.28"
+descr:
+    - drag and drop a file onto the drawing panel
+    - click "Save..." button
+    - click "OK"
+    - click "Close"
+    - reopen the edit window for the same code as described in the preparatory steps
+expect: "the added drawing is still present"
+passed: True
+source-requirements: [1511]
+--
+id: 1215
+after: 1
+chapter_number: "4.6.29"
+descr:
+    - right-click on the drawing list panel
+    - execute the "add drawing" command, selecting MULTIPLE files
+    - click "Save..." button
+    - click "OK"
+    - click "Close"
+    - reopen the edit window for the same code as described in the preparatory steps
+expect: "the added drawings are present"
+source-requirements: [1511]
+--
+id: 1216
+after: 1
+chapter_number: "4.6.30"
+descr:
+    - right-click a drawing on the drawing list panel
+    - execute the "delete drawing" command
+    - click "Save..." button
+    - click "OK"
+    - click "Close"
+    - reopen the edit window for the same code as described in the preparatory steps
+expect: "the removed drawing is no longer present"
+passed: True
+source-requirements: [1511]
+--
+id: 1217
+after: 1
+chapter_number: "4.6.31"
+descr:
+    - right-click on the drawing list panel
+    - execute the "delete drawing" command on multiple drawings
+    - click "Save..." button
+    - click "OK"
+    - click "Close"
+    - reopen the edit window for the same code as described in the preparatory steps
+expect: "the removed drawings are no longer present"
+passed: True
+source-requirements: [1511]
+--
+id: 1218
+after: 1
+chapter_number: "4.6.32"
+descr:
+    - right-click a drawing on the drawing list panel
+    - execute the "view drawing" command
+expect: "the selected drawing is displayed"
+passed: True
+source-requirements: [1511]
+--
+id: 1219
+after: 1
+chapter_number: "4.6.33"
+descr: "- double-click a drawing in the drawing list panel"
+expect: "the selected drawing is displayed"
+passed: True
+source-requirements: [1511]
+--
+id: 1220
+after: 1
+chapter_number: "4.6.34"
+descr:
+    - select multiple drawings
+    - right-click on the drawing list panel
+    - execute the "view drawing" command
+expect: "the selected drawings are displayed"
+passed: True
+source-requirements: [1511]
+--
+id: 1221
+chapter_number: "4.6.35"
+title: "Copy multiple drawings"
+prep:
+    - enter code 820001 in the "BOMBrowser codes list" window
+    - click Search
+    - right-click the first entry and select "Edit code..." command
+    - The Edit code window appears
+    - enter code 820002 in the "BOMBrowser codes list" window
+    - click Search
+    - right-click the first entry and select "Edit code..." command
+    - A second Edit code window appears
+descr:
+    - In the first edit window, select multiple drawings
+    - right-click the drawings list
+    - execute the "copy drawings lines" command
+    - In the second edit window, right-click the drawings list
+    - execute the "paste drawings lines" command
+    - click "Save..." button
+    - click "Close"
+    - reopen the edit window for the 2nd code as described in the preparatory steps
+expect: "the copied drawings are present"
+passed: True
+source-requirements: [1515]
+--
+id: 1222
+chapter_number: "4.6.36"
+title: "del single children"
+descr:
+    - right-click a row in the children list panel
+    - execute the "delete row" command
+    - click "Save..." button
+    - click "OK"
+    - click "Close"
+    - reopen the edit window for the same code as described in the preparatory steps
+expect: "the removed item is no longer present"
+passed: True
+source-requirements: [1510]
+--
+id: 1223
+chapter_number: "4.6.37"
+title: "del multiple children"
+descr:
+    - right-click on the children list panel
+    - execute the "delete row" command on multiple lines
+    - click "Save..." button
+    - click "OK"
+    - click "Close"
+    - reopen the edit window for the same code as described in the preparatory steps
+expect: "the removed items are no longer present"
+passed: True
+source-requirements: [1510]
+--
+id: 1224
+chapter_number: "4.6.38"
+title: "Copy multiple children"
+prep:
+    - enter code 820001 in the "BOMBrowser codes list" window
+    - click Search
+    - right-click the first entry and select "Edit code..." command
+    - The Edit code window appears
+    - enter code 820002 in the "BOMBrowser codes list" window
+    - click Search
+    - right-click the first entry and select "Edit code..." command
+    - A second Edit code window appears
+descr:
+    - In the first edit window, select multiple children
+    - right-click the children list
+    - execute the "copy lines" command
+    - In the second edit window, right-click the children list
+    - execute the "paste lines" command
+    - click "Save..." button
+    - click "Close"
+    - reopen the edit window for the 2nd code as described in the preparatory steps
+expect: "the copied children are present"
+passed: True
+source-requirements: [1510]
+--
+id: 1225
+chapter_number: "4.6.39"
+title: "add a child"
+prep_id: 1208
+descr:
+    - right-click a line in the children list panel
+    - execute the "insert row after" command
+    - in the new row, enter an existing code in the "code" column
+    - the fields "code-id" and "description" will autocomplete
+    - click "Save..." button
+    - click "OK"
+    - click "Close"
+    - reopen the edit window for the same code as described in the preparatory steps
+expect: "the added item is present"
+passed: True
+source-requirements: [1510]
+--
+id: 1226
+chapter_number: "4.6.40"
+title: "add a child"
+prep_id: 1208
+descr:
+    - right-click a line in the children list panel
+    - execute the "insert row before" command
+    - in the new row, enter an existing code in the "code" column
+    - the fields "code-id" and "description" will autocomplete
+    - click "Save..." button
+    - click "OK"
+    - click "Close"
+    - reopen the edit window for the same code as described in the preparatory steps
+expect: "the added item is present"
+passed: True
+source-requirements: [1510]
+--
+id: 1227
+chapter_number: "4.6.41"
+title: "add multiple child"
+prep_id: 1208
+descr:
+    - select multiple lines in the children list panel
+    - right-click and execute the "insert row before" command
+expect:
+    Multiple lines are inserted. The number of inserted lines matches
+    the number of selected lines.
+passed: True
+source-requirements: [1510]
+--
+id: 1228
+chapter_number: "4.6.42"
+title: "non existant code"
+prep_id: 1208
+descr: "- in the children panel, try to change a code in a row to a non-existing code (e.g. 'z')"
+expect: "the modified cell turns yellow"
+passed: True
+source-requirements: [1510]
+--
+id: 1229
+after: 1
+chapter_number: "4.6.43"
+descr: '- click "Save"'
+expect: 'an error dialog appears stating "...the code \'...\' in row..." contains an error'
+passed: True
+source-requirements: [1510]
+--
+id: 1230
+chapter_number: "4.6.44"
+title: "duplicate code"
+prep_id: 1208
+descr:
+    - in the children panel, try to change a code in a row to an already existing code (e.g. matching the previous or next row)
+    - click "Save" button
+expect: "an error dialog is displayed stating that there is a duplicate code"
+passed: True
+source-requirements: [1510]
+--
+id: 1231
+chapter_number: "4.6.45"
+title: "wrong qty"
+prep_id: 1208
+descr: "- in the children panel, try to change the 'qty' field in a row to a non-numeric value"
+expect: "the cell turns yellow"
+passed: True
+source-requirements: [1510]
+--
+id: 1232
+after: 1
+chapter_number: "4.6.46"
+descr: '- click "Save"'
+expect: "an error dialog appears stating that the value is invalid"
+passed: True
+source-requirements: [1510]
+--
+id: 1233
+chapter_number: "4.6.47"
+title: "wrong each"
+prep_id: 1208
+descr: "- in the children panel, try to change the 'each' field in a row to a non-numeric value"
+expect: "the cell turns yellow"
+passed: True
+source-requirements: [1510]
+--
+id: 1234
+after: 1
+chapter_number: "4.6.48"
+descr: '- click "Save"'
+expect: "an error dialog appears stating that the value is invalid"
+passed: True
+source-requirements: [1510]
+--
+id: 1235
+chapter_number: "4.6.49"
+title: "sorting"
+prep_id: 1208
+descr:
+    - in the children panel, sort the rows by code (click the "code" column header)
+    - note the values in the "seq" column
+    - remove a row
+expect: "the seq values are reordered based on the current sequence."
+passed: True
+source-requirements: [1510]
+--
+id: 1236
+chapter_number: "4.6.50"
+title: "sorting"
+prep_id: 1208
+descr:
+    - in the children panel, sort the rows by code (click the "code" column header)
+    - note the values in the "seq" column
+    - perform an "insert row before"
+expect: "the seq values are reordered based on the current sequence."
+passed: True
+source-requirements: [1510]
+--
+id: 1237
+chapter_number: "4.6.51"
+title: "sorting"
+prep_id: 1208
+descr:
+    - in the children panel, sort the rows by code (click the "code" column header)
+    - note the values in the "seq" column
+    - perform an "insert row after"
+expect: "the seq values are reordered based on the current sequence."
+passed: True
+source-requirements: [1510]
+--
+id: 1238
+chapter_number: "4.6.52"
+title: "Move the children UP"
+prep_id: 1208
+descr:
+    - in the children panel, select a row in the middle
+    - click the UP button
+expect: "the selected row moves up by one position"
+passed: True
+source-requirements: [1510]
+--
+id: 1239
+after: 1
+chapter_number: "4.6.53"
+descr:
+    - in the children panel, select the first row
+    - click the UP button
+expect: "nothing changes"
+passed: True
+source-requirements: [1510]
+--
+id: 1240
+after: 1
+chapter_number: "4.6.54"
+descr:
+    - in the children panel, select the first rows
+    - click the UP button
+expect: "nothing changes"
+passed: True
+source-requirements: [1510]
+--
+id: 1241
+after: 1
+chapter_number: "4.6.55"
+descr:
+    - in the children panel, select multiple rows in the middle
+    - click the UP button
+expect: "the selected rows move up by one position"
+passed: True
+source-requirements: [1510]
+--
+id: 1242
+chapter_number: "4.6.56"
+title: "Move the children DOWN"
+prep_id: 1208
+descr:
+    - in the children panel, select a row in the middle
+    - click the DOWN button
+expect: "the selected row moves down by one position"
+passed: True
+source-requirements: [1510]
+--
+id: 1243
+after: 1
+chapter_number: "4.6.57"
+descr:
+    - in the children panel, select the last row
+    - click the DOWN button
+expect: "nothing changes"
+passed: True
+source-requirements: [1510]
+--
+id: 1244
+after: 1
+chapter_number: "4.6.58"
+descr:
+    - in the children panel, select the last rows
+    - click the DOWN button
+expect: "nothing changes"
+passed: True
+source-requirements: [1510]
+--
+id: 1245
+after: 1
+chapter_number: "4.6.59"
+descr:
+    - in the children panel, select multiple rows in the middle
+    - click the DOWN button
+expect: "the selected rows move down by one position"
+passed: True
+source-requirements: [1510]
+--
+id: 1246
+chapter_number: "4.6.60"
+title: "Move the children to the TOP"
+prep_id: 1208
+descr:
+    - in the children panel, select a row in the middle
+    - click the TOP button
+expect: "the selected row moves to the TOP"
+passed: True
+source-requirements: [1510]
+--
+id: 1247
+after: 1
+chapter_number: "4.6.61"
+descr:
+    - in the children panel, select the first row
+    - click the TOP button
+expect: "nothing changes"
+passed: True
+source-requirements: [1510]
+--
+id: 1248
+after: 1
+chapter_number: "4.6.62"
+descr:
+    - in the children panel, select the first rows
+    - click the TOP button
+expect: "nothing changes"
+passed: True
+source-requirements: [1510]
+--
+id: 1249
+after: 1
+chapter_number: "4.6.63"
+descr:
+    - in the children panel, select multiple rows in the middle
+    - click the TOP button
+expect: "the selected rows move to the TOP"
+passed: True
+source-requirements: [1510]
+--
+id: 1250
+chapter_number: "4.6.64"
+title: "Move the children BOTTOM"
+prep_id: 1208
+descr:
+    - in the children panel, select a row in the middle
+    - click the BOTTOM button
+expect: "the selected row moves to the BOTTOM"
+passed: True
+source-requirements: [1510]
+--
+id: 1251
+after: 1
+chapter_number: "4.6.65"
+descr:
+    - in the children panel, select the last row
+    - click the BOTTOM button
+expect: "nothing changes"
+passed: True
+source-requirements: [1510]
+--
+id: 1252
+after: 1
+chapter_number: "4.6.66"
+descr:
+    - in the children panel, select the last rows
+    - click the BOTTOM button
+expect: "nothing changes"
+passed: True
+source-requirements: [1510]
+--
+id: 1253
+after: 1
+chapter_number: "4.6.67"
+descr:
+    - in the children panel, select multiple rows in the middle
+    - click the BOTTOM button
+expect: "the selected rows move to the BOTTOM"
+passed: True
+source-requirements: [1510]
+--
+id: 1254
+chapter_number: "4.6.68"
+title: "Edit code / File -> close"
+prep_id: 1208
+descr: "- select the menu File->close"
+expect: "the edit window is closed"
+passed: True
+source-requirements: [1009]
+--
+id: 1255
+chapter_number: "4.6.69"
+title: "Edit code / File -> exit"
+prep_id: 1208
+descr: "- select the menu File->exit"
+expect: "a dialog opens asking if you want to exit the application"
+passed: True
+source-requirements: [1009]
+--
+id: 1256
+after: 1
+chapter_number: "4.6.70"
+descr: "- press no"
+expect: "the dialog is closed, the edit window is shown"
+passed: True
+source-requirements: [1009]
+--
+id: 1257
+after: 1
+chapter_number: "4.6.71"
+descr: "- repeat the steps above and press yes instead of pressing no"
+expect: "the application is closed, no window is open"
+passed: True
+source-requirements: [1009]
+--
+id: 1258
+chapter_number: "4.6.72"
+title: "Edit code / CTRL-Q"
+prep_id: 1208
+descr: "- Press CTRL-Q"
+expect: "the edit window is closed"
+passed: True
+source-requirements: [1009]
+--
+id: 1259
+chapter_number: "4.6.73"
+title: "Edit code / Windows"
+prep_id: 1208
+descr: "- select the Windows menu"
+expect: "the open windows are shown (with the exception of the current one)"
+passed: True
+source-requirements: [1009]
+--
+id: 1260
+chapter_number: "4.6.74"
+title: "Edit code / Help->about"
+prep_id: 1208
+descr: "- select the menu Help->about"
+expect: "the about dialog is shown"
+passed: True
+source-requirements: [1009]
+--
+id: 1261
+chapter_number: "4.6.75"
+title: "search code"
+prep_id: 1208
+descr:
+    - click with the RMB on the children list panel
+    - execute the command "search code" on a line
+expect: 'The "BOMBrowser - Search code" dialog appears'
+passed: True
+source-requirements: [1510]
+--
+id: 1262
+chapter_number: "4.6.76"
+title: "search code"
+prep_id: 1208
+descr:
+    - click with the RMB on the children list panel
+    - execute the command "search code" on a line
+    - The "BOMBrowser - Search code" dialog appears
+    - search for a code in the dialog (e.g. 810001)
+    - select the first result
+    - press OK
+expect: "the dialog is closed and the new code replaces the old one"
+passed: True
+source-requirements: [1510]
+--
+id: 1263
+chapter_number: "4.6.77"
+title: "search code"
+prep_id: 1208
+descr:
+    - click with the RMB on the children list panel
+    - execute the command "search code" on a line
+    - The "BOMBrowser - Search code" dialog appears
+    - search for a code in the dialog (e.g. 810007)
+    - press Cancel
+expect:
+    - the dialog is closed
+    - the new code **didn't** replace the original one
+passed: True
+source-requirements: [1510]
+--
+id: 1264
+chapter_number: "4.6.78"
+title: "delete revision"
+prep:
+    - Take a code from the code list GUI, copy it (to avoid problems with the parent dates)
+    - take this copy, and revise it 3 times (changing the "from" date to avoid conflicts)
+    - Edit this code
+descr: "- From menu -> edit, select delete item revision"
+expect: "a confirmation dialog is shown"
+passed: True
+source-requirements: [1512]
+--
+id: 1265
+after: 1
+chapter_number: "4.6.79"
+descr: "- press no"
+expect: "nothing happens"
+passed: True
+source-requirements: [1512]
+--
+id: 1266
+after: 1
+chapter_number: "4.6.80"
+descr:
+    - From menu -> edit, select delete item revision
+    - a confirmation dialog is shown, press yes
+expect:
+    - a confirmation dialog is shown, saying that the revision is deleted. Press OK.
+    - the previously selected revision is removed
+passed: True
+source-requirements: [1512]
+--
+id: 1267
+chapter_number: "4.6.81"
+title: "delete revision"
+prep_id: 1264
+descr:
+    - From menu -> edit, select delete revision
+    - repeat the step above until only one revision is present
+    - From menu -> edit, select delete revision (again)
+expect: "an error dialog box is shown saying that it is not possible to delete the last revision"
+passed: True
+source-requirements: [1512]
+--
+id: 1268
+chapter_number: "4.6.82"
+title: "delete revision"
+prep_id: 1262
+descr:
+    - Enter the edit dates window, and insert a valid "end to" date in the first row. Then save the results
+    - From the edit window, delete the first revision
+    - Delete the last revision
+expect:
+    - after deleting, the code "from date" is the same as the previous first revision
+    - the final "to date" is the same as the previous last revision
+passed: True
+source-requirements: [1512]
+--
+id: 1269
+chapter_number: "4.6.83"
+title: "delete code"
+prep_id: 1264
+descr:
+    - Take a code from the code list GUI, copy it (to avoid problems with the parent dates)
+    - Edit this code
+    - From menu->edit select "delete code"
+expect: "a confirmation dialog appears"
+passed: True
+source-requirements: [1512]
+--
+id: 1270
+chapter_number: "4.6.84"
+title: "delete code"
+prep_id: 1264
+descr:
+    - Take a code from the code list GUI, copy it (to avoid problems with the parent dates)
+    - Edit this code
+    - From menu->edit select "delete code"
+    - a confirmation dialog appears, press no
+expect: "nothing happens"
+passed: True
+source-requirements: [1512]
+--
+id: 1271
+chapter_number: "4.6.85"
+title: "delete code"
+prep_id: 1264
+descr:
+    - Take a code from the code list GUI, copy it (to avoid problems with the parent dates)
+    - Edit this code
+    - From menu->edit select "delete code"
+    - a confirmation dialog appears, press yes
+expect:
+    - a confirmation dialog appears, press OK
+    - the edit dialog is no longer shown
+passed: True
+source-requirements: [1512]
+--
+id: 1272
+after: 1
+chapter_number: "4.6.86"
+descr: "- search for the deleted code in the codes list window"
+expect: "- the code is no longer shown"
+passed: True
+source-requirements: [1512]
+--
+id: 1273
+chapter_number: "4.6.87"
+title: "change revision"
+prep:
+    - Take a code from the code list GUI with multiple revisions
+    - Edit this code
+descr:
+    - Using the "From/to date" QComboBox, change the revision of the code
+    - in parallel make one change in a field for each revision (insert the "from" date to help the test) and press Save
+    - repeat the step above for each revision
+    - Using the "From/to date" QComboBox, change the revision of the code
+expect:
+    - The dialog shows, for each revision, the change performed in the step above
+    - The dialog title reflects the code date
+passed: True
+source-requirements: [1509]
+--
+id: 1274
+chapter_number: "4.6.88"
+title: "change revision without saving"
+prep_id: 1273
+descr:
+    - make one change in the Description field
+    - Using the "From/to date" QComboBox, change the date of the code
+expect: "- A dialog is shown saying that the form was changed and asking if you want to save."
+passed: True
+source-requirements: [1509]
+--
+id: 1275
+after: 1
+chapter_number: "4.6.89"
+descr: "- press no"
+expect:
+    - the confirmation dialog is closed
+    - the revision is changed
+    - the change is lost
+passed: True
+source-requirements: [1509]
+--
+id: 1276
+chapter_number: "4.6.90"
+title: "change revision without saving"
+prep_id: 1273
+descr:
+    - make one change in the Description field
+    - Using the "From/to date" QComboBox, change the date of the code
+expect: "- A dialog is shown saying that the form was changed and asking if you want to save."
+passed: True
+source-requirements: [1509]
+--
+id: 1277
+after: 1
+chapter_number: "4.6.91"
+descr: "- press cancel"
+expect:
+    - the dialog is closed
+    - the revision is **not** changed
+    - the change is still present
+passed: True
+source-requirements: [1509]
+--
+id: 1278
+chapter_number: "4.6.92"
+title: "change revision without saving"
+prep_id: 1273
+descr:
+    - make one change in the Description field
+    - Using the "From/to date" QComboBox, change the date of the code
+expect: "- A dialog is shown saying that the form was changed and asking if you want to save."
+passed: True
+source-requirements: [1509]
+--
+id: 1279
+after: 1
+chapter_number: "4.6.93"
+descr: "- press yes"
+expect:
+    - the dialog is closed
+    - the revision is changed
+    - the change was saved
+passed: True
+source-requirements: [1509]
+--
+id: 1280
+chapter_number: "4.6.94"
+title: "Make a change without saving"
+prep_id: 1273
+descr:
+    - make one change in a field
+    - press Close
+expect: "- A dialog is shown saying that the form was changed and asking if you want to save."
+passed: True
+source-requirements: [1509]
+--
+id: 1281
+after: 1
+chapter_number: "4.6.95"
+descr: "- Press **cancel**"
+expect: "- The previous window is shown. The change is not lost"
+passed: True
+source-requirements: [1509]
+--
+id: 1282
+after: 1
+chapter_number: "4.6.96"
+descr:
+    - repeat the test until the dialog is shown
+    - Press **no**
+expect:
+    - The edit window is closed
+    - reopening the edit window, check that the change was **not** saved
+passed: True
+source-requirements: [1509]
+--
+id: 1283
+chapter_number: "4.6.97"
+title: "Make a change saving"
+prep_id: 1273
+descr:
+    - make one change in a field
+    - press Close
+expect: "- A dialog is shown saying that the form was changed and asking if you want to save."
+passed: True
+source-requirements: [1509]
+--
+id: 1284
+after: 1
+chapter_number: "4.6.98"
+descr: "- Press **yes**"
+expect:
+    - The edit window is closed
+    - reopening the edit window, check that the change was saved
+passed: True
+source-requirements: [1509]
+--
+id: 1285
+chapter_number: "4.6.99"
+title: "remove a child without saving"
+prep_id: 1208
+descr:
+    - remove an item in the children section
+    - press Close button
+expect: "- A dialog is shown saying that the form was changed and asking if you want to save."
+passed: True
+source-requirements: [1510]
+--
+id: 1286
+chapter_number: "4.6.100"
+title: "insert a child without saving"
+prep_id: 1208
+descr:
+    - insert (before) an item in the children section
+    - press Close button
+expect: "- A dialog is shown saying that the form was changed and asking if you want to save."
+passed: True
+source-requirements: [1510]
+--
+id: 1287
+chapter_number: "4.6.101"
+title: "insert a child without saving"
+prep_id: 1208
+descr:
+    - insert (after) an item in the children section
+    - press Close button
+expect: "- A dialog is shown saying that the form was changed and asking if you want to save."
+passed: True
+source-requirements: [1510]
+--
+id: 1288
+chapter_number: "4.6.102"
+title: "change child without saving"
+prep_id: 1208
+descr:
+    - perform a "search code" over an item in the children section
+    - press OK button
+    - press "Close"
+expect: "- A dialog is shown saying that the form was changed and asking if you want to save."
+passed: True
+source-requirements: [1510]
+--
+id: 1289
+chapter_number: "4.6.103"
+title: "add drawing without saving"
+prep_id: 1208
+descr:
+    - perform an "add drawing" in the drawings section
+    - press Close button
+expect: "- A dialog is shown saying that the form was changed and asking if you want to save."
+passed: True
+source-requirements: [1511]
+--
+id: 1290
+chapter_number: "4.6.104"
+title: "remove a drawing without saving"
+prep_id: 1208
+descr:
+    - perform a "delete drawing" in the drawings section
+    - press Close button
+expect: "- A dialog is shown saying that the form was changed and asking if you want to save."
+passed: True
+source-requirements: [1511]
+--
+id: 1291
+chapter_number: "4.6.105"
+title: "add a duplicate code"
+prep_id: 1208
+descr:
+    - add two identical child codes
+    - press Save
+expect: "- An error dialog is shown saying that there is a code duplication"
+passed: True
+source-requirements: [1510]
+--
+id: 1292
+chapter_number: "4.6.106"
+title: "add a code to an empty children list"
+prep:
+    - Take a code from the code list GUI without children (e.g. an 8100xx code)
+    - Edit this code
+descr:
+    - add a new child code, using the RMB menu
+    - a new line is added
+    - insert a new child
+expect: "- the code is added to the child list"
+passed: True
+source-requirements: [1510]
+--
+id: 1293
+chapter_number: "4.6.107"
+title: "exit without saving"
+prep_id: 1292
+descr: '- close the window (click on the upper right "X" icon)'
+expect: "- the edit window closes"
+passed: True
+source-requirements: [1510]
+--
+id: 1294
+chapter_number: "4.6.108"
+title: "exit without saving"
+prep_id: 1292
+descr:
+    - change a field in the edit window
+    - close the window (click on the upper right "X" icon)
+expect: "- A dialog is shown saying that the form was changed and asking if you want to save."
+passed: True
+source-requirements: [1509]
+--
+id: 1295
+after: 1
+chapter_number: "4.6.109"
+descr: "- Press **cancel**"
+expect: "- the edit window is still open"
+passed: True
+source-requirements: [1509]
+--
+id: 1296
+after: 1
+chapter_number: "4.6.110"
+descr:
+    - Repeat the steps of test #2
+    - Press no
+expect: "- the edit window closes"
+passed: True
+source-requirements: [1509]
+--
+id: 1297
+chapter_number: "4.6.111"
+title: "Code Properties (file)"
+prep:
+    For the following tests it is assumed that the following
+    fields are present in bombrowser.ini
+    gvalnames=
+         [...]
+         gval7:TestFile[file]
+         gval8:Test2[list:T2V1;T2V2;T2V3,with space and comma]
+         gval9:Trans.[clist:;T]
+    [...]
+    gavalnames=
+        [...]
+        gaval1:Planned[clist:1;0]
+descr:
+    - Open the edit window on the code 810001
+    - Locate the field "TestFile"
+    - Press the "..." button
+expect: "- The Open file dialog opens"
+passed: True
+source-requirements: [1509, 1513, 1514]
+--
+id: 1298
+after: 1
+chapter_number: "4.6.112"
+descr: "- press cancel"
+expect:
+    - The Open file dialog closes
+    - The field remains empty
+passed: True
+source-requirements: [1509]
+--
+id: 1299
+after: 1
+chapter_number: "4.6.113"
+descr:
+    - press "..." button again
+    - Select a file then press Open
+expect:
+    - The Open file dialog closes
+    - The field contains the file path
+passed: True
+source-requirements: [1509]
+--
+id: 1300
+after: 1
+chapter_number: "4.6.114"
+descr:
+    - press the Save button
+    - press the Close button
+    - reopen the edit window on the same code
+expect: "- The field still contains the selected value"
+passed: True
+source-requirements: [1509]
+--
+id: 1301
+after: 1
+chapter_number: "4.6.115"
+descr:
+    - change the value of the field by typing directly in the line edit widget
+    - press the Save button
+    - press the Close button
+    - reopen the edit window on the same code
+expect: "- The field still contains the selected value"
+passed: True
+source-requirements: [1509]
+--
+id: 1302
+after: 1
+chapter_number: "4.6.116"
+descr:
+    - change the value of the field
+    - press the Close button
+expect: "- A dialog is shown saying that the form was changed and asking if you want to save."
+passed: True
+source-requirements: [1509]
+--
+id: 1303
+chapter_number: "4.6.117"
+title: "Code Properties (list)"
+prep:
+    For the following tests it is assumed that the following
+    fields are present in bombrowser.ini
+    gvalnames=
+         [...]
+         gval7:TestFile[file]
+         gval8:Test2[list:T2V1;T2V2;T2V3,with space and comma]
+         gval9:Trans.[clist:;T]
+    [...]
+    gavalnames=
+        [...]
+        gaval1:Planned[clist:1;0]
+descr:
+    - Open the edit window on the code 810001
+    - Locate the field "Test2"
+    - Press the "..." button
+expect: "- The list box dialog opens"
+passed: True
+source-requirements: [1509, 1513, 1514]
+--
+id: 1304
+after: 1
+chapter_number: "4.6.118"
+descr:
+    - press in the text field (NOT in the list box)
+    - Press the "..." button
+    - press in the text field (NOT in the list box)
+expect:
+    - The dialog closes
+    - The field remains empty
+passed: True
+source-requirements: [1509]
+--
+id: 1305
+after: 1
+chapter_number: "4.6.119"
+descr:
+    - press "..." button again
+    - Select a value
+expect: "- The field contains the selected value"
+passed: True
+source-requirements: [1509]
+--
+id: 1306
+after: 1
+chapter_number: "4.6.120"
+descr:
+    - press the Save button
+    - press the Close button
+    - reopen the edit window on the same code
+expect: "- The field still contains the selected value"
+passed: True
+source-requirements: [1509]
+--
+id: 1307
+after: 1
+chapter_number: "4.6.121"
+descr:
+    - change the value of the field by typing directly in the line edit widget
+    - press the Save button
+    - press the Close button
+    - reopen the edit window on the same code
+expect: "- The field still contains the selected value"
+passed: True
+source-requirements: [1509]
+--
+id: 1308
+after: 1
+chapter_number: "4.6.122"
+descr:
+    - change the value of the field
+    - press the Close button
+expect: "- A dialog is shown saying that the form was changed and asking if you want to save."
+passed: True
+source-requirements: [1509]
+--
+id: 1309
+chapter_number: "4.6.123"
+title: "Code Properties (clist)"
+prep:
+    For the following tests it is assumed that the following
+    fields are present in bombrowser.ini
+    gvalnames=
+         [...]
+         gval7:TestFile[file]
+         gval8:Test2[list:T2V1;T2V2;T2V3,with space and comma]
+         gval9:Transparent[clist:0;1]
+    [...]
+    gavalnames=
+        [...]
+        gaval1:Planned[clist:1;0]
+descr:
+    - Open the edit window on the code 810001
+    - Locate the field "Transparent"
+    - Press the adjacent button
+expect: "- The list box dialog opens"
+passed: True
+source-requirements: [1509, 1513, 1514]
+--
+id: 1310
+after: 1
+chapter_number: "4.6.124"
+descr: "- press elsewhere"
+expect:
+    - The menu closes
+    - The field remains empty
+passed: True
+source-requirements: [1509]
+--
+id: 1311
+after: 1
+chapter_number: "4.6.125"
+descr:
+    - press button again
+    - Select a value
+expect: "- The field contains the selected value"
+passed: True
+source-requirements: [1509]
+--
+id: 1312
+after: 1
+chapter_number: "4.6.126"
+descr:
+    - press the Save button
+    - press the Close button
+    - reopen the edit window on the same code
+expect: "- The field still contains the selected value"
+passed: True
+source-requirements: [1509]
+--
+id: 1313
+after: 1
+chapter_number: "4.6.127"
+descr:
+    - change the value of the field
+    - press the Close button
+expect: "- A dialog is shown saying that the form was changed and asking if you want to save."
+passed: True
+source-requirements: [1509]
+--
+id: 1314
+chapter_number: "4.6.128"
+title: "Two changes at the same time"
+prep: "Open two Edit windows for the same code"
+descr:
+    - change a parameter (e.g. rev) in the first edit window
+    - save in the first edit window
+    - close the first edit window
+    - change the same parameter (rev) in the *second* edit window in a different way
+    - save in the second edit window
+expect: 'A dialog showing "The data was changed by another user. Are you sure you want to overwrite it?" appears'
+passed: True
+source-requirements: [1509]
+--
+id: 1315
+after: 1
+chapter_number: "4.6.129"
+descr:
+    - after the dialog is shown, press YES
+    - check that the parameter changed in the code matches the second change
+expect:
+    - the edit window is closed
+    - the changed parameter was updated according to the second change
+passed: True
+source-requirements: [1509]
+--
+id: 1316
+chapter_number: "4.6.130"
+title: "Two changes at the same time"
+prep: "Open two Edit windows for the same code"
+descr:
+    - change a parameter (e.g. rev) in the first edit window
+    - save in the first edit window
+    - close the first edit window
+    - change the same parameter (rev) in the *second* edit window in a different way
+    - save in the second edit window
+    - A dialog showing "The data was changed by another user. Are you sure you want to overwrite it?" appears
+    - press NO
+expect:
+    - the edit window is still open
+    - the changed parameter was updated according to the first change
+passed: True
+source-requirements: [1509]
+--
+id: 1317
+chapter_number: "4.6.131"
+title: "Edit code, edit URL"
+prep:
+    - Open the Edit window on the code CODE_WITH_URL
+    - Open the drawing tab
+descr: "- right-click, and select add URL"
+expect: '- an "enter URL" window is opened'
+passed: True
+source-requirements: [1511]
+--
+id: 1318
+after: "True"
+chapter_number: "4.6.132"
+descr:
+    - enter a description and a URL
+    - press Save
+expect: "a new URL entry is shown, with the newly inserted values"
+passed: True
+source-requirements: [1511]
+--
+id: 1319
+after: "True"
+chapter_number: "4.6.133"
+descr: "right-click in the drawing TAB, and select edit drawings"
+expect: '- an "enter URL" window is opened'
+passed: True
+source-requirements: [1511]
+--
+id: 1320
+after: "True"
+chapter_number: "4.6.134"
+descr:
+    - update the description and a URL
+    - press Save
+expect: "the description and URL are updated accordingly"
+passed: True
+source-requirements: [1511]
+--
+id: 1321
+after: "True"
+chapter_number: "4.6.135"
+descr:
+    - right-click in the drawing TAB, and select edit drawings
+    - update the description and a URL
+    - press Cancel
+expect: "the entry is NOT updated"
+passed: True
+source-requirements: [1511]
+--
+id: 1322
+chapter_number: "4.6.136"
+title: "Edit code, undo"
+prep:
+    - Open the Edit window on the code 810011
+    - change the description by appending an "w"
+descr: "- From the edit menu, select Undo"
+expect: "- The description change is reverted"
+passed: True
+source-requirements: [1509]
+--
+id: 1326
+level: 3
+chapter_number: "4.7"
+title: "BomBrowser - Edit date"
+prep:
+    - insert code 810095 (or any other code with multiple revisions) in the "BOMBrowser codes list" window
+    - press search
+    - right-click on the first entry and select the "Edit code..." command
+    - The Edit code window appears
+    - Select the "..." button near the "From/to date" field
+    - An edit dates dialog is shown
+--
+id: 1327
+level: 4
+chapter_number: "4.7.1"
+title: "Cancel button"
+prep_id: 1326
+descr: "press the Cancel button"
+expect: "the edit dates dialog is closed"
+passed: True
+source-requirements: [1518]
+--
+id: 1328
+chapter_number: "4.7.2"
+title: "Save button"
+prep_id: 1326
+descr: "press the Save button"
+expect: "an information dialog is shown"
+passed: True
+source-requirements: [1518]
+--
+id: 1329
+after: 1
+chapter_number: "4.7.3"
+descr: "- press OK"
+expect: "the edit dates dialog is closed"
+passed: True
+source-requirements: [1518]
+--
+id: 1330
+chapter_number: "4.7.4"
+title: "Modify date"
+prep_id: 1326
+descr:
+    - change the "date from" of the bottom row to a valid one (but earlier)
+    - press Save
+    - reopen the edit dates dialog
+expect: "the new date is shown in the last row"
+passed: True
+source-requirements: [1518]
+--
+id: 1331
+chapter_number: "4.7.5"
+title: "Modify date"
+prep_id: 1326
+descr: '- change the "date from" of the first row to a valid one (but later)'
+expect: 'the date in the row below and column "To date" is changed accordingly (one day earlier)'
+passed: True
+source-requirements: [1518]
+--
+id: 1332
+chapter_number: "4.7.6"
+title: "Modify date with an invalid one"
+prep_id: 1326
+descr: '- change the "date from" of the first row to an invalid one (i.e. 2024-13-32)'
+expect: "the cell becomes yellow"
+passed: True
+source-requirements: [1520]
+--
+id: 1333
+after: 1
+chapter_number: "4.7.7"
+descr:
+    Test description #2
+    - press Save
+expect: "an error dialog is shown"
+passed: True
+source-requirements: [1520]
+--
+id: 1334
+chapter_number: "4.7.8"
+title: "Modify date with an invalid one"
+prep_id: 1326
+descr:
+    - change the "date from" of the first row to an invalid one (i.e. '2021-13-77')
+    - the cell becomes yellow; press Cancel
+    - the edit dates dialog is closed, reopen it
+expect: "the valid old date appears"
+passed: True
+source-requirements: [1520, 1518]
+--
+id: 1335
+chapter_number: "4.7.9"
+title: "Modify date with an invalid one"
+prep_id: 1332
+descr: '- change the "date from" of the first row to an invalid one (i.e. 2001-02-30)'
+expect: "the cell becomes yellow"
+passed: True
+source-requirements: [1520, 1518]
+--
+id: 1336
+chapter_number: "4.7.10"
+title: "Modify date with an invalid one"
+prep_id: 1326
+descr:
+    - change the "date from" of the first row to a date equal to the row below
+    - press Save
+expect:
+    - an error dialog is shown
+    - press OK, the edit date window is shown
+passed: True
+source-requirements: [1520, 1518]
+--
+id: 1337
+after: 1
+chapter_number: "4.7.11"
+descr:
+    Test description #3
+    - after the step above, press Cancel
+    - press the '...' button
+    - check the dates
+expect: "- the dates are unchanged"
+passed: True
+source-requirements: [1520, 1518]
+--
+id: 1338
+chapter_number: "4.7.12"
+title: "Modify date with an invalid one"
+prep_id: 1326
+descr:
+    - change the "date from" of the first row to a date before (-1 day) the row below
+    - press Save
+expect:
+    - an error dialog is shown
+    - press OK, the edit date window is shown
+passed: True
+source-requirements: [1520, 1518]
+--
+id: 1339
+after: 1
+chapter_number: "4.7.13"
+descr:
+    Test description #3
+    - after the step above, press Cancel
+    - press the '...' button
+    - check the dates
+expect: "- the dates are unchanged"
+passed: True
+source-requirements: [1520, 1518]
+--
+id: 1340
+chapter_number: "4.7.14"
+title: "Modify date with an invalid one"
+prep_id: 1326
+descr:
+    - change the "date from" of the 2nd row to a date equal to the row above
+    - press Save
+expect:
+    - an error dialog is shown
+    - press OK, the edit date window is shown
+passed: True
+source-requirements: [1520, 1518]
+--
+id: 1341
+after: 1
+chapter_number: "4.7.15"
+descr:
+    Test description #3
+    - after the step above, press Cancel
+    - press the '...' button
+    - check the dates
+expect: "- the dates are unchanged"
+passed: True
+source-requirements: [1520, 1518]
+--
+id: 1342
+chapter_number: "4.7.16"
+title: "Modify date with an invalid one"
+prep_id: 1326
+descr:
+    - change the "date from" of the 2nd row to a date after (+1 day) the row above
+    - press Save
+expect:
+    - an error dialog is shown
+    - press OK, the edit date window is shown
+passed: True
+source-requirements: [1520, 1518]
+--
+id: 1343
+after: 1
+chapter_number: "4.7.17"
+descr:
+    Test description #3
+    - after the step above, press Cancel
+    - press the '...' button
+    - check the dates
+expect: "- the dates are unchanged"
+passed: True
+source-requirements: [1520, 1518]
+--
+id: 1344
+chapter_number: "4.7.18"
+title: "Modify date"
+prep_id: 1326
+descr: '- change the "date from" of the first row to a date after (+1 day) the row below'
+expect: "the cell remains white"
+passed: True
+source-requirements: [1518]
+--
+id: 1345
+after: 1
+chapter_number: "4.7.19"
+descr: "- after the steps above, press Save"
+expect: "- a confirmation dialog is shown, press OK"
+passed: True
+source-requirements: [1518]
+--
+id: 1346
+after: 1
+chapter_number: "4.7.20"
+descr:
+    Test description #3
+    - after the steps above, press the '...' button
+    - check the dates
+expect: "- the dates are changed"
+passed: True
+source-requirements: [1518]
+--
+id: 1347
+chapter_number: "4.7.21"
+title: "Check the read-only/read-write status of the cells"
+prep_id: 1326
+descr:
+    check that all fields are read-only with the exception of:
+    - the column "From date"
+    - the cells of the first row ("From date" and "To date")
+expect: "only the cells listed above are read-write"
+passed: True
+source-requirements: [1518]
+--
+id: 1348
+chapter_number: "4.7.22"
+title: "Insert an invalid date"
+prep_id: 1326
+descr: '- change the value of the cell in the first row and column "To date" to an invalid one (i.e. \'2024-02-32\')'
+expect: "the cell becomes yellow"
+passed: True
+source-requirements: [1518, 1520]
+--
+id: 1349
+after: 1
+chapter_number: "4.7.23"
+descr: "press Save"
+expect: "an error dialog appears"
+passed: True
+source-requirements: [1518, 1520]
+--
+id: 1350
+chapter_number: "4.7.24"
+title: "Insert an invalid date"
+prep_id: 1326
+descr:
+    - change the value of the cell in the first row and column "To date" to a date earlier than the left cell
+    - press Save
+expect:
+    - an error dialog is shown
+    - press OK, the edit date window is shown
+passed: True
+source-requirements: [1518, 1520]
+--
+id: 1351
+chapter_number: "4.7.25"
+title: "Insert a valid date"
+prep:
+    - insert code 100001 in the "BOMBrowser codes list" window
+    - press search
+    - right-click on the first entry and select "Edit code..." command
+    - The Edit code window appears
+    - Select the "..." button near the "From / to date" field
+    - An edit dates dialog is shown
+descr:
+    - change the value of the cell in the first row and column "To date" to a valid one
+    - press the Save button
+    - reopen the "Edit dates" dialog
+expect: 'the new date appears in the "edit code window"'
+passed: True
+source-requirements: [1518, 1520]
+--
+id: 1352
+chapter_number: "4.7.26"
+title: "conflict date"
+--
+id: 1353
+chapter_number: "4.7.27"
+title: "parent too early"
+prep:
+    - Verify if the assembly TEST-ASS-A exists, and if not build it as follows:
+    - create a component code (copying from an existing component);
+      name it TEST-A; set a "Date from" 2020-01-01.
+    - Create a component code (copying from an existing component);
+      name it TEST-B; set a "Date from" 2020-01-01. Set "Date to" 2021-01-01.
+    - Create a component code (copying from an existing component);
+      name it TEST-ASS-A; set a "Date from" 2020-01-01. Set "Date to" 2021-01-01.
+    - Edit the code "TEST-ASS-A" adding components TEST-A and TEST-B as children.
+descr:
+    - enter the edit dialog of code TEST-ASS-A
+    - enter the edit date dialog
+    - change the "From date" to 2019-01-01
+    - press "Save" button
+expect: "an error dialog appears saying that the date range is wider than the children's range"
+passed: True
+source-requirements: [1518, 1520]
+--
+id: 1354
+chapter_number: "4.7.28"
+title: "parent too late"
+prep_id: 1353
+descr:
+    - enter the edit dialog of code TEST-ASS-A
+    - enter the edit date dialog
+    - change the "To date" to 2022-01-01
+    - press "Save" button
+expect: "an error dialog appears saying that the date range is wider than the children's range"
+passed: True
+source-requirements: [1518, 1520]
+--
+id: 1355
+chapter_number: "4.7.29"
+title: "children too late"
+prep_id: 1353
+descr:
+    - enter the edit dialog of code TEST-B
+    - enter the edit date dialog
+    - change the "From date" to 2020-06-01
+    - press "Save" button
+expect: "an error dialog appears saying that the date range of the parent is wider than the child's"
+passed: True
+source-requirements: [1518, 1520]
+--
+id: 1356
+chapter_number: "4.7.30"
+title: "children too early"
+prep_id: 1353
+descr:
+    - enter the edit dialog of code TEST-ASS-A
+    - enter the edit date dialog
+    - change the "To date" to 2020-06-01
+    - press "Save" button
+    - enter the edit dialog of code TEST-B
+    - enter the edit date dialog
+    - change the "To date" to 2020-03-01
+    - press "Save" button
+expect: "an error dialog appears saying that the date range is shorter than the parent's range"
+passed: True
+source-requirements: [1518, 1520]
+--
+id: 1357
+chapter_number: "4.7.31"
+title: "children too early"
+prep_id: 1353
+descr:
+    - enter the edit dialog of code TEST-ASS-A
+    - remove the child TEST-B
+    - press "Save" and then "Close"
+    - enter the edit dialog of code TEST-B
+    - enter the edit date dialog
+    - change the "To date" to 2020-03-01
+    - enter the edit dialog of code ASS-A
+    - add child TEST-B
+    - press Save
+expect: "an error dialog appears saying that the child's date range is shorter than the parent's range"
+passed: True
+source-requirements: [1518, 1520]
+--
+id: 1358
+chapter_number: "4.7.32"
+title: "prototype date"
+descr:
+    - enter the edit dialog of a code with several revisions without a prototype (e.g. 810203)
+    - enter the "edit dates" dialog
+    - change the first (from the top) "From date" to "prototype"
+expect:
+    - no error (yellow cell) is shown
+    - **ALL** the cells in the "To date" column are R/O
+    - the "End to" dates of the 1st and 2nd lines are blanked
+passed: True
+source-requirements: [1518, 1520]
+--
+id: 1359
+after: 1
+chapter_number: "4.7.33"
+descr:
+    - after the above test, press save
+    - press ok
+    - you see the "Edit dialog"
+    - check that the "From/to date" "Revision selector" lists all the dates
+expect: '- the "From/to date" "Revision selector" lists all the dates and prototype'
+passed: True
+source-requirements: [1518]
+--
+id: 1360
+after: 1
+chapter_number: "4.7.34"
+descr:
+    - after the steps above
+    - press the "..." button and go to the "edit dates" dialog
+    - change the "From date" in the first row from "PROTOTYPE" to a date greater than the 2nd line
+expect:
+    - no error (yellow cell) is shown
+    - the "End to" cell in the second line shows a valid date
+    - the "End to" cell in the 1st line is editable
+passed: True
+source-requirements: [1518, 1520]
+--
+id: 1361
+after: 1
+chapter_number: "4.7.35"
+descr:
+    - after the steps above
+    - press save and go to the edit window
+    - check that the "From/to date" "Revision selector" lists all the dates
+expect: '- the "From/to date" "Revision selector" lists all the dates w/o prototype'
+passed: True
+source-requirements: [1518]
+--
+id: 1362
+chapter_number: "4.7.36"
+title: "date in the title bar"
+descr:
+    - enter the edit dialog of a code with several revisions
+    - select a 2nd revision in the "From/to date" selector
+    - press the "..." button and go to the edit dialog
+    - change the 2nd row "From date" with a reasonable value
+    - press "Save", then "OK"
+expect:
+    - the "From/to date" is changed according to the steps above
+    - the date shown in the title bar is changed according to the steps above
+passed: True
+source-requirements: [1518, 1520]
+--
+id: 1363
+level: 3
+chapter_number: "4.8"
+title: "Generic test"
+--
+id: 1364
+level: 4
+chapter_number: "4.8.1"
+title: "rename bombrowser.ini"
+descr:
+    - rename bombrowser.ini to bombrowser.ini.no
+    - delete a bombrowser.forward file
+    - (re)start bombrowser
+expect: "at start-up, an error dialog is shown saying that the configuration cannot be loaded: bombrowser.ini file may be missing"
+passed: True
+source-requirements: [1610, 1614]
+--
+id: 1365
+chapter_number: "4.8.2"
+title: "rename bombrowser.ini (2)"
+descr:
+    - rename bombrowser.ini to bombrowser.ini.two
+    - create a bombrowser.forward file containing bombrowser.ini.two
+    - (re)start bombrowser
+expect: "bombrowser runs correctly"
+passed: True
+source-requirements: [1610, 1614]
+--
+id: 1366
+chapter_number: "4.8.3"
+title: "shutdown the sql server"
+descr:
+    - shut down the sql server
+    - restart bombrowser
+expect: "at start-up, an error dialog is shown saying that it is impossible to access the server (some time may be required)"
+source-requirements: [1616]
+--
+id: 1367
+chapter_number: "4.8.4"
+title: "test re-connection after an sql server disconnection"
+descr:
+    - perform a query looking for code 100001 in the code list window
+    - shut down the server
+    - re-run the same query and check that an error is shown
+expect: "an error dialog is shown"
+passed: True
+source-requirements: [1616]
+--
+id: 1368
+after: 1
+chapter_number: "4.8.5"
+descr:
+    after the previous steps
+    - start up the server
+    - wait a few seconds
+    - re-run the same query and check that an error is shown
+    - re-run the same query *again*
+expect: "the query results are shown"
+passed: True
+source-requirements: [1616]
+--
+id: 1369
+after: 1
+chapter_number: "4.8.6"
+descr: "- repeat the same test on a different db"
+expect: "the previous tests passed"
+passed: True
+source-requirements: [1616]
+--
+id: 1633
+chapter_number: "4.8.7"
+title: "Self test"
+descr: "Run the BOMBrowser self test"
+expect: "The BOMBrowser shall run succesfully."
+passed: True
+source-requirements: [1632]
+--
+id: 1370
+chapter_number: "4.8.8"
+title: "Config test"
+--
+id: 1371
+chapter_number: "4.8.9"
+title: "Test description_force_uppercase: edit code"
+descr:
+    - Set description_force_uppercase = 1 in bombrowser.ini
+    - Re-Start bombrowser (or click File->Reload)
+    - Edit the code TEST-A
+    - Change the description of code TEST-A to "lower case test a"
+    - Save the code
+    - Search for code TEST-A in the code list window
+expect: "The description is in upper case"
+passed: True
+source-requirements: [1612]
+--
+id: 1372
+chapter_number: "4.8.10"
+title: "Test description_force_uppercase: copy code"
+descr:
+    - Set description_force_uppercase = 1 in bombrowser.ini
+    - Re-Start bombrowser (or click File->Reload)
+    - Copy code TEST-B to TEST-B-COPY1, and change the description of code TEST-B to "lower case test b copy1"
+    - Press "copy code" button
+    - Search for code TEST-B-COPY1 in the code list window
+expect: "The description is in upper case"
+passed: True
+source-requirements: [1612]
+--
+id: 1373
+chapter_number: "4.8.11"
+title: "Test description_force_uppercase: revise code"
+descr:
+    - Set description_force_uppercase = 1 in bombrowser.ini
+    - Re-Start bombrowser (or click File->Reload)
+    - Revise code TEST-B, and change the description of code TEST-B to "lower case test b new rev"
+    - Save the code
+    - Search for code TEST-B in the code list window
+expect: "The description of the latest revision is in upper case"
+passed: True
+source-requirements: [1612]
+--
+id: 1374
+chapter_number: "4.8.12"
+title: "Test description_force_uppercase: edit code"
+descr:
+    - Set description_force_uppercase = 0 in bombrowser.ini
+    - Re-Start bombrowser (or click File->Reload)
+    - Edit the code TEST-A
+    - Change the description of code TEST-A to "lower case test a"
+    - Save the code
+    - Search for code TEST-A in the code list window
+expect: "The description is in lower case"
+passed: True
+source-requirements: [1612]
+--
+id: 1375
+chapter_number: "4.8.13"
+title: "Test description_force_uppercase: copy code"
+descr:
+    - Set description_force_uppercase = 0 in bombrowser.ini
+    - Re-Start bombrowser (or click File->Reload)
+    - Copy code TEST-B to TEST-B-COPY2, and change the description of code TEST-B to 
+      "lower case test b copy2"
+    - Press "copy code" button
+    - Search for code TEST-B-COPY2 in the code list window
+expect: "The description is in lower case"
+passed: True
+source-requirements: [1612]
+--
+id: 1376
+chapter_number: "4.8.14"
+title: "Test description_force_uppercase: revise code"
+descr:
+    - Set description_force_uppercase = 0 in bombrowser.ini
+    - Re-Start bombrowser (or click File->Reload)
+    - Revise code TEST-B, and change the description of code TEST-B to "lower case test b new rev 2"
+    - Save the code
+    - Search for code TEST-B in the code list window
+expect: "The description of the latest revision is in lower case"
+passed: True
+source-requirements: [1612]
+--
+id: 1377
+chapter_number: "4.8.15"
+title: "Test code_force_uppercase: copy code"
+descr:
+    - Set code_force_uppercase = 1 in bombrowser.ini
+    - Re-Start bombrowser (or click File->Reload)
+    - Copy code TEST-B to test-b-copy
+    - Save the code
+    - Search for code test-b-copy in the code list window
+expect: "The code is in upper case"
+passed: True
+source-requirements: [1612]
+--
+id: 1378
+chapter_number: "4.8.16"
+title: "Test code_force_uppercase: copy code"
+descr:
+    - Set code_force_uppercase = 0 in bombrowser.ini
+    - Re-Start bombrowser (or click File->Reload)
+    - Copy code TEST-B to test-b-copy
+    - Save the code
+    - Search for code test-b-copy in the code list window
+expect: "The code is in lower case"
+passed: True
+source-requirements: [1612]
+--
+id: 1379
+chapter_number: "4.8.17"
+title: "Test ignore_case_during_search: search code"
+prep: "This test is not applicable with MySQL/MariaDB/SQLSERVER"
+descr:
+    - Set ignore_case_during_search = 1 in bombrowser.ini
+    - Restart bombrowser
+    - In the "code list window", search for code "%ALLLOWERCASE"
+expect: 'The code "TEST-alllowercase" is returned'
+passed: True
+source-requirements: [1613]
+--
+id: 1380
+chapter_number: "4.8.18"
+title: "Test ignore_case_during_search: search code"
+prep_id: 1379
+descr:
+    - Set ignore_case_during_search = 1 in bombrowser.ini
+    - Restart bombrowser
+    - In the "code list window", search for description "ALL LOWERCASE"
+expect: 'The description "alllowercase" is returned'
+passed: True
+source-requirements: [1613]
+--
+id: 1381
+chapter_number: "4.8.19"
+title: "Test ignore_case_during_search: search code"
+prep_id: 1379
+descr:
+    - Set ignore_case_during_search = 0 in bombrowser.ini
+    - Restart bombrowser
+    - In the "code list window", search for code "%ALLLOWERCASE"
+expect: "No code is found"
+passed: True
+source-requirements: [1613]
+--
+id: 1382
+chapter_number: "4.8.20"
+title: "Test ignore_case_during_search: search code"
+prep_id: 1379
+descr:
+    - Set ignore_case_during_search = 0 in bombrowser.ini
+    - Restart bombrowser
+    - In the "code list window", search for description "ALL LOWERCASE"
+expect: "No code is found"
+passed: True
+source-requirements: [1613]
+--
+id: 1383
+chapter_number: "4.8.21"
+title: "Test ignore_case_during_search: search revision"
+prep_id: 1379
+descr:
+    - Set ignore_case_during_search = 1 in bombrowser.ini
+    - Restart bombrowser
+    - In the "Code list" window, "search mode=advanced", search for code "ALLLOWERCASE"
+expect: 'The code "TEST-alllowercase" is returned'
+passed: True
+source-requirements: [1613]
+--
+id: 1384
+chapter_number: "4.8.22"
+title: "Test ignore_case_during_search: search revision"
+prep_id: 1379
+descr:
+    - Set ignore_case_during_search = 1 in bombrowser.ini
+    - Restart bombrowser
+    - In the "Code list" window, "search mode=advanced", search for description "ALL LOWERCASE"
+expect: 'The description "all lowercase" is returned'
+passed: True
+source-requirements: [1613]
+--
+id: 1385
+chapter_number: "4.8.23"
+title: "Test ignore_case_during_search: search revision"
+prep_id: 1379
+descr:
+    - Set ignore_case_during_search = 1 in bombrowser.ini
+    - Restart bombrowser
+    - In the "Code list" window, "search mode=advanced",  search for gval2 "lower"
+expect: 'The gval2 "gval2 lower" is returned'
+passed: True
+source-requirements: [1613]
+--
+id: 1386
+chapter_number: "4.8.24"
+title: "Test ignore_case_during_search: search revision"
+prep_id: 1379
+descr:
+    - Set ignore_case_during_search = 0 in bombrowser.ini
+    - Restart bombrowser
+    - In the "Code list" window, "search mode=advanced", search for code "%ALLLOWERCASE"
+expect: "No code is found"
+passed: True
+source-requirements: [1613]
+--
+id: 1387
+chapter_number: "4.8.25"
+title: "Test ignore_case_during_search: search revision"
+prep_id: 1379
+descr:
+    - Set ignore_case_during_search = 0 in bombrowser.ini
+    - Restart bombrowser
+    - In the "Code list" window, "search mode=advanced", search for description "ALL LOWERCASE"
+expect: "No code is found"
+passed: True
+source-requirements: [1613]
+--
+id: 1388
+chapter_number: "4.8.26"
+title: "Test ignore_case_during_search: search revision"
+prep_id: 1379
+descr:
+    - Set ignore_case_during_search = 0 in bombrowser.ini
+    - Restart bombrowser
+    - In the "Code list" window, "search mode=advanced", search for gval2 "LOWER"
+expect: "No code is found"
+passed: True
+source-requirements: [1613]
+--
+id: 1389
+chapter_number: "4.8.27"
+title: "bombrowser.ini missing parameter"
+descr:
+    - in bombrowser.ini, comment out the parameter "db" in the BOMBROWSER section
+    - Start bombrowser
+expect: 'An error dialog shows that the parameter "db" is missing in section BOMBROWSER'
+passed: True
+source-requirements: [1614]
+--
+id: 1390
+chapter_number: "4.8.28"
+title: "bombrowser.ini missing section"
+descr:
+    - in bombrowser.ini, comment out section FILES_UPLOAD
+    - Start bombrowser
+expect: "An error dialog shows that section FILES_UPLOAD is missing"
+passed: True
+source-requirements: [1614]
+--
+id: 1391
+chapter_number: "4.8.29"
+title: "bombrowser.ini unknown parameter"
+descr:
+    - in bombrowser.ini, in section BOMBROWSER, add parameter "unknown=foo"
+    - Start bombrowser
+expect: "An error dialog shows that there is an unknown parameter in section BOMBROWSER"
+passed: True
+source-requirements: [1614]
+--
+id: 1392
+chapter_number: "4.8.30"
+title: "bombrowser.ini unknown section"
+descr:
+    - in bombrowser.ini, add:
+       [UNKNOWNSECTION]
+       unk=unk
+    - Start bombrowser
+expect: "An error dialog shows that there is an unreferenced section UNKNOWNSECTION"
+passed: True
+source-requirements: [1614]
+--
+id: 1393
+chapter_number: "4.8.31"
+title: "bombrowser.ini missing template"
+descr:
+    - in bombrowser.ini, add an "x" before the first section of BOMBROWSER.templates_list
+    - Start bombrowser
+expect:
+    An error dialog shows that:
+    - an unreferenced section exists
+    - a section is missing
+passed: True
+source-requirements: [1614]
+--
+id: 1394
+chapter_number: "4.8.32"
+title: "bombrowser.ini missing importer"
+descr:
+    - in bombrowser.ini, add an "x" before the first section of BOMBROWSER.importer_list
+    - Start bombrowser
+expect:
+    An error dialog shows that:
+    - an unreferenced section exists
+    - a section is missing
+passed: True
+source-requirements: [1614]
+--
+id: 1395
+chapter_number: "4.8.33"
+title: "bombrowser.ini: list_code_default_mode"
+descr:
+    - in bombrowser.ini, set list_code_default_mode=1
+    - start bombrowser
+expect: '- the code search is shown in "Advanced" mode'
+passed: True
+source-requirements: [1615]
+--
+id: 1396
+chapter_number: "4.8.34"
+title: "bombrowser.ini: list_code_default_mode"
+descr:
+    - in bombrowser.ini, set list_code_default_mode=0
+    - start bombrowser
+expect: '- the code search is shown in "Simple" mode'
+passed: True
+source-requirements: [1615]
+--
+id: 1397
+chapter_number: "4.8.35"
+title: "bombrowser.forward"
+descr:
+    - rename bombrowser.ini to bombrowser.1.ini
+    - create a file bombrowser.forward containing bombrowser.1.ini
+    - start bombrowser
+expect: "BOMBrowser will open"
+passed: True
+source-requirements: [1610]
+--
+id: 1398
+after: "True"
+chapter_number: "4.8.36"
+descr:
+    - rename bombrowser.1.ini to bombrowser.2.ini
+    - make sure that no bombrowser-local.ini file exists
+    - start bombrowser
+expect: "BOMBrowser will not open, and an error dialog will appear"
+passed: True
+source-requirements: [1610]
+--
+id: 1399
+chapter_number: "4.8.37"
+title: "bombrowser-local.ini"
+descr:
+    - in bombrowser.ini, set list_code_default_mode=0
+    - in bombrowser-local.ini, set list_code_default_mode=1
+    - set the content of 'bombrowser.forward' to 'bombrowser-local.ini'
+    - start bombrowser
+expect: '- the code search is shown in "Advanced" mode'
+passed: True
+source-requirements: [1610]
+--
+id: 1400
+level: 3
+chapter_number: "4.9"
+title: "Export test"
+text: "TBD"
+--
+id: 1401
+chapter_number: "4.10"
+title: "Import test"
+text: "TBD"
+--
+id: 1402
+chapter_number: "4.11"
+title: "Window menu test"
+--
+id: 1403
+level: 4
+chapter_number: "4.11.1"
+title: "Window menu test, close all other windows"
+prep:
+    From code list window:
+    - search for a code (e.g. 820007)
+    - open an assembly window
+    - open a where used window
+    - open a valid where used window
+descr: "from the 'where used' window, select menu->windows->close all other windows"
+expect: "all windows are closed except the 'where used' window"
+passed: True
+source-requirements: [1009]
+--
+id: 1404
+chapter_number: "4.11.2"
+title: "Window menu test, new code list window"
+prep_id: 1403
+descr: "from the 'where used' window, select menu->windows->new code list window"
+expect: "a NEW 'Code list' window is opened"
+passed: True
+source-requirements: [1009]
+--
+id: 1405
+after: 1
+chapter_number: "4.11.3"
+descr: "from the 'where used' window, select menu->windows->new code list window"
+expect: "a 3rd 'Code list' window is opened"
+passed: True
+source-requirements: [1009]
+--
+id: 1406
+level: 3
+chapter_number: "4.12"
+title: "Advanced search in the BOM"
+--
+id: 1407
+level: 4
+chapter_number: "4.12.1"
+title: "Advanced search in the BOM"
+prep:
+    From code list window:
+    - search for a code (e.g. 820007)
+    - open an assembly window
+descr: "From the 'Search' menu select 'Advanced search'"
+expect:
+    - A 'Search in BOM' window is shown
+    - In the title window it is possible to read:
+      - Search in BOM
+      - The code and the date (or LATEST if applicable)
+passed: True
+source-requirements: [1618]
+--
+id: 1408
+chapter_number: "4.12.2"
+title: "Advanced search in the BOM - search by code"
+prep:
+    From code list window:
+    - search for a code (e.g. 820007)
+    - open an assembly window
+    - from the 'Search' menu select 'Advanced search'
+descr: "Enter '04' in the code field and press 'Search'"
+expect: "Only codes containing '04' are shown"
+passed: True
+source-requirements: [1618]
+--
+id: 1409
+chapter_number: "4.12.3"
+title: "Advanced search in the BOM - search by descr"
+prep_id: 1408
+descr: "Enter '44' in the Description field and press 'Search'"
+expect: "Only code descriptions containing '44' are shown"
+passed: True
+source-requirements: [1618]
+--
+id: 1410
+after: 1
+chapter_number: "4.12.4"
+descr: "Select a code and check that the codegui panel changes accordingly"
+expect: "The codegui panel changes accordingly"
+passed: True
+source-requirements: [1618]
+--
+id: 1411
+after: 1
+chapter_number: "4.12.5"
+descr:
+    - Select a row and right-click (RMB)
+    - Press edit code
+expect: "The edit code window is opened"
+passed: True
+source-requirements: [1618]
+--
+id: 1412
+chapter_number: "4.12.6"
+title: "Advanced search in the BOM - search by descr and code"
+prep_id: 1408
+descr:
+    - Enter '2' in the Description field
+    - Enter '7' in the Code field
+    - Press 'Search'
+expect: "Only codes containing '7' with description containing '2' are shown"
+passed: True
+source-requirements: [1618]
+--
+id: 1413
+chapter_number: "4.12.7"
+title: "Advanced search in the BOM search w/multiple fields"
+prep:
+    From code list window:
+    - search for a code (e.g. 820007)
+    - open an assembly window
+    - from the 'Search' menu select 'Advanced search'
+    - from the 'Search mode' menu select 'Advanced'
+descr: "Enter 44 in the code field, then press Search"
+expect: "Only codes containing 44 are shown"
+passed: True
+source-requirements: [1618]
+--
+id: 1414
+after: 1
+chapter_number: "4.12.8"
+descr:
+    - Clear all fields
+    - Enter 87 in the description field, then press Search
+expect: "Only codes containing '87' in description are shown"
+passed: True
+source-requirements: [1618]
+--
+id: 1415
+after: 1
+chapter_number: "4.12.9"
+descr:
+    - Clear all fields
+    - Enter 6 in the description field, then enter 6 in the 'Sup.1 PN' field, then press Search
+expect: "Only items containing 6 in description and PN containing 6 are shown"
+passed: True
+source-requirements: [1618]
+--
+id: 1416
+after: 1
+chapter_number: "4.12.10"
+descr:
+    - Clear all fields
+    - Enter >8 in the code field, then press Search
+expect: "Only codes starting with 8 are shown"
+passed: True
+source-requirements: [1618]
+--
+id: 1417
+after: 1
+chapter_number: "4.12.11"
+descr:
+    - Clear all fields
+    - Enter >8 in the code field
+    - Enter 8 in the description field
+    then press Search
+expect: "Only codes starting with 8 and containing 8 in the description are shown"
+passed: True
+source-requirements: [1618]
+--
+id: 1418
+after: 1
+chapter_number: "4.12.12"
+descr:
+    - Clear all fields
+    - Enter <8 in the code field
+    - Enter 3 in the description field
+    then press Search
+expect: "Only codes starting with 7 and containing 3 in the description are shown"
+passed: True
+source-requirements: [1618]
+--
+id: 1419
+after: 1
+chapter_number: "4.12.13"
+descr:
+    - Clear all fields
+    - Enter !820007 in the code field
+    - Enter 7 in the description field
+    then press Search
+expect: "Only codes different from 820007 and containing 7 in the description are shown"
+passed: True
+source-requirements: [1618]
+--
+id: 1420
+after: 1
+chapter_number: "4.12.14"
+descr:
+    - Clear all fields
+    - Enter >2000 in the rid field
+    - Enter 7 in the description field
+    then press Search
+expect: "Only codes with rid greater than 2200 and containing 3 in the description are shown"
+passed: True
+source-requirements: [1618]
+--
+id: 1421
+after: 1
+chapter_number: "4.12.15"
+descr:
+    - Clear all fields
+    - Enter <2000 in the rid field
+    - Enter 3 in the description field
+    then press Search
+expect: "Only codes with rid less than 2000 and containing 3 in the description are shown"
+passed: True
+source-requirements: [1618]
+--
+id: 1422
+chapter_number: "4.12.16"
+title: "Advanced search in the BOM - where used"
+prep:
+    From code list window:
+    - search for a code (e.g. 820007)
+    - open a where used window
+    - from the 'Search' menu select 'Advanced search'
+descr: "Enter '02' in the code field and press 'Search'"
+expect: "Only codes containing '02' are shown"
+passed: True
+source-requirements: [1620]
+--
+id: 1423
+chapter_number: "4.12.17"
+title: "Advanced search in the BOM - smart where used"
+prep:
+    From code list window:
+    - search for a code (e.g. 820007)
+    - open a smart where used window
+    - from the 'Search' menu select 'Advanced search'
+descr: "Enter '17' in the code field and press 'Search'"
+expect: "Only codes containing '17' are shown"
+passed: True
+source-requirements: [1620]
+--
+id: 1424
+chapter_number: "4.12.18"
+title: "Advanced search in the BOM - search by doc"
+prep:
+    From code list window:
+    - search for a code (e.g. 820007)
+    - open a smart where used window
+    - from the 'Search' menu select 'Advanced search'
+    - from the 'Search mode' menu select 'Advanced search'
+descr: "Enter '17' in the Document field and press 'Search'"
+expect: "Only codes containing '17' in the document column are shown"
+passed: True
+source-requirements: [1619]
+--
+id: 1425
+level: 3
+chapter_number: "4.13"
+title: "Export data from assembly"
+--
+id: 1426
+level: 4
+chapter_number: "4.13.1"
+title: "Export data"
+prep:
+    From code list window:
+    - search for a code (e.g. 820007)
+    - open an assembly window
+descr: "From the 'File' menu select 'Export data...'"
+expect: "An 'Export' dialog is shown"
+passed: True
+source-requirements: [1622]
+--
+id: 1427
+chapter_number: "4.13.2"
+title: "Export data"
+prep:
+    From code list window:
+    - search for a code (e.g. 820007)
+    - open an assembly window
+    - from the 'File' menu select 'Export data...'
+descr: "Check that the date shown in the window title is the latest one for the code"
+expect:
+    The date is the latest one (compare it wiith the select date dialog 
+    of the command "Show assembly by date")
+passed: True
+source-requirements: [1622]
+--
+id: 1428
+after: 1
+chapter_number: "4.13.3"
+descr: "Press the Close button"
+expect: "The dialog disappears"
+passed: True
+source-requirements: [1622]
+--
+id: 1429
+chapter_number: "4.13.4"
+title: "Export data"
+prep_id: 1427
+descr: "Press the Export button"
+expect:
+    - The success dialog appeared (maybe below another window)
+    - A folder containing all the files appeared
+    - In the folder there is a zip file containing all the files
+    - In the folder there is a BOM in the same format specified in the dialog
+    - Executing a 'paste' command in a folder copies the zip file
+passed: True
+source-requirements: [1622]
+--
+id: 1430
+chapter_number: "4.13.5"
+title: "Export data"
+prep_id: 1427
+descr: "Uncheck the 'zip all' option; press the Export button"
+expect:
+    - The success dialog appeared (maybe below another window)
+    - A folder containing all the files appeared
+    - In the folder there is NO zip file containing all the files
+    - Executing a 'paste' command in a folder copies the folder with all the files
+passed: True
+source-requirements: [1622]
+--
+id: 1431
+chapter_number: "4.13.6"
+title: "Export data"
+prep_id: 1427
+descr: "Uncheck the 'export files' option; press the Export button"
+expect:
+    - The success dialog appeared (maybe below another window)
+    - A folder containing only the zip file and the bom appeared
+passed: True
+source-requirements: [1622]
+--
+id: 1432
+chapter_number: "4.13.7"
+title: "Export data"
+prep_id: 1427
+descr: "Uncheck the 'open destination folder' option; press the Export button"
+expect: "The success dialog appeared"
+passed: True
+source-requirements: [1622]
+--
+id: 1433
+chapter_number: "4.13.8"
+title: "Export data"
+prep_id: 1427
+descr: "Change the destination directory; press the Export button"
+expect: "The selected destination directory is shown"
+passed: True
+source-requirements: [1622]
+--
+id: 1434
+chapter_number: "4.13.9"
+title: "Export data - where used"
+prep:
+    From code list window:
+    - search for a code (e.g. 820007)
+    - open the Where used window
+    - from the 'File' menu select 'Export data...'"
+descr: "Change the destination directory; press the Export button"
+expect:
+    - The success dialog appeared (maybe below another window)
+    - The folder containing all the files appeared, the folder is the one set before
+passed: True
+source-requirements: [1622]
+--
+id: 1436
+chapter_number: "4.13.10"
+title: "Export data - error in file"
+prep:
+    - Open the assembly TEST-ASSY-TO-EXPORT.
+    - from the 'File' menu select 'Export data...'
+descr: "press the Export button"
+expect:
+    An error dialog showing that:
+    - a file does not exist
+    - a file is too big
+    The error dialog asks if the user wants to END the copy
+passed: True
+source-requirements: [1622]
+--
+id: 1437
+after: 1
+chapter_number: "4.13.11"
+descr: 'press the "Yes" button'
+expect: "The dialog disappears"
+passed: True
+--
+id: 1438
+chapter_number: "4.13.12"
+title: "Export data - error in file"
+prep:
+    - Open the assembly TEST-ASSY-TO-EXPORT.
+    - from the 'File' menu select 'Export data...'
+    - press the Export button
+    - an error dialog appears
+descr: 'press the "No" button'
+expect:
+    - The dialog disappears.
+    - the export continues and finishes without the files that raised an error
+passed: True
+source-requirements: [1622]
+--
+id: 1439
+level: 3
+chapter_number: "4.14"
+title: "Dump/Restore/Create a new database"
+--
+id: 1440
+level: 4
+chapter_number: "4.14.1"
+title: "Dump the database"
+descr: '- run "[python] bombrowser[.py] --manage-db --dump-tables <filename>"'
+expect: "- the <filename> file is created"
+passed: True
+source-requirements: [1624]
+--
+id: 1441
+chapter_number: "4.14.2"
+title: "Restore the database"
+descr:
+    - edit code 100001
+    - select Edit->Delete code. The code is now deleted
+    - copy code 100002 to code 100002-cpy
+    - run "[python] bombrowser[.py] --manage-db --restore-tables --yes-really-i-know-what-i-want <filename>"
+    - search for code 100001 again
+expect:
+    - code 100001 exists
+    - code 100002 doesn't exist
+passed: True
+source-requirements: [1625]
+--
+id: 1442
+chapter_number: "4.14.3"
+title: "Create a new (empty) database"
+descr:
+    - run "[python] bombrowser[.py] --manage-db --new-db --yes-really-i-know-what-i-want"
+    - search for "%"
+expect: '- only code "000000000000" is returned'
+passed: True
+source-requirements: [1626]
+--
+id: 1443
+chapter_number: "4.14.4"
+title: "Restore a database with a specific gaval/gval column count"
+descr:
+    - run "python mkdb.py --test-db --gval_count=40 --gaval_count=40"
+    - set the following options in bombrowser.ini:
+         [BOMBROWSER]
+         [...]
+           gvalnames=
+         [...]
+               gval40:Test gval40
+         [...]
+           gavalnames=
+         [...]
+               gaval40:Test gaval40
+    - from bombrowser, copy code 820001 to 820001-test
+    - from bombrowser, set (use edit code) the following values for code 820001-test:
+         In main window: Test gval40 -> test1
+         In children list: Test gaval40 -> test2
+    - run "[python] bombrowser[.py] --manage-db --dump-tables <filename>"
+    - from bombrowser, delete (use edit code) code 820001-test
+    - run "[python] bombrowser[.py] --manage-db --restore-tables --yes-really-i-know-what-i-want <filename>"
+    - search for and edit code 820001-test again
+expect:
+    - check that the following parameters exist (use edit window)
+         In main window: Test gval40 -> test1
+         In children list: Test gaval40 -> test2
+passed: True
+source-requirements: [1627]
+--
+id: 1444
+level: 3
+chapter_number: "4.15"
+title: "Log transaction"
+prep:
+    To enable the tests of the "Log transaction" functionality, ensure that in
+    the 'bombrowser.ini' file the following lines exist:
+        [LOGGER]
+        enable=1
+        #filename=log.txt
+        filename=/tmp/log.txt
+        # 0 or 1
+        compress=0
+        # none
+        # weekly
+        # monthly
+        # yearly
+        logrotate=monthly
+--
+id: 1445
+level: 4
+chapter_number: "4.15.1"
+title: "Log create a new revision"
+descr:
+    In the code list window, search for code 820123, right-click,
+    select the command "revise code", and create a new code revision
+     setting all properties in the dialog and pressing OK
+expect:
+    - In the log file, all info for the new revision appears
+    - At the beginning of the log transaction section, the header reports the
+      correct logged action, date, and user
+passed: True
+source-requirements: [1629]
+--
+id: 1446
+chapter_number: "4.15.2"
+title: "Log create a new code"
+descr:
+    In the code list window, search for code 820123, right-click,
+    select the command "copy code", and create a new code
+     setting all properties in the dialog and pressing OK
+expect:
+    - In the log file, all info for the new **revision** appears
+    - At the beginning of the log transaction section, the header reports the
+      correct logged action, date, and user
+passed: True
+source-requirements: [1629]
+--
+id: 1447
+chapter_number: "4.15.3"
+title: "Log edit a code (1/6)"
+descr:
+    In the code list window, search for code 820123, right-click,
+    select the command "edit code".
+    Update the description and the revision by adding "-bis" as a suffix, and then save the changes
+expect:
+    - In the log file, all info for the updated revision appears with '-' and '+'
+      to highlight which information has changed
+    - At the beginning of the log transaction section, the header reports the
+      correct logged action, date, and user
+passed: True
+source-requirements: [1629]
+--
+id: 1448
+chapter_number: "4.15.4"
+title: "Log edit a code (2/6)"
+descr:
+    In the code list window, search for code 820123, right-click,
+    select the command "edit code".
+    Update the code by adding a child and removing another one.
+    Then save the changes
+expect:
+    - In the log file, all info for the updated revision appears with '-' and '+'
+      to highlight which information has changed
+    - At the beginning of the log transaction section, the header reports the
+      correct logged action, date, and user
+passed: True
+source-requirements: [1629]
+--
+id: 1449
+chapter_number: "4.15.5"
+title: "Log edit a code (3/6)"
+descr:
+    In the code list window, search for code 820123, right-click,
+    select the command "edit code".
+    Update the code by adding a new document and removing another one.
+    Then save the changes
+expect:
+    - In the log file, all info for the updated revision appears with '-' and '+'
+      to highlight which information has changed
+    - At the beginning of the log transaction section, the header reports the
+      correct logged action, date, and user
+passed: True
+source-requirements: [1629]
+--
+id: 1450
+chapter_number: "4.15.6"
+title: "Log edit a code (4/6)"
+descr:
+    In the code list window, search for code 820154, right-click,
+    select the command "edit code".
+    Enter the edit date dialog and advance the intermediate date by 2 days.
+    Then save the changes
+expect:
+    - In the log file, all info for the updated dates appears with '-' and '+'
+      to highlight which information has changed
+    - At the beginning of the log transaction section, the header reports the
+      correct logged action, date, and user
+passed: True
+source-requirements: [1629]
+--
+id: 1451
+chapter_number: "4.15.7"
+title: "Log edit a code (5/6)"
+descr:
+    In the code list window, search for code 820154, right-click,
+    select the command "edit code".
+    Delete the intermediate revision
+expect:
+    - In the log file, all info for the deleted revision appears, along with the
+      new date revisions
+    - At the beginning of the log transaction section, the header reports the
+      correct logged action, date, and user
+passed: True
+source-requirements: [1629]
+--
+id: 1452
+chapter_number: "4.15.8"
+title: "Log edit a code (6/6)"
+descr:
+    In the code list window, search for code 100046, revise it so that it has at
+    least two revisions.
+    Select the command "edit code".
+    Delete the code
+expect:
+    - In the log file, all info for the deleted revisions appears
+    - At the beginning of the log transaction section, the header reports the
+      correct logged action, date, and user
+passed: True
+source-requirements: [1629]
+--
+id: 1453
+chapter_number: "4.15.9"
+title: "Log edit a code: path doesn't exist"
+prep:
+    In the 'bombrowser.ini' file set 'filename' to a path that
+    doesn't exist.
+      [LOGGER]
+        [...]
+        filename=/path-that-doesnt-exist/tmp/log.txt
+        [...]
+descr:
+    In the code list window, search for code 100047, revise it.
+    Select the command "revise code".
+    Make a new code revision
+expect: "A backtrace appears stating that the path does not exist."
+passed: True
+source-requirements: [1630]
+--
+id: 1454
+chapter_number: "4.15.10"
+title: "Log edit a code: compress the file"
+prep:
+    In the 'bombrowser.ini' file 'compress' to 1
+      [LOGGER]
+        [...]
+        filename=/tmp/log.txt
+        compress=1
+        [...]
+descr:
+    In the code list window, search for code 100047, revise it.
+    Select the command "revise code".
+    Make a new code revision
+expect:
+    - The log file is a compressed (.gz) file
+    - The content of the zip file is the log file
+source-requirements: [1631]
+--
+id: 1600
+level: 2
+chapter_number: "5"
+title: "Traceability matrixes"
+--
+id: 1601
+level: 3
+chapter_number: "5.1"
+title: "Test to requirements"
+text: "@@show_tg_reqs_to_src_reqs()"
+--
+id: 1602
+chapter_number: "5.2"
+title: "Requirements to tests"
+text: "@@show_src_reqs_to_tg_reqs()"
+--
+id: 1603
+chapter_number: "5.3"
+title: "Tests without requirements"
+text: "@@show_test_without_reqs()"
+--
+id: 1604
+chapter_number: "5.4"
+title: "Requirements without tests"
+text: "@@show_reqs_without_child()"
+--
+id: 1455
+level: 2
+chapter_number: "6"
+title: "Conclusion"
+--
+id: 1605
+level: 3
+chapter_number: "6.1"
+title: "Summary of the results"
+text:
+    Date: 2024-06-22
+    'bombrowser' version: v1.0.4
+    @@show_stat()
+--
+id: 1606
+chapter_number: "6.2"
+title: "List of failed tests"
+text: "@@show_failed_tests()"
+--
+id: 1607
+chapter_number: "6.3"
+title: "Final result"
+text: "xxx"
+--

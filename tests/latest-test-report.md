@@ -1,1 +1,1 @@
-ok/TESTS-v1.0.2.md
+ok/testsplan-v1.0.4.md
