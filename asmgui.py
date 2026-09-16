@@ -513,7 +513,7 @@ class AssemblyWindow(bbwindow.BBMainWindow):
                 a = QAction("Export bom ...", self)
                 a.triggered.connect(utils.Callable(self._export_as_template, name))
             else:
-                a = QAction("Export bom (%s)"%(descr), self)
+                a = QAction("Export bom [%s]"%(descr), self)
                 a.triggered.connect(utils.Callable(self._export_as_template, name))
             m.addAction(a)
 
